@@ -3,3 +3,4 @@
 # Redirect default Netlify subdomain to primary domain
 http://outlier.netlify.com/* https://xiangyun.rbind.io/:splat 301!
 https://outlier.netlify.com/* https://xiangyun.rbind.io/:splat 301!
+http://xiangyun.rbind.io/* https://xiangyun.rbind.io/:splat 301!
