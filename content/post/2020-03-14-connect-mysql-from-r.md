@@ -2,17 +2,24 @@
 date: "2020-03-14"
 slug: connect-mysql-from-r
 title: 从 R 连接 MySQL
+author: 黄湘云
+meta_extra: "审稿：邱怡轩；编辑：向悦"
 categories:
-  - 统计软件
   - R 语言
 tags:
   - MySQL
   - MariaDB
   - data.table
   - dplyr
+  - odbc
+  - DBI
   - Fedora 29
-toc: true
+forum_id: 421363
 ---
+
+> 注意：
+>
+> 本文于 2020年6月24日 随统计之都主站更新
 
 > Code should be written to minimize the time it would take for someone else to understand it.
 >
@@ -47,21 +54,21 @@ sudo systemctl start mysqld.service
 sudo systemctl enable mysqld.service
 ```
 
-除了红帽系的 Fedora 系统还有 CentOS/Ubuntu/MacOS/Windows 等等，开源软件一大特点就是跨系统平台，支持的系统和版本详见 [MySQL 官网下载页面](https://dev.mysql.com/downloads/mysql/)
+除了红帽系的 Fedora 系统，MySQL 还支持 CentOS/Ubuntu/MacOS/Windows 等系统，开源软件一大特点就是跨系统平台，支持的系统和版本详见 [MySQL 官网下载页面](https://dev.mysql.com/downloads/mysql/)。
 
-下面进入 MySQL 数据库管理系统。默认状态下，只有 root 账户，且初始密码是空的，无密码，直接回车即可登录进去。
+下面进入 MySQL 数据库管理系统，默认状态下，只有 root 账户，且初始密码是空的，无密码，直接回车即可登录进去。
 
 ```bash
 mysql -u root -p
 ```
 
-进入 MySQL 后可以设置新的 root 账户密码，比如这里的 xxx。 [^mysql-password]
+进入 MySQL 后可以设置新的 root 账户密码，比如这里的 xxx。
 
 ```sql
 ALTER USER 'root'@'localhost' IDENTIFIED BY 'xxx';
 ```
 
-进入 MySQL 数据库管理系统，创建一个名叫 demo 的数据库。你可能已经发现在 SQL 语法中，对关键词是不区分大小写的，比如 `create` 或 `CREATE` 都是可以的，但是在 SQL 代码中应尽量保持一致，对保留字都用大写，对自造的库名、表名、列名都用小写，我司采用的 Hive 仓库前端 [HUE](https://github.com/cloudera/hue) 就支持 SQL 语句格式化，再辅以手动调整，用起来也比较方便，这主要针对交付阶段的代码整理，以便协作和共享。还有一些网站也提供免费的 SQL 代码格式化工具，比如 [SQLFormat](https://sqlformat.org/)
+接下来，在进入 MySQL 数据库管理系统后，创建一个名叫 demo 的数据库。你可能已经发现在 SQL 语法中，对关键词是不区分大小写的，比如 `create` 或 `CREATE` 都是可以的，但是在 SQL 代码中应尽量保持一致，对保留字都用大写，对自造的库名、表名、列名都用小写，我司采用的 [Hive](https://github.com/apache/hive) 仓库前端 [HUE](https://github.com/cloudera/hue) 就支持 SQL 语句格式化，再辅以手动调整，用起来也比较方便，这主要针对交付阶段的代码整理，以便协作和共享。一些网站也提供免费的 SQL 代码格式化工具，比如 [SQLFormat](https://sqlformat.org/)。
 
 ```sql
 CREATE DATABASE demo;
@@ -75,7 +82,7 @@ CREATE DATABASE demo;
 install.packages(c('DBI','RMySQL'))
 ```
 
-然后加载 R包连接 MySQL 数据库， dbname 是要连接的数据库名称，host 是数据库所在的网络位置，本机常常是 localhost。 远程的话，就是 IP 地址，port 是连接 MySQL 数据库系统的端口，MySQL 作为一款软件，同时也是一个数据库管理系统，要访问它，就要知道访问它的通道，默认开放的端口就是 3306，user 用来指定登录的用户，比如拥有最高权限的 root 账户或其它账户，password 就是对应的账户密码。
+然后加载 R 包连接 MySQL 数据库，`dbname` 是要连接的数据库名称，`host` 是数据库所在的网络位置，本机常常是 localhost。 远程的话，就是 IP 地址，`port` 是连接 MySQL 数据库系统的端口，MySQL 作为一款软件，同时也是一个数据库管理系统，要访问它，就要知道访问它的通道，默认开放的端口就是 3306，`user` 用来指定登录的用户，比如拥有最高权限的 root 账户或其它账户，`password` 就是对应的账户密码。
 
 
 ```r
@@ -83,7 +90,6 @@ library(DBI)
 # 用 root 账户登录连接数据库 demo
 con <- DBI::dbConnect(RMySQL::MySQL(), dbname = 'demo', host = "localhost", port = 3306, user = "root", password = "xxx")
 ```
-
 
 一般来讲，root 账户对应于超级管理员，拥有最高管理权限，系统中数据库、表等等想删哪个删哪个，但是权力越大责任也越大，在 Linux 系统中，每个登录系统的账户在首次使用 sudo 命令的时候都会蹦出如下警告：
 
@@ -112,6 +118,8 @@ root's password:
 因此，数据库权限管理就是非常重要的话题，这里就不多展开了。总之，权限管理不到位，后果很严重，这里仅提供一则 [删库新闻](https://www.pingwest.com/a/206242)和一幅漫画以飨读者[^drop-table]。
 
 ![exploits-of-a-mom](https://imgs.xkcd.com/comics/exploits_of_a_mom.png)
+
+[^drop-table]: <https://stackoverflow.com/questions/332365/how-does-the-sql-injection-from-the-bobby-tables-xkcd-comic-work>
 
 
 到目前为止，数据库 demo 里还什么表都没有，先将 R 环境中默认加载的数据集 mtcars 写入 demo 库，并将表名也命名为 mtcars
@@ -232,9 +240,9 @@ dbWriteTable(con, "mtcars", mtcars, row.names = FALSE)
 
 顺便一提，从上面还可以看出 `tibble::rownames_to_column(mtcars)` 函数的相通之处了，**tibble** 包作为 **dplyr** 家族的一员，在数据库操作层面的对标是非常一致的。关于 **dplyr** 乃至 **tidyverse** 的数据库接口层的讨论详见[帖子](https://d.cosx.org/d/420769-base-r-vs-tidyverse-bt/8)。
 
-[^drop-table]: <https://stackoverflow.com/questions/332365/how-does-the-sql-injection-from-the-bobby-tables-xkcd-comic-work>
 
-## SQL 与 R 数据操作 {#sql-in-r}
+
+## 对比 SQL 与 R 的数据操作 {#sql-vs-r}
 
 R 语言本身就是擅长数据分析的，各种数据操作都很完备，下面以统计数据库里表的行数为例做简要介绍。
 
@@ -287,11 +295,12 @@ dplyr::count(tibble::as_tibble(mtcars))
 > --- Hadley Wickham
 
 
-而与 SQL 等价的 **data.table** 操作：
+而与 SQL 等价的 Base R / **data.table** 操作：
 
 ```r
+# Base R 操作
 dim(mtcars)[1]
-# 或者
+# data.table 操作
 library(data.table)
 mt <- as.data.table(mtcars)
 mt[, .N]
@@ -300,11 +309,12 @@ mt[, .N]
 [1] 32
 ```
 
-作为数据分析师，数据操作方面，除了 SQL，我司的主力工具就是 **data.table**，[深受领导和大家的喜爱](https://mp.weixin.qq.com/s/LwpNbYwbSed2hvPQa0IwVw)，它的底层全部用 C 语言写，C 代码占比 **65.5%** 覆盖测试达到 **99.9%**，支持 3.1.0 至今的所有 R 软件版本，没有任何第三方软件和 R 包的硬性依赖，也很少有用户可见的 breaking changes ，核心开发者**49**人，自 2006年4月15日发布至今已经过去 **5000** 天，久经考验，核心开发者中包含多位华人，汉化程度在所有 R 包中 **最高**，没有之一。积累了大量数据操作的案例，多语言支持吸引了很多的用户和开发者，而 **dplyr** 将很多实验性的功能暴露给用户，然后不断 breaking changes，让用户很痛苦 --- [别在生产环境中用净土](https://shrektan.com/post/2019/11/14/use-no-tdv-in-production/)！
-
+作为数据分析师，数据操作方面，除了 SQL，我司的主力工具就是 **data.table**，[深受领导和大家的喜爱](https://mp.weixin.qq.com/s/LwpNbYwbSed2hvPQa0IwVw)，它的底层全部用 C 语言写，C 代码占比 **65.7%** 覆盖测试达到 **99.9%**，支持 3.1.0 至今的所有 R 软件版本，没有任何第三方软件和 R 包的硬性依赖，也很少有用户可见的 breaking changes ，核心开发者**49**人，自 2006年4月15日发布至今已经过去 **5000** 天，久经考验，核心开发者中包含多位华人，汉化程度在所有 R 包中 **最高**，没有之一。积累了大量数据操作的案例，多语言支持吸引了很多的用户和开发者，而 **dplyr** 将很多实验性的功能暴露给用户，然后不断 breaking changes，让用户很痛苦 --- [别在生产环境中用净土](https://shrektan.com/post/2019/11/14/use-no-tdv-in-production/)！
 
 
 [^dplyr-homepage]: <https://www.tidyverse.org/blog/2020/03/dplyr-1-0-0-is-coming-soon/>
+
+在实际生产环境中，我们最好也不要指望所有的数据操作都用 R 来实现，最好让 SQL 和 R 都发挥各自的优势，不要信奉 R 就是王道，也不要信奉什么“没有什么是一个 SQL 解决不了的，有，就用两个”的鬼话！总之，如果一行 SQL 真能解决的就不要用 R，反之亦然。所以下面简单介绍几个 MySQL 数据库的常用命令，纯当作为新手体验一下 MySQL 数据库的环境。
 
 ## MySQL 入门命令 {#naive-commands}
 
@@ -373,72 +383,14 @@ mt[, .N]
 
 ## RMySQL 核心命令 {#core-commands}
 
-**DBI** 是一个用于数据库连接的基础包，表的连接 dbConnect/dbDisconnect、创建 dbCreateTable、读 dbReadTable 、写 dbWriteTable、删除 dbRemoveTable、查 dbSendQuery/dbGetQuery
+**DBI** 是一个用于数据库连接的基础包，表的连接 `dbConnect()`/`dbDisconnect()`、创建 `dbCreateTable()`、读 `dbReadTable()` 、写 `dbWriteTable()`、删除 `dbRemoveTable()`、查 `dbSendQuery()`/`dbGetQuery()`，更细一层，查看表是否存在 `dbExistsTable()`、 表的各个字段 `dbListFields()`、各个字段的存储类型 `dbDataType()` 等。以上操作对于每一种数据库都是需要支持的，所以它们被抽象出来作为一个基础的类，被具体的数据库连接接口如 **RMySQL**/**RSQLite** 等实例化继承。就 **RMySQL** 来说，和 **DBI** 共同的函数占到了其自身的 53.33%，由于 MySQL 数据库本身支持事务操作（简单点，可以理解为单条记录的频繁增、删、改、查），所以 **RMySQL** 提供了支持事务操作的特别函数 `dbWithTransaction()`。
 
-事务操作 dbWithTransaction
-
-是否存在 dbExistsTable 各个字段 dbListFields 类型 dbDataType
-
-DBI 没有绑定驱动类型
-
-这里应该有一个思维导图
-
-```r
-library(DBI)
-ls("package:DBI")
-```
-```
- [1] "ANSI"                   "dbAppendTable"          "dbBegin"                "dbBind"                 "dbBreak"               
- [6] "dbCallProc"             "dbCanConnect"           "dbClearResult"          "dbColumnInfo"           "dbCommit"              
-[11] "dbConnect"              "dbCreateTable"          "dbDataType"             "dbDisconnect"           "dbDriver"              
-[16] "dbExecute"              "dbExistsTable"          "dbFetch"                "dbGetConnectArgs"       "dbGetDBIVersion"       
-[21] "dbGetException"         "dbGetInfo"              "dbGetQuery"             "dbGetRowCount"          "dbGetRowsAffected"     
-[26] "dbGetStatement"         "dbHasCompleted"         "dbIsReadOnly"           "dbIsValid"              "dbListConnections"     
-[31] "dbListFields"           "dbListObjects"          "dbListResults"          "dbListTables"           "dbQuoteIdentifier"     
-[36] "dbQuoteLiteral"         "dbQuoteString"          "dbReadTable"            "dbRemoveTable"          "dbRollback"            
-[41] "dbSendQuery"            "dbSendStatement"        "dbSetDataMappings"      "dbUnloadDriver"         "dbUnquoteIdentifier"   
-[46] "dbWithTransaction"      "dbWriteTable"           "fetch"                  "Id"                     "isSQLKeyword"          
-[51] "isSQLKeyword.default"   "make.db.names"          "make.db.names.default"  "show"                   "SQL"                   
-[56] "sqlAppendTable"         "sqlAppendTableTemplate" "sqlColumnToRownames"    "sqlCommentSpec"         "sqlCreateTable"        
-[61] "sqlData"                "sqlInterpolate"         "SQLKeywords"            "sqlParseVariables"      "sqlParseVariablesImpl" 
-[66] "sqlQuoteSpec"           "sqlRownamesToColumn"  
-```
-
-odbc 仅限于提供 ODBC 驱动的数据库
-
-```r
-library(odbc)
-ls("package:odbc")
-```
-```
- [1] "dbBegin"                          "dbBind"                           "dbClearResult"                   
- [4] "dbColumnInfo"                     "dbCommit"                         "dbConnect"                       
- [7] "dbDataType"                       "dbDisconnect"                     "dbExistsTable"                   
-[10] "dbFetch"                          "dbGetInfo"                        "dbGetQuery"                      
-[13] "dbGetRowCount"                    "dbGetRowsAffected"                "dbGetStatement"                  
-[16] "dbHasCompleted"                   "dbIsValid"                        "dbListFields"                    
-[19] "dbListTables"                     "dbQuoteIdentifier"                "dbQuoteString"                   
-[22] "dbRemoveTable"                    "dbRollback"                       "dbSendQuery"                     
-[25] "dbSendStatement"                  "dbWriteTable"                     "odbc"                            
-[28] "odbcConnectionActions"            "odbcConnectionColumns"            "odbcConnectionIcon"              
-[31] "odbcDataType"                     "odbcListColumns"                  "odbcListDataSources"             
-[34] "odbcListDrivers"                  "odbcListObjects"                  "odbcListObjectTypes"             
-[37] "odbcPreviewObject"                "odbcSetTransactionIsolationLevel" "show"                            
-[40] "sqlCreateTable"                   "sqlData"                         
-```
-
-
-所以总结一下，DBI odbc 和 RMySQL / RMariaDB 等其它数据库接口包的关系，整合
-
-https://db.rstudio.com/
-
-https://github.com/r-dbi/odbc
-
+**DBI** 是没有绑定驱动类型的，新近出现的 **odbc** 包在 **DBI** 基础上支持连接所有提供 ODBC（ Open Database Connectivity ） 驱动的数据库，它统一了 **RMySQL**/**RSQLite** 的接口，使用起来更加方便，不需要安装很多的 R 包，学习一个就够了，和 **DBI** 共同的函数占到 70.73%，可以说是高度兼容，详见 <https://github.com/r-dbi/odbc> 和 <https://db.rstudio.com/>。
 
 
 ## 其它连接方式 {#other-cons}
 
-在本文的环境设定下，当然还可以用 RMariaDB 包来连接 MySQL 数据库，但是我们推荐用 odbc 包来连接。
+在本文的环境设定下，当然还可以用 **RMariaDB** 包来连接 MySQL 数据库，但是我们推荐用 **odbc** 包来连接。
 
 ```bash
 sudo dnf install -y mariadb mariadb-devel mariadb-connector-odbc unixODBC-devel
@@ -488,46 +440,19 @@ dbGetQuery(con, "SHOW columns FROM mtcars")
 dbDisconnect(conn = con)
 ```
 
-RStudio IDE 对 odbc 的连接方式有加持，一旦连接上，会出现一个 Connections 窗口，见下图，可以一层层展开 demo 数据库的每个表、字段，非常方便。
+RStudio IDE 对上面的连接方式有加持，一旦连接上，会出现一个 Connections 窗口，见下图，可以点击图中圈住的小三角一层层展开 demo 数据库的每个表、字段，非常方便查看。
 
 ![odbc-rstudio-view](https://user-images.githubusercontent.com/12031874/79093512-0cfa2b00-7d87-11ea-9436-9d18cda01946.png)
 
+RStudio IDE 还支持 SQL 脚本的即时预览，见下图
 
-## MySQL 与 R 之间的协作技巧 {#tips-tricks}
+![odbc-rstudio-preview](https://user-images.githubusercontent.com/12031874/85215136-f4217d80-b3a6-11ea-87a3-36447213c184.png)
 
-### MySQL 与 RStudio IDE 的集成 {#mysql-rstudio-ide}
+如果你有在多个数据库之间频繁切换的需求，可以考虑更为专业的工具，比如 [DBeaver](https://github.com/dbeaver/dbeaver)，它可以统一管理有 JDBC 驱动的数据库，常见的数据库都有 JDBC 驱动哈！
 
-即时预览
+## 导出表的字段信息
 
-### MySQL 与 R Markdown 的集成 {#mysql-rmarkdown}
-
-SQL 结构化查询语言的缩写，既然也算是门语言，
-
-knitr 的 sql 引擎是如何实现的
-
-```r
-library(knitr)
-names(knit_engines$get())
-```
-```
- [1] "awk"         "bash"        "coffee"      "gawk"        "groovy"      "haskell"    
- [7] "lein"        "mysql"       "node"        "octave"      "perl"        "psql"       
-[13] "Rscript"     "ruby"        "sas"         "scala"       "sed"         "sh"         
-[19] "stata"       "zsh"         "highlight"   "Rcpp"        "tikz"        "dot"        
-[25] "c"           "fortran"     "fortran95"   "asy"         "cat"         "asis"       
-[31] "stan"        "block"       "block2"      "js"          "css"         "sql"        
-[37] "go"          "python"      "julia"       "sass"        "scss"        "theorem"    
-[43] "lemma"       "corollary"   "proposition" "conjecture"  "definition"  "example"    
-[49] "exercise"    "proof"       "remark"      "solution" 
-```
-
-
-### RMySQL 实现事务操作 {#mysql-transaction}
-
-
-### 抽取 MySQL 表的描述为 markdown 表格 {#mysql-markdown}
-
-有时候需要将存储的 MySQL 表的各个字段的含义说清楚，以便交流协作。将查询结果转化为 markdown 表格就是一个有用的技巧：
+有时候需要将 MySQL 表的各个字段的描述导出，以便交流协作。将查询结果转化为 markdown 表格就是一个有用的技巧：
 
 ```sql
 SELECT *
@@ -544,7 +469,7 @@ WHERE table_schema = 'demo'
 1 row in set (0.001 sec)
 ```
 
-将表 mtcars 的列名和存储类型抽取出来转化成 markdown 表格，后期我们还可以自己填一个字段，用来解释说明每个字段的含义。你可能会觉得 mtcars 数据集不就在 R 环境中吗，还啰里八嗦地用 SQL 查询的方式获取表的列名。实际上生产环境中， MySQL 里存储的库表是非常大的，不适合都拉到 R 环境中，即使 R 环境能放下，流程上也不对，会直接导致数据操作的性能低下。我们要考虑数据操作的性能，流程上的优化、让数据库和分析软件做各自擅长的事！
+将表 mtcars 的列名和存储类型抽取出来转化成 markdown 表格，后期我们还可以自己填一个字段，用来解释说明每个字段的含义。
 
 ```r
 library(DBI)
@@ -557,20 +482,23 @@ knitr::kable(table_desc[, c('Field', 'Type')], format = 'markdown', row.names = 
 # 将结果直接贴在 md 文档里，见下表
 ```
 
-|Field     |Type   |
-|:---------|:------|
-|row_names |text   |
-|mpg       |double |
-|cyl       |double |
-|disp      |double |
-|hp        |double |
-|drat      |double |
-|wt        |double |
-|qsec      |double |
-|vs        |double |
-|am        |double |
-|gear      |double |
-|carb      |double |
+| Field     | Type   |
+| :-------- | :----- |
+| row_names | text   |
+| mpg       | double |
+| cyl       | double |
+| disp      | double |
+| hp        | double |
+| drat      | double |
+| wt        | double |
+| qsec      | double |
+| vs        | double |
+| am        | double |
+| gear      | double |
+| carb      | double |
+
+你可能会觉得 mtcars 数据集不就在 R 环境中吗，还啰里八嗦地用 SQL 查询的方式获取表的列名。实际上生产环境中，MySQL 里存储的库、表都是非常大的，不适合都拉到 R 环境中，即使 R 环境能放下，流程上也不对，会直接导致数据操作的性能低下。我们要考虑数据操作的性能，流程上的优化、让数据库系统管理软件和分析软件做各自擅长的事！
+
 
 ## 本篇彩蛋 {#bonus}
 
@@ -617,4 +545,3 @@ sessionInfo()
 1. SQL 代码格式化网站 <https://sqlformat.org/>
 1. 赖明星 MySQL 笔记 <http://mingxinglai.com/cn/>
 1. 无名氏的读书笔记 --- 编写可读代码的艺术 <http://beiyuu.com/readable-code>
-1. 在线通过网络安装迷你版 CentOS 8  <https://linuxhint.com/install_centos8_netboot_iso/>
