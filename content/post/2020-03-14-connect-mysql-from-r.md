@@ -19,7 +19,7 @@ forum_id: 421363
 
 > 注意：
 >
-> 本文于 2020年6月24日 随统计之都主站更新
+> 本文于 2020年6月24日 随统计之都主站文章[从 R 连接 MySQL](https://cosx.org/2020/06/connect-mysql-from-r/)更新
 
 > Code should be written to minimize the time it would take for someone else to understand it.
 >
