@@ -37,6 +37,10 @@ paginate = 9
     name = "文章"
     url = "/archives/"
     weight = 5
+[[menu.main]]
+    name = "简历"
+    url = "/resume/"
+    weight = 6
 
 [params]
     description = "网站由 Hugo 和 blogdown 强力驱动"
