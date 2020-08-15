@@ -56,3 +56,7 @@ paginate = 9
     uncategorized = "未分类"
     title_categories = "栏目分类"
     title_tags = "关键词列表"
+
+[markup]
+    [markup.goldmark.renderer]
+      unsafe = true
