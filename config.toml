@@ -42,6 +42,11 @@ paginate = 9
     url = "/resume/"
     weight = 6
 
+[[menu.main]]
+    name = "友链"
+    url = "/blog/"
+    weight = 7
+
 [params]
     description = "网站由 Hugo 和 blogdown 强力驱动"
     summary_length = 200
