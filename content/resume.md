@@ -6,7 +6,7 @@ author: 黄湘云
 
 ## 个人简介
 
-2015-2018 年在 [中国矿业大学（北京）理学院](https://lxy.cumtb.edu.cn/) 攻读统计学方向的硕士学位，师从 [李再兴教授](https://lxy.cumtb.edu.cn/info/1067/1231.htm)，研究广义线性混合效应模型及其应用，研究兴趣包含统计计算、统计图形、混合模型 (mixed models)， 以及社交网络数据和空间数据分析。他是一个热爱开源，乐于分享的假 Geek。在中国最大的 R 语言中文社区 --- 统计之都任 [副主编](https://cosx.org/members/)，平时活跃于 ~~戏称全球最大的同性交友网站~~ [Github](https://github.com/XiangyunHuang) ，混迹于统计之都 [论坛](https://d.cosx.org/) 和 [爆栈网](https://stackoverflow.com)。
+2015-2018 年在 [中国矿业大学（北京）理学院](https://lxy.cumtb.edu.cn/) 攻读统计学方向的硕士学位，师从 [李再兴教授](https://lxy.cumtb.edu.cn/info/1067/1231.htm)，研究广义线性混合效应模型及其应用，研究兴趣包含统计计算、统计图形、混合模型 (mixed models)， 以及社交网络数据和空间数据分析。他是一个热爱开源，乐于分享的假 Geek。在中国最大的 R 语言中文社区 --- 统计之都任 [副主编](https://cosx.org/members/)，平时活跃于 ~~戏称全球最大的同性交友网站~~ [Github](https://github.com/XiangyunHuang) ，混迹于统计之都 [论坛](https://d.cosx.org/u/Cloud2016) 和 [爆栈网](https://stackoverflow.com)。
 
 ## 联系方式
 
@@ -19,13 +19,13 @@ author: 黄湘云
 
 ## 教育经历
 
-- 2015.09 ~ 2018.12 理学硕士： [中国矿业大学（北京）](https://www.cumtb.edu.cn/) 理学院，统计学
+- 2015.09 ~ 2018.12 理学硕士： [中国矿业大学（北京）](https://www.cumtb.edu.cn/) 理学院，统计学（混合效应模型方向）
 - 2011.09 ~ 2015.06 理学学士： [中国矿业大学（北京）](https://www.cumtb.edu.cn/) 理学院，数学与应用数学
 - 2008.06 ~ 2011.06 高中： [湖南省邵东县第三中学](http://www.sd3z.com/) 理科
 
 ## 工作经历
 
-- 2019.10 ~ 2020.08 [51Talk](https://www.51talk.com/)（51Talk） 数据分析师
+- 2019.10 ~ 2020.09 [北京大生知行科技有限公司](https://www.51talk.com/)（51Talk） 数据分析师
 - 2019.01 ~ 2019.03 [北京文因互联科技有限公司](https://www.memect.cn/) 软件工程师
 - 2017.09 ~ 2017.11 [北京新浪互联信息服务有限公司](https://www.sina.com.cn/)（新浪总部） 数据分析实习生
 - 2017.03 [北京一流科技有限公司](https://www.oneflow.org/) 机器学习实习生
@@ -33,7 +33,7 @@ author: 黄湘云
 ## 开源项目
 
 - 将 LaTeX 书籍模版 [ElegantBook](https://github.com/ElegantLaTeX/ElegantBook) 迁移到 R Markdown 生态中 <https://github.com/XiangyunHuang/ElegantBookdown>
-- R 包 [bookdown](https://github.com/rstudio/bookdown)、 [rticles](https://github.com/rstudio/rticles) [brms](https://github.com/paul-buerkner/brms/) 的贡献者
+- R 包 [knitr](https://github.com/yihui/knitr)、[rmarkdown](https://github.com/rstudio/rmarkdown)、[bookdown](https://github.com/rstudio/bookdown)、[rticles](https://github.com/rstudio/rticles)、[tinytex](https://github.com/yihui/tinytex)、 [brms](https://github.com/paul-buerkner/brms/) 的贡献者
 - 书籍 《ggplot2: Elegant Graphics for Data Analysis》<https://ggplot2-book.org/>、《Mastering Shiny》<https://mastering-shiny.org/>、《R Markdown Cookbook》<https://bookdown.org/yihui/rmarkdown-cookbook/> 的贡献者
 
 ## 书籍笔记
