@@ -35,6 +35,8 @@ author: 黄湘云
 - 将 LaTeX 书籍模版 [ElegantBook](https://github.com/ElegantLaTeX/ElegantBook) 迁移到 R Markdown 生态中 <https://github.com/XiangyunHuang/ElegantBookdown>
 - R 包 [knitr](https://github.com/yihui/knitr)、[rmarkdown](https://github.com/rstudio/rmarkdown)、[bookdown](https://github.com/rstudio/bookdown)、[rticles](https://github.com/rstudio/rticles)、[tinytex](https://github.com/yihui/tinytex)、 [brms](https://github.com/paul-buerkner/brms/) 的贡献者
 - 书籍 《ggplot2: Elegant Graphics for Data Analysis》<https://ggplot2-book.org/>、《Mastering Shiny》<https://mastering-shiny.org/>、《R Markdown Cookbook》<https://bookdown.org/yihui/rmarkdown-cookbook/> 的贡献者
+- 基于 bookdown 的 Tufte 风格的书籍模版 [ElegantTufteBookdown](https://github.com/XiangyunHuang/ElegantTufteBookdown)
+- Beamer 幻灯片模版合集 <https://github.com/XiangyunHuang/awesome-beamers>
 
 ## 书籍笔记
 
@@ -43,11 +45,35 @@ author: 黄湘云
 - 《数据科学与 R 语言》（未出版）<https://xiangyunhuang.github.io/r4ds/>
 - 《空间广义线性混合效应模型及其应用》（硕士学位论文兼模版） <https://xiangyunhuang.github.io/Thesis-Template-Bookdown/>
 
+
 ## 社区贡献
 
 - 2018.12 ~ 至今 统计之都副主编、理事 <https://cosx.org/> 
 - 2017.10 ~ 至今 统计之都论坛版主 <https://d.cosx.org/>
 - 参与统计之都沙龙、R 会、微信公众号的组织和运营
+
+作为审稿人参与文章贡献（节选）
+
+- 2020.09 [一个访问量高达 1300 万的 shiny 应用的诞生故事](https://cosx.org/2020/09/covid19-bulletin-board/) 作者[苏玮](https://github.com/swsoyee)
+- 2019.10 [从贝叶斯视角看多层模型](https://cosx.org/2019/10/bayesian-multilevel-model/) 作者[张沥今](https://github.com/zhanglj37)
+- 2019.09 [翻译：常见统计检验的本质都是线性模型（或：如何教统计学）](https://cosx.org/2019/09/common-tests-as-linear-models/) 作者 [Jonas Kristoffer Lindeløv](https://github.com/lindeloev)
+- 2019.05 [女士品茶的实验、假设和检验](https://cosx.org/2019/05/recheck-the-lady-tasting-tea/) 作者[丁鹏](https://statistics.berkeley.edu/people/peng-ding)
+- 2017.09 [心理学的危机](https://cosx.org/2017/09/psychology-in-crisis/) 作者[杨洵默](https://tcya.xyz/)
+
+作为作者投稿的文章贡献
+
+- 2020.06 [从 R 连接 MySQL](https://cosx.org/2020/06/connect-mysql-from-r/)
+- 2017.10 [漫谈条形图](https://cosx.org/2017/10/discussion-about-bar-graph/) 和[李宇轩](https://github.com/MikeLYX)
+- 2017.05 [随机数生成及其在统计模拟中的应用](https://cosx.org/2017/05/random-number-generation/)
+- 2016.07 [R 语言做符号计算](https://cosx.org/2016/07/r-symbol-calculate)
+
+作为采访者参与的贡献
+
+- 2019.07 [数据资产论](https://cosx.org/2019/07/data-asset-theory/) 和王小宁一起在北大光华采访王汉生教授
+
+作为译者参与的贡献
+
+- 2019.08 [从统计地显著到显著地统计](https://cosx.org/2019/08/significantly-statistical/) 和任焱合译
 
 ## 会议演讲
 
