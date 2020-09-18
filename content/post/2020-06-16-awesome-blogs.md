@@ -8,7 +8,6 @@ categories:
 tags:
   - 博客主页
   - 学者主页
-thumbnail: https://wp-contents.netlify.com/2019/06/lixingzhu.png
 description: "个人博客列表大合集，内容上是有偏的，R语言方面的多一些。多年经常浏览博客，几年下来浏览器书签人满为患，故而导出整理在此，博客顺序是随意的，既没按拼音顺序，也没按某种排名。对我而言，直接在浏览器搜关键字更快，反正常用的我都记住了。当年读硕士，在看论文的过程中收集的中外学者主页（部分），缩略图是我和祖师爷朱力行教授的合照。"
 ---
 
@@ -219,6 +218,7 @@ description: "个人博客列表大合集，内容上是有偏的，R语言方�
 | R Weekly                        | https://rweekly.org/                     |
 | R bloggers                      | https://www.r-bloggers.com/              |
 | Daily R                         | https://dailyr.netlify.com/              |
+| Awesome Blogdown                | https://awesome-blogdown.com/            |
 | DataScience+                    | https://datascienceplus.com/             |
 | Simply Statistics               | https://simplystatistics.org/            |
 | Capital of Statistics           | https://cosx.org/                        |
