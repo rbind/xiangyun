@@ -74,7 +74,7 @@ author: 黄湘云
 
 作为译者参与的贡献
 
-- 2019.08 [从统计地显著到显著地统计](https://cosx.org/2019/08/significantly-statistical/) 和任焱合译
+- 2019.08 [从统计地显著到显著地统计](https://cosx.org/2019/08/significantly-statistical/) 和[任焱](https://github.com/Ryanna-github)合译
 
 ## 会议演讲
 
