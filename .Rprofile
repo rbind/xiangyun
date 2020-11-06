@@ -6,8 +6,9 @@ options(
   blogdown.title_case = function(x) {
     # if the title is pure ASCII, use title case
     if (xfun::is_ascii(x)) tools::toTitleCase(x) else x
-  }, blogdown.hugo.server = c("--buildDrafts", "--buildFuture"),
-  blogdown.hugo.dir = if(grepl('Fedora', utils::osVersion)) '/opt/hugo',
+  }, blogdown.hugo.server = c("--buildDrafts", "--buildFuture", "--navigateToChanged"),
   blogdown.publishDir = paste(getwd(), "public", sep = "-"),
-  blogdown.draft.output = FALSE
+  blogdown.draft.output = FALSE,
+  blogdown.knit.on_save = FALSE,
+  blogdown.serve_site.startup = FALSE
 )
