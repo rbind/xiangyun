@@ -12,7 +12,7 @@ description: "个人博客列表大合集，内容上是有偏的，R语言方�
 ---
 
 
-# 学者主页
+## 学者主页
 
 |学者                        |主页                                                                      |
 |:---------------------------|:-------------------------------------------------------------------------|
@@ -40,15 +40,15 @@ description: "个人博客列表大合集，内容上是有偏的，R语言方�
 |Paula Moraga                |https://paula-moraga.github.io                                            |
 |Francesco Bailo             |http://www.francescobailo.net/                                            |
 |Edzer Pebesma               |https://www.r-spatial.org/                                                |
-|Håvard Rue                  |http://www.r-inla.org/                                                    |
+|Håvard Rue                  |https://www.sr-inla.org/                                                    |
 |Douglas Bates               |https://www.stat.wisc.edu/~bates/                                         |
 |Jenny Bryan                 |https://jennybryan.org/                                                   |
-|John Chambers               |http://statweb.stanford.edu/~jmc4/                                        |
+|John Chambers               |https://statweb.stanford.edu/~jmc4/                                        |
 |Peter Dalgaard              |http://staff.pubhealth.ku.dk/~pd/                                         |
 |Uwe Ligges                  |https://www.statistik.tu-dortmund.de/ligges.html                          |
 |Martin Mächler              |https://people.math.ethz.ch/~maechler/                                    |
 |Di Cook                     |https://dicook.org/                                                       |
-|Frank Harrell               |http://www.fharrell.com/                                                  |
+|Frank Harrell               |https://www.fharrell.com/                                                  |
 |Ross Ihaka                  |https://www.stat.auckland.ac.nz/~ihaka/                                   |
 |Martyn Plummer              |https://warwick.ac.uk/fac/sci/statistics/staff/academic-research/plummer/ |
 |Bettina Grün                |http://ifas.jku.at/gruen/                                                 |
@@ -67,7 +67,7 @@ description: "个人博客列表大合集，内容上是有偏的，R语言方�
 
 
 
-# 博客主页
+## 博客主页
 
 |作者博主                      |博客主页                                             |
 |:-----------------------------|:-----------------------------------------------------|
@@ -96,8 +96,8 @@ description: "个人博客列表大合集，内容上是有偏的，R语言方�
 |Jozef Hajnala                 |https://jozef.io/                                     |
 |Roger Bivand                  |https://www.nhh.no/en/employees/faculty/roger-bivand/ |
 |John Fox                      |https://socialsciences.mcmaster.ca/jfox/              |
-|Dirk Eddelbuettel             |http://dirk.eddelbuettel.com/                         |
-|Joshua Kunst                  |http://jkunst.com/                                    |
+|Dirk Eddelbuettel             |https://dirk.eddelbuettel.com/                         |
+|Joshua Kunst                  |https://jkunst.com/                                    |
 |Marc Taylor                   |https://menugget.blogspot.com/                        |
 |me nugget                     |https://www.r-graph-gallery.com/                      |
 |Holtz Yan                     |https://www.yan-holtz.com/                            |
@@ -177,10 +177,9 @@ description: "个人博客列表大合集，内容上是有偏的，R语言方�
 |Jiang Jun                     |https://jiangjun.netlify.com/                         |
 |邱怡轩                        |https://statr.me/                                     |
 |杨洵默                        |https://tcya.xyz/                                     |
-|杜亚磊                        |http://yalei.name/                                    |
 |冯俊晨                        |http://www.fengjunchen.com/                           |
 |刘思喆                        |https://www.bjt.name/                                 |
-|陈丽云                        |http://www.loyhome.com/                               |
+|陈丽云                        |https://www.loyhome.com/                               |
 |谢益辉                        |https://yihui.org/                                   |
 |王奕如                        |https://earo.me/                                      |
 |王江浩                        |https://jianghao.github.io                            |
@@ -196,7 +195,7 @@ description: "个人博客列表大合集，内容上是有偏的，R语言方�
 |高策                          |https://gaocegege.com                                 |
 |赵鹏                          |https://openr.pzhao.org/                              |
 |高涛                          |https://joegaotao.github.io                           |
-|寇强                          |http://qkou.info/                                     |
+|寇强                          |https://qkou.info/                                     |
 |唐源                          |https://terrytangyuan.github.io                       |
 |杜雨                          |https://github.com/ljtyduyu                           |
 |钟浩光                        |http://www.zhonghaoguang.com/                         |
@@ -211,7 +210,7 @@ description: "个人博客列表大合集，内容上是有偏的，R语言方�
 |彭浩                          |https://haopen.github.io/                             |
 |苏玮                          |https://swsoyee.github.io/                            |
 
-# 博客聚合
+## 聚合博客
 
 | 名称                            | 链接                                     |
 |:--------------------------------|:-----------------------------------------|
@@ -224,7 +223,7 @@ description: "个人博客列表大合集，内容上是有偏的，R语言方�
 | Capital of Statistics           | https://cosx.org/                        |
 
 
-# 统计图展
+## 统计图展
 
 
 | 名称                     | 链接                                                 |
@@ -233,25 +232,7 @@ description: "个人博客列表大合集，内容上是有偏的，R语言方�
 | htmlwidgets Gallery      | https://gallery.htmlwidgets.org/                     |
 | ggplot2 Gallery          | https://www.ggplot2-exts.org/gallery/                |
 
-# 资源下载
+## 资源下载
 
 - 论文 <https://sci-hub.tw/>
 - 书籍 <https://libgen.is/> 和 <http://gen.lib.rus.ec/>
-
-
----
-
-用[工具](https://github.com/kent666a/py-chrome-bookmarks-markdown)从谷歌浏览器导出书签后，将 Markdown 文件提取整理为表格
-
-```r
-raw_text <- readLines(con = "导出的 md 文件地址", encoding = "UTF-8") 
-str_extract <- function(x){
-  unlist(regmatches(x, regexec("\\[(.*?)\\]\\((.*?)\\)", x)))[-1]
-}
-library(magrittr)
-lapply(raw_text, str_extract) %>%
-  unlist() %>%
-  matrix(., ncol = 2, byrow = TRUE) %>%
-  knitr::kable(., col.names = c("学者", "主页"))
-```
-
