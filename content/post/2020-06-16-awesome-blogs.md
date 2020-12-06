@@ -201,7 +201,7 @@ description: "个人博客列表大合集，内容上是有偏的，R语言方�
 |陈皓                          |https://coolshell.cn                                  |
 |谭显英                        |https://shrektan.com/                                 |
 |谢士晨                        |http://shichen.name/                                  |
-|夏骁凯                        |http://xiaokai.me/                                    |
+|夏骁凯                        |https://xiaokai.me/                                   |
 |杨志飞                        |https://zhifei.me/                                    |
 |李家翔                        |https://jiaxiangli.netlify.com/                       |
 |赵鹏                          |http://www.parallelr.com/                             |
