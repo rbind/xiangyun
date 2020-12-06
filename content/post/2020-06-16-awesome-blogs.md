@@ -101,7 +101,6 @@ description: "个人博客列表大合集，内容上是有偏的，R语言方�
 |Marc Taylor                   |https://menugget.blogspot.com/                        |
 |me nugget                     |https://www.r-graph-gallery.com/                      |
 |Holtz Yan                     |https://www.yan-holtz.com/                            |
-|Holtz Yan                     |https://www.r-graph-gallery.com/                      |
 |Graham Williams               |https://togaware.com/                                 |
 |Nick Tierney                  |https://www.njtierney.com/                            |
 |R-Ladies Global               |https://rladies.org/                                  |
