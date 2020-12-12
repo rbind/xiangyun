@@ -48,7 +48,7 @@ paginate = 9
     weight = 7
 
 [params]
-    description = "网站由 Hugo 和 blogdown 强力驱动"
+    description = "网站由 [Hugo](https://github.com/gohugoio/hugo) 和 [blogdown](https://github.com/rstudio/blogdown) 强力驱动"
     summary_length = 200
     github_edit = "https://github.com/XiangyunHuang/xiangyun/edit/master/content/"
     footer = "&copy; [黄湘云](https://xiangyun.rbind.io/) 2016 - 2020 | [Github](https://github.com/XiangyunHuang) | [推特](https://twitter.com/StatCloud) | [爆栈网](https://stackoverflow.com/users/8278176) | [新浪微博](https://weibo.com/Cloud2016)"
