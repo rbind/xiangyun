@@ -134,7 +134,10 @@ R Markdown 还可以用来写书，特别是数据科学领域相关的书籍，
 
 如何让问题可重复、数据可重复、计算可重复、经验可沉淀，在第 13 届中国 R 语言会议上 [统计软件专场_黄湘云](https://www.bilibili.com/video/BV1Vp4y1B7N1) **粗浅**地谈了可重复性数据分析的工作流，特别是实际工作和学习过程中遇到的一些困难。
 
-最后，这堆砌三个材料，只想说明一点，可重复性数据分析的理想很丰满，道路很曲折，大数据分析的道路更加曲折。原想在结尾处给大家更多正能量，又正值 2021 年新年之际，可这就是现状，接受它吧！
+最后，这堆砌三个材料，只想说明一点，可重复性数据分析的理想很丰满，道路很曲折，大数据分析的道路更加曲折。原想在结尾处给大家更多正能量，又正值 2021 年新年之际，可这就是现状，接受它吧！一首[黄沾](https://en.wikipedia.org/wiki/James_Wong_Jim)作词郑少秋演唱的「笑看风云」送给大家。
+
+<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=86 src="//music.163.com/outchain/player?type=2&id=1477530893&auto=1&height=66"></iframe>
+
 
 <!--
 Yihui Xie R Markdown Recipes 一分鐘學一道菜 https://vimeo.com/469252441
@@ -150,13 +153,10 @@ Yihui Xie 随机漫步十八年的傻瓜 https://vimeo.com/492610094 https://sli
 1. <https://github.com/ElegantLaTeX/ElegantBook>
 1. Sweave：打造一个可重复的统计研究流程, 谢益辉, 2010, <https://cosx.org/2010/11/reproducible-research-in-statistics/>
 1. Sweave User Manual, Friedrich Leisch and R Core Team, <https://stat.ethz.ch/R-manual/R-devel/library/utils/doc/Sweave.pdf>
-1. The Rocker Project: Docker Containers for the R Environment, Carl Boettiger & Dirk Eddelbuettel <https://github.com/rocker-org/rocker>
-1. R 语言历史: R 进入 4.0 时代 <https://jozef.io/r921-happy-birthday-r/>
-1. 数据科学工具学习指导 <https://github.com/shervinea/mit-15-003-data-science-tools>
-1. Andrew Gelman, Aki Vehtari, Daniel Simpson, Charles C. Margossian, Bob Carpenter, Yuling Yao, Lauren Kennedy, Jonah Gabry, Paul-Christian Bürkner, and Martin Modrák (2020). Bayesian workflow. <https://arxiv.org/abs/2011.01808> and <https://github.com/jgabry/bayes-workflow-book>
+1. Andrew Gelman, Aki Vehtari, Daniel Simpson, Charles C. Margossian, Bob Carpenter, Yuling Yao, Lauren Kennedy, Jonah Gabry, Paul-Christian Bürkner, and Martin Modrák (2020). Bayesian workflow. <https://arxiv.org/abs/2011.01808>
 1. Three Principles of Data Science: Predictability, Stability and Computability. 2017. Bin Yu,  <https://doi.org/10.1145/3097983.3105808>
 1. 心理学的危机, 2017, 杨洵默, <https://cosx.org/2017/09/psychology-in-crisis/>
 1. Estimating the reproducibility of psychological science. 2015, Science, 349 (6251). <https://science.sciencemag.org/content/349/6251/aac4716>
-1. https://en.wikipedia.org/wiki/Literate_programming
-
----
+1. <https://en.wikipedia.org/wiki/Literate_programming>
+1. R 语言历史: R 进入 4.0 时代 <https://jozef.io/r921-happy-birthday-r/>
+1. S, R, and Data Science. John M. Chambers, The R Journal (2020) 12:1, pages 462-476. <https://doi.org/10.32614/RJ-2020-028>
