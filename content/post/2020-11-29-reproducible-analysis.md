@@ -12,7 +12,7 @@ description: "唐纳德·高德纳在 1984 年首次提出文学编程的概念�
 ---
 
 
-在当今这个时代，「数据分析」这个词不说家喻户晓，也是耳熟能详，要是回到大约 60 年前，John W. Tukey 那个年代，你能想象吗？他不仅想了，还在思考数据分析的未来，他的未来就是我们的现在。数据分析，从过去到现在，面临的挑战也在变，以前的算力问题，现在似乎解决了。真的解决了吗？还是只是解决了以前的算力问题，毕竟那个年代收集处理 1MB 的数据也是很困难的，现在要面对 1PB 的数据呐！从大的层面上讲，困难是相对的，甚至比之前更困难。得益于现代的计算和存储设备，在数据层面上的探索、分析和交流更加可重复和高效，加速了数据价值的沉淀。可重复性本身也有不同的层次，今天主要讲的就是计算层面的可重复性，并且假定问题本身是具备可重复性的，用代码连贯地串起来数据分析的过程，用版本管理工具记录数据探索的过程，让这两个过程走得越顺利，意味着可重复的成本越低，成本越低越能够被人采纳和使用，推广起来更容易。下面从文学编程开始，介绍可重复性的代表工具 R Markdown，以及可重复性研究的现状，一起期待一下未来吧。
+在当今这个时代，「数据分析」这个词不说家喻户晓，也是耳熟能详，要是回到大约 60 年前，John W. Tukey 那个年代，你能想象吗？他不仅想了，还在思考数据分析的未来，他提到的未来就是我们的现在。数据分析，从过去到现在，面临的挑战也在变，以前的算力问题，现在似乎解决了。真的解决了吗？还是只是解决了以前的算力问题，毕竟那个年代收集处理 1MB 的数据也是很困难的，现在要面对 1PB 的数据呐！从大的层面上讲，困难是相对的，甚至比之前更困难。得益于现代的计算和存储设备，在数据层面上的探索、分析和交流更加可重复和高效，加速了数据价值的沉淀。可重复性本身也有不同的层次，今天主要讲的就是计算层面的可重复性，并且假定问题本身是具备可重复性的，用代码连贯地串起来数据分析的过程，用版本管理工具记录数据探索的过程，让这两个过程走得越顺利，意味着可重复的成本越低，成本越低越能够被人采纳和使用，推广起来更容易。下面从文学编程开始，介绍可重复性的代表工具 R Markdown，以及可重复性研究的现状，一起期待一下未来吧。
 
 ## 文学编程
 
@@ -97,7 +97,7 @@ R Markdown 支持丰富的格式输出，灵活的定制方式，以 PDF 格式�
 
 ![pdf-documents](https://user-images.githubusercontent.com/12031874/103166609-d6a20480-485e-11eb-89d3-8f3882700912.png)
 
-R Markdown 也可以制作 beamer 风的幻灯片，确切地说是将 beamer 主题迁移到 R Markdown 中，下面要介绍的这个汉风主题由 [林莲枝](https://github.com/liantze/) 开发，已正式发布在 [CTAN](https://www.ctan.org/pkg/pgfornament-han) 上。网络上 beamer 主题已经很多了，两年前，笔者曾收集整理了一个 [awesome-beamers](https://github.com/XiangyunHuang/awesome-beamers) 列表，毕业后，也没再更新了，却还在缓慢加🌟。一个不务专业的过来人建议不搞学术的话，还是从 beamer 弃坑吧，它定制化成本太高，捣鼓各种主题还不如多读几篇论文，新的主题迟早也会用腻。单独拎出来讲，是因为这是我见过风格清新、简洁、看不出 beamer 风、非常具有中国特色的主题。哎！我是个劝人跳坑，自己却还在坑里的人，这种人该怎么办？后来，硬是把它迁移到 R Markdown 环境中才罢手，完整的 R Markdown 模版见[链接](https://github.com/XiangyunHuang/masr/blob/master/examples/beamer-pgfornament-han.Rmd)。前段时间已经注意到 [TC 君](https://github.com/tcgriffith) 和 [李家郡](https://github.com/llijiajun) 准备[接锅](https://github.com/cosname/cosx.org/issues/901)介绍迁移这类模版背后的黑历史，详见[投稿1](https://github.com/cosname/cosx.org/pull/917)和[投稿2](https://github.com/cosname/cosx.org/pull/914)，不甚欣喜，感兴趣的读者敬请期待。
+R Markdown 也可以制作 beamer 风的幻灯片，确切地说是将 beamer 主题迁移到 R Markdown 中，下面要介绍的这个汉风主题由 [林莲枝](https://github.com/liantze/) 开发，已正式发布在 [CTAN](https://www.ctan.org/pkg/pgfornament-han) 上。网络上 beamer 主题已经很多了，两年前，笔者曾收集整理了一个 [awesome-beamers](https://github.com/XiangyunHuang/awesome-beamers) 列表，毕业后，也没再更新了，却还在缓慢加🌟。一个不务专业的过来人建议不搞学术的话，还是从 beamer 弃坑吧，它定制化成本太高，捣鼓各种主题还不如多读几篇论文，新的主题迟早也会用腻。单独拎出来讲，是因为这是我见过风格清新、简洁、看不出 beamer 风、非常具有中国特色的主题。哎！我是个劝人跳坑，自己却还在坑里的人，这种人该怎么办？后来，硬是把它迁移到 R Markdown 环境中才罢手，完整的 R Markdown 模版见[链接](https://github.com/XiangyunHuang/masr/blob/master/examples/beamer-pgfornament-han.Rmd)。前段时间已经注意到 [TC 君](https://github.com/tcgriffith) 和 [李家郡](https://github.com/llijiajun) 准备[接锅](https://github.com/cosname/cosx.org/issues/901)介绍迁移这类模版背后的黑历史，详见[用 R Markdown 写毕业论文](https://github.com/cosname/cosx.org/pull/917)和[R Markdown 与 LaTeX 的结合](https://github.com/cosname/cosx.org/pull/914)，不甚欣喜，感兴趣的读者敬请期待。
 
 ![beamer-slides](https://user-images.githubusercontent.com/12031874/103167172-bc1e5a00-4863-11eb-89fb-d5378db3bc50.gif)
 
@@ -107,7 +107,7 @@ R Markdown 还可以用来写书，特别是数据科学领域相关的书籍，
 ![ElegantBookdown](https://user-images.githubusercontent.com/12031874/103174181-f7884b00-489a-11eb-9464-7b254a1aaa23.gif)
 
 
-[^msg]: 我在此书的贡献主要是将差不多 10 年前的 [LyX](https://www.lyx.org) 书稿搬迁到 R Markdown 里，利用开源的工具配置了测试和部署的环境，更新了不少代码，形成了当前 HTML 网页和 PDF 两种格式。
+[^msg]: 我在此书的贡献主要是将差不多 10 年前的 [LyX](https://www.lyx.org) 书稿搬迁到 R Markdown 里，利用开源的工具配置了测试和部署的环境，更新了不少代码，形成了当前 HTML 网页和 PDF 两种格式。后来，在翻新维护的过程中，又得到许多人的帮助，第一次真正意义上感受到开源和协作的力量。[赵鹏老师](https://pzhao.org/zh/) 回国之后，给书增添了很多新的内容，和出版社的沟通也全靠他，我真是左手右手一边抱了一条大腿。此书历经十余年，有望在今年上半年出版。原计划在去年下半年面世，因为内容审查的原因，后又做了一次较大修改。
 
 [^masr]: 在学校里可能还有成块的时间去读论文，写笔记，工作之后，记录的都是工作之中零零碎碎的东西，很多、很杂，也不成体系，对我来说，最大的作用是当作字典一样的工具去搜索和查找，短期来看投入产出比很低，长期来看却是可以节省大量时间的。曾有人跟我说，写书的话不要把什么都堆放在一起，他是对的，如果写书的话，首先要有较为清晰的规划和目标读者，深吸一口气，集中精力写完第一章。但是，我目前的话还是以厚积为主，时间稍多的时候就整理个一章半节的。
 
@@ -150,13 +150,14 @@ Yihui Xie 随机漫步十八年的傻瓜 https://vimeo.com/492610094 https://sli
 1. Literate Programming, R Markdown, and Reproducible Research, Yihui Xie, 2020. <https://slides.yihui.org/2020-covid-rmarkdown.html>
 1. Higher, further, faster with Marvelous R Markdown, [Thomas Mock](https://themockup.blog/), 2020, <https://bit.ly/marvelRMD>
 1. 在 LaTeX 中进行文学编程, 黄晨成, 2015, <https://liam.page/2015/01/23/literate-programming-in-latex/>
-1. <https://github.com/ElegantLaTeX/ElegantBook>
+1. ElegantBook 优美的 LaTeX 书籍模板, Dongsheng Deng 和 Liam Huang, <https://github.com/ElegantLaTeX/ElegantBook>
 1. Sweave：打造一个可重复的统计研究流程, 谢益辉, 2010, <https://cosx.org/2010/11/reproducible-research-in-statistics/>
 1. Sweave User Manual, Friedrich Leisch and R Core Team, <https://stat.ethz.ch/R-manual/R-devel/library/utils/doc/Sweave.pdf>
-1. Andrew Gelman, Aki Vehtari, Daniel Simpson, Charles C. Margossian, Bob Carpenter, Yuling Yao, Lauren Kennedy, Jonah Gabry, Paul-Christian Bürkner, and Martin Modrák (2020). Bayesian workflow. <https://arxiv.org/abs/2011.01808>
+1. Bayesian workflow. Andrew Gelman, Aki Vehtari, Daniel Simpson, Charles C. Margossian, Bob Carpenter, Yuling Yao, Lauren Kennedy, Jonah Gabry, Paul-Christian Bürkner, and Martin Modrák, 2020.  <https://arxiv.org/abs/2011.01808>
 1. Three Principles of Data Science: Predictability, Stability and Computability. 2017. Bin Yu,  <https://doi.org/10.1145/3097983.3105808>
 1. 心理学的危机, 2017, 杨洵默, <https://cosx.org/2017/09/psychology-in-crisis/>
-1. Estimating the reproducibility of psychological science. 2015, Science, 349 (6251). <https://science.sciencemag.org/content/349/6251/aac4716>
+1. Estimating the reproducibility of psychological science. Science, 2015, 349 (6251). <https://science.sciencemag.org/content/349/6251/aac4716>
 1. <https://en.wikipedia.org/wiki/Literate_programming>
-1. R 语言历史: R 进入 4.0 时代 <https://jozef.io/r921-happy-birthday-r/>
-1. S, R, and Data Science. John M. Chambers, The R Journal (2020) 12:1, pages 462-476. <https://doi.org/10.32614/RJ-2020-028>
+1. R 语言历史: R 进入 4.0 时代, 2020, Jozef, <https://jozef.io/r921-happy-birthday-r/>
+1. S, R, and Data Science. John M. Chambers, The R Journal, 2020, 12(1), pages 462-476. <https://doi.org/10.32614/RJ-2020-028>
+1. The Future of Data Analysis, John W. Tukey, The Annals of Mathematical Statistics, 1962, 33(1), pages 1-67. <https://www.jstor.org/stable/2237638>
