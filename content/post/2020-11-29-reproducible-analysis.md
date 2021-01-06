@@ -16,12 +16,12 @@ description: "唐纳德·高德纳在 1984 年首次提出文学编程的概念�
 
 ## 文学编程
 
-谈到可重复性，不得不提及文学编程，它是一种新的编程范式，在 1984 年由 [唐纳德·高德纳](https://en.wikipedia.org/wiki/Donald_Knuth)  首次提出，相比于传统的编程语言，它强调以自然语言呈现计算逻辑，文本和代码相互混合的方式，并且从计算机代码的执行逻辑过渡到人的思维逻辑。大家熟知的 LaTeX 其实也是一种文学编程，发展到现在，文学编程的工具在不断迭代，Sweave、R Markdown 和 Jupyter 身上都由文学编程的影子。相比于 Word、Excel 和 PowerPoint，它们更易版本控制和团队协作，计算过程可重复，工作效率更高，经验可沉淀，让我们更加专注思考本身，而尽量少去管排版的细枝末节，从编辑的工作中解放出来，做作者主要该做的事。想象一下，一本 300 多页图文并茂的书，如果全程用 Word 排版面临的挑战会有多大，图、表、引用的增、删、改牵一发而动全身，仅此一项就可以让人精疲力尽。
+谈到可重复性，不得不提及文学编程，它是一种新的编程范式，在 1984 年由 [唐纳德·高德纳](https://en.wikipedia.org/wiki/Donald_Knuth)  首次提出，相比于传统的编程语言，它强调以自然语言呈现计算逻辑，文本和代码相互混合的方式，并且从计算机代码的执行逻辑过渡到人的思维逻辑。大家熟知的 LaTeX 其实也是一种文学编程，发展到现在，文学编程的工具在不断迭代，R Sweave、[R Markdown](https://rmarkdown.rstudio.com/) 和 [Jupyter](https://jupyter.org/) 身上都有文学编程的影子。相比于 Word、Excel 和 PowerPoint，它们更易版本控制和团队协作，计算过程可重复，工作效率更高，经验可沉淀，让我们更加专注思考，而尽量少去管排版的细枝末节，从编辑的工作中解放出来，做作者主要该做的事。想象一下，一本 300 多页图文并茂的书，全程用 Word 排版面临的挑战会有多大？图、表、引用的增、删、改牵一发而动全身，仅此一项就可以让人精疲力尽。
 
 ## R Markdown
 
 可重复性数据分析工具，首推 R Markdown，它主要使用 R 语言做数据分析，而 R 语言可以说是为数据分析而生，
-最早可追溯其前身 S 语言，距今已有 40 多年历史，由 Richard A. Becker，John M. Chambers 和 Allan R. Wilks 在贝尔实验室做数据分析时开发。在 R Markdown 出现以前，已经有 R Sweave 了，两种工具形式上最大的不同在于前者将 R 语言混在 Markdown 文本中，而后者是混在 LaTeX 文本中。目前，R Sweave 内置在 R 软件中，由两个函数 Sweave（编织）和 Stangle（缠结）来实现主要功能，[knitr](https://yihui.org/knitr/) 受此启发，这也是为什么后来 knitr 的图标设计成织毛衣的形象 <img width="3%" src="https://user-images.githubusercontent.com/12031874/103172964-86449a00-4892-11eb-8288-8bbdab506066.png">。下面先介绍一下 Sweave 的工作流程。
+最早可追溯其前身 S 语言，距今已有 40 多年历史，由 Richard A. Becker，John M. Chambers 和 Allan R. Wilks 在贝尔实验室做数据分析时开发。在 R Markdown 出现以前，已经有 R Sweave 了，两种工具形式上最大的不同在于前者将 R 语言混在 Markdown 文本中，而后者是混在 LaTeX 文本中。目前，R Sweave 内置在 R 软件中，由两个函数 Sweave（编织）和 Stangle（缠结）来实现主要功能，[knitr](https://yihui.org/knitr/) 受此启发，这也是为什么后来 knitr 的图标设计成织毛衣的形象 <img width="3%" src="https://user-images.githubusercontent.com/12031874/103172964-86449a00-4892-11eb-8288-8bbdab506066.png">。下面先介绍一下 R Sweave 的工作流程。
 
 ![sweave-workflow](https://user-images.githubusercontent.com/12031874/103164245-c6306080-4843-11eb-9e93-6c15354204b1.png)
 
@@ -83,7 +83,7 @@ tools::texi2pdf("Sweave-test-1.tex")
 
 输出结果如下
 
-![output](https://user-images.githubusercontent.com/12031874/103172742-8e9bd580-4890-11eb-8125-8d0826bbdb0d.png)
+![sweave-output](https://user-images.githubusercontent.com/12031874/103172742-8e9bd580-4890-11eb-8125-8d0826bbdb0d.png)
 
 rmarkdown 自 2014 年登陆 CRAN 以来，自身功能不断加强，在 RStudio IDE 的加持下越来越易用，周边生态支持越来越完善，应用场景越来越多，比如写书做笔记、搭建个人博客、制作网页幻灯片、开发数据面板等等。目前，可重复性角色的主要承担者 R Markdown 已经相当成熟，周边生态也正在逐步壮大。
 
@@ -125,11 +125,11 @@ R Markdown 还可以用来写书，特别是数据科学领域相关的书籍，
 面对当前大数据环境下的挑战，以 Hadoop 生态为代表的大规模数据基础设施，以容器集群为代表的弹性扩展的分布式计算承担越来越重要的角色，计算成本和效率问题已经越来越突出。在计算可重复的数据分析流程中，它们处于底层支撑角色，常常看不到却是非常重要的。
 
 
-2015年《自然》杂志刊登数百位学术研究人员联名提出心理学实验的可重复性问题，研究结果表明大量研究结果不可重复，或者效果不显著，或者功效没有那么大。
+2015 年《自然》杂志刊登数百位学术研究人员联名提出心理学实验的可重复性问题，研究结果表明大量研究结果不可重复，或者效果不显著，或者功效没有那么大。
 
 ![reproducible-analysis](https://user-images.githubusercontent.com/12031874/103152913-7dd35d00-47c7-11eb-9cd5-cdcea39f22b7.png)
 
-2017年郁彬探讨数据科学的三个原则：可预测性、稳定性和可计算性，并阐述在数据驱动决策中的内在联系和重要性。机器学习以预测为中心，计算为核心，实现了相当范围的数据驱动型成功。预测是检验当下的有用方式，好的预测建立在过去和未来的稳定性之上。相对于数据和模型，稳定性是数据结果可解释性和可重复性的最小要求，可重复性是可靠性和稳健性的基础保障。
+2017 年郁彬探讨数据科学的三个原则：可预测性、稳定性和可计算性，并阐述在数据驱动决策中的内在联系和重要性。机器学习以预测为中心，计算为核心，实现了相当范围的数据驱动型成功。预测是检验当下的有用方式，好的预测建立在过去和未来的稳定性之上。相对于数据和模型，稳定性是数据结果可解释性和可重复性的最小要求，可重复性是可靠性和稳健性的基础保障。
 
 
 如何让问题可重复、数据可重复、计算可重复、经验可沉淀，在第 13 届中国 R 语言会议上 [统计软件专场_黄湘云](https://www.bilibili.com/video/BV1Vp4y1B7N1) **粗浅**地谈了可重复性数据分析的工作流，特别是实际工作和学习过程中遇到的一些困难。
@@ -150,14 +150,14 @@ Yihui Xie 随机漫步十八年的傻瓜 https://vimeo.com/492610094 https://sli
 1. Literate Programming, R Markdown, and Reproducible Research, Yihui Xie, 2020. <https://slides.yihui.org/2020-covid-rmarkdown.html>
 1. Higher, further, faster with Marvelous R Markdown, [Thomas Mock](https://themockup.blog/), 2020, <https://bit.ly/marvelRMD>
 1. 在 LaTeX 中进行文学编程, 黄晨成, 2015, <https://liam.page/2015/01/23/literate-programming-in-latex/>
-1. ElegantBook 优美的 LaTeX 书籍模板, Dongsheng Deng 和 Liam Huang, <https://github.com/ElegantLaTeX/ElegantBook>
+1. ElegantBook 优美的 LaTeX 书籍模板, 邓东升和黄晨成, 2020, <https://github.com/ElegantLaTeX/ElegantBook>
 1. Sweave：打造一个可重复的统计研究流程, 谢益辉, 2010, <https://cosx.org/2010/11/reproducible-research-in-statistics/>
-1. Sweave User Manual, Friedrich Leisch and R Core Team, <https://stat.ethz.ch/R-manual/R-devel/library/utils/doc/Sweave.pdf>
-1. Bayesian workflow. Andrew Gelman, Aki Vehtari, Daniel Simpson, Charles C. Margossian, Bob Carpenter, Yuling Yao, Lauren Kennedy, Jonah Gabry, Paul-Christian Bürkner, and Martin Modrák, 2020.  <https://arxiv.org/abs/2011.01808>
+1. Sweave User Manual, Friedrich Leisch and R Core Team, 2020, <https://stat.ethz.ch/R-manual/R-devel/library/utils/doc/Sweave.pdf>
+1. Bayesian workflow. Andrew Gelman, Aki Vehtari, Daniel Simpson, Charles C. Margossian, Bob Carpenter, Yuling Yao, Lauren Kennedy, Jonah Gabry, Paul-Christian Bürkner, and Martin Modrák, 2020. <https://arxiv.org/abs/2011.01808>
 1. Three Principles of Data Science: Predictability, Stability and Computability. 2017. Bin Yu,  <https://doi.org/10.1145/3097983.3105808>
-1. 心理学的危机, 2017, 杨洵默, <https://cosx.org/2017/09/psychology-in-crisis/>
+1. 心理学的危机, 杨洵默, 2017, <https://cosx.org/2017/09/psychology-in-crisis/>
 1. Estimating the reproducibility of psychological science. Science, 2015, 349 (6251). <https://science.sciencemag.org/content/349/6251/aac4716>
 1. <https://en.wikipedia.org/wiki/Literate_programming>
-1. R 语言历史: R 进入 4.0 时代, 2020, Jozef, <https://jozef.io/r921-happy-birthday-r/>
+1. R 语言历史: R 进入 4.0 时代, Jozef, 2020, <https://jozef.io/r921-happy-birthday-r/>
 1. S, R, and Data Science. John M. Chambers, The R Journal, 2020, 12(1), pages 462-476. <https://doi.org/10.32614/RJ-2020-028>
 1. The Future of Data Analysis, John W. Tukey, The Annals of Mathematical Statistics, 1962, 33(1), pages 1-67. <https://www.jstor.org/stable/2237638>
