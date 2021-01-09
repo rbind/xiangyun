@@ -87,11 +87,11 @@ tools::texi2pdf("Sweave-test-1.tex")
 
 rmarkdown 自 2014 年登陆 CRAN 以来，自身功能不断加强，在 RStudio IDE 的加持下越来越易用，周边生态支持越来越完善，应用场景越来越多，比如写书做笔记、搭建个人博客、制作网页幻灯片、开发数据面板等等。目前，可重复性角色的主要承担者 R Markdown 已经相当成熟，周边生态也正在逐步壮大。
 
-![rmarkdown](https://user-images.githubusercontent.com/12031874/103413582-2a8d5000-4bb5-11eb-92e1-af16c4f2125e.png)
+![rmarkdown-family](https://user-images.githubusercontent.com/12031874/104081077-58366100-5267-11eb-87a3-28c84e24bbaf.png)
 
 它站在 Pandoc (<https://pandoc.org/>) 这个巨人的肩膀上，得益于开源社区的努力，近年来，Pandoc 迭代更新越来越快，功能覆盖面越来越广，个人感受最深的是对 LaTeX 支持，这是我将幻灯片和论文从 LaTeX 彻底切换到 R Markdown 的重要原因。
 
-![rmarkdown-ecology](https://user-images.githubusercontent.com/12031874/103164243-c3357000-4843-11eb-8ccd-84c57bf0f526.png)
+![rmarkdown-application](https://user-images.githubusercontent.com/12031874/103164243-c3357000-4843-11eb-8ccd-84c57bf0f526.png)
 
 R Markdown 支持丰富的格式输出，灵活的定制方式，以 PDF 格式的报告为例，背景水印，双栏排版，交叉引用，定制环境，脚注公式、中英字体等 LaTeX 支持的文档设置都可以支持。如下图所示，完整的 R Markdown 模版见[链接](https://github.com/XiangyunHuang/masr/blob/master/examples/pdf-document.Rmd)
 
