@@ -152,6 +152,8 @@ Yihui Xie 随机漫步十八年的傻瓜 https://vimeo.com/492610094 https://sli
 1. 在 LaTeX 中进行文学编程, 黄晨成, 2015, <https://liam.page/2015/01/23/literate-programming-in-latex/>
 1. ElegantBook 优美的 LaTeX 书籍模板, 邓东升和黄晨成, 2020, <https://github.com/ElegantLaTeX/ElegantBook>
 1. Sweave：打造一个可重复的统计研究流程, 谢益辉, 2010, <https://cosx.org/2010/11/reproducible-research-in-statistics/>
+1. Sweave 后传：统计报告中的大规模计算与缓存, 谢益辉, 2011, <https://cosx.org/2011/01/cache-objects-in-sweave-stat-computation-and-graphics/>
+1. knitr 与可重复的统计研究（花絮篇）, 谢益辉, 2012, <https://cosx.org/2012/06/reproducible-research-with-knitr/>
 1. Sweave User Manual, Friedrich Leisch and R Core Team, 2020, <https://stat.ethz.ch/R-manual/R-devel/library/utils/doc/Sweave.pdf>
 1. Bayesian workflow. Andrew Gelman, Aki Vehtari, Daniel Simpson, Charles C. Margossian, Bob Carpenter, Yuling Yao, Lauren Kennedy, Jonah Gabry, Paul-Christian Bürkner, and Martin Modrák, 2020. <https://arxiv.org/abs/2011.01808>
 1. Three Principles of Data Science: Predictability, Stability and Computability. 2017. Bin Yu,  <https://doi.org/10.1145/3097983.3105808>
