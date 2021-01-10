@@ -115,7 +115,7 @@ R Markdown 还可以用来写书，特别是数据科学领域相关的书籍，
 R Markdown 还可以用来做数据分析/监控面板，特别是分部门、业务、流程等做企业关键指标的仪表盘，呈现数据指标的方式要具体情况具体分析，是个比较难的事，除了技术上，还需要对数据和业务有较深刻的理解。下面仅以示例数据集 diamonds 在可视化方面予以表达。完整的 R Markdown 模版见[链接](https://github.com/XiangyunHuang/masr/blob/devel/dashboard/000-flexdashboard/app.Rmd)
 
 
-![flexdashboard](https://user-images.githubusercontent.com/12031874/104119711-4985a200-536c-11eb-935e-ae1223dd7e70.gif)
+![flexdashboard](https://user-images.githubusercontent.com/12031874/104120199-f3b2f900-536f-11eb-90d0-95f60b5df997.gif)
 
 
 
