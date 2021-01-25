@@ -97,7 +97,7 @@ R Markdown 支持丰富的格式输出，灵活的定制方式，以 PDF 格式�
 
 ![pdf-documents](https://user-images.githubusercontent.com/12031874/103166609-d6a20480-485e-11eb-89d3-8f3882700912.png)
 
-R Markdown 也可以制作 beamer 风的幻灯片，确切地说是将 beamer 主题迁移到 R Markdown 中，下面要介绍的这个汉风主题由 [林莲枝](https://github.com/liantze/) 开发，已正式发布在 [CTAN](https://www.ctan.org/pkg/pgfornament-han) 上。网络上 beamer 主题已经很多了，两年前，笔者曾收集整理了一个 [awesome-beamers](https://github.com/XiangyunHuang/awesome-beamers) 列表，毕业后，也没再更新了，却还在缓慢加🌟。一个不务专业的过来人建议不搞学术的话，还是从 beamer 弃坑吧，它定制化成本太高，捣鼓各种主题还不如多读几篇论文，新的主题迟早也会用腻。单独拎出来讲，是因为这是我见过风格清新、简洁、看不出 beamer 风、非常具有中国特色的主题。哎！我是个劝人跳坑，自己却还在坑里的人，这种人该怎么办？后来，硬是把它迁移到 R Markdown 环境中才罢手，完整的 R Markdown 模版见[链接](https://github.com/XiangyunHuang/masr/blob/master/examples/beamer-pgfornament-han.Rmd)。前段时间已经注意到 [张桐川](https://github.com/tcgriffith) 和 [李家郡](https://github.com/llijiajun) 准备[接锅](https://github.com/cosname/cosx.org/issues/901)介绍迁移这类模版背后的黑历史，详见[用 R Markdown 写毕业论文](https://github.com/cosname/cosx.org/pull/917)和[R Markdown 与 LaTeX 的结合](https://github.com/cosname/cosx.org/pull/914)，不甚欣喜，感兴趣的读者敬请期待。
+R Markdown 也可以制作 beamer 风的幻灯片，确切地说是将 beamer 主题迁移到 R Markdown 中，下面要介绍的这个汉风主题由 [林莲枝](https://github.com/liantze/) 开发，已正式发布在 [CTAN](https://www.ctan.org/pkg/pgfornament-han) 上。网络上 beamer 主题已经很多了，两年前，笔者曾收集整理了一个 [awesome-beamers](https://github.com/XiangyunHuang/awesome-beamers) 列表，毕业后，也没再更新了，却还在缓慢加🌟。一个不务专业的过来人建议不搞学术的话，还是从 beamer 弃坑吧，它定制化成本太高，捣鼓各种主题还不如多读几篇论文，新的主题迟早也会用腻。单独拎出来讲，是因为这是我见过风格清新、简洁、看不出 beamer 风、非常具有中国特色的主题。哎！我是个劝人跳坑，自己却还在坑里的人，这种人该怎么办？后来，硬是把它迁移到 R Markdown 环境中才罢手，完整的 R Markdown 模版见[链接](https://github.com/XiangyunHuang/masr/blob/master/examples/beamer-pgfornament-han.Rmd)。前段时间已经注意到 [张桐川](https://github.com/tcgriffith) 和 [李家郡](https://github.com/llijiajun) 准备[接锅](https://github.com/cosname/cosx.org/issues/901)介绍迁移这类模版背后的黑历史，详见[用 R Markdown 写毕业论文](https://cosx.org/2021/01/writing-the-thesis-with-rmarkdown/)和[R Markdown 与 LaTeX 的结合](https://github.com/cosname/cosx.org/pull/914)，不甚欣喜，感兴趣的读者敬请期待。
 
 ![beamer-slides](https://user-images.githubusercontent.com/12031874/103167172-bc1e5a00-4863-11eb-89fb-d5378db3bc50.gif)
 
@@ -106,6 +106,7 @@ R Markdown 还可以用来写书，特别是数据科学领域相关的书籍，
 
 ![ElegantBookdown](https://user-images.githubusercontent.com/12031874/103174181-f7884b00-489a-11eb-9464-7b254a1aaa23.gif)
 
+R Markdown 可以用来写书，自然也可以用来写毕业论文，笔者曾花费不少心思，将师兄师姐那传递下来的基于 CCT 的 LaTeX 模版，更新至基于 ctex 宏包的模版，进而迁移至 bookdown 生态，当时正巧赶上 [RStudio](https://rstudio.com/) 举办的第一届 bookdown 大赛，侥幸获得[亚军奖](https://community.rstudio.com/t/announcing-winners-of-the-1st-bookdown-contest/16394)，后又在第11届中国R语言大会上介绍了[R Markdown 应用之学位论文排版](https://wp-contents.netlify.com/talks/chinar11th.pdf)，可谓一举多得。毕业论文兼模版见[链接](https://xiangyunhuang.github.io/Thesis-Template-Bookdown/)。
 
 [^msg]: 我在此书的贡献主要是将差不多 10 年前的 [LyX](https://www.lyx.org) 书稿搬迁到 R Markdown 里，利用开源的工具配置了测试和部署的环境，更新了不少代码，形成了当前 HTML 网页和 PDF 两种格式。后来，在翻新维护的过程中，又得到许多人的帮助，第一次真正意义上感受到开源和协作的力量。[赵鹏老师](https://pzhao.org/zh/) 回国之后，给书增添了很多新的内容，和出版社的沟通也全靠他，我真是左手右手一边抱了一条大腿。此书历经十余年，有望在今年上半年出版。原计划在去年下半年面世，因为内容审查的原因，后又做了一次较大修改。
 
