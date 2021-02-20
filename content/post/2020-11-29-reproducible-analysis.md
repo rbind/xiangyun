@@ -160,6 +160,12 @@ Yihui Xie R Markdown Recipes 一分鐘學一道菜 https://vimeo.com/469252441
 Yihui Xie 随机漫步十八年的傻瓜 https://vimeo.com/492610094 https://slides.yihui.org/2020-random-walk.html
 -->
 
+## 附录
+
+下面是一些收集来的 R Markdown 模版
+
+- [I have a suite of R Markdown templates for academic manuscripts, beamer presentations, and syllabi. I share them here.](https://github.com/svmiller/svm-r-markdown-templates) 
+
 
 ## 参考文献
 
@@ -179,3 +185,6 @@ Yihui Xie 随机漫步十八年的傻瓜 https://vimeo.com/492610094 https://sli
 1. R 语言历史: R 进入 4.0 时代, Jozef, 2020, <https://jozef.io/r921-happy-birthday-r/>
 1. S, R, and Data Science. John M. Chambers, The R Journal, 2020, 12(1), pages 462-476. <https://doi.org/10.32614/RJ-2020-028>
 1. The Future of Data Analysis, John W. Tukey, The Annals of Mathematical Statistics, 1962, 33(1), pages 1-67. <https://www.jstor.org/stable/2237638>
+1. 当我们谈“可重复性”的时候我们在谈什么, 胡传鹏, 2020, <https://huchuanpeng.com/zh/post/2016-08-15-four_layers_of_reproducibility/>
+1. 可重复性研究课程, Roger D. Peng, <https://www.coursera.org/learn/reproducible-research>
+1. Data Replication & Reproducibility. <https://science.sciencemag.org/content/334/6060>
