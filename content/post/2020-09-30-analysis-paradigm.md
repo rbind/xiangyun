@@ -6,6 +6,7 @@ categories:
   - 统计应用
 tags:
   - 商业思维
+draft: true
 description: "数据分析模型只有与具体业务结合起来才能发挥作用，仅仅是死记硬背基本概念是不够的。这里仅仅罗列一些网上抄来的资料，出处见参考文献，以后会就具体案例具体分析"
 ---
 
@@ -67,3 +68,4 @@ description: "数据分析模型只有与具体业务结合起来才能发挥作
 1. 神策数据博客 <https://www.sensorsdata.cn/blog/>
 1. 大数据分析中，有哪些常见的大数据分析模型？ <https://www.zhihu.com/question/36360374>
 1. 关于留存分析的文章 <https://www.sensorsdata.cn/blog/jie-xi-chang-jian-de-shu-ju-fen-xi-mo-xing-liu-cun-fen-xi/>
+1. 归因工具简介 <https://support.google.com/analytics/answer/9397590>
