@@ -41,8 +41,8 @@ author: 黄湘云
 
 ## 书籍笔记
 
-- 《现代统计图形》（即将出版）<https://msg-book.netlify.app/> 作为第二作者和[谢益辉](https://yihui.org/)、[赵鹏](https://pzhao.org/zh/)合著
-- 《现代应用统计》（未出版）<https://masr.netlify.app>
+- 《现代统计图形》（即将出版）<https://bookdown.org/xiangyun/msg> 作为第二作者和[谢益辉](https://yihui.org/)、[赵鹏](https://pzhao.org/zh/)合著
+- 《现代应用统计》（未出版）<https://bookdown.org/xiangyun/masr/>
 - 《数据科学与 R 语言》（未出版）<https://xiangyunhuang.github.io/r4ds/>
 - 《空间广义线性混合效应模型及其应用》（硕士学位论文兼模版） <https://xiangyunhuang.github.io/Thesis-Template-Bookdown/>
 
