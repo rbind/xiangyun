@@ -25,7 +25,7 @@ author: 黄湘云
 
 ## 工作经历
 
-- 2020.10 ~ xxxx.xx [北京三快在线科技有限公司](https://about.meituan.com/home) （美团）AI 平台/搜索与NLP部门/数据研发工程师
+- 2020.10 ~ xxxx.xx [北京三快在线科技有限公司](https://about.meituan.com/home) （美团）AI 平台/搜索技术部/数据研发工程师
 - 2019.10 ~ 2020.09 [北京大生知行科技有限公司](https://www.51talk.com/)（51Talk） 大数据智能中心/数据分析师
 - 2019.01 ~ 2019.03 [北京文因互联科技有限公司](https://www.memect.cn/) 软件工程师
 - 2017.09 ~ 2017.11 [北京新浪互联信息服务有限公司](https://www.sina.com.cn/)（新浪） 数据分析实习生
@@ -38,6 +38,7 @@ author: 黄湘云
 - 书籍 《ggplot2: Elegant Graphics for Data Analysis》<https://ggplot2-book.org/>、《Mastering Shiny》<https://mastering-shiny.org/>、《R Markdown Cookbook》<https://bookdown.org/yihui/rmarkdown-cookbook/> 的贡献者
 - 基于 bookdown 的 Tufte 风格的书籍模版 [ElegantTufteBookdown](https://github.com/XiangyunHuang/ElegantTufteBookdown)
 - Beamer 幻灯片模版合集 <https://github.com/XiangyunHuang/awesome-beamers>
+- 自动化部署书籍到多个网站上 <https://github.com/XiangyunHuang/bookdown-broken>
 
 ## 书籍笔记
 

@@ -38,11 +38,6 @@ paginate = 9
     url = "/archives/"
     weight = 5
 [[menu.main]]
-    name = "简历"
-    url = "/resume/"
-    weight = 6
-
-[[menu.main]]
     name = "友链"
     url = "/blog/"
     weight = 7
