@@ -24,6 +24,8 @@ description: "个人博客列表大合集，内容上是有偏的，R语言方�
 |蔡天文                      |http://www-stat.wharton.upenn.edu/~tcai/                                  |
 |李润泽                      |http://personal.psu.edu/ril4/                                             |
 |孟晓犁                      |https://statistics.fas.harvard.edu/people/xiao-li-meng                    |
+|Noel Cressie                |https://www.uow.edu.au/niasra/our-research/centre-for-environmental-informatics/people/dr-noel-cressie/ |
+|Julien Mairal               |https://thoth.inrialpes.fr/people/mairal/                                 |
 |Jiahua Chen                 |https://www.stat.ubc.ca/~jhchen/                                          |
 |Erich Leo Lehmann 1917-2019 |https://en.wikipedia.org/wiki/Erich_Leo_Lehmann                           |
 |Peter Hall 1951-2016        |https://en.wikipedia.org/wiki/Peter_Gavin_Hall                            |
@@ -63,7 +65,7 @@ description: "个人博客列表大合集，内容上是有偏的，R语言方�
 |John F Monahan              |https://www4.stat.ncsu.edu/~monahan/                                      |
 |Richard Glennie             |http://www.richardglennie.co.uk/                                          |
 |Jane-Ling                   |http://www.stat.ucdavis.edu/~wang/                                        |
-
+|Deepayan Sarkar             |https://deepayan.github.io/                                               |
 
 
 
@@ -174,12 +176,18 @@ description: "个人博客列表大合集，内容上是有偏的，R语言方�
 |WenSui Liu                    |https://statcompute.wordpress.com/                    |
 |Yuling Yao                    |https://www.yulingyao.com/                            |
 |Jiang Jun                     |https://jiangjun.netlify.com/                         |
+|Lu Zhang                      |https://luzhangstat.github.io/                        |
+|Mitchell O'Hara-Wild          |https://www.mitchelloharawild.com/                    |
+|Nick Tierney                  |https://www.njtierney.com/                            |
+|Michael Harper                |https://mikeyharper.uk/                               |
+|Hao Ma                        |https://www.haoma.io/                                 |
+|阳志平                        |https://www.yangzhiping.com/                          |
 |邱怡轩                        |https://statr.me/                                     |
 |杨洵默                        |https://tcya.xyz/                                     |
 |冯俊晨                        |http://www.fengjunchen.com/                           |
 |刘思喆                        |https://www.bjt.name/                                 |
-|陈丽云                        |https://www.loyhome.com/                               |
-|谢益辉                        |https://yihui.org/                                   |
+|陈丽云                        |https://www.loyhome.com/                              |
+|谢益辉                        |https://yihui.org/                                    |
 |王奕如                        |https://earo.me/                                      |
 |王江浩                        |https://jianghao.github.io                            |
 |朱雪宁                        |https://xueningzhu.github.io/                         |
@@ -189,12 +197,13 @@ description: "个人博客列表大合集，内容上是有偏的，R语言方�
 |边蓓蕾                        |https://statsjoke.me                                  |
 |郎大为                        |http://langdawei.com/                                 |
 |陈新鹏                        |https://chenxinpeng.github.io/                        |
+|蔡占锐                        |https://zhanruicai.github.io/                         |
 |于淼                          |https://yufree.cn/                                    |
 |肖楠                          |https://nanx.me/                                      |
 |高策                          |https://gaocegege.com                                 |
 |赵鹏                          |https://openr.pzhao.org/                              |
 |高涛                          |https://joegaotao.github.io                           |
-|寇强                          |https://qkou.info/                                     |
+|寇强                          |https://qkou.info/                                    |
 |唐源                          |https://terrytangyuan.github.io                       |
 |杜雨                          |https://github.com/ljtyduyu                           |
 |钟浩光                        |http://www.zhonghaoguang.com/                         |
@@ -204,10 +213,14 @@ description: "个人博客列表大合集，内容上是有偏的，R语言方�
 |夏骁凯                        |https://xiaokai.me/                                   |
 |杨志飞                        |https://zhifei.me/                                    |
 |李家翔                        |https://jiaxiangli.netlify.com/                       |
+|张驰原                        |https://freemind.pluskid.org/                         |
+|范叶亮                        |https://leovan.me/                                    |
 |赵鹏                          |http://www.parallelr.com/                             |
 |朱昊                          |https://zhuhao.org/                                   |
 |彭浩                          |https://haopen.github.io/                             |
 |苏玮                          |https://swsoyee.github.io/                            |
+
+
 
 ## 聚合博客
 
