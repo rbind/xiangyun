@@ -105,6 +105,65 @@ tinytex::xelatex(file = "slide-template.tex")
 
 ![check-fonts](https://user-images.githubusercontent.com/12031874/119227132-0bc92f00-bb3f-11eb-8610-8d3eb6572401.png)
 
+---
+
+最近统计之都论坛里又有人[踩](https://d.cosx.org/d/422613)到我以前[踩](https://d.cosx.org/d/419931)过的坑，这里不妨简单说一下。
+
+````
+---
+title: "测试"
+author:
+  - 无
+documentclass: ctexart
+keywords:
+  - 无
+output:
+  rticles::ctex:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+geometry: tmargin=1.8cm,bmargin=1.8cm,lmargin=2.1cm,rmargin=2.1cm  
+---
+
+$\mathbf{\Sigma}$
+````
+
+他准备在公式环境里用 `\mathbf` 命令加粗希腊字母 `$\Sigma$`，这本身是不行的，它只能用来加粗普通的字母，如 `$A,B,C,a,b,c,X,Y,Z,x,y,z$`。加粗希腊字母，需要 `\boldsymbol` 命令，而 `rticles::ctex` 中文模版，在默认设置下，会使用 Pandoc 内建 LaTeX 模版，调用 XeLaTeX 编译，加载 unicode-math 宏包处理数学公式，此时，希腊字母对 `\boldsymbol` 命令免疫，要加粗特效，必须用 unicode-math 的专用命令 `\symbf`。
+
+如果准备在文中统一采用 unicode-math 处理数学公式，那么，把 `\mathbf` 换成 `\symbf`，问题即告结束。但是，目前排版数学公式比较通用的方式不是 unicode-math，还是原来的 amsmath 及其扩展宏包。如何转过去呢？其实，很简单，在 YAML 里添加一行 `mathspec: yes` 即可，Pandoc 的 LaTeX 模版支持原先的方案，此时编译还是会报错，报错的主要信息如下：
+
+```
+! LaTeX Error: Option clash for package fontspec.
+```
+
+这是因为 ctexart 文类自动加载了 fontspec 宏包，而它与 mathspec 宏包冲突，所以要替换为原始的 article 文类，同时加载 ctex 宏包处理中文字符，这里采用 fandol 中文字体作为演示，所以目前最佳的解决方案如下：
+
+````
+---
+title: "测试"
+author:
+  - 无
+documentclass: article
+mathspec: yes
+keywords:
+  - 无
+output:
+  rticles::ctex:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+    template: null
+    extra_dependencies:
+      ctex:
+       - fontset=fandol
+geometry: tmargin=1.8cm,bmargin=1.8cm,lmargin=2.1cm,rmargin=2.1cm  
+---
+
+$\boldsymbol{\Sigma}$ 是希腊字母 $\Sigma$ 的加粗形式，$\mathcal{A}$ 是普通字母 $A$ 的花体形式。
+````
+
+---
+
 beamer 默认的主题提供了一些 block 样式，比如 exampleblock、alertblock、block 等。
 
 ````
