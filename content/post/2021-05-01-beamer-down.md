@@ -1,5 +1,5 @@
 ---
-title: beamer 不 down
+title: 地泽万物，神农不死，beamer 不 down
 subtitle: R Markdown 制作 beamer 学术幻灯片
 author: 黄湘云
 date: '2021-05-01'
@@ -14,7 +14,7 @@ tags:
 description: "LaTeX 提供 beamer 文类主要用于学术报告，从面上来看，好多主题是大学开发的，大家不约而同地使用蓝调，看多了想睡觉。目前，现代风格的 beamer 主题已经陆续涌现出来，本文旨在介绍一条 R Markdown 制作 beamer 幻灯片的入坑路径，让 beamer 看起来更加清爽些！"
 ---
 
-相信绝大多数人对 beamer 制作的学术幻灯片记忆犹新，作者之前收集和修改过很多幻灯片的模版，见[awesome-beamers](https://github.com/XiangyunHuang/awesome-beamers)列表，本文准备介绍如何将 beamer 主题搬迁到 R Markdown 生态里，提及迷你的 LaTeX 发行版 TinyTeX，metropolis 主题模版等。
+相信很多人对 beamer 制作的学术幻灯片记忆犹新，本人之前收集和修改过很多幻灯片的模版，见[awesome-beamers](https://github.com/XiangyunHuang/awesome-beamers)列表，下面介绍如何将 beamer 主题搬迁到 R Markdown 生态里，涉及迷你的 LaTeX 发行版 TinyTeX，metropolis 主题模版等。
 
 ## 安装 TinyTeX
 
@@ -49,9 +49,32 @@ tinytex::install_tinytex()
     file.copy(from = fontfiles, to = distdir, overwrite = TRUE)
     ```
 
-## metropolis 主题模版
+## 数学符号
 
-unicode-math 数学字体样式有点怪，以前排版毕业论文的时候[坑过我一回](https://d.cosx.org/d/419931-pandoc-latex)，但未来是趋势，Pandoc 内建的 LaTeX 模版默认是 unicode-math 样式的，除非编译 LaTeX 的时候，启用 `mathspec: yes` 变量。Fira 系列字体配 metropolis 主题是比较常见的，只是 Fira Math 提供的字形有限，不得不借助 XITS Math 补位（比如下面矩阵转置的符号），后者支持是最广的。在 unicode-math 的世界里，公式环境里，加粗希腊字母，得用 `\symbf` 而不是 `\boldsymbol`。XITS Math、Fira Math 等字体数学符号的支持情况详见[文档](http://mirrors.ctan.org/macros/unicodetex/latex/unicode-math/unimath-symbols.pdf)。
+在遇到花体数学符号，如常用来表示域或空间的 `$\mathcal{A,S},\mathscr{A},\mathbb{A,R}$`，抑或是常见的损失函数符号 `$\mathcal{L}$`。
+unicode-math 定义的数学样式有点怪，和通常见到的不一样，以前排版毕业论文的时候[坑过我一回](https://d.cosx.org/d/419931-pandoc-latex)。
+
+![unicode-math](https://user-images.githubusercontent.com/12031874/38676377-70e45fa4-3e8d-11e8-93d7-100e3585f490.png)
+
+但未来是趋势，为啥？统一性，各大数学公式宏包的作用都可以集于一身，类似等价的命令，下面是对应列表
+
+Pandoc 内建的 LaTeX 模版默认是 unicode-math 样式的，除非编译 LaTeX 的时候，启用 `mathspec: yes` 变量。Fira 系列字体配 metropolis 主题是比较常见的，只是 Fira Math 提供的字形有限，不得不借助 XITS Math 补位（比如下面矩阵转置的符号），后者支持是最广的。在 unicode-math 的世界里，公式环境里，加粗希腊字母，得用 `\symbf` 而不是 `\boldsymbol`。XITS Math、Fira Math 等字体数学符号的支持情况详见[unicode-math 宏包的官方文档](http://mirrors.ctan.org/macros/unicodetex/latex/unicode-math/unimath-symbols.pdf)。
+
+<center>表1：不同的数学字体支持的符号数量不同 </center>
+
+| 数学字体                                                     | 符号数量 |
+| :------------------------------------------------------------ | :-------- |
+| [Latin Modern Math](https://ctan.org/pkg/lm)                 | 1585     |
+| [XITS Math](https://ctan.org/pkg/xits)                       | 2427     |
+| [STIX Math Two](https://ctan.org/pkg/stix2-otf)              | 2422     |
+| [TeX Gyre Pagella Math](https://ctan.org/pkg/tex-gyre-math-pagella) | 1638     |
+| [DejaVu Math TeX Gyre](https://ctan.org/pkg/tex-gyre-math-dejavu) | 1640     |
+| [Fira Math](https://ctan.org/pkg/firamath)                   | 1052     |
+
+
+
+
+## metropolis 主题模版
 
 metropolis 主题的特点就是干净利索，越简洁越好！在之前的文章[可重复性数据分析](https://xiangyun.rbind.io/2021-01-03-reproducible-analysis) 介绍过 [林莲枝](https://github.com/liantze/) 开发的汉风主题幻灯片，它也是基于 metropolis 主题。话不多说，直接上代码，说了这么多，实际只有十几行哈哈！！
 
@@ -161,6 +184,15 @@ geometry: tmargin=1.8cm,bmargin=1.8cm,lmargin=2.1cm,rmargin=2.1cm
 
 $\boldsymbol{\Sigma}$ 是希腊字母 $\Sigma$ 的加粗形式，$\mathcal{A}$ 是普通字母 $A$ 的花体形式。
 ````
+
+> 提示
+>
+> RStudio IDE 使用 [MathJaX](https://www.mathjax.org/) 来渲染 R Markdown 文档里的数学公式，MathJaX 不支持的数学符号命令是不能预览的。来自 unicode-math 的 `\symbf` 命令是不受支持的，会高亮成红色。那支持的有哪些呢？完整的支持列表见这个[文档](https://docs.mathjax.org/en/latest/input/tex/macros/index.html)，常见的 `\mathbb` 空心体 `$\mathbb{A}$` 和 `\mathfrak` 火星体 `$\mathfrak{A}$` 来自宏包 amsfonts，`\mathscr` 花体 `$\mathscr{A}$` 和 `\bm` 粗体 `$\bm{A}$` 命令分别来自 mathrsfs 和 bm。amsmath 相关的大都支持，较为精细地调整数学公式可以去看[amsmath 文档](https://www.latex-project.org/help/documentation/amsldoc.pdf)，此处仅摘抄一例 `$\sqrt{x} +\sqrt{y} + \sqrt{z}$` 和 `$\sqrt{x} +\sqrt{\smash[b]{y}} + \sqrt{z}$`，能看出来差别的一定有一双火眼金睛！
+>
+> ![rstudio-mathjax](https://i.loli.net/2021/09/27/42otHGvZDOuJIxi.png)
+
+
+
 
 ---
 
