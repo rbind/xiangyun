@@ -11,6 +11,7 @@ tags:
   - LaTeX
   - beamer
   - R Markdown
+thumbnail: https://user-images.githubusercontent.com/12031874/116777926-a1722100-aaa1-11eb-92c7-034ebfb90922.png
 description: "LaTeX 提供 beamer 文类主要用于学术报告，从面上来看，好多主题是大学开发的，大家不约而同地使用蓝调，看多了想睡觉。目前，现代风格的 beamer 主题已经陆续涌现出来，本文旨在介绍一条 R Markdown 制作 beamer 幻灯片的入坑路径，让 beamer 看起来更加清爽些！"
 ---
 
@@ -33,7 +34,7 @@ tinytex::install_tinytex()
 1. 这里用 **tinytex** 安装 [fira](https://www.ctan.org/pkg/fira) 系列英文字体，[firamath](https://github.com/firamath/firamath) 和 [xits](https://www.ctan.org/pkg/xits) 数学字体，后续用作 beamer 幻灯片的主要字体，相信大家看惯了千篇一律的字体，也想换换口味吧！
 
     ```r
-    tinytex::tlmgr_install(c("fira", "firamath-otf", "xits"))
+    tinytex::tlmgr_install(c("fira", "firamath", "firamath-otf", "xits"))
     ```
 
 2. 通过观察我们知道上面安装的字体都放在了 TinyTeX 的安装目录下，而且不能直接被调用，故而将它们拷贝到系统的字体目录，刷新字体目录后，通过 **fontspec** 宏包调用。为了将来更快地处理此过程，我已经代码化了，如下 
@@ -126,7 +127,7 @@ tinytex::xelatex(file = "slide-template.tex")
 
 用 Adobe Acrobat Reader DC 打开 `文件->属性->字体` 可以看到 PDF 文档中确切使用的字体，如图所示
 
-![check-fonts](https://user-images.githubusercontent.com/12031874/119227132-0bc92f00-bb3f-11eb-8610-8d3eb6572401.png)
+![check-fonts](https://user-images.githubusercontent.com/12031874/135288310-4dad120c-a883-4732-9033-72be7b8ffe28.png)
 
 ---
 
