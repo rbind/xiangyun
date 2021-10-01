@@ -169,6 +169,7 @@ metropolis 主题的特点就是干净利索，越简洁越好！在之前的文
 \end{document}
 ```
 
+注意看加载 unicode-math 宏包时的选项设置，关于 unicode-math 数学符号的样式（比如选择 ISO 还是 TeX？） 说明见[文档](https://www.latex-project.org/publications/2010-wspr-TUG-unicode-mathematics-in-LaTeX-slides.pdf)，对绝大多的使用者来说，做个拿来主义就好，别看我洋洋洒洒写了这么多，我也不例外，喜欢哪个用哪个！
 
 将上面的模版内容保存到文件 `slide-template.tex`，接下来，有两种编译 LaTeX 文件的方式，一种在 [RStudio IDE](https://github.com/rstudio/rstudio) 内打开，点击 `Compile PDF` 按钮，另一种是在 R 控制台里执行
 
