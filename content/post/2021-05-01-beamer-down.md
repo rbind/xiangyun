@@ -1,6 +1,5 @@
 ---
-title: 地泽万物，神农不死，beamer 不 down
-subtitle: R Markdown 制作 beamer 学术幻灯片
+title: R Markdown 制作 beamer 幻灯片
 author: 黄湘云
 date: '2021-05-01'
 slug: beamer-down
@@ -15,11 +14,19 @@ thumbnail: https://user-images.githubusercontent.com/12031874/116777926-a1722100
 description: "LaTeX 提供 beamer 文类主要用于学术报告，从面上来看，好多主题是大学开发的，大家不约而同地使用蓝调，看多了想睡觉。目前，现代风格的 beamer 主题已经陆续涌现出来，本文旨在介绍一条 R Markdown 制作 beamer 幻灯片的入坑路径，让 beamer 看起来更加清爽些！"
 ---
 
-相信很多人对 beamer 制作的学术幻灯片记忆犹新，本人之前收集和修改过很多幻灯片的模版，见[awesome-beamers](https://github.com/XiangyunHuang/awesome-beamers)列表，下面介绍如何将 beamer 主题搬迁到 R Markdown 生态里，涉及迷你的 LaTeX 发行版 TinyTeX，metropolis 主题模版等。
+> 声明：本文引用的所有信息均为公开信息，仅代表作者本人观点，与就职单位无关。
+
+故事还要从头开始讲起，3-4 年前，出于学术答辩和课程汇报需要，陆续学习和使用 LaTeX 来排版作业和论文，曾有一段时间深陷此坑不能自拔，以至于遍览 [TeXLive](https://tug.org/texlive/) 内置的制作幻灯片的宏包，收集了大量 beamer 幻灯片的模版，藏于 Github 仓库 [awesome-beamers](https://github.com/XiangyunHuang/awesome-beamers)。
+
+LaTeX 在国外是比较流行的学术写作工具，在国内部分学校的数学或统计系会用它来排版毕业论文，相关的学习材料有很多，推荐 CTeX 开发小组翻译的[一份（不太）简短的LaTeX介绍](https://github.com/CTeX-org/lshort-zh-cn)。吴康隆的 [《简单粗暴LaTeX》](https://github.com/wklchris/Note-by-LaTeX)，花名[包太雷](https://dralpha.com/)的[《雷太赫排版系统简介》](https://github.com/huangxg/lnotes/)，盛文博翻译的[《LaTeX2e 插图指南, 第三版》](https://github.com/WenboSheng/epslatex-cn)，吕荐瑞的[科技文档排版课程材料](https://lvjr.bitbucket.io/tutorial/learn-latex.pdf)，都非常适合从零开始学习的。进阶的部分，根据需要去看宏包手册，LaTeX 宏包文档的长度一般都吓死个人，[PGF](https://github.com/pgf-tikz/pgf) 绘图 **1300** 多页，[beamer](https://github.com/josephwright/beamer) 幻灯片制作 **247** 页，[geometry](https://github.com/davidcarlisle/geometry) 版面设置 **42** 页，[tcolorbox](https://github.com/T-F-S/tcolorbox) 箱子定制 **539**页，一般来说不需要从头到尾的看，除非遇到难处或需要自定义了。在对基础的 LaTeX 排版工具有一些了解后，日常使用过程中必不可少的是[数学公式速记小抄](https://gitlab.com/jim.hefferon/undergradmath)。
+
+去年6月份搬迁完[汉风主题](https://github.com/liantze/pgfornament-han)，在论坛开帖分享了[成果](https://d.cosx.org/d/421591-beamer)，又被撺掇着在主站[立了字句](https://github.com/cosname/cosx.org/issues/901)要写一篇文章介绍 R Markdown 制作幻灯片模版，囿于工作繁忙，难以抽身，前段时间在 WX 上和[楚新元](https://gitlab.com/chuxinyuan) 又聊到模版，看到有人又要准备趟我之前踩过的坑，心中不忍，咬咬牙还是把这篇文债给还了。算起来，从起心动念到最终交付拖延了整整一年零三个月！！！
+
+本文将介绍如何搬迁 beamer 主题到 R Markdown 生态里，涉及[谢益辉](https://yihui.org/)开发的轻量级 LaTeX 发行版 [TinyTeX](https://github.com/yihui/tinytex-releases) 及 LaTeX 幻灯片主题 [metropolis](https://github.com/matze/mtheme) 等。
 
 ## 安装 TinyTeX
 
-在平时常用 R Markdown 相关工具，建议先安装 R 包 [**tinytex**](https://github.com/yihui/tinytex)，然后用它安装 TinyTeX 这个发行版，在 R 环境里，这一切会比较顺畅，讲真，配置环境什么的最烦了，一次两次三四次，五次六次七八次，但是学什么的时候最好从配置环境开始，记录从第一次安装开始，后面会越来越快！
+平时要是常用 R Markdown 相关扩展包，建议先安装 R 包 [**tinytex**](https://github.com/yihui/tinytex)，然后用它安装 TinyTeX 这个发行版，在 R 环境里，这一切会比较顺畅，讲真，配置环境什么的最烦了，一次两次三四次，五次六次七八次，但是学什么的时候最好从配置环境开始，记录从第一次安装开始，后面会越来越快！
 
 ```r
 tinytex::install_tinytex()
@@ -29,7 +36,7 @@ tinytex::install_tinytex()
 
 ## 安装字体
 
-安装字体的过程分2步走
+安装字体的过程分两步走：
 
 1. 这里用 **tinytex** 安装 [fira](https://www.ctan.org/pkg/fira) 系列英文字体，[firamath](https://github.com/firamath/firamath) 和 [xits](https://www.ctan.org/pkg/xits) 数学字体，后续用作 beamer 幻灯片的主要字体，相信大家看惯了千篇一律的字体，也想换换口味吧！
 
@@ -37,7 +44,7 @@ tinytex::install_tinytex()
     tinytex::tlmgr_install(c("fira", "firamath", "firamath-otf", "xits"))
     ```
 
-2. 通过观察我们知道上面安装的字体都放在了 TinyTeX 的安装目录下，而且不能直接被调用，故而将它们拷贝到系统的字体目录，刷新字体目录后，通过 **fontspec** 宏包调用。为了将来更快地处理此过程，我已经代码化了，如下 
+2. 通过观察我们知道上面安装的字体都放在了 TinyTeX 的安装目录下，而且不能直接被调用，故而将它们拷贝到系统的字体目录，刷新字体目录后，通过 **fontspec** 宏包调用。为了加快复现的速度，我已经将这个过程化作几行代码，如下
 
     ```r
     # TinyTeX 字体目录
@@ -53,13 +60,64 @@ tinytex::install_tinytex()
 ## 数学符号
 
 在遇到花体数学符号，如常用来表示域或空间的 `$\mathcal{A,S},\mathscr{A},\mathbb{A,R}$`，抑或是常见的损失函数符号 `$\mathcal{L}$`。
-unicode-math 定义的数学样式有点怪，和通常见到的不一样，以前排版毕业论文的时候[坑过我一回](https://d.cosx.org/d/419931-pandoc-latex)。
+unicode-math 定义的数学样式有点怪，和通常见到的不一样，以前排版毕业论文的时候[坑过我一回](https://d.cosx.org/d/419931-pandoc-latex)，主要原因是 unicode-math 使用的是 Latin Modern Math 的 OpenType 字体。
 
-![unicode-math](https://user-images.githubusercontent.com/12031874/38676377-70e45fa4-3e8d-11e8-93d7-100e3585f490.png)
+````
+---
+title: "Untitled"
+output: 
+  pdf_document: 
+    latex_engine: xelatex
+    template: null
+    extra_dependencies:
+      ctex:
+       - fontset=fandol
+---
 
-但未来是趋势，为啥？统一性，各大数学公式宏包的作用都可以集于一身，类似等价的命令，下面是对应列表
+拿一些数学符号举个例子，如 `\mathcal{A},\mathscr{A}` 和 `\mathbb{A}`会被依次渲染成
 
-Pandoc 内建的 LaTeX 模版默认是 unicode-math 样式的，除非编译 LaTeX 的时候，启用 `mathspec: yes` 变量。Fira 系列字体配 metropolis 主题是比较常见的，只是 Fira Math 提供的字形有限，不得不借助 XITS Math 补位（比如下面矩阵转置的符号），后者支持是最广的。在 unicode-math 的世界里，公式环境里，加粗希腊字母，得用 `\symbf` 而不是 `\boldsymbol`。XITS Math、Fira Math 等字体数学符号的支持情况详见[unicode-math 宏包的官方文档](http://mirrors.ctan.org/macros/unicodetex/latex/unicode-math/unimath-symbols.pdf)。
+$$
+\mathcal{A},\mathscr{A},\mathbb{A}
+$$
+````
+
+![unicode-math](https://user-images.githubusercontent.com/12031874/135603599-00602d32-c007-4eb1-a8bc-c5a5a17f19f0.png)
+
+Pandoc 内建的 LaTeX 模版默认调用 **unicode-math** 宏包的，除非编译 LaTeX 的时候，启用 `mathspec: yes` 变量，加载 **amsfonts** 和 **mathrsfs** 宏包。虽然目前仅有的字体支持的数学符号好像还不太全，但未来是趋势，为啥？统一性，各大数学公式宏包的作用都可以集于一身，不需要调其它数学符号包，比如 `\mscrA` 和 `\BbbA` 分别等价于 `\mathscr{A}` 和 `\mathbb{A}`。
+
+````
+---
+title: "Untitled"
+mathspec: yes
+output: 
+  pdf_document: 
+    latex_engine: xelatex
+    template: null
+    extra_dependencies:
+      ctex:
+       - fontset=fandol
+      amsfonts: null
+      mathrsfs: null
+---
+
+拿一些数学符号举个例子，如 `\mathcal{A},\mathscr{A}` 和 `\mathbb{A}`会被依次渲染成
+
+$$
+\mathcal{A},\mathscr{A},\mathbb{A}
+$$
+````
+
+![mathspec](https://user-images.githubusercontent.com/12031874/135605483-1cfe1c86-1567-495e-b3a0-27ff12a72b7f.png)
+
+
+> 注意
+>
+>  [fandol 字体](https://ctan.org/pkg/fandol)支持的汉字有限，比如「喆」字就渲染成了 <img height="20" alt="fandol-font" src="https://user-images.githubusercontent.com/12031874/135615813-cde3464d-21d3-43e1-b951-c247a6215e5b.png">。
+
+
+
+
+Fira 系列字体配 metropolis 主题是比较常见的，只是 Fira Math 提供的字形有限，不得不借助 XITS Math 补位（比如矩阵转置的符号），后者支持是最广的。在 unicode-math 的世界里，公式环境里，加粗希腊字母，得用 `\symbf` 而不是 `\boldsymbol`。XITS Math、Fira Math 等字体数学符号的支持情况详见[unicode-math 宏包的官方文档](http://mirrors.ctan.org/macros/unicodetex/latex/unicode-math/unimath-symbols.pdf)。
 
 <center>表1：不同的数学字体支持的符号数量不同 </center>
 
@@ -73,11 +131,13 @@ Pandoc 内建的 LaTeX 模版默认是 unicode-math 样式的，除非编译 LaT
 | [Fira Math](https://ctan.org/pkg/firamath)                   | 1052     |
 
 
+## metropolis 幻灯片主题
 
+不记得初次见 metropolis 主题是什么时候，不过每次见都让我想到了 MCMC（**M**arkov **C**hain **M**onte **C**arlo，马尔科夫链蒙特卡洛，简称 MCMC）。学过 MCMC 算法的都知道 metropolis 是啥，我这半桶水的统计科班生就不在这献丑了，我当年掉在 MCMC 的大坑里好多时间，以至于将 metropolis 和 MCMC 建立了极强的关联，可能这也是我介绍 beamer 主题也拿它来举例的原因吧！
 
-## metropolis 主题模版
+回到正题，Pandoc 内建的 [LaTeX 模版](https://github.com/jgm/pandoc/blob/master/data/templates/default.latex) 功能已经很丰富了，通常用不着自己配置了，R Markdown 自从接入 tinytex 自动装缺失的 LaTeX 宏包的功能后，在产出 PDF 文档方面已经方便多了。
 
-metropolis 主题的特点就是干净利索，越简洁越好！在之前的文章[可重复性数据分析](https://xiangyun.rbind.io/2021-01-03-reproducible-analysis) 介绍过 [林莲枝](https://github.com/liantze/) 开发的汉风主题幻灯片，它也是基于 metropolis 主题。话不多说，直接上代码，说了这么多，实际只有十几行哈哈！！
+metropolis 主题的特点就是干净利索，越简洁越好！在之前的文章[可重复性数据分析](https://xiangyun.rbind.io/2021-01-03-reproducible-analysis) 介绍过 [林莲枝](https://github.com/liantze/) 开发的汉风主题幻灯片，它也是基于 metropolis 主题。话不多说，直接上代码，只有十几行哈哈！！
 
 ```tex
 \documentclass[169]{beamer}
@@ -112,26 +172,25 @@ metropolis 主题的特点就是干净利索，越简洁越好！在之前的文
 ```
 
 
-学过 MCMC 算法的都知道 metropolis 是啥，其实也不是啥东西，只是我当年掉在 MCMC 的大坑里好多时间，以至于将 metropolis 和 MCMC 建立了极强的关联，可能这也是我介绍 beamer 主题也拿它来举例的原因吧！回到正题，Pandoc 内建的 [LaTeX 模版](https://github.com/jgm/pandoc/blob/master/data/templates/default.latex) 功能已经很丰富了，通常用不着自己配置了，R Markdown 自从接入 tinytex 自动装缺失的 LaTeX 宏包的功能后，在产出 PDF 文档方面已经方便多了。
 
-将上面的模版内容保存到文件 `slide-template.tex`，接下来，有两种编译 LaTeX 文件的方式，一种在 RStudio 内打开，点击 `Compile PDF` 按钮，一种是调用命令
+将上面的模版内容保存到文件 `slide-template.tex`，接下来，有两种编译 LaTeX 文件的方式，一种在 [RStudio IDE](https://github.com/rstudio/rstudio) 内打开，点击 `Compile PDF` 按钮，另一种是在 R 控制台里执行
 
 ```r
 tinytex::xelatex(file = "slide-template.tex")
 ```
 
-编译出来的效果如下
+编译出来的效果如下：
 
 ![slide-template](https://user-images.githubusercontent.com/12031874/116777926-a1722100-aaa1-11eb-92c7-034ebfb90922.png)
 
 
-用 Adobe Acrobat Reader DC 打开 `文件->属性->字体` 可以看到 PDF 文档中确切使用的字体，如图所示
+用 Adobe Acrobat Reader DC 打开 `文件->属性->字体` 可以看到 PDF 文档中确切使用的字体，如下图所示。
 
 ![check-fonts](https://user-images.githubusercontent.com/12031874/135288310-4dad120c-a883-4732-9033-72be7b8ffe28.png)
 
----
+## 一个永远填不满的坑
 
-最近统计之都论坛里又有人[踩](https://d.cosx.org/d/422613)到我以前[踩](https://d.cosx.org/d/419931)过的坑，这里不妨简单说一下。
+最近统计之都论坛里又有人[踩](https://d.cosx.org/d/422613)到我以前[踩](https://d.cosx.org/d/419931)过的[坑1](https://d.cosx.org/d/421770)、[坑2](https://d.cosx.org/d/421834-rmd-knit-to-pdfbeamercjk)，这里不妨简单说一下。
 
 ````
 ---
@@ -193,9 +252,11 @@ $\boldsymbol{\Sigma}$ 是希腊字母 $\Sigma$ 的加粗形式，$\mathcal{A}$ �
 > ![rstudio-mathjax](https://i.loli.net/2021/09/27/42otHGvZDOuJIxi.png)
 
 
-
-
 ---
+
+再次强行回到本文主题（原谅我意识流的散漫文风），其实，上述巨坑在 article 普通文类下介绍，而不是在 beamer 幻灯片主题下介绍也是有重要原因的：其一，我见过的大部分坑的背景都是 article 文类。其二，这个坑并不会随文类切换到 beamer 而有所不同！其三，若大家再遇到类似坑不妨也切换到 article 文类，这个是最基础的，褪去尽可能多的外部依赖，方便去根因。
+
+## 迁移高级篇
 
 beamer 默认的主题提供了一些 block 样式，比如 exampleblock、alertblock、block 等。
 
@@ -303,3 +364,5 @@ $endif$
 1. Beamer presentation <https://bookdown.org/yihui/rmarkdown/beamer-presentation.html>
 
 1. Cross-references <https://bookdown.org/yihui/bookdown/cross-references.html>
+
+1. Xiangdong Zeng. 2020. 在 LATEX 中使用 OpenType 字体（三）. <https://stone-zeng.github.io/2020-05-02-use-opentype-fonts-iii/>
