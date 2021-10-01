@@ -38,9 +38,10 @@ tinytex::install_tinytex()
 
 安装字体的过程分两步走：
 
-1. 这里用 **tinytex** 安装 [beamertheme-metropolis 宏包](https://www.ctan.org/pkg/beamertheme-metropolis)， [fira](https://www.ctan.org/pkg/fira) 系列英文字体，[firamath](https://github.com/firamath/firamath) 和 [xits](https://www.ctan.org/pkg/xits) 数学字体，后续用作 beamer 幻灯片的主要字体，相信大家看惯了千篇一律的字体，也想换换口味吧！
+1. 这里用 **tinytex** 安装 [fira](https://www.ctan.org/pkg/fira) 系列英文字体，[firamath](https://github.com/firamath/firamath) 和 [xits](https://www.ctan.org/pkg/xits) 数学字体，后续用作 beamer 幻灯片的主要字体，相信大家看惯了千篇一律的字体，也想换换口味吧！
 
     ```r
+    # 顺道把 beamertheme-metropolis 宏包也安装下
     tinytex::tlmgr_install(c("beamertheme-metropolis", "fira", "firamath", "firamath-otf", "xits"))
     ```
 
@@ -169,9 +170,9 @@ metropolis 主题的特点就是干净利索，越简洁越好！在之前的文
 \end{document}
 ```
 
-注意看加载 unicode-math 宏包时的选项设置，关于 unicode-math 数学符号的样式（比如选择 ISO 还是 TeX？） 说明见[文档](https://www.latex-project.org/publications/2010-wspr-TUG-unicode-mathematics-in-LaTeX-slides.pdf)，对绝大多的使用者来说，做个拿来主义就好，别看我洋洋洒洒写了这么多，我也不例外，喜欢哪个用哪个！
+注意看加载 **unicode-math** 宏包时的选项设置，关于 **unicode-math** 数学符号的样式（比如选择 ISO 还是 TeX？） 说明见[文档](https://www.latex-project.org/publications/2010-wspr-TUG-unicode-mathematics-in-LaTeX-slides.pdf)，对绝大多的使用者来说，做个拿来主义就好，别看我洋洋洒洒写了这么多，我也不例外，喜欢哪个用哪个！
 
-将上面的模版内容保存到文件 `slide-template.tex`，接下来，有两种编译 LaTeX 文件的方式，一种在 [RStudio IDE](https://github.com/rstudio/rstudio) 内打开，点击 `Compile PDF` 按钮，另一种是在 R 控制台里执行
+将上面的模版内容保存到文件 `slide-template.tex`，接下来，有两种编译 LaTeX 文件的方式，一种在 [RStudio IDE](https://github.com/rstudio/rstudio) 内打开，点击 **Compile PDF** 按钮，另一种是在 R 控制台里执行
 
 ```r
 tinytex::xelatex(file = "slide-template.tex")
@@ -211,7 +212,7 @@ $\mathbf{\Sigma}$
 
 他准备在公式环境里用 `\mathbf` 命令加粗希腊字母 `$\Sigma$`，这本身是不行的，它只能用来加粗普通的字母，如 `$A,B,C,a,b,c,X,Y,Z,x,y,z$`。加粗希腊字母，需要 `\boldsymbol` 命令，而 `rticles::ctex` 中文模版，在默认设置下，会使用 Pandoc 内建 LaTeX 模版，调用 XeLaTeX 编译，加载 unicode-math 宏包处理数学公式，此时，希腊字母对 `\boldsymbol` 命令免疫，要加粗特效，必须用 unicode-math 的专用命令 `\symbf`。
 
-如果准备在文中统一采用 unicode-math 处理数学公式，那么，把 `\mathbf` 换成 `\symbf`，问题即告结束。但是，目前排版数学公式比较通用的方式不是 unicode-math，还是原来的 amsmath 及其扩展宏包。如何转过去呢？其实，很简单，在 YAML 里添加一行 `mathspec: yes` 即可，Pandoc 的 LaTeX 模版支持原先的方案，此时编译还是会报错，报错的主要信息如下：
+如果准备在文中统一采用 **unicode-math** 处理数学公式，那么，把 `\mathbf` 换成 `\symbf`，问题即告结束。但是，目前排版数学公式比较通用的方式不是 unicode-math，还是原来的 amsmath 及其扩展宏包。如何转过去呢？其实，很简单，在 YAML 里添加一行 `mathspec: yes` 即可，Pandoc 的 LaTeX 模版支持原先的方案，此时编译还是会报错，报错的主要信息如下：
 
 ```
 ! LaTeX Error: Option clash for package fontspec.
@@ -280,7 +281,9 @@ without looking like it’s been marked up with tags or formatting instructions.
 > 
 > --- John Gruber
 
-Markdown 提供一种简洁的格式语法，用来编辑 HTML、PDF 和 MS Word 文档，数学公式还是用 LaTeX 排版的好， $\boldsymbol{\Sigma}$ 是希腊字母 $\Sigma$ 的加粗形式，
+Markdown 提供一种简洁的格式语法，用来编辑 HTML、PDF 和 MS Word 文档，
+数学公式还是用 LaTeX 排版的好， 
+$\boldsymbol{\Sigma}$ 是希腊字母 $\Sigma$ 的加粗形式，
 $\mathcal{A}$ 是普通字母 $A$ 的花体形式。
 ````
 
@@ -296,7 +299,8 @@ $\mathcal{A}$ 是普通字母 $A$ 的花体形式。
 > convert -delay 250 -density 300x300 -geometry 960x720 beamer.pdf beamer.gif
 > ```
 
-至此，关于 「R Markdown 制作 beamer 幻灯片」的主题介绍可以告一段落了！对于想要玩出花样的读者，不妨接着往下看。
+至此，关于 「R Markdown 制作 beamer 幻灯片」的主题介绍可以告一段落了！眼力犀利的读者可能已经看出上面模版中还是使用 **unicode-math** 处理数学公式，导致符号样式怪怪的，`\boldsymbol` 也无法加粗希腊字母，这里留个疑问，希望读者看完本文后，自己能找到答案！
+对于想要玩出花样的读者，不妨接着往下看。
 
 
 ## R Markdown 模版（高级篇）
@@ -441,7 +445,8 @@ A Markdown-formatted document should be publishable as-is, as plain text,
 without looking like it’s been marked up with tags or formatting instructions.  
 :::
 
-Markdown 提供一种简洁的格式语法，用来编辑 HTML、PDF 和 MS Word 文档，数学公式还是用 LaTeX 排版的好， $\boldsymbol{\Sigma}$ 是希腊字母 $\Sigma$ 的加粗形式，
+Markdown 提供一种简洁的格式语法，用来编辑 HTML、PDF 和 MS Word 文档，数学公式还是用 LaTeX 排版的好， 
+$\boldsymbol{\Sigma}$ 是希腊字母 $\Sigma$ 的加粗形式，
 $\mathcal{A}$ 是普通字母 $A$ 的花体形式。
 
 ## 自定义 block
