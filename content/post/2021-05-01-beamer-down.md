@@ -22,7 +22,7 @@ LaTeX 在国外是比较流行的学术写作工具，在国内部分学校的�
 
 去年6月份搬迁完[汉风主题](https://github.com/liantze/pgfornament-han)，在论坛开帖分享了[成果](https://d.cosx.org/d/421591-beamer)，又被撺掇着在主站[立了字句](https://github.com/cosname/cosx.org/issues/901)要写一篇文章介绍 R Markdown 制作幻灯片模版，囿于工作繁忙，难以抽身，前段时间在 WX 上和[楚新元](https://gitlab.com/chuxinyuan) 又聊到模版，看到有人又要准备趟我之前踩过的坑，心中不忍，咬咬牙还是把这篇文债给还了。算起来，从起心动念到最终交付拖延了整整一年零三个月！！！
 
-本文将介绍如何搬迁 beamer 主题到 R Markdown 生态里，涉及[谢益辉](https://yihui.org/)开发的轻量级 LaTeX 发行版 [TinyTeX](https://github.com/yihui/tinytex-releases) 及 LaTeX 幻灯片主题 [metropolis](https://github.com/matze/mtheme) 等。
+本文将介绍如何搬迁 beamer 主题到 R Markdown 生态里，涉及[谢益辉](https://yihui.org/)开发的轻量级 LaTeX 发行版 [TinyTeX](https://github.com/yihui/tinytex-releases) 及 LaTeX 幻灯片主题 [metropolis](https://github.com/matze/mtheme)、[beamer-verona](https://ctan.org/pkg/beamer-verona) 等。
 
 ## 安装 TinyTeX
 
@@ -38,10 +38,10 @@ tinytex::install_tinytex()
 
 安装字体的过程分两步走：
 
-1. 这里用 **tinytex** 安装 [fira](https://www.ctan.org/pkg/fira) 系列英文字体，[firamath](https://github.com/firamath/firamath) 和 [xits](https://www.ctan.org/pkg/xits) 数学字体，后续用作 beamer 幻灯片的主要字体，相信大家看惯了千篇一律的字体，也想换换口味吧！
+1. 这里用 **tinytex** 安装 [beamertheme-metropolis 宏包](https://www.ctan.org/pkg/beamertheme-metropolis)， [fira](https://www.ctan.org/pkg/fira) 系列英文字体，[firamath](https://github.com/firamath/firamath) 和 [xits](https://www.ctan.org/pkg/xits) 数学字体，后续用作 beamer 幻灯片的主要字体，相信大家看惯了千篇一律的字体，也想换换口味吧！
 
     ```r
-    tinytex::tlmgr_install(c("fira", "firamath", "firamath-otf", "xits"))
+    tinytex::tlmgr_install(c("beamertheme-metropolis", "fira", "firamath", "firamath-otf", "xits"))
     ```
 
 2. 通过观察我们知道上面安装的字体都放在了 TinyTeX 的安装目录下，而且不能直接被调用，故而将它们拷贝到系统的字体目录，刷新字体目录后，通过 **fontspec** 宏包调用。为了加快复现的速度，我已经将这个过程化作几行代码，如下
@@ -59,7 +59,7 @@ tinytex::install_tinytex()
 
 ## 数学符号
 
-在遇到花体数学符号，如常用来表示域或空间的 `$\mathcal{A,S},\mathscr{A},\mathbb{A,R}$`，抑或是常见的损失函数符号 `$\mathcal{L}$`。
+在正式介绍后续的 beamer 主题之前，先介绍一点数学符合和数学字体的坑，学术型幻灯片毕竟很难离开数学公式。在遇到花体数学符号，如常用来表示域或空间的 `$\mathcal{A,S}, \mathscr{A}, \mathbb{A,R}$`，抑或是常见的损失函数符号 `$\mathcal{L}$`。
 unicode-math 定义的数学样式有点怪，和通常见到的不一样，以前排版毕业论文的时候[坑过我一回](https://d.cosx.org/d/419931-pandoc-latex)，主要原因是 unicode-math 使用的是 Latin Modern Math 的 OpenType 字体。
 
 ````
@@ -112,9 +112,7 @@ $$
 
 > 注意
 >
->  [fandol 字体](https://ctan.org/pkg/fandol)支持的汉字有限，比如「喆」字就渲染成了 <img height="20" alt="fandol-font" src="https://user-images.githubusercontent.com/12031874/135615813-cde3464d-21d3-43e1-b951-c247a6215e5b.png">。
-
-
+>  [fandol 字体](https://ctan.org/pkg/fandol)支持的汉字有限，比如[刘思喆](https://bjt.name/)的「喆」字就渲染成了 <img height="20" alt="fandol-font" src="https://user-images.githubusercontent.com/12031874/135615813-cde3464d-21d3-43e1-b951-c247a6215e5b.png">，更别说像[许宝騄先生](https://zh.wikipedia.org/wiki/%E8%A8%B1%E5%AF%B6%E9%A8%84)的「騄」字了。
 
 
 Fira 系列字体配 metropolis 主题是比较常见的，只是 Fira Math 提供的字形有限，不得不借助 XITS Math 补位（比如矩阵转置的符号），后者支持是最广的。在 unicode-math 的世界里，公式环境里，加粗希腊字母，得用 `\symbf` 而不是 `\boldsymbol`。XITS Math、Fira Math 等字体数学符号的支持情况详见[unicode-math 宏包的官方文档](http://mirrors.ctan.org/macros/unicodetex/latex/unicode-math/unimath-symbols.pdf)。
@@ -170,7 +168,6 @@ metropolis 主题的特点就是干净利索，越简洁越好！在之前的文
   \end{frame}
 \end{document}
 ```
-
 
 
 将上面的模版内容保存到文件 `slide-template.tex`，接下来，有两种编译 LaTeX 文件的方式，一种在 [RStudio IDE](https://github.com/rstudio/rstudio) 内打开，点击 `Compile PDF` 按钮，另一种是在 R 控制台里执行
@@ -242,7 +239,8 @@ output:
 geometry: tmargin=1.8cm,bmargin=1.8cm,lmargin=2.1cm,rmargin=2.1cm  
 ---
 
-$\boldsymbol{\Sigma}$ 是希腊字母 $\Sigma$ 的加粗形式，$\mathcal{A}$ 是普通字母 $A$ 的花体形式。
+$\boldsymbol{\Sigma}$ 是希腊字母 $\Sigma$ 的加粗形式，
+$\mathcal{A}$ 是普通字母 $A$ 的花体形式。
 ````
 
 > 提示
@@ -252,35 +250,59 @@ $\boldsymbol{\Sigma}$ 是希腊字母 $\Sigma$ 的加粗形式，$\mathcal{A}$ �
 > ![rstudio-mathjax](https://i.loli.net/2021/09/27/42otHGvZDOuJIxi.png)
 
 
+再次强行回到本文主题，上述巨坑在 article 普通文类下介绍，而不是在 beamer 幻灯片主题下介绍也是有重要原因的：其一，我见过的大部分坑的背景都是 article 文类。其二，这个坑并不会随文类切换到 beamer 而有所不同！其三，若大家再遇到类似坑不妨也切换到 article 文类，这个是最基础的，褪去尽可能多的外部依赖，方便去根因。
+
+
+## R Markdown 模版（基础篇）
+
+R Markdown 文档开头处为 YAML 元数据，它分两部分：其一是 Pandoc 变量值，其二是文档输出设置。下面是一份完整的 R Markdown 模版，有了前面关于中文 R Markdown 文档的介绍，想必已不再感到陌生。 ctexbeamer 和 ctexart 文类都来自 [ctex 宏包](https://ctan.org/pkg/ctex)，想汉化必须看看它的帮助文档。
+
+````
+---
+title: "R Markdown 制作 beamer 幻灯片"
+author: "黄湘云"
+date: "2021年10月01日"
+institute: "美团搜索技术部"
+documentclass: ctexbeamer
+output: 
+  beamer_presentation: 
+    latex_engine: xelatex
+    theme: metropolis
+    template: null
+classoption: "fontset=fandol"
 ---
 
-再次强行回到本文主题（原谅我意识流的散漫文风），其实，上述巨坑在 article 普通文类下介绍，而不是在 beamer 幻灯片主题下介绍也是有重要原因的：其一，我见过的大部分坑的背景都是 article 文类。其二，这个坑并不会随文类切换到 beamer 而有所不同！其三，若大家再遇到类似坑不妨也切换到 article 文类，这个是最基础的，褪去尽可能多的外部依赖，方便去根因。
+## 介绍
 
-## 迁移高级篇
+> A Markdown-formatted document should be publishable as-is, as plain text, 
+without looking like it’s been marked up with tags or formatting instructions.
+> 
+> --- John Gruber
 
-beamer 默认的主题提供了一些 block 样式，比如 exampleblock、alertblock、block 等。
-
-````
-::: {.exampleblock data-latex="{提示}"}
-提示
-:::
-````
-
-当然，有些主题还有自定义的 block 样式，像引用
-
-````
-::: {.quotation data-latex="[John Gruber]"}
-A Markdown-formatted document should be publishable as-is, as plain text, 
-without looking like it’s been marked up with tags or formatting instructions.  
-:::
+Markdown 提供一种简洁的格式语法，用来编辑 HTML、PDF 和 MS Word 文档，数学公式还是用 LaTeX 排版的好， $\boldsymbol{\Sigma}$ 是希腊字母 $\Sigma$ 的加粗形式，
+$\mathcal{A}$ 是普通字母 $A$ 的花体形式。
 ````
 
-此处，不一一介绍，详情见讨论贴[don't respect beamer theme's buildin theorem/proof block](https://github.com/rstudio/bookdown/issues/1143)，上述完整的 R Markdown 模版幻灯片见[链接](https://github.com/XiangyunHuang/masr/blob/master/examples/beamer-verona.Rmd)。最近，R Markdown 又提供一些新的特性，读者不妨去看看 <https://blog.rstudio.com/2021/04/15/2021-spring-rmd-news/>。
+编译后的效果如下：
+
+![beamer](https://user-images.githubusercontent.com/12031874/135646967-3d417a18-7d13-4bdd-951f-7d2176f5b0d9.gif)
+
+> 提示
+>
+> 将多页PDF格式的幻灯片转为GIF动图可以借助 [ImageMagick](https://imagemagick.org) 一行命令搞定：
+> 
+> ```bash
+> convert -delay 250 -density 300x300 -geometry 960x720 beamer.pdf beamer.gif
+> ```
+
+至此，关于 「R Markdown 制作 beamer 幻灯片」的主题介绍可以告一段落了！对于想要玩出花样的读者，不妨接着往下看。
 
 
-## R Markdown 模版
+## R Markdown 模版（高级篇）
 
-R Markdown 文档开头处为 YAML 元数据，它分两部分：其一是 Pandoc 变量值，其二是文档输出设置。下面是一份完整的 YAML，内容十分丰富，读者可以注释和编译交替进行，细节就不说了，可以看看后面的参考文献，慢慢把玩！
+下面是另一份完整的 R Markdown 模版，内容十分丰富：添加多个作者，动态日期，bookdown 交叉引用加持，参考文献支持，参考文献样式设置，更换 beamer 主题为 Verona，自定义导言区 `header-includes`，添加 Logo，R 绘图设备改为 `"cairo_pdf"`，设置幻灯片主题 Verona 的选项等[^theme-verona]。读者可以注释和编译交替进行，细节就不说了，可以看看后面的参考文献，边看边玩！
+
+[^theme-verona]: 通过查看 Verona 主题 <https://ctan.org/pkg/beamer-verona> 的手册，知道它有一些额外的选项控制幻灯片样式，
 
 ````yaml
 ---
@@ -313,9 +335,10 @@ themeoptions:
   - showheader
   - red
 biblio-style: apalike
+natbiboptions: "authoryear,round"
 bibliography: 
   - packages.bib
-classoption: "UTF8,fontset=adobe,zihao=false"
+classoption: "fontset=fandol"
 link-citations: yes
 section-titles: false
 biblio-title: 参考文献
@@ -323,7 +346,9 @@ colorlinks: yes
 ---
 ````
 
-结合 Pandoc 内建 LaTeX 模版，你会发现，除了 output 字段下的键值对，其它都在。`header-includes` 相当于 premble （LaTeX 文档的导言区）。下面再以 beamer 文档中主题的设置为例，加以说明
+`bookdown::pdf_book` 下的 `number_sections`、`toc` 等皆是其参数，详情可查看帮助文档 `?bookdown::pdf_book`。上面将 `rmarkdown::beamer_presentation` 作为 `bookdown::pdf_book` 的 `base_format` 而不是像默认的 beamer 模版那样直接引用，是为了获得交叉引用的能力。
+
+结合 Pandoc 内建 LaTeX 模版，你会发现，除了 output 字段下的键值对，其它都在。结合位置来看 `header-includes` 相当于 premble （LaTeX 文档的导言区）。下面摘取设置 beamer 幻灯片的部分 LaTeX 模版内容加以说明。
 
 ```latex
 $if(beamer)$
@@ -348,21 +373,121 @@ $endif$
 $endif$
 ```
 
-而 `bookdown::pdf_book` 下的 `number_sections`、`toc` 等皆是其参数，详情可查看帮助文档 `?bookdown::pdf_book`。
+beamer 默认的主题提供了一些 block 样式，比如 exampleblock、alertblock、block 等。
 
-> 提示
->
-> 上面将 `rmarkdown::beamer_presentation` 作为 `bookdown::pdf_book` 的 `base_format` 而不是像默认的 beamer 模版那样直接引用，是为了获得交叉引用的能力。
+````
+::: {.exampleblock data-latex="{提示}"}
+提示
+:::
+````
 
+当然，有些主题还有自定义的 block 样式，像引用名人名言
+
+````
+::: {.quotation data-latex="[John Gruber]"}
+A Markdown-formatted document should be publishable as-is, as plain text, 
+without looking like it’s been marked up with tags or formatting instructions.  
+:::
+````
+
+此处，不一一介绍，详情见讨论贴[don't respect beamer theme's buildin theorem/proof block](https://github.com/rstudio/bookdown/issues/1143)。完整的 R Markdown 幻灯片模版如下：
+
+````
+---
+title: "R Markdown 制作 beamer 幻灯片"
+author:
+  - 黄湘云
+  - 李四
+institute: "xxx 大学学院"
+date: "`r Sys.Date()`"
+documentclass: ctexbeamer
+output: 
+  bookdown::pdf_book: 
+    number_sections: yes
+    toc: no
+    base_format: rmarkdown::beamer_presentation
+    latex_engine: xelatex
+    citation_package: natbib
+    keep_tex: no
+    template: null
+    dev: "cairo_pdf"
+    theme: Verona
+header-includes:
+  - \logo{\includegraphics[height=0.8cm]{`r R.home('doc/html/Rlogo')`}}
+  - \usepackage{pifont}
+  - \usepackage{iitem}
+  - \setbeamertemplate{itemize item}{\ding{47}}
+  - \setbeamertemplate{itemize subitem}{\ding{46}}
+themeoptions: 
+  - colorblocks
+  - showheader
+  - red
+biblio-style: apalike
+natbiboptions: "authoryear,round"
+bibliography: 
+  - packages.bib
+classoption: "fontset=fandol"
+link-citations: yes
+section-titles: false
+biblio-title: 参考文献
+colorlinks: yes
+---
+
+## 介绍
+
+::: {.quotation data-latex="[John Gruber]"}
+A Markdown-formatted document should be publishable as-is, as plain text, 
+without looking like it’s been marked up with tags or formatting instructions.  
+:::
+
+Markdown 提供一种简洁的格式语法，用来编辑 HTML、PDF 和 MS Word 文档，数学公式还是用 LaTeX 排版的好， $\boldsymbol{\Sigma}$ 是希腊字母 $\Sigma$ 的加粗形式，
+$\mathcal{A}$ 是普通字母 $A$ 的花体形式。
+
+## 自定义 block
+
+::: {.exampleblock data-latex="{提示}"}
+记得安装一些 LaTeX 宏包，如果不记得也没关系，大多数情况下 tinytex [@tinytex] 会找齐依赖安装好，只是初次运行会有点慢！
+
+```{r, eval=FALSE}
+# 安装 LaTeX 宏包
+tinytex::tlmgr_install(c("psnfss", "iitem", "beamer-verona"))
+```
+:::
+
+
+```{r bib, include=FALSE, cache=FALSE}
+bib <- knitr::write_bib(
+  x = c(
+    .packages(), "tinytex"
+  ), file = NULL, prefix = ""
+)
+bib <- unlist(bib)
+bib <- gsub("(\\\n)", " ", bib)
+xfun::write_utf8(bib, "packages.bib")
+```
+````
+
+编译出来的效果如下：
+
+![rmarkdown-verona](https://user-images.githubusercontent.com/12031874/135652566-08f27f9b-c7a0-4bcf-810a-88859e6db6a7.gif)
+
+
+---
+
+此外，R 社区有几个 R 包专门打包了一些 R Markdown 幻灯片模版，比如 [binb](https://github.com/eddelbuettel/binb) 和 [uiucthemes](https://github.com/illinois-r/uiucthemes) 包，如何使用便不再赘述，掌握以上介绍的规律，beamer 主题任你玩[^custom-block]。
+
+[^custom-block]: 想来想去，好像只剩一种情况还没有介绍，就是使用 Pandoc 支持的 [Lua 外挂](https://pandoc.org/lua-filters.html)，借助 LaTeX 宏包 [tcolorbox](https://ctan.org/pkg/tcolorbox) [自定义 block](https://bookdown.org/yihui/rmarkdown-cookbook/custom-blocks.html)，而这当属于忍者玩法了！
 
 ## 参考文献
 
-1. LaTeX 数学符号合集 <https://www.ctan.org/pkg/comprehensive/>.
+1. LaTeX 数学符号合集. <https://www.ctan.org/pkg/comprehensive/>.
 
-1. Pandoc options for LaTeX output <https://bookdown.org/yihui/rmarkdown-cookbook/latex-variables.html>
+1. 谢益辉. 2020. 适用于 LaTeX 环境的 Pandoc 选项. <https://bookdown.org/yihui/rmarkdown-cookbook/latex-variables.html>
 
-1. Beamer presentation <https://bookdown.org/yihui/rmarkdown/beamer-presentation.html>
+1. 谢益辉. 2018. R Markdown 制作 Beamer 幻灯片简介. <https://bookdown.org/yihui/rmarkdown/beamer-presentation.html>
 
-1. Cross-references <https://bookdown.org/yihui/bookdown/cross-references.html>
+1. 谢益辉. 2016. bookdown 交叉引用介绍. <https://bookdown.org/yihui/bookdown/cross-references.html>
 
 1. Xiangdong Zeng. 2020. 在 LATEX 中使用 OpenType 字体（三）. <https://stone-zeng.github.io/2020-05-02-use-opentype-fonts-iii/>
+
+1. Alison Hill, Christophe Dervieux, Yihui Xie. 2021. R Markdown 又提供一些新的特性.  <https://blog.rstudio.com/2021/04/15/2021-spring-rmd-news/>
