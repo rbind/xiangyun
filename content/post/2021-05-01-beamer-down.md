@@ -189,7 +189,7 @@ tinytex::xelatex(file = "slide-template.tex")
 
 ## 一个永远填不满的坑
 
-最近统计之都论坛里又有人[踩](https://d.cosx.org/d/422613)到我以前[踩](https://d.cosx.org/d/419931)过的[坑1](https://d.cosx.org/d/421770)、[坑2](https://d.cosx.org/d/421834-rmd-knit-to-pdfbeamercjk)，这里不妨简单说一下。
+最近统计之都论坛里又有人[踩](https://d.cosx.org/d/422613)到我以前[踩](https://d.cosx.org/d/419931)过的[坑1](https://d.cosx.org/d/421770)、[坑2](https://d.cosx.org/d/421834)、[坑3](https://d.cosx.org/d/422087)、[坑4](https://d.cosx.org/d/422343)，这里不妨简单说一下。
 
 ````
 ---
