@@ -7,6 +7,7 @@ categories:
   - 统计图形
 tags: 
   - 空间数据可视化
+draft: true
 description: "本文的目的是 Tolkein's Middle Earth 托尔金小说中的中土世界 --- 基于[ME-GIS数据集](https://github.com/jvangeld/ME-GIS)学习 ggplot2 可视化 sf 对象。因此，主要介绍 sf 对象，已经存在 sp 和 raster 对象，为什么还要 sf 对象？"
 ---
 

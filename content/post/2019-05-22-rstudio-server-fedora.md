@@ -10,6 +10,7 @@ tags:
   - Fedora
   - R
 thumbnail: /img/rstudio.svg
+draft: true
 description: "仅以此篇献给爱折腾的人。RStudio Server 不提供 Fedora Server 上的服务器版 rpm 包，遂从源码编译安装，折腾平台是 Fedora Server 30 虚拟机 VBox，这个过程同样适用于 Docker 因为我是从 Minimal 的 Fedora Server 30 开始的"
 ---
 

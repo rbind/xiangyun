@@ -10,6 +10,7 @@ tags:
   - Markdown
   - Pandoc
   - Hugo
+draft: true
 description: "又一份介绍 Markdown 的入门文档，本文对比了 Hugo 和 Pandoc 提供的 Markdown 扩展支持"
 thumbnail: /img/hugo.svg
 ---
