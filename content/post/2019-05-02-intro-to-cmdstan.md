@@ -9,6 +9,7 @@ tags:
   - Stan
   - MCMC
 thumbnail: /img/cmdstan.svg
+draft: true
 description: "基于Docker的完全可重复的配置过程，意义在于省去 Stan 在Windows下配置的麻烦，以 CmdStan 为例介绍贝叶斯计算框架 Stan 的安装和使用。Stan 问世的时间比 TensorFlow Probability 早很多年，这么些年了，影响力远不如 TensorFlow Probability，笔者在多个场合提及 Stan 都没有人听说过。"
 ---
 
