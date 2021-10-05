@@ -12,6 +12,7 @@ tags:
   - 泊松分布
   - 多元正态分布
   - 朗格拉普岛
+draft: true
 thumbnail: https://marshallislands.llnl.gov/images/md_rongelap_resettlement.jpg
 description: "朗格拉普岛位于南太平洋上，是马绍尔群岛的一部分，二战后，美国在该岛上进行了多次核武器测试，核爆炸后产生的放射性尘埃笼罩了全岛，目前该岛仍然不适合人类居住，只有经批准的科学研究人员才能登岛。从泊松广义线性模型到泊松空间广义线性混合效应模型，及其在分析朗格拉普岛上核污染物浓度的空间分布的应用"
 ---

@@ -9,6 +9,7 @@ tags:
   - R
   - RStudio Server
   - Ubuntu
+draft: true
 thumbnail: https://cloud.r-project.org/Rlogo.svg
 ---
 

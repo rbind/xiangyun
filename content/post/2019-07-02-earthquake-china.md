@@ -8,6 +8,7 @@ categories:
 tags:
   - ggplot2
   - 数据可视化
+draft: true
 thumbnail: https://wp-contents.netlify.com/2019/07/earthquake-china-jitter.png
 description: "quake6 数据集记录了 1973年至 2010 年全球六级以上地震强度的变化，从中国地震台网 <http://www.ceic.ac.cn> 下载了2012年4月26日至2019年6月30日的地震数据"
 ---
