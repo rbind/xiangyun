@@ -10,7 +10,7 @@ tags:
   - R 语言
   - ClickHouse
   - SQLite
-thumbnail: https://clickhouse.yandex/docs/zh/images/column_oriented.gif
+thumbnail: https://clickhouse.com/docs/en/images/column-oriented.gif
 description: "目前，大大小小的公司都有数据库系统甚至是集群，做数据分析第一步就是连接上数据，故而，介绍 R 语言环境中如何连接远程数据库及其在 R Markdown 数据分析报告中的使用。数据库涉及常见的 RSQLite 和不常见的 ClickHouse，并且都考虑到生产环境中的实际情况。"
 ---
 
