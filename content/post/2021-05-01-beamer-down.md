@@ -22,7 +22,7 @@ LaTeX 在国外是比较流行的学术写作工具，在国内部分学校的�
 
 去年6月份搬迁完[汉风主题](https://github.com/liantze/pgfornament-han)，在论坛开帖分享了[成果](https://d.cosx.org/d/421591-beamer)，又被撺掇着在主站[立了字句](https://github.com/cosname/cosx.org/issues/901)----要写一篇文章介绍 R Markdown 制作幻灯片模版的过程，一直囿于工作繁忙，难以抽身，前段时间在 WX 上和[楚新元](https://gitlab.com/chuxinyuan) 又聊到模版，看到有人又要准备趟我之前踩过的坑，心中不忍，咬咬牙还是把这文债给还了。算起来，从起心动念到最终交付拖延了整整一年零三个月！！！
 
-本文将介绍如何搬迁 beamer 主题到 R Markdown 生态里，涉及[谢益辉](https://yihui.org/)开发的轻量级 LaTeX 发行版 [TinyTeX](https://github.com/yihui/tinytex-releases) 及 LaTeX 幻灯片主题 [metropolis](https://github.com/matze/mtheme)、[beamer-verona](https://ctan.org/pkg/beamer-verona) 等。
+本文将介绍如何搬迁 beamer 主题到 R Markdown 生态里，涉及[谢益辉](https://yihui.org/)开发的轻量级 LaTeX 发行版 [TinyTeX](https://github.com/yihui/tinytex-releases)， LaTeX 幻灯片主题 [metropolis](https://github.com/matze/mtheme) 和 [beamer-verona](https://ctan.org/pkg/beamer-verona)，还有使用 Pandoc 内建 LaTeX 模版的经验。
 
 ## 安装 R 包
 
