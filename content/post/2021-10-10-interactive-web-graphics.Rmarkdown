@@ -13,8 +13,8 @@ tags:
 bibliography: [refer.bib]
 link-citations: true
 draft: true
-thumbnail: https://user-images.githubusercontent.com/12031874/110227135-11e04400-7f30-11eb-949d-61210ee37f5a.png
-description: "交互式网页图形。"
+thumbnail: /img/iris.svg
+description: "R 语言在数据可视化方面有很长时间的积累，除了内置的基础作图系统和栅格作图系统，以及衍生出来的代表作 lattice 和 ggplot2 ，更加易用、便携、交互的网页图形逐渐形成新的主流。移动终端设备的大规模普及，探索性数据分析和可视化需求越来越强烈，得益于现代硬件设施和前端技术的落地，交互式网页图形逐渐成为数据展示中的标配。"
 ---
 
 ```{css, echo=FALSE}
@@ -42,24 +42,29 @@ options(width = 79)
 声明：本文引用的所有信息均为公开信息，仅代表作者本人观点，与就职单位无关。
 :::
 
-图形种类繁多，交互式的种类不比静态的少，本文亦无意全面罗列，而是以散点图为例，详细介绍几个常用 R 包的使用，望读者能举一反三。
+R 语言在数据可视化方面有很长时间的积累，除了内置的基础作图系统和栅格作图系统，以及衍生出来的代表作 lattice 和 ggplot2 ，更加易用、便携、交互的网页图形逐渐形成新的主流。移动终端设备的大规模普及，探索性数据分析和可视化需求越来越强烈，得益于现代硬件设施和前端技术的落地，交互式网页图形逐渐成为数据展示中的标配。图形种类繁多，交互式的种类不比静态的少，本文亦无意全面罗列，而是以散点图为例，详细介绍几个常用 R 包的使用，望读者能举一反三。
 
-注意权限，图形种类的丰富度，R 语言接口的成熟度等方面的比较
+
 
 ## 概览
 
- 
+本文将主要介绍 R 语言绘制交互式网页图形的扩展包，综合考虑了使用权限，图形种类，接口成熟度等方面因素，挑选了 [plotly](https://github.com/plotly/plotly.R)、 [ggiraph](https://github.com/davidgohel/ggiraph)、 [scatterD3](https://github.com/juba/scatterD3)、 [apexcharter](https://github.com/dreamRs/apexcharter) 和 [echarts4r](https://github.com/JohnCoene/echarts4r) 等几个 R 包。R 语言还有一些专门化的可视化扩展包，比如绘制交互网络图的[visNetwork](https://github.com/datastorm-open/visNetwork) ，绘制交互地图的[leaflet](https://github.com/rstudio/leaflet) 等，更多详见[Ryan Hafen](https://github.com/hafen) 收集整理的交互式图形[展览网站](https://gallery.htmlwidgets.org/)。
+
+
+```{r}
+
+```
+
+
 
 ![老忠实间歇泉喷发规律](https://user-images.githubusercontent.com/12031874/110227135-11e04400-7f30-11eb-949d-61210ee37f5a.png)
 
 
-- [**rAmCharts4**](https://github.com/stla/rAmCharts4) 支持的图形种类还比较少 
-- [**apexcharter**](https://github.com/dreamRs/apexcharter) 支持的图形种类还比较少 
 - [**plotly**](https://github.com/ropensci/plotly) 功能很全，但是很笨重，作者在这方面没有投入太多精力解决用户问题，处于维护
 - [**echarts4r**](https://github.com/JohnCoene/echarts4r) 功能很全，比较轻量，但是和 plotly 一样都严重依赖 dplyr，而我不喜欢 dplyr 特别是不喜欢画图的库还依赖 dplyr
 - [**highcharter**](https://github.com/jbkunst/highcharter) 函数接口命名很糟糕，轻量
+- [**apexcharter**](https://github.com/dreamRs/apexcharter) 支持的图形种类还比较少 
 
-结合我司的情况， 做了很多定制，包装，plotly 还是首选
 
 - 轻量：一方面图形库本身，另一方面依赖
 - 不仅仅是作者一人维护，而且有多位持续维护者
@@ -103,46 +108,75 @@ RColorBrewer 包内置调色板见图 \@ref(fig:rcolorbrewer)
 
 ### R 语言版本
 
-R 语言版本
+R 语言版本 plotly [@Sievert2020]
+
 
 ```r
 library(plotly)
 
 plot_ly(
-  data = iris, 
+  data = iris,
   # 横轴变量
-  x = ~Sepal.Width, 
+  x = ~Sepal.Width,
   # 纵轴变量
-  y = ~Sepal.Length, 
+  y = ~Sepal.Length,
   # 分类变量
   color = ~Species,
   # 调色板：RColorBrewer 包内置的调色板都支持
   colors = "Set2",
   # 图形种类：散点图
-  type = "scatter", 
+  type = "scatter",
   # 显示模式：散点，读者不妨试试 "markers+lines"
   mode = "markers",
   # 散点的样式
   marker = list(
     # 圆形
-    symbol = "circle", 
-    sizemode = "diameter", 
+    symbol = "circle",
+    # 如果有 size 变量，则映射到圆的直径，当然还可以映射到面积 area
+    sizemode = "diameter",
     # 散点大小
     size = 15,
-    # 圆点的边界宽度和颜色
-    line = list(width = 2, color = "#FFFFFF"), 
-    # 透明度
-    opacity = 0.7
+    # 圆的边界宽度为 2 和颜色为白色
+    line = list(width = 2, color = "#FFFFFF"),
+    # 圆的透明度，注意同一位置的圆点重合后颜色会加深
+    opacity = 0.8
   ),
   text = ~ paste0(
     "萼片宽度：", Sepal.Width, "<br>",
     "萼片长度：", Sepal.Length
   ),
-  hoverinfo = 'text'
-)
+  hoverinfo = "text"
+) %>%
+  layout(
+    title = "鸢尾花数据",
+    # 添加横轴标题，去掉水平线，坐标轴刻度值保留一位小数，如果单位是百分比，则为 .1%
+    xaxis = list(title = "萼片宽度", showgrid = FALSE, tickformat = ".1f"),
+    # 添加纵轴标题，去掉垂直线
+    yaxis = list(title = "萼片长度", showgrid = FALSE, tickformat = ".1f"),
+    # 取消拖拽和局部缩放
+    dragmode = FALSE,
+    # 设置图例标题并加粗
+    legend = list(title = list(text = "<b> 种类 </b>")),
+    # 按照下 bottom 左 left 上 top 右 right 的顺序设置图形边空
+    margin = list(b = 50, l = 50, t = 35, r = 0)
+  ) %>%
+  config(
+    toImageButtonOptions = list(
+      # 保存图片格式
+      format = "svg", 
+      # 图片宽度
+      width = 800, 
+      # 图片高度
+      height = 600,
+      # 图片文件名
+      filename = paste("iris", Sys.Date(), sep = "_")
+    )
+  )
 ```
 
-![(\#fig:plotly-r-iris)鸢尾花散点图](https://user-images.githubusercontent.com/12031874/140611946-2971d2e6-dab7-4814-8b22-ba57d505bbb3.png){.full}
+![(\#fig:plotly-r-iris-a)鸢尾花散点图](/img/iris.svg){.full}
+
+![(\#fig:plotly-r-iris-b)鸢尾花散点图](https://user-images.githubusercontent.com/12031874/140611946-2971d2e6-dab7-4814-8b22-ba57d505bbb3.png){.full}
 
 散点图更多详细设置见[文档](https://plotly.com/r/marker-style/)
 
@@ -167,7 +201,11 @@ Returning the palette you asked for with that many colors
 不过，plotly 还是会通过插值方式返回足够多的色块，读者也可以尝试使用 `viridis`、`plasma`、`magma` 或 `inferno` 调色板，它们既可以当连续的也可以当离散的用。
 :::
 
-## ggplot2
+## ggiraph
+
+ggplot2
+
+[ggiraph](https://github.com/davidgohel/ggiraph)
 
 Edgar Anderson 的鸢尾花数据 ggplot2 图 \@ref(fig:ggplot2-iris)
 
@@ -313,19 +351,21 @@ figure() %>%
 
 **rAmCharts4** 和 **highcharter** 分别依赖商业的图形库[amCharts 4](https://www.amcharts.com/docs/v4/)和[highcharts](https://www.highcharts.com/)，有一定版权风险，因此，不推荐使用。
 
-[visNetwork](https://github.com/datastorm-open/visNetwork) 交互网络图，[leaflet](https://github.com/rstudio/leaflet) 交互地图等。[Ryan Hafen](https://github.com/hafen) 收集整理的交互式图形 R 包的[展览网站](https://gallery.htmlwidgets.org/)
 
 
 
 ## 环境信息
 
-在 RStudio IDE 内编辑本文的 Rmarkdown 源文件，用 **blogdown** 构建网站，[Hugo](https://github.com/gohugoio/hugo) 渲染 knitr 之后的 Markdown 文件，得益于 **blogdown** 对 Rmarkdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：
+在 RStudio IDE 内编辑本文的 Rmarkdown 源文件，用 **blogdown** [@Xie2017] 构建网站，[Hugo](https://github.com/gohugoio/hugo) 渲染 knitr 之后的 Markdown 文件，得益于 **blogdown** 对 Rmarkdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：
 
 ```{r}
 xfun::session_info(packages = c(
   "knitr", "rmarkdown", "blogdown", 
   "plotly", "scatterD3", "echarts4r", 
-  "apexcharter", "ggplot2"
+  "apexcharter", "ggplot2", "ggiraph"
 ), dependencies = FALSE)
 ```
+
+
+## 参考文献
 

@@ -13,8 +13,8 @@ tags:
 bibliography: [refer.bib]
 link-citations: true
 draft: true
-thumbnail: https://user-images.githubusercontent.com/12031874/110227135-11e04400-7f30-11eb-949d-61210ee37f5a.png
-description: "交互式网页图形。"
+thumbnail: /img/iris.svg
+description: "R 语言在数据可视化方面有很长时间的积累，除了内置的基础作图系统和栅格作图系统，以及衍生出来的代表作 lattice 和 ggplot2 ，更加易用、便携、交互的网页图形逐渐形成新的主流。移动终端设备的大规模普及，探索性数据分析和可视化需求越来越强烈，得益于现代硬件设施和前端技术的落地，交互式网页图形逐渐成为数据展示中的标配。"
 ---
 
 <style type="text/css">
@@ -40,24 +40,26 @@ figure {
 
 </div>
 
-图形种类繁多，交互式的种类不比静态的少，本文亦无意全面罗列，而是以散点图为例，详细介绍几个常用 R 包的使用，望读者能举一反三。
-
-注意权限，图形种类的丰富度，R 语言接口的成熟度等方面的比较
+R 语言在数据可视化方面有很长时间的积累，除了内置的基础作图系统和栅格作图系统，以及衍生出来的代表作 lattice 和 ggplot2 ，更加易用、便携、交互的网页图形逐渐形成新的主流。移动终端设备的大规模普及，探索性数据分析和可视化需求越来越强烈，得益于现代硬件设施和前端技术的落地，交互式网页图形逐渐成为数据展示中的标配。图形种类繁多，交互式的种类不比静态的少，本文亦无意全面罗列，而是以散点图为例，详细介绍几个常用 R 包的使用，望读者能举一反三。
 
 ## 概览
 
+本文将主要介绍 R 语言绘制交互式网页图形的扩展包，综合考虑了使用权限，图形种类，接口成熟度等方面因素，挑选了 [plotly](https://github.com/plotly/plotly.R)、 [ggiraph](https://github.com/davidgohel/ggiraph)、 [scatterD3](https://github.com/juba/scatterD3)、 [apexcharter](https://github.com/dreamRs/apexcharter) 和 [echarts4r](https://github.com/JohnCoene/echarts4r) 等几个 R 包。R 语言还有一些专门化的可视化扩展包，比如绘制交互网络图的[visNetwork](https://github.com/datastorm-open/visNetwork) ，绘制交互地图的[leaflet](https://github.com/rstudio/leaflet) 等，更多详见[Ryan Hafen](https://github.com/hafen) 收集整理的交互式图形[展览网站](https://gallery.htmlwidgets.org/)。
+
 ![老忠实间歇泉喷发规律](https://user-images.githubusercontent.com/12031874/110227135-11e04400-7f30-11eb-949d-61210ee37f5a.png)
 
--   [**rAmCharts4**](https://github.com/stla/rAmCharts4) 支持的图形种类还比较少
--   [**apexcharter**](https://github.com/dreamRs/apexcharter) 支持的图形种类还比较少
 -   [**plotly**](https://github.com/ropensci/plotly) 功能很全，但是很笨重，作者在这方面没有投入太多精力解决用户问题，处于维护
+
 -   [**echarts4r**](https://github.com/JohnCoene/echarts4r) 功能很全，比较轻量，但是和 plotly 一样都严重依赖 dplyr，而我不喜欢 dplyr 特别是不喜欢画图的库还依赖 dplyr
+
 -   [**highcharter**](https://github.com/jbkunst/highcharter) 函数接口命名很糟糕，轻量
 
-结合我司的情况， 做了很多定制，包装，plotly 还是首选
+-   [**apexcharter**](https://github.com/dreamRs/apexcharter) 支持的图形种类还比较少
 
 -   轻量：一方面图形库本身，另一方面依赖
+
 -   不仅仅是作者一人维护，而且有多位持续维护者
+
 -   功能比较全面，比如 plotly 和 echarts4r 包
 
 ## plotly
@@ -101,47 +103,77 @@ RColorBrewer 包内置调色板见图 <a href="#fig:rcolorbrewer">2</a>
 
 ### R 语言版本
 
-R 语言版本
+R 语言版本 plotly ([Sievert 2020](#ref-Sievert2020))
 
 ``` r
 library(plotly)
 
 plot_ly(
-  data = iris, 
+  data = iris,
   # 横轴变量
-  x = ~Sepal.Width, 
+  x = ~Sepal.Width,
   # 纵轴变量
-  y = ~Sepal.Length, 
+  y = ~Sepal.Length,
   # 分类变量
   color = ~Species,
   # 调色板：RColorBrewer 包内置的调色板都支持
   colors = "Set2",
   # 图形种类：散点图
-  type = "scatter", 
+  type = "scatter",
   # 显示模式：散点，读者不妨试试 "markers+lines"
   mode = "markers",
   # 散点的样式
   marker = list(
     # 圆形
-    symbol = "circle", 
-    sizemode = "diameter", 
+    symbol = "circle",
+    # 如果有 size 变量，则映射到圆的直径，当然还可以映射到面积 area
+    sizemode = "diameter",
     # 散点大小
     size = 15,
-    # 圆点的边界宽度和颜色
-    line = list(width = 2, color = "#FFFFFF"), 
-    # 透明度
-    opacity = 0.7
+    # 圆的边界宽度为 2 和颜色为白色
+    line = list(width = 2, color = "#FFFFFF"),
+    # 圆的透明度，注意同一位置的圆点重合后颜色会加深
+    opacity = 0.8
   ),
   text = ~ paste0(
     "萼片宽度：", Sepal.Width, "<br>",
     "萼片长度：", Sepal.Length
   ),
-  hoverinfo = 'text'
-)
+  hoverinfo = "text"
+) %>%
+  layout(
+    title = "鸢尾花数据",
+    # 添加横轴标题，去掉水平线，坐标轴刻度值保留一位小数，如果单位是百分比，则为 .1%
+    xaxis = list(title = "萼片宽度", showgrid = FALSE, tickformat = ".1f"),
+    # 添加纵轴标题，去掉垂直线
+    yaxis = list(title = "萼片长度", showgrid = FALSE, tickformat = ".1f"),
+    # 取消拖拽和局部缩放
+    dragmode = FALSE,
+    # 设置图例标题并加粗
+    legend = list(title = list(text = "<b> 种类 </b>")),
+    # 按照下 bottom 左 left 上 top 右 right 的顺序设置图形边空
+    margin = list(b = 50, l = 50, t = 35, r = 0)
+  ) %>%
+  config(
+    toImageButtonOptions = list(
+      # 保存图片格式
+      format = "svg", 
+      # 图片宽度
+      width = 800, 
+      # 图片高度
+      height = 600,
+      # 图片文件名
+      filename = paste("iris", Sys.Date(), sep = "_")
+    )
+  )
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/140611946-2971d2e6-dab7-4814-8b22-ba57d505bbb3.png" class="full" alt="Figure 3: 鸢尾花散点图" /><figcaption aria-hidden="true">Figure 3: 鸢尾花散点图</figcaption>
+<img src="/img/iris.svg" class="full" alt="Figure 3: 鸢尾花散点图" /><figcaption aria-hidden="true">Figure 3: 鸢尾花散点图</figcaption>
+</figure>
+
+<figure>
+<img src="https://user-images.githubusercontent.com/12031874/140611946-2971d2e6-dab7-4814-8b22-ba57d505bbb3.png" class="full" alt="Figure 4: 鸢尾花散点图" /><figcaption aria-hidden="true">Figure 4: 鸢尾花散点图</figcaption>
 </figure>
 
 散点图更多详细设置见[文档](https://plotly.com/r/marker-style/)
@@ -167,9 +199,13 @@ Python 版本和 R 语言版本不要同时使用，以免 plotly 库版本不�
 
 </div>
 
-## ggplot2
+## ggiraph
 
-Edgar Anderson 的鸢尾花数据 ggplot2 图 <a href="#fig:ggplot2-iris">4</a>
+ggplot2
+
+[ggiraph](https://github.com/davidgohel/ggiraph)
+
+Edgar Anderson 的鸢尾花数据 ggplot2 图 <a href="#fig:ggplot2-iris">5</a>
 
 ``` r
 library(ggplot2)
@@ -182,14 +218,14 @@ ggplot(data = iris, aes(x = Sepal.Width, y = Sepal.Length, color = Species)) +
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/140610866-f142b14e-071c-48b2-b32d-b59c697516e2.png" class="full" alt="Figure 4: 鸢尾花散点图" /><figcaption aria-hidden="true">Figure 4: 鸢尾花散点图</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/140610866-f142b14e-071c-48b2-b32d-b59c697516e2.png" class="full" alt="Figure 5: 鸢尾花散点图" /><figcaption aria-hidden="true">Figure 5: 鸢尾花散点图</figcaption>
 </figure>
 
 ## scatterD3
 
 [scatterD3](https://github.com/juba/scatterD3) 基于鼎鼎大名的 D3 图形库，在散点图方面的渲染效果非常好。
 
-如图<a href="#fig:scatterd3-iris">5</a> 所示
+如图<a href="#fig:scatterd3-iris">6</a> 所示
 
 ``` r
 # 加载 R 包
@@ -234,7 +270,7 @@ scatterD3(
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/140610124-7bc984cf-c3dc-474b-896a-fa87a22244f9.png" class="full" alt="Figure 5: 鸢尾花散点图" /><figcaption aria-hidden="true">Figure 5: 鸢尾花散点图</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/140610124-7bc984cf-c3dc-474b-896a-fa87a22244f9.png" class="full" alt="Figure 6: 鸢尾花散点图" /><figcaption aria-hidden="true">Figure 6: 鸢尾花散点图</figcaption>
 </figure>
 
 [分类离散型](https://github.com/d3/d3-scale-chromatic#categorical)的调色板支持所有 RColorBrewer 包内置的离散型调色板，外加 schemeCategory10 和 schemeTableau10 两个调色板，注意使用时要色板名添加前缀 scheme，[数值连续型](https://github.com/d3/d3-scale-chromatic#diverging) 与之类似，不再赘述。
@@ -264,7 +300,7 @@ apex(
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/140614562-691f12d3-3d59-4096-b087-3f01da4c4795.png" class="full" alt="Figure 6: 鸢尾花散点图" /><figcaption aria-hidden="true">Figure 6: 鸢尾花散点图</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/140614562-691f12d3-3d59-4096-b087-3f01da4c4795.png" class="full" alt="Figure 7: 鸢尾花散点图" /><figcaption aria-hidden="true">Figure 7: 鸢尾花散点图</figcaption>
 </figure>
 
 设置调色板的部分，也可以采用手动一一指定的方式，用下述代码替换 `ax_colors()` 所在行。
@@ -315,30 +351,47 @@ figure() %>%
 
 **rAmCharts4** 和 **highcharter** 分别依赖商业的图形库[amCharts 4](https://www.amcharts.com/docs/v4/)和[highcharts](https://www.highcharts.com/)，有一定版权风险，因此，不推荐使用。
 
-[visNetwork](https://github.com/datastorm-open/visNetwork) 交互网络图，[leaflet](https://github.com/rstudio/leaflet) 交互地图等。[Ryan Hafen](https://github.com/hafen) 收集整理的交互式图形 R 包的[展览网站](https://gallery.htmlwidgets.org/)
-
 ## 环境信息
 
-在 RStudio IDE 内编辑本文的 Rmarkdown 源文件，用 **blogdown** 构建网站，[Hugo](https://github.com/gohugoio/hugo) 渲染 knitr 之后的 Markdown 文件，得益于 **blogdown** 对 Rmarkdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：
+在 RStudio IDE 内编辑本文的 Rmarkdown 源文件，用 **blogdown** ([Xie, Hill, and Thomas 2017](#ref-Xie2017)) 构建网站，[Hugo](https://github.com/gohugoio/hugo) 渲染 knitr 之后的 Markdown 文件，得益于 **blogdown** 对 Rmarkdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：
 
 ``` r
 xfun::session_info(packages = c(
   "knitr", "rmarkdown", "blogdown", 
   "plotly", "scatterD3", "echarts4r", 
-  "apexcharter", "ggplot2"
+  "apexcharter", "ggplot2", "ggiraph"
 ), dependencies = FALSE)
 ```
 
-    ## R version 4.1.2 (2021-11-01)
+    ## R version 4.1.1 (2021-08-10)
     ## Platform: x86_64-apple-darwin17.0 (64-bit)
     ## Running under: macOS Big Sur 10.16
     ## 
     ## Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
     ## 
     ## Package version:
-    ##   apexcharter_0.3.0 blogdown_1.5      echarts4r_0.4.2   ggplot2_3.3.5    
-    ##   knitr_1.36        plotly_4.10.0     rmarkdown_2.11    scatterD3_1.0.1  
+    ##   apexcharter_0.3.0 blogdown_1.5      echarts4r_0.4.2   ggiraph_0.7.10   
+    ##   ggplot2_3.3.5     knitr_1.36        plotly_4.10.0     rmarkdown_2.11   
+    ##   scatterD3_1.0.1  
     ## 
-    ## Pandoc version: 2.14.2
+    ## Pandoc version: 2.16.1
     ## 
     ## Hugo version: 0.88.1
+
+## 参考文献
+
+<div id="refs" class="references csl-bib-body hanging-indent">
+
+<div id="ref-Sievert2020" class="csl-entry">
+
+Sievert, Carson. 2020. *Interactive Web-Based Data Visualization with r, Plotly, and Shiny*. Chapman; Hall/CRC. <https://plotly-r.com>.
+
+</div>
+
+<div id="ref-Xie2017" class="csl-entry">
+
+Xie, Yihui, Alison Presmanes Hill, and Amber Thomas. 2017. *<span class="nocase">blogdown</span>: Creating Websites with R Markdown*. Boca Raton, Florida: Chapman; Hall/CRC. <https://bookdown.org/yihui/blogdown/>.
+
+</div>
+
+</div>
