@@ -5,12 +5,15 @@ date: '2021-10-10'
 slug: interactive-web-graphics
 toc: true
 categories:
+  - R 语言
   - 统计图形
 tags:
   - plotly
   - highcharter
   - echarts4r
-bibliography: [refer.bib]
+bibliography: 
+  - refer.bib
+  - packages.bib
 link-citations: true
 draft: true
 thumbnail: /img/iris.svg
@@ -51,8 +54,52 @@ R 语言在数据可视化方面有很长时间的积累，除了内置的基础
 本文将主要介绍 R 语言绘制交互式网页图形的扩展包，综合考虑了使用权限，图形种类，接口成熟度等方面因素，挑选了 [plotly](https://github.com/plotly/plotly.R)、 [ggiraph](https://github.com/davidgohel/ggiraph)、 [scatterD3](https://github.com/juba/scatterD3)、 [apexcharter](https://github.com/dreamRs/apexcharter) 和 [echarts4r](https://github.com/JohnCoene/echarts4r) 等几个 R 包。R 语言还有一些专门化的可视化扩展包，比如绘制交互网络图的[visNetwork](https://github.com/datastorm-open/visNetwork) ，绘制交互地图的[leaflet](https://github.com/rstudio/leaflet) 等，更多详见[Ryan Hafen](https://github.com/hafen) 收集整理的交互式图形[展览网站](https://gallery.htmlwidgets.org/)。
 
 
-```{r}
 
+
+```{r app-deps, echo=FALSE}
+# 获取 R 包元数据
+Sys.setenv(R_CRAN_WEB = "https://mirrors.tuna.tsinghua.edu.cn/CRAN")
+pdb <- tools::CRAN_package_db()
+
+# 处理掉丑陋的成对单引号
+rmd_lib <- c(
+  "ggplot2", "plotly.js", "Echarts JavaScript",
+  "ApexCharts"
+)
+rmd_regexp <- paste("'(", paste(rmd_lib, collapse = "|"), ")'", sep = "")
+
+# DT + plotly 考虑用 reactable 和 rAmCharts4 替换
+pkgs <- c(
+  "plotly", "scatterD3", "echarts4r", 
+  "apexcharter", "ggplot2", "ggiraph"
+)
+# 若有未安装的 R 包先安装，后面才能写入引用数据到文件
+if(any(!pkgs %in% .packages(T))){
+  install.packages(pkgs[!pkgs %in% .packages(T)])
+}
+# 提取 R Shiny 应用使用的 R 包及其基本描述
+sub_pdb <- subset(
+  x = pdb,
+  select = c("Package", "Title", "Maintainer", "URL", "License"),
+  subset = Package %in% pkgs
+) |>
+  transform(Title = gsub("(\\\n)", " ", Title)) |>
+  transform(Title = gsub(rmd_regexp, "\\1", Title)) |> 
+  transform(Maintainer = gsub("<([^<>]*)>", "", Maintainer)) |> 
+  transform(URL = gsub("(\\\n)", " ", URL)) |> 
+  transform(URL = gsub(",", "", URL)) |> 
+  transform(Package = paste0(Package, " ", "[@", Package, "]"))
+
+# 展示表格
+knitr::kable(sub_pdb[order(sub_pdb$Maintainer), ], row.names = FALSE)
+```
+```{r write-bib, include=FALSE}
+bib <- knitr::write_bib(
+  x = pkgs, file = NULL, prefix = ""
+)
+bib <- unlist(bib)
+bib <- gsub("(\\\n)", " ", bib)
+xfun::write_utf8(bib, "packages.bib")
 ```
 
 
@@ -352,6 +399,7 @@ figure() %>%
 **rAmCharts4** 和 **highcharter** 分别依赖商业的图形库[amCharts 4](https://www.amcharts.com/docs/v4/)和[highcharts](https://www.highcharts.com/)，有一定版权风险，因此，不推荐使用。
 
 
+某些 R 包的接口使用起来比较复杂，或者某些高级的图形需要自定义，对于这种情况，已存在一些 R 包来填补 Gap。比如[simplevis](https://github.com/statisticsnz/simplevis/)
 
 
 ## 环境信息

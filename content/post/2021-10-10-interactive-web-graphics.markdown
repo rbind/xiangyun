@@ -5,12 +5,15 @@ date: '2021-10-10'
 slug: interactive-web-graphics
 toc: true
 categories:
+  - R 语言
   - 统计图形
 tags:
   - plotly
   - highcharter
   - echarts4r
-bibliography: [refer.bib]
+bibliography: 
+  - refer.bib
+  - packages.bib
 link-citations: true
 draft: true
 thumbnail: /img/iris.svg
@@ -45,6 +48,15 @@ R 语言在数据可视化方面有很长时间的积累，除了内置的基础
 ## 概览
 
 本文将主要介绍 R 语言绘制交互式网页图形的扩展包，综合考虑了使用权限，图形种类，接口成熟度等方面因素，挑选了 [plotly](https://github.com/plotly/plotly.R)、 [ggiraph](https://github.com/davidgohel/ggiraph)、 [scatterD3](https://github.com/juba/scatterD3)、 [apexcharter](https://github.com/dreamRs/apexcharter) 和 [echarts4r](https://github.com/JohnCoene/echarts4r) 等几个 R 包。R 语言还有一些专门化的可视化扩展包，比如绘制交互网络图的[visNetwork](https://github.com/datastorm-open/visNetwork) ，绘制交互地图的[leaflet](https://github.com/rstudio/leaflet) 等，更多详见[Ryan Hafen](https://github.com/hafen) 收集整理的交互式图形[展览网站](https://gallery.htmlwidgets.org/)。
+
+| Package                                                  | Title                                                            | Maintainer          | URL                                                                           | License                 |
+|:---------------------------------------------------------|:-----------------------------------------------------------------|:--------------------|:------------------------------------------------------------------------------|:------------------------|
+| plotly ([Sievert et al. 2021](#ref-plotly))              | Create Interactive Web Graphics via plotly.js                    | Carson Sievert      | https://plotly-r.com https://github.com/plotly/plotly.R https://plotly.com/r/ | MIT + file LICENSE      |
+| ggiraph ([Gohel and Skintzos 2021](#ref-ggiraph))        | Make ggplot2 Graphics Interactive                                | David Gohel         | https://davidgohel.github.io/ggiraph/                                         | GPL-3                   |
+| echarts4r ([Coene 2021](#ref-echarts4r))                 | Create Interactive Graphs with Echarts JavaScript Version 5      | John Coene          | https://echarts4r.john-coene.com/ https://github.com/JohnCoene/echarts4r      | Apache License (>= 2.0) |
+| scatterD3 ([Barnier et al. 2021](#ref-scatterD3))        | D3 JavaScript Scatterplot from R                                 | Julien Barnier      | https://juba.github.io/scatterD3/                                             | GPL (>= 3)              |
+| ggplot2 ([Wickham et al. 2021](#ref-ggplot2))            | Create Elegant Data Visualisations Using the Grammar of Graphics | Thomas Lin Pedersen | https://ggplot2.tidyverse.org https://github.com/tidyverse/ggplot2            | MIT + file LICENSE      |
+| apexcharter ([Perrier and Meyer 2021](#ref-apexcharter)) | Create Interactive Chart with the JavaScript ApexCharts Library  | Victor Perrier      | https://github.com/dreamRs/apexcharter https://dreamrs.github.io/apexcharter/ | MIT + file LICENSE      |
 
 ![老忠实间歇泉喷发规律](https://user-images.githubusercontent.com/12031874/110227135-11e04400-7f30-11eb-949d-61210ee37f5a.png)
 
@@ -351,6 +363,8 @@ figure() %>%
 
 **rAmCharts4** 和 **highcharter** 分别依赖商业的图形库[amCharts 4](https://www.amcharts.com/docs/v4/)和[highcharts](https://www.highcharts.com/)，有一定版权风险，因此，不推荐使用。
 
+某些 R 包的接口使用起来比较复杂，或者某些高级的图形需要自定义，对于这种情况，已存在一些 R 包来填补 Gap。比如[simplevis](https://github.com/statisticsnz/simplevis/)
+
 ## 环境信息
 
 在 RStudio IDE 内编辑本文的 Rmarkdown 源文件，用 **blogdown** ([Xie, Hill, and Thomas 2017](#ref-Xie2017)) 构建网站，[Hugo](https://github.com/gohugoio/hugo) 渲染 knitr 之后的 Markdown 文件，得益于 **blogdown** 对 Rmarkdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：
@@ -363,28 +377,64 @@ xfun::session_info(packages = c(
 ), dependencies = FALSE)
 ```
 
-    ## R version 4.1.1 (2021-08-10)
+    ## R version 4.1.2 (2021-11-01)
     ## Platform: x86_64-apple-darwin17.0 (64-bit)
     ## Running under: macOS Big Sur 10.16
     ## 
     ## Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
     ## 
     ## Package version:
-    ##   apexcharter_0.3.0 blogdown_1.5      echarts4r_0.4.2   ggiraph_0.7.10   
+    ##   apexcharter_0.3.0 blogdown_1.6      echarts4r_0.4.2   ggiraph_0.7.10   
     ##   ggplot2_3.3.5     knitr_1.36        plotly_4.10.0     rmarkdown_2.11   
     ##   scatterD3_1.0.1  
     ## 
-    ## Pandoc version: 2.16.1
+    ## Pandoc version: 2.14.2
     ## 
-    ## Hugo version: 0.88.1
+    ## Hugo version: 0.89.2
 
 ## 参考文献
 
 <div id="refs" class="references csl-bib-body hanging-indent">
 
+<div id="ref-scatterD3" class="csl-entry">
+
+Barnier, Julien, Kent Russell, Mike Bostock, Susie Lu, Speros Kokenes, and Evan Wang. 2021. *scatterD3: D3 JavaScript Scatterplot from r*. <https://juba.github.io/scatterD3/>.
+
+</div>
+
+<div id="ref-echarts4r" class="csl-entry">
+
+Coene, John. 2021. *Echarts4r: Create Interactive Graphs with Echarts JavaScript Version 5*. <https://CRAN.R-project.org/package=echarts4r>.
+
+</div>
+
+<div id="ref-ggiraph" class="csl-entry">
+
+Gohel, David, and Panagiotis Skintzos. 2021. *Ggiraph: Make Ggplot2 Graphics Interactive*. <https://davidgohel.github.io/ggiraph/>.
+
+</div>
+
+<div id="ref-apexcharter" class="csl-entry">
+
+Perrier, Victor, and Fanny Meyer. 2021. *Apexcharter: Create Interactive Chart with the JavaScript ApexCharts Library*. <https://CRAN.R-project.org/package=apexcharter>.
+
+</div>
+
 <div id="ref-Sievert2020" class="csl-entry">
 
 Sievert, Carson. 2020. *Interactive Web-Based Data Visualization with r, Plotly, and Shiny*. Chapman; Hall/CRC. <https://plotly-r.com>.
+
+</div>
+
+<div id="ref-plotly" class="csl-entry">
+
+Sievert, Carson, Chris Parmer, Toby Hocking, Scott Chamberlain, Karthik Ram, Marianne Corvellec, and Pedro Despouy. 2021. *Plotly: Create Interactive Web Graphics via Plotly.js*. <https://CRAN.R-project.org/package=plotly>.
+
+</div>
+
+<div id="ref-ggplot2" class="csl-entry">
+
+Wickham, Hadley, Winston Chang, Lionel Henry, Thomas Lin Pedersen, Kohske Takahashi, Claus Wilke, Kara Woo, Hiroaki Yutani, and Dewey Dunnington. 2021. *Ggplot2: Create Elegant Data Visualisations Using the Grammar of Graphics*. <https://CRAN.R-project.org/package=ggplot2>.
 
 </div>
 
