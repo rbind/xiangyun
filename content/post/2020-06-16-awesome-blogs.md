@@ -97,6 +97,7 @@ description: "个人博客列表大合集，内容上是有偏的，R语言方�
 |Andrew Lawson                 |http://people.musc.edu/~abl6/                         |
 |Jozef Hajnala                 |https://jozef.io/                                     |
 |Roger Bivand                  |https://www.nhh.no/en/employees/faculty/roger-bivand/ |
+|Roger D. Peng                 |https://rdpeng.org/                                   |
 |John Fox                      |https://socialsciences.mcmaster.ca/jfox/              |
 |Dirk Eddelbuettel             |https://dirk.eddelbuettel.com/                         |
 |Joshua Kunst                  |https://jkunst.com/                                    |
