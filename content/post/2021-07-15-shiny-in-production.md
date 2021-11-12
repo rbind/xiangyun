@@ -1,7 +1,7 @@
 ---
 date: "2021-08-29"
 slug: shiny-in-production
-title: 开发企业级 shiny 应用的技术栈
+title: 开发企业级 Shiny 应用的技术栈
 toc: true
 categories:
   - 统计软件
