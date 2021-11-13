@@ -38,6 +38,7 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 
+.hugo_build.lock
 .DS_Store
 Thumbs.db
 
