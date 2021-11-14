@@ -37,6 +37,23 @@ div.rmdinfo::before {
   margin-bottom: 0.25em;
 }
 
+.rmdtip {
+  border: 1px solid #34A853;
+  border-left-width: 5px;
+  border-radius: 5px;
+  padding: 1em;
+  margin: 1em 0;
+}
+
+div.rmdtip::before {
+  content: "提示";
+  color: #34A853;
+  display: block;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-bottom: 0.25em;
+}
+
 .rmdwarn {
   border: 1px solid #EA4335;
   border-left-width: 5px;
@@ -91,7 +108,7 @@ figure {
 
 # 本文概览
 
-R 语言在数据可视化方面有很长时间的积累，除了内置的基础作图系统 **graphics** ([R Core Team 2021](#ref-R-base))和栅格作图系统 **grid**([Murrell 2002](#ref-Paul2002))，以及衍生出来的代表作 **lattice** ([Sarkar 2008](#ref-Sarkar2008))和 **ggplot2** ([Wickham 2016](#ref-Wickham2016))，更加易用、便携、交互的网页图形逐渐形成新的主流。移动终端设备的大规模普及，探索性数据分析和可视化需求越来越强烈，得益于现代硬件设施和前端技术的落地，交互式网页图形逐渐成为数据展示中的标配。图形种类繁多，交互式的种类不比静态的少，本文亦无意全面罗列，而是以散点图为例，主要详细介绍几个常见 R 包的使用，望读者能举一反三。如果你是初学者，希望本文能为你打开视野，如果你和我差不多，希望本文能促进互相交流，如果你是专家，欢迎前来赐教。
+R 语言在数据可视化方面有很长时间的积累，除了内置的基础作图系统 **graphics** ([R Core Team 2021](#ref-R-base))和栅格作图系统 **grid**([Murrell 2002](#ref-Paul2002))，以及衍生出来的代表作 **lattice** ([Sarkar 2008](#ref-Sarkar2008))和 **ggplot2** ([Wickham 2016](#ref-Wickham2016))，更加易用、便携、交互的网页图形逐渐形成新的主流。移动终端设备的大规模普及，探索性数据分析和可视化需求越来越强烈，得益于现代硬件设施和前端技术的落地，交互式网页图形逐渐成为数据展示中的标配。图形种类繁多，交互式图形的种类不比静态的少，本文亦无意全面罗列，而是以散点图为例，详细介绍几个常见 R 包的使用。如果你是初学者，希望本文能为你打开视野，如果你和我差不多，希望本文能促进互相交流，如果你是专家，欢迎前来赐教。
 
 本文将主要介绍 R 语言绘制交互式网页图形的扩展包，综合考虑了使用权限，图形种类，接口成熟度等方面因素，挑选了 [**plotly**](https://github.com/plotly/plotly.R)、 [**ggiraph**](https://github.com/davidgohel/ggiraph)、 [**scatterD3**](https://github.com/juba/scatterD3)、 [**apexcharter**](https://github.com/dreamRs/apexcharter) 和 [**echarts4r**](https://github.com/JohnCoene/echarts4r) 等几个 R 包，见表<a href="#tab:table-deps">1</a>。R 语言还有一些专门化的可视化扩展包，比如绘制交互网络图的[**visNetwork**](https://github.com/datastorm-open/visNetwork) ，绘制交互地图的[**leaflet**](https://github.com/rstudio/leaflet) 等，更多详见[Ryan Hafen](https://github.com/hafen) 收集整理的交互式图形[展览网站](https://gallery.htmlwidgets.org/)。
 
@@ -419,15 +436,16 @@ ax_colors_manual(list(
 
 ``` r
 library(echarts4r)
-e_chart(data = iris, x = Sepal.Width) |>
-  # 按 Species 分组
-  e_scatter(serie = Sepal.Length, bind = Species, symbol_size = 10) |>
-  # 分组上色
-  e_add_nested("itemStyle", color) |>
-  # 鼠标悬停在散点上才显示 tooltip，如果是条形图/饼图，设置 trigger = "axis"
+iris |> 
+  group_by(Species) |> 
+  e_charts(x = Sepal.Width) |> 
+  e_scatter(serie = Sepal.Length, bind = Species, symbol_size = 10) |> 
+  # 设置调色板 Set2
+  e_color(color = RColorBrewer::brewer.pal(n = 3, name = "Set2")) |> 
   e_tooltip(
     trigger = "item",
     # 定制悬浮内容
+    # params.name 取自 bind 变量
     formatter = htmlwidgets::JS("
       function(params){
         return('种类: <strong>' + params.name + 
@@ -458,23 +476,23 @@ e_chart(data = iris, x = Sepal.Width) |>
     formatter = e_axis_formatter("decimal", digits = 1),
     min = 4, type = 'value', 
     nameTextStyle = list(fontWeight = 'bold')
-  ) |>
-  # 去掉默认无效图例
-  e_legend(show = FALSE) |>
+  ) |> 
   # 添加图标题
   e_title("鸢尾花数据") |>
+  # 添加右上角缩放图形按钮
+  e_toolbox_feature("dataZoom") |>
   # 添加右上角下载图片按钮
   e_toolbox_feature(feature = "saveAsImage", title = "保存图片")
 ```
 
-使用的方式上与前面介绍过的 R 包 **plotly** 等有些不太一样，连分组散点图画起来都比较费劲，关键是三份材料对照学习，其一是函数帮助文档，其二是 **echarts4r** 包[文档](https://echarts4r.john-coene.com/)，其三是 Apache ECharts [官方文档](https://echarts.apache.org/en)，所幸文档比较全，一点一点调试，积累积累也就好了，不然，画个散点图都能这么费劲，绝对可以劝退很多人。非常亮眼的地方在于鼠标悬停在散点上时，能感受到如丝般顺滑，也不枉我费尽心思来回折腾！如果你也想体验一下，一定要把上面的代码复制到 R 控制台里运行，话说千遍，不如一干！
+使用的方式上与前面介绍过的 R 包 **plotly** 等有些不太一样，连分组散点图画起来都比较费劲，关键是三份材料对照学习，其一是函数帮助文档，其二是 **echarts4r** 包[文档](https://echarts4r.john-coene.com/)，其三是 Apache ECharts [官方文档](https://echarts.apache.org/en)，所幸文档比较全，一点一点调试，积累积累也就好了，不然，画个散点图都能这么费劲，绝对可以劝退很多人。非常亮眼的地方在于鼠标悬停在散点上时，能感受到如丝般顺滑，也不枉来回折腾一趟！如果读者也想体验一下，一定要把上面的代码复制到 R 控制台里运行，话说千遍，不如一干！
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/141642116-585e46e9-7434-44e1-a16d-c509d78011ef.png" class="full" alt="Figure 12: 鸢尾花散点图（PNG 格式）" /><figcaption aria-hidden="true">Figure 12: 鸢尾花散点图（PNG 格式）</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/141676666-8530b06a-d296-42b5-81a6-94ec0c4192b5.png" class="full" alt="Figure 12: 鸢尾花散点图（PNG 格式）" /><figcaption aria-hidden="true">Figure 12: 鸢尾花散点图（PNG 格式）</figcaption>
 </figure>
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/141642201-7205aad8-43af-44b4-8b41-2f3d4847a4f6.png" class="full" alt="Figure 13: 鸢尾花散点图（交互状态下的截图）" /><figcaption aria-hidden="true">Figure 13: 鸢尾花散点图（交互状态下的截图）</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/141676721-539aa51a-9fad-46bb-9ee8-4a0433bf4fa7.png" class="full" alt="Figure 13: 鸢尾花散点图（交互状态下的截图）" /><figcaption aria-hidden="true">Figure 13: 鸢尾花散点图（交互状态下的截图）</figcaption>
 </figure>
 
 如果对效果没啥要求，就是看看，倒也简单，四行代码即可！
@@ -482,8 +500,8 @@ e_chart(data = iris, x = Sepal.Width) |>
 ``` r
 iris |> 
   group_by(Species) |> 
-  e_charts(Sepal.Length) |> 
-  e_scatter(Petal.Length)
+  e_charts(Sepal.Width) |> 
+  e_scatter(Sepal.Length)
 ```
 
 <figure>
@@ -492,9 +510,28 @@ iris |>
 
 哈哈，前后一对比，你就知道开发者给的示例和真正要用的之间的差距了吧！
 
+<div class="rmdtip">
+
+函数 `e_color()` 中的[color 选项](https://echarts.apache.org/en/option.html#color)有一个默认的调色板。
+
+``` r
+echarts_colors <- c(
+  "#5470c6", "#91cc75", "#fac858",
+  "#ee6666", "#73c0de", "#3ba272",
+  "#fc8452", "#9a60b4", "#ea7ccc"
+)
+scales::show_col(colours = echarts_colors)
+```
+
+<figure>
+<img src="https://user-images.githubusercontent.com/12031874/141676968-ee571997-e490-4993-b7cf-7c6aa62dfab8.png" style="width:85.0%" alt="Figure 15: Apache Echarts 默认的调色板" /><figcaption aria-hidden="true">Figure 15: Apache Echarts 默认的调色板</figcaption>
+</figure>
+
+</div>
+
 # 如何选择
 
-当然，除了上面介绍的这些，还有很多可以绘制交互式图形的 R 包，如[**rAmCharts4**](https://github.com/stla/rAmCharts4)、[**highcharter**](https://github.com/jbkunst/highcharter)和 [**rbokeh**](https://github.com/bokeh/rbokeh) 等。笔者相信以后还会有越来越多的、甚至更好的 R 包出现，但是无论静态还是动态的交互图形，使用的套路会趋同—都宣称是「图形语法」家族，比如 Python 社区的 [matplotlib](https://github.com/matplotlib/matplotlib)、[plotnine](https://github.com/has2k1/plotnine) 和 [seaborn](https://github.com/mwaskom/seaborn)，阿里的[G2](https://github.com/antvis/G2) 等，太多太多，不再一一介绍，希望读者能多练习，掌握其一般规律，形成生产力。
+当然，除了上面介绍的这些，还有很多可以绘制交互式图形的 R 包，如[**rAmCharts4**](https://github.com/stla/rAmCharts4)、[**highcharter**](https://github.com/jbkunst/highcharter)和 [**rbokeh**](https://github.com/bokeh/rbokeh) 等。笔者相信以后还会有越来越多的、甚至更好的 R 包出现，但是无论静态还是动态的交互图形，使用的套路会趋同—都宣称是「图形语法」家族，比如 Python 社区的 [matplotlib](https://github.com/matplotlib/matplotlib)、[plotnine](https://github.com/has2k1/plotnine) 和 [seaborn](https://github.com/mwaskom/seaborn)，阿里的[G2](https://github.com/antvis/G2) 等，太多太多，不再一一介绍。
 
 ``` r
 library(rbokeh)
@@ -507,7 +544,7 @@ figure() %>%
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/141608636-1606587f-0ae8-4899-875b-266eb9b9a10f.png" class="full" alt="Figure 15: 鸢尾花散点图" /><figcaption aria-hidden="true">Figure 15: 鸢尾花散点图</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/141608636-1606587f-0ae8-4899-875b-266eb9b9a10f.png" class="full" alt="Figure 16: 鸢尾花散点图（rbokeh）" /><figcaption aria-hidden="true">Figure 16: 鸢尾花散点图（rbokeh）</figcaption>
 </figure>
 
 <div class="rmdwarn">
@@ -534,7 +571,7 @@ figure() %>%
 
 无论是 [Plotly](https://github.com/plotly) 还是 [Apache ECharts](https://github.com/apache/echarts) 都提供有 Python 接口，分别是[plotly](https://github.com/plotly/plotly.py)和[pyecharts](https://github.com/pyecharts/pyecharts)，而且星赞数量远超 R 接口，这主要是两个数量级不对等的社区差异造成的。社区庞大成熟可以推动开发自行运转，而不依赖具体的一两个人或公司，局限会少一些。对使用者来说，遇到问题可以求助的对象多一些，甚至绝大部分问题仅需放狗搜索即可解决。除了开源社区、受欢迎程度，还有一个重要的因素需要考虑，就是上下游配套工具的情况，在做内部的数据产品方面，搭配 R Shiny 还是相当不错的，笔者比较熟悉 R 语言社区的情况，同时也相信 Python 社区有很好的框架可以做。
 
-图<a href="#fig:plotly-python-iris">16</a> 展示 Python 版 Plotly 的绘图效果，数据和图形还是一样的， 鸢尾花数据集 iris 按花种类分组做散点图和线性回归，展示数据相关性。读者可以和之前的图<a href="#fig:ggplot2-iris">5</a>对比看看，主要因为笔者对 Python 不太熟悉，做的比较粗糙，可能效果不及 R 语言版本，若有读者来改进，不甚感激。
+图<a href="#fig:plotly-python-iris">17</a> 展示 Python 版 Plotly 的绘图效果，数据和图形还是一样的， 鸢尾花数据集 iris 按花种类分组做散点图和线性回归，展示数据相关性。读者可以和之前的图<a href="#fig:ggplot2-iris">5</a>对比看看，主要因为笔者对 Python 不太熟悉，做的比较粗糙，可能效果不及 R 语言版本，若有读者来改进，不甚感激。
 
 ``` python
 import plotly.express as px
@@ -556,7 +593,7 @@ px.scatter(
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/140610586-742caa14-c55a-460d-be04-f0810104f6d6.png" class="full" alt="Figure 16: 鸢尾花散点图" /><figcaption aria-hidden="true">Figure 16: 鸢尾花散点图</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/140610586-742caa14-c55a-460d-be04-f0810104f6d6.png" class="full" alt="Figure 17: 鸢尾花散点图" /><figcaption aria-hidden="true">Figure 17: 鸢尾花散点图</figcaption>
 </figure>
 
 # 环境信息
