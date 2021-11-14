@@ -12,13 +12,13 @@ description: "软件环境配置是个既麻烦又耗时的苦力活，现收集
 ---
 
 
-## 基础软件
+# 基础软件
 
 - 命令行工具 [Xcode](https://developer.apple.com/download/all/)
 
 - 软件包管理工具 [brew](https://mirrors.tuna.tsinghua.edu.cn/help/homebrew/)
 
-## 文本编辑
+# 文本编辑
 
 通用代码文本集成开发编辑环境 IDE 
 
@@ -75,7 +75,7 @@ brew install --cask font-noto-emoji font-noto-color-emoji
 brew install --cask font-arial font-andale-mono
 ```
 
-## 图像视频
+# 图像视频
 
 ```bash
 brew install ghostscript imagemagick optipng graphviz
@@ -86,7 +86,7 @@ brew install --cask iina
 ```
 
 
-## 常用软件
+# 常用软件
 
 
 > 解压、下载软件
@@ -155,7 +155,7 @@ brew install --cask docker
 ```
 
 
-## R 和 RStudio 软件
+# R 和 RStudio 软件
 
 ```bash
 brew install --cask r xquartz
@@ -202,7 +202,7 @@ brew install --cask phantomjs
 `webshot::install_phantomjs()` 将动态图形截图放在书里
 
 
-##  R 包与 Java 开发环境
+#  R 包与 Java 开发环境
 
 ```bash
 # 推荐
@@ -243,7 +243,7 @@ sudo chown -R $(whoami):admin /opt/spark/
 ```
 
 
-## R 包与 OpenMP
+# R 包与 OpenMP
 
 目前，发现 R 包 **data.table**、**RandomFields** 和 **RandomFieldsUtils** 需启用 OpenMP 从源码编译才能获得共享内存的多线程并行计算的能力。
 
@@ -261,7 +261,7 @@ brew install libomp # OpenMP
 
 
 
-## Rmpi 包和 open-mpi
+# Rmpi 包和 open-mpi
 
 先安装外部软件依赖
 
@@ -309,7 +309,7 @@ installing to /Library/Frameworks/R.framework/Versions/4.1/Resources/library/00L
 * DONE (Rmpi)
 ```
 
-## stringi 包和 icu4c
+# stringi 包和 icu4c
 
 安装 icu4c
 
@@ -347,7 +347,7 @@ FLIBS = -L/usr/local/Cellar/gcc/11.2.0/lib/gcc/11 -lgfortran -lquadmath -lm
 [^gfortran-warn]: [Mac OS X R error "ld: warning: directory not found for option"](https://stackoverflow.com/questions/35999874/mac-os-x-r-error-ld-warning-directory-not-found-for-option)
 
 
-## 用 miniconda 配置 Python 虚拟环境
+# 用 miniconda 配置 Python 虚拟环境
 
 `~/.condarc` 指定虚拟环境所在目录
 
@@ -389,7 +389,7 @@ conda update conda
 ```
 
 
-## 用 virtualenv 配置 Python 虚拟环境
+# 用 virtualenv 配置 Python 虚拟环境
 
 安装 virtualenv
 
@@ -476,7 +476,7 @@ numpy_version:  1.21.2
 NOTE: Python version was forced by RETICULATE_PYTHON
 ```
 
-## Gollum 知识管理
+# Gollum 知识管理
 
 
 用 [Gollum](https://github.com/gollum/gollum) 创建 wiki 随时记下个人笔记，gollum 源自电影《指环王》里的角色咕噜。系统环境如下

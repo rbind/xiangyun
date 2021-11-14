@@ -20,7 +20,7 @@ toc: true
 > 软件配置环境： Fedora 29，适用于红帽系的操作系统，其它系统环境参照修改即可，详见 <https://github.com/plotly/orca>。截至写作时间，最新版 orca 是 1.3.1，介绍 orca 的起因是在 plotly 大受欢迎的背景下，如何导出为各种格式的高质量图形以适应出版发行的需要，配置过程相对麻烦，故而写了这么一篇短文。
 
 
-## 常用配置过程 {#common-setup}
+# 常用配置过程 {#common-setup}
 
 运行 orca 需要一些系统依赖
 
@@ -64,7 +64,7 @@ which orca
 orca --help
 ```
 
-## 在服务器上配置 {#server-setup}
+# 在服务器上配置 {#server-setup}
 
 orca 需要 x11 显示器，服务器黑乎乎的界面，一般是不安装图形界面的。所以需要 xvfb，本文以 Fedora 29 为例，安装 xorg-x11-server-Xvfb 即可
 
@@ -91,7 +91,7 @@ chmod +x /opt/orca/orca.sh
 sudo ln -s /opt/orca/orca.sh  /usr/local/bin/orca
 ```
 
-## 在命令行中测试 {#test-in-cmd}
+# 在命令行中测试 {#test-in-cmd}
 
 ```bash
 # 导出为 png 格式
@@ -121,7 +121,7 @@ orca graph ./14324.json --format svg  -o sunpy-image.svg
 ![sunpy-image](https://user-images.githubusercontent.com/12031874/78466578-2969e800-7735-11ea-9a51-2d4ca8e0474e.png)
 
 
-## 在 R 环境中测试 {#test-in-r}
+# 在 R 环境中测试 {#test-in-r}
 
 检查 orca 工具是否就绪
 
@@ -143,7 +143,7 @@ library(plotly)
 orca(p, "demo.svg")
 ```
 
-## 运行环境 {#session-info}
+# 运行环境 {#session-info}
 
 ```r
 sessionInfo()
