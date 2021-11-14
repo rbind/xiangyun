@@ -527,7 +527,7 @@ scales::show_col(colours = echarts_colors)
 <img src="https://user-images.githubusercontent.com/12031874/141676968-ee571997-e490-4993-b7cf-7c6aa62dfab8.png" style="width:85.0%" alt="Figure 15: Apache Echarts 默认的调色板" /><figcaption aria-hidden="true">Figure 15: Apache Echarts 默认的调色板</figcaption>
 </figure>
 
-还有一个调整调色板的办法，调函数 `e_theme()` 设置新的配色主题，比如 `"vintage"`，即用
+还有一个调整调色板的办法，调函数 `e_theme()` 设置新的[配色主题](https://echarts.apache.org/en/theme-builder.html)，比如 `"vintage"`，即用
 
 ``` r
 e_theme(name = "vintage")
