@@ -548,6 +548,23 @@ scales::show_col(colours = echarts_colors)
 ```
 
 ![(\#fig:echarts4r-palette) Apache Echarts 默认的调色板 ](https://user-images.githubusercontent.com/12031874/141676968-ee571997-e490-4993-b7cf-7c6aa62dfab8.png){ width=85% }
+
+还有一个调整调色板的办法，调函数 `e_theme()` 设置新的配色主题，比如 `"vintage"`，即用
+
+```r
+e_theme(name = "vintage")
+```
+
+替换
+
+```r
+e_color(color = RColorBrewer::brewer.pal(n = 3, name = "Set2"))
+```
+
+效果见图\@ref(fig:echarts4r-theme)。
+
+![(\#fig:echarts4r-theme) Apache Echarts 的配色主题](https://user-images.githubusercontent.com/12031874/141679368-19883e05-278e-4eff-bfb2-d31d4b63c9f3.png){.full}
+
 :::
 
 # 如何选择

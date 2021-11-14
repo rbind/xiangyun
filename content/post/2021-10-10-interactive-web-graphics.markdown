@@ -527,6 +527,24 @@ scales::show_col(colours = echarts_colors)
 <img src="https://user-images.githubusercontent.com/12031874/141676968-ee571997-e490-4993-b7cf-7c6aa62dfab8.png" style="width:85.0%" alt="Figure 15: Apache Echarts 默认的调色板" /><figcaption aria-hidden="true">Figure 15: Apache Echarts 默认的调色板</figcaption>
 </figure>
 
+还有一个调整调色板的办法，调函数 `e_theme()` 设置新的配色主题，比如 `"vintage"`，即用
+
+``` r
+e_theme(name = "vintage")
+```
+
+替换
+
+``` r
+e_color(color = RColorBrewer::brewer.pal(n = 3, name = "Set2"))
+```
+
+效果见图<a href="#fig:echarts4r-theme">16</a>。
+
+<figure>
+<img src="https://user-images.githubusercontent.com/12031874/141679368-19883e05-278e-4eff-bfb2-d31d4b63c9f3.png" class="full" alt="Figure 16: Apache Echarts 的配色主题" /><figcaption aria-hidden="true">Figure 16: Apache Echarts 的配色主题</figcaption>
+</figure>
+
 </div>
 
 # 如何选择
@@ -544,7 +562,7 @@ figure() %>%
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/141608636-1606587f-0ae8-4899-875b-266eb9b9a10f.png" class="full" alt="Figure 16: 鸢尾花散点图（rbokeh）" /><figcaption aria-hidden="true">Figure 16: 鸢尾花散点图（rbokeh）</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/141608636-1606587f-0ae8-4899-875b-266eb9b9a10f.png" class="full" alt="Figure 17: 鸢尾花散点图（rbokeh）" /><figcaption aria-hidden="true">Figure 17: 鸢尾花散点图（rbokeh）</figcaption>
 </figure>
 
 <div class="rmdwarn">
@@ -571,7 +589,7 @@ figure() %>%
 
 无论是 [Plotly](https://github.com/plotly) 还是 [Apache ECharts](https://github.com/apache/echarts) 都提供有 Python 接口，分别是[plotly](https://github.com/plotly/plotly.py)和[pyecharts](https://github.com/pyecharts/pyecharts)，而且星赞数量远超 R 接口，这主要是两个数量级不对等的社区差异造成的。社区庞大成熟可以推动开发自行运转，而不依赖具体的一两个人或公司，局限会少一些。对使用者来说，遇到问题可以求助的对象多一些，甚至绝大部分问题仅需放狗搜索即可解决。除了开源社区、受欢迎程度，还有一个重要的因素需要考虑，就是上下游配套工具的情况，在做内部的数据产品方面，搭配 R Shiny 还是相当不错的，笔者比较熟悉 R 语言社区的情况，同时也相信 Python 社区有很好的框架可以做。
 
-图<a href="#fig:plotly-python-iris">17</a> 展示 Python 版 Plotly 的绘图效果，数据和图形还是一样的， 鸢尾花数据集 iris 按花种类分组做散点图和线性回归，展示数据相关性。读者可以和之前的图<a href="#fig:ggplot2-iris">5</a>对比看看，主要因为笔者对 Python 不太熟悉，做的比较粗糙，可能效果不及 R 语言版本，若有读者来改进，不甚感激。
+图<a href="#fig:plotly-python-iris">18</a> 展示 Python 版 Plotly 的绘图效果，数据和图形还是一样的， 鸢尾花数据集 iris 按花种类分组做散点图和线性回归，展示数据相关性。读者可以和之前的图<a href="#fig:ggplot2-iris">5</a>对比看看，主要因为笔者对 Python 不太熟悉，做的比较粗糙，可能效果不及 R 语言版本，若有读者来改进，不甚感激。
 
 ``` python
 import plotly.express as px
@@ -593,7 +611,7 @@ px.scatter(
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/140610586-742caa14-c55a-460d-be04-f0810104f6d6.png" class="full" alt="Figure 17: 鸢尾花散点图" /><figcaption aria-hidden="true">Figure 17: 鸢尾花散点图</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/140610586-742caa14-c55a-460d-be04-f0810104f6d6.png" class="full" alt="Figure 18: 鸢尾花散点图" /><figcaption aria-hidden="true">Figure 18: 鸢尾花散点图</figcaption>
 </figure>
 
 # 环境信息
