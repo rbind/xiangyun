@@ -27,7 +27,7 @@ description: "本文适合对 R 语言有一定了解的读者，试图从全景
 阅读本文烦请带着几个疑问：R Markdown 和 R Shiny 分别是什么？R Markdown 和 R Shiny 有什么能力？适合在什么样的场景下使用？一个完整的 R Markdown 和 R Shiny 应用通常都包含哪些部分？如何去学习和使用 R Markdown 和 R Shiny 两个工具？
 
 
-## 一、背景简介
+# 一、背景简介
 
 R Markdown 和 R Shiny 是 R 语言社区开发的两个开源框架。顾名思义，R Markdown 即是将 Markdown 这种简洁的编辑语法和 R 语言在交互式数据分析的优势结合，形成的一个新的文档格式，也是一个新的探索性数据分析模式。R Markdown 文档中，可以混合自然语言和各种编程语言，让数据分析的过程以动态、可重复的方式呈现出来。R Shiny 是一个 R 社区开发的轻量级的 Web 开发框架，学习曲线低，容易上手，只要熟悉 R 语言，几乎不需要前后端知识即可完成应用的开发。R Markdown 和 R Shiny 都严重依附于 R 语言及其社区，下面再简单介绍一下 R 语言本身。
 
@@ -37,7 +37,7 @@ R 语言最初由两位统计学家 Robert Gentleman 和 Ross Ihaka 开发，于
 
 几乎每年国内外都会举办大大小小的 R 语言会议，就规模和影响力而言，比较大的有[useR! 2021 大会](https://user2021.r-project.org/)、[BioC 2021 大会](https://bioc2021.bioconductor.org/)、[RStudio 年会](https://www.rstudio.com/conference/)、[中国 R 语言大会](https://china-r.org/)。正如《the Art of R Programming》作者，R Journal 主编 Norm Matloff 所言 --- R is written by statisticians, for statisticians. 源于统计学家，用于统计学家！R 语言相关的会议几乎都由各地著名的大学主办。
 
-## 二、能力介绍
+# 二、能力介绍
 
 R Markdown 的核心组件是 rmarkdown 扩展包，它最初由 RStudio 的厂长 J.J. Allaire 开发，目前主要由 Yihui Xie 开发维护，它基本实现了 [唐纳德·高德纳](https://en.wikipedia.org/wiki/Donald_Knuth) 提出的文学编程思想。在学术界和工业界有很多应用，经过多年的打磨，形成了较为成熟的生态环境，比如[写书做笔记](https://bookdown.org/)、[搭建个人博客](https://github.com/rbind)、[发送电子邮件](https://github.com/rstudio/blastula)、[制作网页幻灯片](https://malco.io/slides/hs_ggplot2/)、[开发数据面板](https://github.com/rstudio/flexdashboard)等等。
 
@@ -65,7 +65,7 @@ R Shiny 的核心组件是 shiny 扩展包，它最初由 RStudio 的首席技�
 
 R Shiny 要求可以从后端的数据源快速查询出结果，尽量采用 MySQL/Doris 等查询速度快的引擎，不然容易拖垮前端，甚至让人觉得 R Shiny 这套工具性能有问题。
 
-## 三、应用开发
+# 三、应用开发
 
 大型企业的数据都存储在集群环境中，数据处理常常是从写 SQL 开始，接着进行探索性数据分析，获取数据后，把探索的过程记录在 R Markdown 文档中，逐步凝练出来有价值的信息，一般沉淀为单页的、网页承载的数据报告和工具。相比之下，R Shiny 更加灵活，在复杂的交互场景中，有更大的发挥空间。
 
@@ -83,11 +83,11 @@ R Shiny 要求可以从后端的数据源快速查询出结果，尽量采用 My
 
 
 
-## 四、快速上手
+# 四、快速上手
 
 目前，R Markdown 和 R Shiny 已经积累了很多案例，比如 [shiny-examples](https://github.com/rstudio/shiny-examples) 和往届 RStudio 举办的竞赛。开源社区也有不错的案例可以学习，如 <https://github.com/swsoyee/2019-ncov-japan>。鉴于实际案例的复杂性，下面从零开始介绍一个简单的应用。
 
-### 4.1 软件准备
+## 4.1 软件准备
 
 安装 R 软件和 RStudio 集成开发环境
 
@@ -105,12 +105,12 @@ install.packages(c(
 ))
 ```
 
-### 4.2 数据连接
+## 4.2 数据连接
 
 R Shiny 后端的数据源可以是多样化的，一般来讲，为了速度，不会采用 Hive/Presto 引擎查询 Hadoop 数据源，而是把聚合计算好的数据存储在 MySQL 或 Doris 上。[R + databases](https://github.com/r-dbi) 开发了大量数据库的 R 接口，从数据库把数据导入 R 内存已经不是什么难事。作者在去年也写过一篇相关文章详细介绍了[从 R 连接 MySQL](https://cosx.org/2020/06/connect-mysql-from-r/)的过程。
 
 
-### 4.3 交互图形（初级）
+## 4.3 交互图形（初级）
 
 Carson Sievert 开发的 plotly 包，其语法风格接近 ggplot2，提供的 `ggplotly()` 可以将 ggplot2 静态图形直接转化为 plotly 交互图形，同时支持 Shiny 应用集成，一般情况下，这种方式省心省力，方便快捷，学习成本低。话不多说，直接看代码：
 
@@ -142,7 +142,7 @@ renderPlotly({
 ```
 
 
-### 4.5 交互图形（高级）
+## 4.5 交互图形（高级）
 
 如前所述，数据可视化是 R 语言强项，社区开源的交互图形库有很多，[plotly](https://github.com/ropensci/plotly) 和 [echarts4r](https://github.com/JohnCoene/echarts4r) 都背靠大型商业公司，处于活跃维护中，支持的图形种类很多，基本可以满足需求。当然，还有一些不错的专门化的 R 包，比如时间序列库 [dygraphs](https://github.com/rstudio/dygraphs)、地图库 [leaflet](https://github.com/rstudio/leaflet) 等。有的企业内部会基于开源的可视化库做二次开发，那么应当尽量使图表库作为 R 包独立于平台，做好隔离，方便后序维护和开发。否则，图形库就会存在很多问题：
 
@@ -158,7 +158,7 @@ renderPlotly({
 
 除了 plotly 包，还有 [visNetwork](https://github.com/datastorm-open/visNetwork)、 [leaflet](https://github.com/rstudio/leaflet)、[leafletCN](https://github.com/Lchiffon/leafletCN)、[leaflet.extras](https://github.com/bhaskarvk/leaflet.extras)、 [timevis](https://github.com/shosaco/vistime) 等绘图包。除了绘图，在工作中常用 [formattable](https://github.com/renkun-ken/formattable) 和 [DT](https://github.com/rstudio/DT) 包来绘制交互表格。工具的整体布局都是用 [flexdashboard](https://github.com/rstudio/flexdashboard) 来实现的。其它间或用到的 R 包还有[rAmCharts](https://github.com/datastorm-open/rAmCharts)、[sparkline](https://github.com/htmlwidgets/sparkline)、[sunburstR](https://github.com/timelyportfolio/sunburstR)、[treemapify](https://github.com/wilkox/treemapify)。
 
-### 4.6 制作表格
+## 4.6 制作表格
 
 本节主要介绍一下 [DT](https://github.com/rstudio/DT)，除了 Yihui Xie，DT 包的重要维护者还包括 [Xianying Tan](https://github.com/shrektan)，都是华人。常用的功能有：水平滚动，列/行分组，自定义表格头，提供下载按钮，格式化列呈现。下面这个示例就是将原始表格的每个列按照给定的格式显示：添加百分比符号、保留三位有效数字等。
 
@@ -188,12 +188,12 @@ datatable(df) %>%
 
 
 
-### 4.7 页面布局
+## 4.7 页面布局
 
 
 [flexdashboard](https://github.com/rstudio/flexdashboard) 是 rmarkdown 的一个扩展包，引入了一些布局样式和 JavaScript 库，提供了更多的成形组件，非常适合快速制作单页应用，支持 Shiny，提供交互能力。比如[justgage](https://github.com/toorshia/justgage) 库，它是 [raphael](https://github.com/DmitryBaranovskiy/raphael) 的一个扩展，用于制作动态的压力表。下面主要介绍全局文档配置和局部段落配置，其它常用的组件（如压力表、豆腐块）就不一一介绍了，详见 <https://pkgs.rstudio.com/flexdashboard/>。
 
-#### 4.6.1 全局文档配置
+### 4.6.1 全局文档配置
 
 ```yaml
 ---
@@ -240,7 +240,7 @@ output:
 大部分参数的详细介绍见 <https://bookdown.org/yihui/rmarkdown/dashboards.html>，参数 `includes` 和 `pandoc_args` 的用法见 <https://bookdown.org/yihui/rmarkdown/output-formats.html>。
 
 
-#### 4.6.2 局部段落配置
+### 4.6.2 局部段落配置
 
 局部段落配置是什么意思呢？一篇文档一般来讲，会有一级、二级、三级标题，分别对应章、节、小节，在由 flexdashboard 控制布局的 R Markdown 文档里，一级标题负责分页，二级标题控制页签，三级标题是各个Tab 页的标题，这个逻辑是 flexdashboard 定义。
 
@@ -307,14 +307,14 @@ Row {.tabset}
 
 
 
-## 五、R Shiny 的定制开发（高级）
+# 五、R Shiny 的定制开发（高级）
 
 目前，Shiny 正朝着可全面配置化的方向发展，Carson Sievert 开发的 [thematic](https://github.com/rstudio/thematic) 简化了 **ggplot2**、**lattice**、Base R 图形的主题调整，主要是借助 [bslib](https://github.com/rstudio/bslib) 和 [sass](https://github.com/rstudio/sass) 将 Bootstrap 引入 R Markdown 和 R Shiny，在 R 环境中自定义 Bootstrap 的 CSS 样式，调整图形渲染效果。[jquerylib](https://github.com/rstudio/jquerylib) 将 [jquery](https://github.com/jquery/jquery) 打包进来，[htmltools](https://github.com/rstudio/htmltools) 将 HTML 也打包进来。R Shiny 本就是依赖 Bootstrap 提供前端 UI 渲染，一些自定义就离不开网页三剑客 --- HTML、CSS 和 JavaScript。
 
 为了简化页面布局设计，除了 Shiny 自带的一些前端组件外，社区比较流行的有 R Markdown 环境下的 [flexdashboard](https://github.com/rstudio/flexdashboard) 和 R Shiny 环境下的 [bs4Dash](https://github.com/RinteRface/bs4Dash)。bs4Dash 发布了 2.0.0 版，对 [shinydashboard](https://github.com/rstudio/shinydashboard) 和 [shinydashboardPlus](https://github.com/RinteRface/shinydashboardPlus) 有极好的替代性，推荐迁移升级。
 
 
-### 5.1 前端组件初探
+## 5.1 前端组件初探
 
 Shiny 的 UI 组件是紧紧依赖 [Bootstrap](https://getbootstrap.com/) 的，它给 Shiny 提供了灵活且自适应的前端，以布局函数 `column()` 为例，它常用于筛选器的位置排列，我们看看它是怎么实现的位置排列，
 
@@ -386,7 +386,7 @@ div(
 <img src="https://user-images.githubusercontent.com/12031874/124723180-5828cc80-df3d-11eb-83f9-c42240852fbc.png" alt="layout-input-ui" width="95%">
 
 
-## 六、tidyverse 生态 （高级）
+# 六、tidyverse 生态 （高级）
 
 目前 R 语言社区基本分裂成两个阵营了，一个是 Base R，另一个是 tidyverse，二者在语法风格上截然不同，后者主要由 Hadley Wickham 开发和维护。Hadley Wickham 因在统计软件领域的突出贡献获得 2019 年的 [COPSS 会长奖](https://imstat.org/2019/09/02/copss-presidents-award-hadley-wickham/) --- 统计学领域的最高奖项，走上巅峰。2019 年也是 tidyverse 风刮得最猛烈的时候，毕竟背靠 RStudio 大厂，有资金支持，出了系列书籍，再加上个人影响力，R 包层面硬依赖等营销和倾销手段，已蔚然成风，期间虽有一些反对的声音，只是过于脆弱了。 tidyverse 包含一系列 R 包，覆盖数据获取、数据处理、数据可视化等领域，安装一个包就会把其它都安装上，比较核心的 dplyr 包不断更改 API 接口，且不向下兼容，稳定性很差，贬一个捧一个，在社交软件、RStudio 年度大会等各种场合反复洗脑宣传。它的好处在于统一代码风格，一旦入坑就要跟着 Hadley Wickham 走到底，花费大精力维护代码，线上环境要做好隔离和版本管理，谨慎升级。 
 
@@ -396,7 +396,7 @@ div(
 
 <img src="https://user-images.githubusercontent.com/12031874/124468719-0d3b7780-ddcc-11eb-8a05-74df62bbb1b2.png" alt="tidymodels-family" width="85%">
 
-## 七、案例学习（高级）
+# 七、案例学习（高级）
 
 苏玮开发的[新型冠状病毒疫情速报](https://github.com/swsoyee/2019-ncov-japan) 可以作为案例学习一下，主要考虑到其代码量过万，访问量过千万，有一定的工程和设计思维在里面。项目目录结构如下，可按此线索，对照网站和代码去深入学习。
 
@@ -422,7 +422,7 @@ div(
 
 其它值得学习的资源有 [Shiny 竞赛](https://blog.rstudio.com/2021/06/24/winners-of-the-3rd-annual-shiny-contest/)发布的获奖作品，比如[The Hotshots Racing Dashboard](https://github.com/rpodcast/hotshots.dashboard)  和[commute-explorer](https://github.com/nz-stefan/commute-explorer-2)，这两个的规模相对简单，但是内容很惊艳，值得一学。
 
-## 八、其他 Web 框架
+# 八、其他 Web 框架
 
 <!-- > 不能说人家不好，只是适用场景不同罢了，分享的目的是分享，不是引起战争，面对挑战的时候要冷静分析 -->
 
@@ -431,7 +431,7 @@ Python 社区有很多 Web 框架，比较流行的有 [Flask](https://github.co
 [bokeh](https://github.com/bokeh/bokeh) 和 [plotly](https://github.com/plotly/plotly.js) 是两个比较流行的交互式绘图库，通过扩展提供一些 Web 开发的能力，前者完全开源，后者有削减功能的开源版和收费的服务器版本；前者提供部分简单的，不过，相比于 Shiny，它们的易用性都比较差，灵活性也不高。可以借助案例体验一下 bokeh 和 shiny 的差别 --- [bokeh 应用](https://demo.bokeh.org/movies) 和 [shiny 应用](https://gallery.shinyapps.io/051-movie-explorer/)，应用对应的代码分别为<https://github.com/bokeh/bokeh/tree/branch-2.4/examples/app/movies> 和 <https://github.com/rstudio/shiny-examples/tree/master/051-movie-explorer>。
 
 
-## 九、参考文献
+# 九、参考文献
 
 1. 【R Shiny 总纲】Mastering Shiny, Hadley Wickham, 2021. <https://mastering-shiny.org/>.
 
