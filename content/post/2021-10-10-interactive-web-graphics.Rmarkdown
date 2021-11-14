@@ -110,8 +110,7 @@ options(width = 79)
 
 # 本文概览
 
-R 语言在数据可视化方面有很长时间的积累，除了内置的基础作图系统 **graphics** [@R-base]和栅格作图系统 **grid**[@Paul2002]，以及衍生出来的代表作 **lattice** [@Sarkar2008]和 **ggplot2** [@Wickham2016]，更加易用、便携、交互的网页图形逐渐形成新的主流。移动终端设备的大规模普及，探索性数据分析和可视化需求越来越强烈，得益于现代硬件设施和前端技术的落地，交互式网页图形逐渐成为数据展示中的标配。图形种类繁多，交互式图形的种类不比静态的少，本文亦无意全面罗列，而是以散点图为例，详细介绍几个常见 R 包的使用。如果你是初学者，希望本文能为你打开视野，如果你和我差不多，希望本文能促进互相交流，如果你是专家，欢迎前来赐教。
-
+R 语言在数据可视化方面有很长时间的积累，除了内置的基础作图系统 **graphics** [@R-base]和栅格作图系统 **grid**[@Paul2002]，以及衍生出来的代表作 **lattice** [@Sarkar2008]和 **ggplot2** [@Wickham2016]，更加易用、便携、交互的网页图形逐渐形成新的主流。移动终端设备的大规模普及，探索性数据分析和可视化需求越来越强烈，得益于现代硬件设施和前端技术的落地，交互式网页图形逐渐成为数据展示中的标配。图形种类繁多，交互式图形的种类不比静态的少，本文亦无意全面罗列，而是以散点图为例，详细介绍几个常见 R 包的使用。
 
 本文将主要介绍 R 语言绘制交互式网页图形的扩展包，综合考虑了使用权限，图形种类，接口成熟度等方面因素，挑选了 [**plotly**](https://github.com/plotly/plotly.R)、 [**ggiraph**](https://github.com/davidgohel/ggiraph)、 [**scatterD3**](https://github.com/juba/scatterD3)、 [**apexcharter**](https://github.com/dreamRs/apexcharter) 和 [**echarts4r**](https://github.com/JohnCoene/echarts4r) 等几个 R 包，见表\@ref(tab:table-deps)。R 语言还有一些专门化的可视化扩展包，比如绘制交互网络图的[**visNetwork**](https://github.com/datastorm-open/visNetwork) ，绘制交互地图的[**leaflet**](https://github.com/rstudio/leaflet) 等，更多详见[Ryan Hafen](https://github.com/hafen) 收集整理的交互式图形[展览网站](https://gallery.htmlwidgets.org/)。
 
