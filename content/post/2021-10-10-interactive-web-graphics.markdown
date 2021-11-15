@@ -162,7 +162,7 @@ plot_ly(
     "萼片长度：", Sepal.Length
   ),
   hoverinfo = "text"
-) %>%
+) |>
   layout(
     title = "鸢尾花数据",
     # 添加横轴标题，去掉水平线，坐标轴刻度值保留一位小数，如果单位是百分比，则为 .1%
@@ -175,7 +175,7 @@ plot_ly(
     legend = list(title = list(text = "<b> 种类 </b>")),
     # 按照下 bottom 左 left 上 top 右 right 的顺序设置图形边空
     margin = list(b = 50, l = 50, t = 35, r = 0)
-  ) %>%
+  ) |>
   config(
     toImageButtonOptions = list(
       # 保存图片格式
@@ -623,51 +623,21 @@ xfun::session_info(packages = c(
   "knitr", "rmarkdown", "blogdown", 
   "plotly", "scatterD3", "echarts4r", 
   "apexcharter", "ggplot2", "ggiraph"
-))
+), dependencies = FALSE)
 ```
 
-    ## R version 4.1.2 (2021-11-01)
+    ## R version 4.1.1 (2021-08-10)
     ## Platform: x86_64-apple-darwin17.0 (64-bit)
     ## Running under: macOS Big Sur 10.16
     ## 
     ## Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
     ## 
     ## Package version:
-    ##   apexcharter_0.3.0  askpass_1.1        backports_1.3.0   
-    ##   base64enc_0.1.3    blogdown_1.6       bookdown_0.24     
-    ##   broom_0.7.10       bslib_0.3.1        cachem_1.0.6      
-    ##   cli_3.1.0          colorspace_2.0.2   commonmark_1.7    
-    ##   corrplot_0.91      countrycode_1.3.0  cpp11_0.4.1       
-    ##   crayon_1.4.2       crosstalk_1.2.0    curl_4.3.2        
-    ##   data.table_1.14.2  digest_0.6.28      dplyr_1.0.7       
-    ##   echarts4r_0.4.2    ellipse_0.4.2      ellipsis_0.3.2    
-    ##   evaluate_0.14      fansi_0.5.0        farver_2.1.0      
-    ##   fastmap_1.1.0      fontawesome_0.2.2  fs_1.5.0          
-    ##   generics_0.1.1     ggiraph_0.7.10     ggplot2_3.3.5     
-    ##   glue_1.5.0         graphics_4.1.2     grDevices_4.1.2   
-    ##   grid_4.1.2         gtable_0.3.0       highr_0.9         
-    ##   htmltools_0.5.2    htmlwidgets_1.5.4  httpuv_1.6.3      
-    ##   httr_1.4.2         isoband_0.2.5      jquerylib_0.1.4   
-    ##   jsonlite_1.7.2     knitr_1.36         labeling_0.4.2    
-    ##   later_1.3.0        lattice_0.20.45    lazyeval_0.2.2    
-    ##   lifecycle_1.0.1    magrittr_2.0.1     MASS_7.3.54       
-    ##   Matrix_1.3.4       methods_4.1.2      mgcv_1.8.38       
-    ##   mime_0.12          munsell_0.5.0      nlme_3.1.153      
-    ##   openssl_1.4.5      pillar_1.6.4       pkgconfig_2.0.3   
-    ##   plotly_4.10.0      promises_1.2.0.1   purrr_0.3.4       
-    ##   R6_2.5.1           rappdirs_0.3.3     RColorBrewer_1.1.2
-    ##   Rcpp_1.0.7         rlang_0.4.12       rmarkdown_2.11    
-    ##   rstudioapi_0.13    sass_0.4.0         scales_1.1.1      
-    ##   scatterD3_1.0.1    servr_0.23         shiny_1.7.1       
-    ##   sourcetools_0.1.7  splines_4.1.2      stats_4.1.2       
-    ##   stringi_1.7.5      stringr_1.4.0      sys_3.4           
-    ##   systemfonts_1.0.3  tibble_3.1.6       tidyr_1.1.4       
-    ##   tidyselect_1.1.1   tinytex_0.35       tools_4.1.2       
-    ##   utf8_1.2.2         utils_4.1.2        uuid_1.0.3        
-    ##   vctrs_0.3.8        viridisLite_0.4.0  withr_2.4.2       
-    ##   xfun_0.28          xtable_1.8.4       yaml_2.2.1        
+    ##   apexcharter_0.3.0 blogdown_1.6      echarts4r_0.4.2   ggiraph_0.7.10   
+    ##   ggplot2_3.3.5     knitr_1.36        plotly_4.10.0     rmarkdown_2.11   
+    ##   scatterD3_1.0.1  
     ## 
-    ## Pandoc version: 2.14.2
+    ## Pandoc version: 2.16.1
     ## 
     ## Hugo version: 0.89.2
 

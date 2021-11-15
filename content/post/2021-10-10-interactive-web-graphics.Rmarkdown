@@ -206,7 +206,7 @@ plot_ly(
     "萼片长度：", Sepal.Length
   ),
   hoverinfo = "text"
-) %>%
+) |>
   layout(
     title = "鸢尾花数据",
     # 添加横轴标题，去掉水平线，坐标轴刻度值保留一位小数，如果单位是百分比，则为 .1%
@@ -219,7 +219,7 @@ plot_ly(
     legend = list(title = list(text = "<b> 种类 </b>")),
     # 按照下 bottom 左 left 上 top 右 right 的顺序设置图形边空
     margin = list(b = 50, l = 50, t = 35, r = 0)
-  ) %>%
+  ) |>
   config(
     toImageButtonOptions = list(
       # 保存图片格式
@@ -644,7 +644,7 @@ xfun::session_info(packages = c(
   "knitr", "rmarkdown", "blogdown", 
   "plotly", "scatterD3", "echarts4r", 
   "apexcharter", "ggplot2", "ggiraph"
-))
+), dependencies = FALSE)
 ```
 
 
