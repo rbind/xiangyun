@@ -160,6 +160,42 @@ figure {
 
 从 tcltk ([Lawrence and Verzani 2012](#ref-Lawrence2012)) 到 RGtk2 ([Lawrence and Temple Lang 2010](#ref-RGtk2))，再到 Shiny，自 2001 年 Peter Dalgaard 在《R News》介绍 tcltk ([Dalgaard 2001](#ref-tcltk2001)) 算起，整整 20 年过去了， 打造数据产品的主力工具换了一茬又一茬，过程中出现了一些优秀的代表作品，基于 tcltk 的 Rcmdr ([Fox 2005](#ref-Rcmdr2005))，基于 RGtk2 的 rattle ([Williams 2011](#ref-Williams2011))，基于 Shiny 的 radiant ([Nijs 2021](#ref-radiant))。数据探索分析
 
+[**Rcmdr**](https://socialsciences.mcmaster.ca/jfox/Misc/Rcmdr)
+
+![](https://user-images.githubusercontent.com/12031874/142166767-92dcf166-7f62-44df-87dc-a923c1c64dc8.png)
+
+rattle
+
+![Figure 1: **rattle** 包：探索性分析与 R Shiny 应用](https://user-images.githubusercontent.com/12031874/142166760-91408f3a-1a30-4c0d-9e22-6e7993a678bc.png)
+
+radiant
+
+![Figure 2: **radiant** 包：探索性分析与 R Shiny 应用](https://user-images.githubusercontent.com/12031874/142166747-3c0f0f04-31c5-45cc-93a7-2d8da008df8f.png)
+
+[**shinybrms**](https://github.com/fweber144/shinybrms)
+
+![Figure 3: **shinybrms** 包：贝叶斯分析与 R Shiny 应用](https://user-images.githubusercontent.com/12031874/142166772-bfecdca9-f920-418e-8812-234a6c08ec85.png)
+
+[**explor**](https://github.com/juba/explor)
+
+<figure>
+<img src="https://camo.githubusercontent.com/1c0263124ed874d655cfdb2aabaf983820eac1ed6b9bcda88a58af32f7d4c2f8/68747470733a2f2f7261772e6769746875622e636f6d2f6a7562612f6578706c6f722f6d61737465722f7265736f75726365732f73637265656e636173745f302e332e676966" class="full" alt="Figure 4: explor 包：多元分析与 R Shiny 应用" /><figcaption aria-hidden="true">Figure 4: <strong>explor</strong> 包：多元分析与 R Shiny 应用</figcaption>
+</figure>
+
+[Apache Superset](https://github.com/apache/superset) 是数据可视化（Data Visualization）和数据探索（Data Exploration）平台，同类产品有[Redash](https://github.com/getredash/redash)
+
+[Apache ECharts](https://github.com/apache/echarts) 是交互式网页绘图和数据可视化的库，
+
+同类产品有 [Plotly](https://github.com/plotly/plotly.js) 提供各种各样的图形，涵盖统计、三维、科学、地理、金融等五大类。
+
+[bokeh](https://github.com/bokeh/bokeh) 是一个交互式网页可视化的 Python 模块
+
+[Observable Plot](https://github.com/observablehq/plot) 探索性数据可视化，像是 Jupyter Notebook 和 bokeh 的合体。
+
+[D3](https://github.com/d3/d3) 采用 Web 标准的数据可视化库，支持 SVG、Canvas 和 HTML 渲染方式。
+
+[fastpages](https://github.com/fastai/fastpages) 是易于使用的博客平台，深度结合静态网站生成器[Jekyll](https://github.com/jekyll/jekyll)，有来自 Jupyter Notebook 的增强支持，可以让博客看起来是一个个的数据报告或仪表盘，以 [COVID-19](https://github.com/github/covid19-dashboard) 为例，可以看出它是 blogdown + R Markdown + Netlify + Hugo + Pandoc 的合体。
+
 以数据产品承载数据分析模型，交互式探索性数据分析
 
 交互图形用于，
@@ -170,14 +206,14 @@ the-future-of-data-analysis
 
 探索型数据产品
 
-explore-data-analysis
-
-exploratory-data-analysis
-
-data-product
-
 哈佛商业评论 如何构建伟大的数据产品
 https://hbr.org/2018/10/how-to-build-great-data-products
+
+可以玩的数据产品，沉浸式体验，关键是找到有价值的业务场景，写好剧本（布局设计），做好道具（筛选器、图表），没有任何说明，用户一进来看到城市分析主题，产品就能给他所预期的东西，让用户能在里面玩上一天，不停地探索不停地获取输入。需求模块、供给模块，结合时间、空间精细划分，实现城市概览、城市对比、业务趋势、业务对比。
+
+# 数据产品
+
+## 探索性数据分析
 
 IBM 探索性数据分析
 https://www.ibm.com/cloud/learn/exploratory-data-analysis
@@ -185,17 +221,13 @@ https://www.ibm.com/cloud/learn/exploratory-data-analysis
 Hadley 数据科学与 R 语言
 https://r4ds.had.co.nz/exploratory-data-analysis.html
 
-# 数据产品
+《哈佛商业评论》在 [如何构建伟大的数据产品](https://hbr.org/2018/10/how-to-build-great-data-products) 一文中提出以下几个观点：
 
-## 探索性数据分析
+## 数据分析的未来
 
-### 数据分析的未来
+## 数据分析工作流
 
 数据分析师/工程师日常需要搭建数据指标体系，制作数据报表和看板，数据洞察和专项分析，行业供需分析，经营诊断和追踪。制作数据报表和看板是最常见的一种形式，这里，统一一下术语，都称作数据产品。制作一款数据产品，包含提出需求、PRD 评审、产品设计、前后端开发、数据开发、测试验收、最终上线等流程。能力比较全面的工程师，能够主动发现业务痛点，提出产品需求，完成产品设计，数据开发校验，产品开发，测试上线，收集反馈，迭代优化，形成闭环。小厂或者数据团队比较小的时候，需要的能力会比较全面，差别主要在粗放和精细化之间的程度不同。其中，数据开发和产品开发耗时最多，下面的介绍都假定产品需求没啥大的问题，产品开发如何节约时间，当然，既然是独立负责完整项目，项目管理自然也是非常关键的，做好及时的向上反馈，全流程的时间安排，不至于全程紧张或先松后紧或先紧后松的情况。这些都需要在实际工作中才能锻炼出来的，因此，多说事倍功半，数据开发和产品开发偏重技术，又可批量化、标准化地整理出来，沉淀下来做技术推广，可以迁移到读者对应的具体业务场景中去。
-
-the-future-of-data-analysis
-
-《哈佛商业评论》在 [如何构建伟大的数据产品](https://hbr.org/2018/10/how-to-build-great-data-products) 一文中提出以下几个观点：
 
 做数据型产品是当前数据分析的一个方向，大屏产品、数据探索、和OLAP产品等都可以合并到商业智能分析，具备一定探索和交互能力的数据产品。典型的产品见下表，主要来自百度、阿里、腾讯、字节等大厂。
 
@@ -213,15 +245,15 @@ the-future-of-data-analysis
 Shiny 作为 BI 工具的可能 [esquisse](https://github.com/dreamRs/esquisse) 提供拖拉拽的支持
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/140589317-7ab512e1-fdb1-4969-a4c6-30723ef627fb.gif" title="esquisse" class="full" alt="Figure 1: esquisse 包：BI 工具与 R Shiny 应用" /><figcaption aria-hidden="true">Figure 1: <strong>esquisse</strong> 包：BI 工具与 R Shiny 应用</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/140589317-7ab512e1-fdb1-4969-a4c6-30723ef627fb.gif" title="esquisse" class="full" alt="Figure 5: esquisse 包：BI 工具与 R Shiny 应用" /><figcaption aria-hidden="true">Figure 5: <strong>esquisse</strong> 包：BI 工具与 R Shiny 应用</figcaption>
 </figure>
 
 [Hiplot](https://hiplot.com.cn/) 在线科研数据可视化云平台
 
-头部数据可视化组件如 [Apache ECharts](https://github.com/apache/echarts)、[three.js](https://github.com/mrdoob/three.js)、[G2](https://github.com/antvis/G2)、[Highcharts](https://github.com/highcharts/highcharts)、[Plotly](https://github.com/plotly/plotly.js)等，典型的大屏示例见[iDataV](https://github.com/yyhsong/iDataV) 项目，图<a href="#fig:screen">2</a> 是其中一个示例的截图。
+头部数据可视化组件如 [Apache ECharts](https://github.com/apache/echarts)、[three.js](https://github.com/mrdoob/three.js)、[G2](https://github.com/antvis/G2)、[Highcharts](https://github.com/highcharts/highcharts)等，典型的大屏示例见[iDataV](https://github.com/yyhsong/iDataV) 项目，图<a href="#fig:screen">6</a> 是其中一个示例的截图。
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/139688957-3826d8fa-c03e-4539-b857-19a305d5aa32.png" title="Apache ECharts" class="full" alt="Figure 2: 大屏工具与数据可视化" /><figcaption aria-hidden="true">Figure 2: 大屏工具与数据可视化</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/139688957-3826d8fa-c03e-4539-b857-19a305d5aa32.png" title="Apache ECharts" class="full" alt="Figure 6: 大屏工具与数据可视化" /><figcaption aria-hidden="true">Figure 6: 大屏工具与数据可视化</figcaption>
 </figure>
 
 面对不同的数据量级，SQL 写法是不一样的，一般来说，数据量级越大，SQL 越复杂，SQL 函数的理解要求越深入，性能调优要求越高，处理 GB 级和 TB 级数据的 SQL 已经不是一个样子了。
@@ -231,12 +263,6 @@ Shiny 作为 BI 工具的可能 [esquisse](https://github.com/dreamRs/esquisse) 
 <!--
 <iframe height="600" width="100%" frameborder="0" src="https://yyhsong.github.io/iDataV/case09/index.html"></iframe>
 -->
-
-<figure>
-<img src="https://camo.githubusercontent.com/1c0263124ed874d655cfdb2aabaf983820eac1ed6b9bcda88a58af32f7d4c2f8/68747470733a2f2f7261772e6769746875622e636f6d2f6a7562612f6578706c6f722f6d61737465722f7265736f75726365732f73637265656e636173745f302e332e676966" class="full" alt="Figure 3: explor 包：多元分析与 R Shiny 应用" /><figcaption aria-hidden="true">Figure 3: <strong>explor</strong> 包：多元分析与 R Shiny 应用</figcaption>
-</figure>
-
-[**explor**](https://github.com/juba/explor)
 
 ## 环境信息
 
@@ -249,7 +275,7 @@ xfun::session_info(packages = c(
 ), dependencies = TRUE)
 ```
 
-    ## R version 4.1.2 (2021-11-01)
+    ## R version 4.1.1 (2021-08-10)
     ## Platform: x86_64-apple-darwin17.0 (64-bit)
     ## Running under: macOS Big Sur 10.16
     ## 
@@ -265,29 +291,29 @@ xfun::session_info(packages = c(
     ##   evaluate_0.14       fansi_0.5.0         farver_2.1.0       
     ##   fastmap_1.1.0       flexdashboard_0.5.2 fontawesome_0.2.2  
     ##   fs_1.5.0            generics_0.1.1      ggplot2_3.3.5      
-    ##   glue_1.5.0          graphics_4.1.2      grDevices_4.1.2    
-    ##   grid_4.1.2          gtable_0.3.0        highr_0.9          
+    ##   glue_1.5.0          graphics_4.1.1      grDevices_4.1.1    
+    ##   grid_4.1.1          gtable_0.3.0        highr_0.9          
     ##   htmltools_0.5.2     htmlwidgets_1.5.4   httpuv_1.6.3       
     ##   httr_1.4.2          isoband_0.2.5       jquerylib_0.1.4    
     ##   jsonlite_1.7.2      knitr_1.36          labeling_0.4.2     
     ##   later_1.3.0         lattice_0.20.45     lazyeval_0.2.2     
     ##   lifecycle_1.0.1     magrittr_2.0.1      MASS_7.3.54        
-    ##   Matrix_1.3.4        methods_4.1.2       mgcv_1.8.38        
+    ##   Matrix_1.3.4        methods_4.1.1       mgcv_1.8.38        
     ##   mime_0.12           munsell_0.5.0       nlme_3.1.153       
     ##   openssl_1.4.5       pillar_1.6.4        pkgconfig_2.0.3    
     ##   plotly_4.10.0       promises_1.2.0.1    purrr_0.3.4        
     ##   R6_2.5.1            rappdirs_0.3.3      RColorBrewer_1.1.2 
     ##   Rcpp_1.0.7          rlang_0.4.12        rmarkdown_2.11     
     ##   sass_0.4.0          scales_1.1.1        servr_0.23         
-    ##   shiny_1.7.1         sourcetools_0.1.7   splines_4.1.2      
-    ##   stats_4.1.2         stringi_1.7.5       stringr_1.4.0      
+    ##   shiny_1.7.1         sourcetools_0.1.7   splines_4.1.1      
+    ##   stats_4.1.1         stringi_1.7.5       stringr_1.4.0      
     ##   sys_3.4             tibble_3.1.6        tidyr_1.1.4        
-    ##   tidyselect_1.1.1    tinytex_0.35        tools_4.1.2        
-    ##   utf8_1.2.2          utils_4.1.2         vctrs_0.3.8        
+    ##   tidyselect_1.1.1    tinytex_0.35        tools_4.1.1        
+    ##   utf8_1.2.2          utils_4.1.1         vctrs_0.3.8        
     ##   viridisLite_0.4.0   withr_2.4.2         xfun_0.28          
     ##   xtable_1.8.4        yaml_2.2.1         
     ## 
-    ## Pandoc version: 2.14.2
+    ## Pandoc version: 2.16.1
     ## 
     ## Hugo version: 0.89.2
 
