@@ -13,7 +13,7 @@ options(
     if (xfun::is_ascii(x)) tools::toTitleCase(x) else x
   }, blogdown.hugo.server = c("--buildDrafts", "--buildFuture", "--navigateToChanged"),
   blogdown.publishDir = paste(getwd(), "public", sep = "-"),
-  blogdown.hugo.version = "0.89.2",
+  blogdown.hugo.version = "0.89.3",
   blogdown.files_filter = "content/post/",
   blogdown.draft.output = FALSE,
   blogdown.knit.on_save = TRUE,
