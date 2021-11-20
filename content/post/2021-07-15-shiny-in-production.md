@@ -14,7 +14,7 @@ tags:
   - flexdashboard
   - data.table
   - R Markdown
-description: "本文适合对 R 语言有一定了解的读者，试图从全景出发介绍 R Markdown 和 R Shiny 的各个组件，着重在主要特点上，不深入细节。"
+description: "本文适合对 R 语言有一定了解的读者，试图从全景出发介绍 R Markdown 和 R Shiny 的各个组件，着重在主要特点上，不深入细节。阅读本文烦请带着几个疑问：R Markdown 和 R Shiny 分别是什么？R Markdown 和 R Shiny 有什么能力？适合在什么样的场景下使用？一个完整的 R Markdown 和 R Shiny 应用通常都包含哪些部分？如何去学习和使用 R Markdown 和 R Shiny 两个工具？"
 ---
 
 > 声明：本文引用的所有信息均为公开信息，仅代表作者本人观点，与就职单位无关。
