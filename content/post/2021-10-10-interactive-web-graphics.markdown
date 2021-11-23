@@ -589,7 +589,7 @@ figure() %>%
 
 无论是 [Plotly](https://github.com/plotly) 还是 [Apache ECharts](https://github.com/apache/echarts) 都提供有 Python 接口，分别是[plotly](https://github.com/plotly/plotly.py)和[pyecharts](https://github.com/pyecharts/pyecharts)，而且星赞数量远超 R 接口，这主要是两个数量级不对等的社区差异造成的。社区庞大成熟可以推动开发自行运转，而不依赖具体的一两个人或公司，局限会少一些。对使用者来说，遇到问题可以求助的对象多一些，甚至绝大部分问题仅需放狗搜索即可解决。除了开源社区、受欢迎程度，还有一个重要的因素需要考虑，就是上下游配套工具的情况，在做内部的数据产品方面，搭配 R Shiny 还是相当不错的，笔者比较熟悉 R 语言社区的情况，同时也相信 Python 社区有很好的框架可以做。
 
-图<a href="#fig:plotly-python-iris">18</a> 展示 Python 版 Plotly 的绘图效果，数据和图形还是一样的， 鸢尾花数据集 iris 按花种类分组做散点图和线性回归，展示数据相关性。读者可以和之前的图<a href="#fig:ggplot2-iris">5</a>对比看看，主要因为笔者对 Python 不太熟悉，做的比较粗糙，可能效果不及 R 语言版本，若有读者来改进，不甚感激。
+图<a href="#fig:plotly-python-iris">18</a> 展示 Python 版 Plotly 的绘图效果，数据和图形还是一样的，鸢尾花数据集 iris 按花种类分组做散点图和线性回归，展示数据相关性，线性回归用到 [statsmodels](https://github.com/statsmodels/statsmodels) 模块。读者可以和之前的图<a href="#fig:ggplot2-iris">5</a>对比看看，主要因为笔者对 Python 不太熟悉，做的比较粗糙，可能效果不及 R 语言版本，若有读者来改进，不甚感激。
 
 ``` python
 import plotly.express as px
@@ -626,7 +626,7 @@ xfun::session_info(packages = c(
 ), dependencies = FALSE)
 ```
 
-    ## R version 4.1.1 (2021-08-10)
+    ## R version 4.1.2 (2021-11-01)
     ## Platform: x86_64-apple-darwin17.0 (64-bit)
     ## Running under: macOS Big Sur 10.16
     ## 
@@ -637,9 +637,9 @@ xfun::session_info(packages = c(
     ##   ggplot2_3.3.5     knitr_1.36        plotly_4.10.0     rmarkdown_2.11   
     ##   scatterD3_1.0.1  
     ## 
-    ## Pandoc version: 2.16.1
+    ## Pandoc version: 2.16.2
     ## 
-    ## Hugo version: 0.89.2
+    ## Hugo version: 0.89.4
 
 # 参考文献
 
@@ -689,13 +689,13 @@ R Core Team. 2021. *R: A Language and Environment for Statistical Computing*. Vi
 
 <div id="ref-Sarkar2008" class="csl-entry">
 
-Sarkar, Deepayan. 2008. *<span class="nocase">lattice</span>: Multivariate Data Visualization with R*. New York: Springer. <http://lmdvr.r-forge.r-project.org>.
+Sarkar, Deepayan. 2008. *<span class="nocase">lattice</span>: Multivariate Data Visualization with R*. New York: Springer-Verlag. <http://lmdvr.r-forge.r-project.org>.
 
 </div>
 
 <div id="ref-Sievert2020" class="csl-entry">
 
-Sievert, Carson. 2020. *Interactive Web-Based Data Visualization with R, <span class="nocase">plotly</span>, and <span class="nocase">shiny</span>*. Chapman; Hall/CRC. <https://plotly-r.com>.
+Sievert, Carson. 2020. *Interactive Web-Based Data Visualization with R, <span class="nocase">plotly</span>, and <span class="nocase">shiny</span>*. 1st ed. Boca Raton, Florida: Chapman; Hall/CRC. <https://plotly-r.com/>.
 
 </div>
 
