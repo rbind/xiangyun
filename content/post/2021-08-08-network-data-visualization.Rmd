@@ -125,9 +125,26 @@ div.img {
 }
 ```
 
+::: rmdtip
+时隔四年，Gephi 发布了 0.9.3 版，写一篇文章庆祝一下。
+:::
+
 本文首先概览 R 语言在网络数据分析和可视化方面的情况；然后介绍图的表示（矩阵），图的计算（矩阵计算），图的展示（点、线等），图的工具（R 和其它软件）；最后以 CRAN 上 R 包的元数据为基础，介绍网络分析和可视化的过程，也发现了 R 语言社区中一些非常有意思的现象。
 
-网络图是表示节点之间关系的图，核心在于关系的刻画， 用来表达网络关系的是稀疏矩阵，以及为处理这种矩阵而专门优化的矩阵计算库，如 Matrix 和 RcppEigen，PageRank  应该是大家最为熟悉的网络数据挖掘算法，图关系挖掘和计算的应用场景非常广泛，如推荐、搜索等。
+网络图是表示节点之间关系的图，核心在于关系的刻画， 用来表达网络关系的是稀疏矩阵，以及为处理这种矩阵而专门优化的矩阵计算库，如 **Matrix** 、[**rsparse**](https://github.com/rexyai/rsparse)和 **RcppEigen** [@Bates2013]，PageRank  应该是大家最为熟悉的网络数据挖掘算法，图关系挖掘和计算的应用场景非常广泛，如社交推荐（社交 App）、风险控制（银行征信、企业查）、深度学习（图神经网络）、知识图谱（商户、商家、客户的实体关系网络）、区块链、物联网（IoT）、反洗钱（金融监管）、数据治理（数据血缘图谱）等。
+
+企业级的图存储和计算框架，比较有名（可能是最有名的），反正，笔者最先听说的是[Neo4j](https://github.com/neo4j/neo4j) ，它有以 AGPL 协议发布的开源版本，还有商业版本。[Nebula Graph](https://github.com/vesoft-inc/nebula)  分布式开源图数据库，高扩展性和高可用性，支持千亿节点、万亿条边、毫秒级查询，有[中文文档](https://github.com/vesoft-inc/nebula-docs-cn/)，有企业应用案例，[美团图数据库平台建设及业务实践](https://mp.weixin.qq.com/s/aYd5tqwogJYfkJXhVNuNpg)。阿里研发的[GraphScope](https://github.com/alibaba/GraphScope) 提供一站式大规模图计算系统，支持图神经网络计算。[HugeGraph](https://github.com/hugegraph/hugegraph)图数据库应用于[金融反欺诈实践](https://zhuanlan.zhihu.com/p/114665466)。
+
+
+[node2vec](https://cran.r-project.org/package=node2vec)包实现等人提出的大规模网络特征学习[@Grover2016]。[networkx](https://github.com/networkx/networkx)是做网络分析的 Python 模块。
+[**rsparse**](https://github.com/rexyai/rsparse) 包提供很多基于稀疏矩阵的统计学习算法，支持基于 OpenMP 的并行计算。[RSpectra](https://github.com/yixuan/RSpectra) 包是 C++ 库 [Spectra](https://spectralib.org/) 的 R 接口，仅有两个函数 `eigs()` 和 `svds()` 分别用来计算 $N$ 阶矩阵（稀疏或稠密都行） Top K 个最大的特征值/特征向量，适合大规模特征值和奇异值分解问题，在 k 远远小于 N 时，特别能体现优越性。后面从 CRAN 网络数据中获取 Top K 个主要的组织、个人和 R 包。
+
+
+<!--
+葛底斯堡战役七桥问题，图作为文章 logo
+
+[**RcppSparse**](https://github.com/zdebruine/RcppSparse)  RcppArmadillo 和 RcppEigen 深拷贝deep copy 操作，而 RcppSparse zero-copy 零拷贝，无缝衔接，而计算结果是一致的，详细描述见 [Constructing a Sparse Matrix Class in Rcpp](https://gallery.rcpp.org/articles/sparse-matrix-class/)
+-->
 
 
 # 软件概览
@@ -157,20 +174,31 @@ pdb <- tools::CRAN_package_db()
 # CRAN 上的 R 包
 pkgs <- c(
   "igraph", "graphlayouts", "ggraph", "tidygraph",
-  "DiagrammeR", "visNetwork", "statnet",
-  "geomnet", "ggnet", "ggnetwork"
+  "DiagrammeR", "visNetwork", "statnet", "sand",
+  "geomnet", "ggnet", "ggnetwork", "qgraph", 
+  "GGally", "sna", "network", "networkD3", 
+  "Rgraphviz", "graph", "node2vec"
 )
 
 # Github 上的 R 包
 remote_pkgs = c('geomnet' = 'sctyner', 'ggnet' = 'briatte')
 
+bioc_pkgs = c("Rgraphviz", "graph")
+
+if (length(bioc_pkgs)) {
+  if (!"BiocManager" %in% .packages(T)) install.packages("BiocManager")
+}
+# 安装依赖
 invisible(lapply(pkgs, function(pkg) {
   if (system.file(package = pkg) != "") {
     return()
   }
+  if(pkg %in% bioc_pkgs){
+    BiocManager::install(pkg)
+  }
   repo <- remote_pkgs[pkg]
   if (is.na(repo)) { # 不在 Github 上
-    install.packages(pkg)
+    install.packages(pkg, quiet = TRUE)
   } else {
     remotes::install_github(paste(repo, pkg, sep = "/"))
   }
@@ -185,21 +213,24 @@ rmd_regexp <- paste("'(", paste(rmd_lib, collapse = "|"), ")'", sep = "")
 # 提取 R Shiny 应用使用的 R 包及其基本描述
 sub_pdb <- subset(
   x = pdb,
-  select = c("Package", "Title", "Maintainer", "URL", "License"),
+  select = c("Package", "Title", "Maintainer", "URL", "License", "BugReports"),
   subset = Package %in% pkgs
 ) |>
   transform(Title = gsub("(\\\n)", " ", Title)) |>
   transform(Title = gsub(rmd_regexp, "\\1", Title)) |> 
   transform(Maintainer = gsub("<([^<>]*)>", "", Maintainer)) |> 
-  transform(URL = gsub("(\\\n)", " ", URL)) |> 
-  transform(URL = gsub(",", "", URL)) |> 
+  # transform(URL = gsub("(\\\n)", " ", URL)) |> 
+  # transform(URL = gsub(",", "", URL)) |> 
+  # transform(URL = ifelse(is.na(URL), BugReports, URL)) |> 
+  # transform(URL = ifelse(is.na(URL), sprintf("https://CRAN.R-project.org/package=%s", Package), URL)) |> 
   transform(Package = paste0("**", Package, "**", " ", "[@", Package, "]"))
 
 # 展示表格
-knitr::kable(sub_pdb[order(sub_pdb$Maintainer), ],
+knitr::kable(sub_pdb[order(sub_pdb$Maintainer), 
+                     setdiff(colnames(sub_pdb), c("URL", "BugReports"))],
   row.names = FALSE,
   caption = "网络分析的 R 包（排名不分先后）",
-  col.names = c("R 包", "简介", "维护者", "网站", "协议")
+  col.names = c("R 包", "简介", "维护者", "协议")
 )
 ```
 ```{r write-bib, include=FALSE}
@@ -212,13 +243,39 @@ xfun::write_utf8(bib, "packages.bib")
 ```
 
 
-推荐 Github 上 [超棒的网络分析](https://github.com/briatte/awesome-network-analysis) 资源集合，ggplot2 关于网络数据可视化的[介绍](https://ggplot2-book.org/networks.html)，阅读 Erick Kolaczyk 的书籍《Statistical Analysis of Network Data with R》[@Kolaczyk2014]和发表在《R Journal》上的文章《Network Visualization with ggplot2》[@Tyner2017]及其配套 R 包 [ggnetwork](https://github.com/briatte/ggnetwork)。Katherine Ognyanova 在个人博客上持续维护的材料 --- [Static and dynamic network visualization with R](https://kateto.net/network-visualization)，David Schoch 介绍用 R 包 ggraph 和 graphlayouts 做网络数据可视化的材料 --- [Network Visualizations in R: using ggraph and graphlayouts](http://mr.schochastics.net/netVizR.html)，Albert-László Barabási 的在线书籍[《Network Science》](http://networksciencebook.com/)，Douglas Luke 的《A User’s Guide to Network Analysis in R》[@Luke2015]。无论是软件工具还是相关文献，笔者相信这只是列举了很小的一部分而已，但是应该足够应付绝大部分使用场景，读者若还有补充，欢迎来统计之都论坛留言评论 --- [中等规模及以上的网络图，怎么用 R 高效地绘制](https://d.cosx.org/d/419292)或灌水 --- [R 社区的开发人员知多少](https://d.cosx.org/d/420670)。
+推荐 Github 上 [超棒的网络分析](https://github.com/briatte/awesome-network-analysis) 资源集合，ggplot2 关于网络数据可视化的[介绍](https://ggplot2-book.org/networks.html)，阅读 Erick Kolaczyk 的书籍《Statistical Analysis of Network Data with R》[@Kolaczyk2014;@Kolaczyk2020]和发表在《R Journal》上的文章《Network Visualization with ggplot2》[@Tyner2017]及其配套 R 包 [ggnetwork](https://github.com/briatte/ggnetwork)。Katherine Ognyanova 在个人博客上持续维护的材料 --- [Static and dynamic network visualization with R](https://kateto.net/network-visualization)，David Schoch 介绍用 R 包 ggraph 和 graphlayouts 做网络数据可视化的材料 --- [Network Visualizations in R: using ggraph and graphlayouts](http://mr.schochastics.net/netVizR.html)，Albert-László Barabási 的在线书籍[《Network Science》](http://networksciencebook.com/)，Douglas Luke 的《A User’s Guide to Network Analysis in R》[@Luke2015]。无论是软件工具还是相关文献，笔者相信这只是列举了很小的一部分而已，但是应该足够应付绝大部分使用场景，读者若还有补充，欢迎来统计之都论坛留言评论 --- [中等规模及以上的网络图，怎么用 R 高效地绘制](https://d.cosx.org/d/419292)或灌水 --- [R 社区的开发人员知多少](https://d.cosx.org/d/420670)。
+
+落园园主的博文[十八般武艺，谁主天下？](https://cosx.org/2013/02/jinyong-fiction-mining)分析金庸先生小说揭密最受欢迎的兵器，刘思喆的博文[从北京地铁规划再看地段的重要性](https://bjt.name/2021/02/13/subway.html)分析地铁网络寻找房价洼地。
+
 
 
 # 网络基础
 
+柯尼斯堡七桥问题：在所有桥都只走一遍的情况下，如何才能把这个地方所有的桥都走遍？欧拉将每一座桥抽象为一条线，桥所连接地区抽象为点[^seven-bridges]。此处，用[tikz-network](https://ctan.org/pkg/tikz-network) 绘制网络图，如图\@ref(fig:seven-bridges)所示， $1,2,\cdots,7$ 分别表示七座桥， $A,B,C,D$ 分别表示四块区域。
 
-## 安装
+[^seven-bridges]: <https://en.wikipedia.org/wiki/Seven_Bridges_of_K%C3%B6nigsberg>
+
+![(\#fig:seven-bridges) 欧拉用图抽象的柯尼斯堡七桥](/img/seven-bridges.png){ width=65% }
+
+```{r seven-bridges, engine="tikz", fig.cap="柯尼斯堡七桥问题", cache=TRUE, engine.opts=list(extra.preamble=c("\\usepackage[default]{sourcesanspro}", "\\usepackage{tikz-network}")), eval=FALSE, echo=FALSE}
+\begin{tikzpicture}
+\Vertex[IdAsLabel, x=5, color=gray, size=1, fontsize=\large]{A}
+\Vertex[IdAsLabel, x=10, color=gray, size=1, fontsize=\large]{B}
+\Vertex[IdAsLabel, x=15, color=gray, size=1, fontsize=\large]{C}
+\Vertex[IdAsLabel, x=10, y=6, color=gray, size=1, fontsize=\large]{D}
+
+\Edge[label=2, bend=45, fontscale=2](A)(B)
+\Edge[label=6, bend=30, fontscale=2](A)(D)
+\Edge[label=3, bend=45, fontscale=2](B)(A)
+\Edge[label=5, bend=45, fontscale=2](B)(C)
+\Edge[label=4, bend=45, fontscale=2](C)(B)
+\Edge[label=7, bend=30, fontscale=2](D)(C)
+\Edge[label=1, fontscale=2](D)(B)
+\end{tikzpicture}
+```
+
+
+## 安装 R 包
 
 
 Rgraphviz [Graphviz](https://www.graphviz.org/)
@@ -228,6 +285,12 @@ if(!"BiocManager" %in% .packages(T)) install.packages("BiocManager")
 if(!"graph" %in% .packages(T)) BiocManager::install(pkgs = "graph")
 if(!"Rgraphviz" %in% .packages(T)) BiocManager::install(pkgs = "Rgraphviz")
 ```
+
+## 图的表示
+
+## 图的计算
+
+## 图的展示
 
 4个节点，给定邻接矩阵，即可画出关系图
 
@@ -290,24 +353,41 @@ plot(g2, "twopi")
 ![(\#fig:twopi-graph) twopi 布局](https://user-images.githubusercontent.com/12031874/67205321-19d63b80-f442-11e9-88e0-b783d3daa5f7.png){ width=55% }
 
 
-# CRAN 关系网络
+# CRAN 网络
+
+之前肯定有人分析过，但是我的分析更加全面，更加深刻，涉及 R 包，开发者和组织生态三个层次。
 
 network-with-r 基于 CRAN 数据，分析 R 语言社区开发者关系网络。首先展示当前 R 语言社区的一些基本概览信息，目的是让外行或入坑不深的人有所了解。
 分析对象是人及其关系，价值会更高，更能吸引读者，其次 R 包依赖和贡献关系。
 邮箱后缀 \@符号后面的部分，根据邮箱查所属国家，地区，开发者的邮箱分布，所属大学、企业分布。单个人物和集体人物。
 在 R 会开始之前发出来，比较应景。已经在这个事情上搞来搞去，搞了很多时间了，今天算是交作业了。围绕生态环境来写和分析，最后思考，如何引领，站在核心开发者的视角，基金会的视角来看，对统计之都有没有一些启示。
 
+## R 包
 
-[R 语言历史---再回首，已恍然如梦](http://blog.revolutionanalytics.com/2017/10/updated-history-of-r.html) 歌声响起。
+只考虑 CRAN 范围内的数据
 
-[明朝那些事儿的那些事儿](https://bjt.name/2012/09/04/ming-dynasty.html) 人物关系分析，
+影响力
+关键 R 包
 
-[十八般武艺，谁主天下？](https://cosx.org/2013/02/jinyong-fiction-mining)。
+用什么协议发布 MIT 还是 GPL
+在什么平台开发，Github 还是线下
 
-[谈学习](https://d.cosx.org/d/419662)贴了一个 R 包作者关系网络的例子，
+R 包关系
+一度关系，安装 A 包，必须安装 B 包，则 B 包为 A 包的前置依赖。
 
-[如何提取R包中贡献者名字](https://d.cosx.org/d/419629)，
+## 开发者
 
+关键开发者
+
+所属组织性质，学校、公司
+
+开发者关系
+
+
+
+## 组织
+
+关键组织
 
 ```{r,eval=FALSE}
 # 逆向依赖
@@ -315,9 +395,13 @@ tools::package_dependencies(reverse = TRUE, which = "most", recursive = "strong"
 ```
 
 
-```{r}
+```{r,eval=FALSE}
+# 选择就近的 CRAN 镜像站点
 Sys.setenv(R_CRAN_WEB = "https://mirrors.tuna.tsinghua.edu.cn/CRAN")
+# 下载 R 包元数据
 pdb <- tools::CRAN_package_db()
+```
+```{r}
 # 强依赖 igraph 包的 R 包
 igraph_deps <- tools::dependsOnPkgs('igraph', installed = pdb, recursive = FALSE)
 ```
@@ -338,7 +422,8 @@ pdb2
 
 ```{r}
 xfun::session_info(packages = c(
-  "knitr", "rmarkdown", "blogdown", "data.table"
+  "knitr", "rmarkdown", "blogdown",
+  "data.table", "node2vec"
 ))
 ```
 

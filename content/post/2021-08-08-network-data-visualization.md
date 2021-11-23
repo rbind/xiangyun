@@ -95,9 +95,26 @@ div.img {
 }
 </style>
 
+<div class="rmdtip">
+
+时隔四年，Gephi 发布了 0.9.3 版，写一篇文章庆祝一下。
+
+</div>
+
 本文首先概览 R 语言在网络数据分析和可视化方面的情况；然后介绍图的表示（矩阵），图的计算（矩阵计算），图的展示（点、线等），图的工具（R 和其它软件）；最后以 CRAN 上 R 包的元数据为基础，介绍网络分析和可视化的过程，也发现了 R 语言社区中一些非常有意思的现象。
 
-网络图是表示节点之间关系的图，核心在于关系的刻画， 用来表达网络关系的是稀疏矩阵，以及为处理这种矩阵而专门优化的矩阵计算库，如 Matrix 和 RcppEigen，PageRank 应该是大家最为熟悉的网络数据挖掘算法，图关系挖掘和计算的应用场景非常广泛，如推荐、搜索等。
+网络图是表示节点之间关系的图，核心在于关系的刻画， 用来表达网络关系的是稀疏矩阵，以及为处理这种矩阵而专门优化的矩阵计算库，如 **Matrix** 、[**rsparse**](https://github.com/rexyai/rsparse)和 **RcppEigen** ([Bates and Eddelbuettel 2013](#ref-Bates2013))，PageRank 应该是大家最为熟悉的网络数据挖掘算法，图关系挖掘和计算的应用场景非常广泛，如社交推荐（社交 App）、风险控制（银行征信、企业查）、深度学习（图神经网络）、知识图谱（商户、商家、客户的实体关系网络）、区块链、物联网（IoT）、反洗钱（金融监管）、数据治理（数据血缘图谱）等。
+
+企业级的图存储和计算框架，比较有名（可能是最有名的），反正，笔者最先听说的是[Neo4j](https://github.com/neo4j/neo4j) ，它有以 AGPL 协议发布的开源版本，还有商业版本。[Nebula Graph](https://github.com/vesoft-inc/nebula) 分布式开源图数据库，高扩展性和高可用性，支持千亿节点、万亿条边、毫秒级查询，有[中文文档](https://github.com/vesoft-inc/nebula-docs-cn/)，有企业应用案例，[美团图数据库平台建设及业务实践](https://mp.weixin.qq.com/s/aYd5tqwogJYfkJXhVNuNpg)。阿里研发的[GraphScope](https://github.com/alibaba/GraphScope) 提供一站式大规模图计算系统，支持图神经网络计算。[HugeGraph](https://github.com/hugegraph/hugegraph)图数据库应用于[金融反欺诈实践](https://zhuanlan.zhihu.com/p/114665466)。
+
+[node2vec](https://cran.r-project.org/package=node2vec)包实现等人提出的大规模网络特征学习([Grover and Leskovec 2016](#ref-Grover2016))。[networkx](https://github.com/networkx/networkx)是做网络分析的 Python 模块。
+[**rsparse**](https://github.com/rexyai/rsparse) 包提供很多基于稀疏矩阵的统计学习算法，支持基于 OpenMP 的并行计算。[RSpectra](https://github.com/yixuan/RSpectra) 包是 C++ 库 [Spectra](https://spectralib.org/) 的 R 接口，仅有两个函数 `eigs()` 和 `svds()` 分别用来计算 `\(N\)` 阶矩阵（稀疏或稠密都行） Top K 个最大的特征值/特征向量，适合大规模特征值和奇异值分解问题，在 k 远远小于 N 时，特别能体现优越性。后面从 CRAN 网络数据中获取 Top K 个主要的组织、个人和 R 包。
+
+<!--
+葛底斯堡战役七桥问题，图作为文章 logo
+
+[**RcppSparse**](https://github.com/zdebruine/RcppSparse)  RcppArmadillo 和 RcppEigen 深拷贝deep copy 操作，而 RcppSparse zero-copy 零拷贝，无缝衔接，而计算结果是一致的，详细描述见 [Constructing a Sparse Matrix Class in Rcpp](https://gallery.rcpp.org/articles/sparse-matrix-class/)
+-->
 
 # 软件概览
 
@@ -119,24 +136,39 @@ div.img {
 <img src="https://user-images.githubusercontent.com/12031874/120408326-6190a900-c381-11eb-9dcf-9881d33fa2b6.png" class="full" alt="Figure 1: 开发 R Shiny 应用的技术栈" /><figcaption aria-hidden="true">Figure 1: 开发 R Shiny 应用的技术栈</figcaption>
 </figure>
 
-| R 包                                                                                          | 简介                                                             | 维护者              | 网站                                                                               | 协议                 |
-|:----------------------------------------------------------------------------------------------|:-----------------------------------------------------------------|:--------------------|:-----------------------------------------------------------------------------------|:---------------------|
-| **visNetwork** ([Almende B.V. and Contributors, Thieurmel, and Robert 2021](#ref-visNetwork)) | Network Visualization using vis.js Library                       | Benoit Thieurmel    | http://datastorm-open.github.io/visNetwork/                                        | MIT + file LICENSE   |
-| **graphlayouts** ([Schoch 2020](#ref-graphlayouts))                                           | Additional Layout Algorithms for Network Visualizations          | David Schoch        | http://graphlayouts.schochastics.net/ https://github.com/schochastics/graphlayouts | MIT + file LICENSE   |
-| **ggnetwork** ([Briatte 2021](#ref-ggnetwork))                                                | Geometries to Plot Networks with ggplot2                         | François Briatte    | https://github.com/briatte/ggnetwork                                               | GPL-3                |
-| **statnet** ([Handcock et al. 2019](#ref-statnet))                                            | Software Tools for the Statistical Analysis of Network Data      | Martina Morris      | http://statnet.org                                                                 | GPL-3 + file LICENSE |
-| **DiagrammeR** ([Iannone 2020](#ref-DiagrammeR))                                              | Graph/Network Visualization                                      | Richard Iannone     | https://github.com/rich-iannone/DiagrammeR                                         | MIT + file LICENSE   |
-| **igraph** ([file. 2021](#ref-igraph))                                                        | Network Analysis and Visualization                               | Tamás Nepusz        | https://igraph.org                                                                 | GPL (>= 2)           |
-| **ggraph** ([Pedersen 2021](#ref-ggraph))                                                     | An Implementation of Grammar of Graphics for Graphs and Networks | Thomas Lin Pedersen | https://ggraph.data-imaginist.com https://github.com/thomasp85/ggraph              | MIT + file LICENSE   |
-| **tidygraph** ([Pedersen 2020](#ref-tidygraph))                                               | A Tidy API for Graph Manipulation                                | Thomas Lin Pedersen | https://tidygraph.data-imaginist.com https://github.com/thomasp85/tidygraph        | MIT + file LICENSE   |
+| R 包                                                                                          | 简介                                                                                   | 维护者              | 协议                 |
+|:----------------------------------------------------------------------------------------------|:---------------------------------------------------------------------------------------|:--------------------|:---------------------|
+| **GGally** ([Schloerke et al. 2021](#ref-GGally))                                             | Extension to ggplot2                                                                   | Barret Schloerke    | GPL (>= 2.0)         |
+| **visNetwork** ([Almende B.V. and Contributors, Thieurmel, and Robert 2021](#ref-visNetwork)) | Network Visualization using vis.js Library                                             | Benoit Thieurmel    | MIT + file LICENSE   |
+| **network** ([Butts 2021](#ref-network))                                                      | Classes for Relational Data                                                            | Carter T. Butts     | GPL (>= 2)           |
+| **sna** ([Butts 2020](#ref-sna))                                                              | Tools for Social Network Analysis                                                      | Carter T. Butts     | GPL (>= 2)           |
+| **networkD3** ([Allaire et al. 2017](#ref-networkD3))                                         | D3 JavaScript Network Graphs from R                                                    | Christopher Gandrud | GPL (>= 3)           |
+| **graphlayouts** ([Schoch 2020](#ref-graphlayouts))                                           | Additional Layout Algorithms for Network Visualizations                                | David Schoch        | MIT + file LICENSE   |
+| **sand** ([E. Kolaczyk and Csárdi 2020](#ref-sand))                                           | Statistical Analysis of Network Data with R, 2nd Edition                               | Eric Kolaczyk       | GPL-3                |
+| **ggnetwork** ([Briatte 2021](#ref-ggnetwork))                                                | Geometries to Plot Networks with ggplot2                                               | François Briatte    | GPL-3                |
+| **statnet** ([Handcock et al. 2019](#ref-statnet))                                            | Software Tools for the Statistical Analysis of Network Data                            | Martina Morris      | GPL-3 + file LICENSE |
+| **DiagrammeR** ([Iannone 2020](#ref-DiagrammeR))                                              | Graph/Network Visualization                                                            | Richard Iannone     | MIT + file LICENSE   |
+| **qgraph** ([Epskamp et al. 2021](#ref-qgraph))                                               | Graph Plotting Methods, Psychometric Data Visualization and Graphical Model Estimation | Sacha Epskamp       | GPL-2                |
+| **igraph** ([file. 2021](#ref-igraph))                                                        | Network Analysis and Visualization                                                     | Tamás Nepusz        | GPL (>= 2)           |
+| **ggraph** ([Pedersen 2021](#ref-ggraph))                                                     | An Implementation of Grammar of Graphics for Graphs and Networks                       | Thomas Lin Pedersen | MIT + file LICENSE   |
+| **tidygraph** ([Pedersen 2020](#ref-tidygraph))                                               | A Tidy API for Graph Manipulation                                                      | Thomas Lin Pedersen | MIT + file LICENSE   |
+| **node2vec** ([Tian, Li, and Ren 2021](#ref-node2vec))                                        | Algorithmic Framework for Representational Learning on Graphs                          | Yang Tian           | GPL (>= 3)           |
 
 Table 1: 网络分析的 R 包（排名不分先后）
 
-推荐 Github 上 [超棒的网络分析](https://github.com/briatte/awesome-network-analysis) 资源集合，ggplot2 关于网络数据可视化的[介绍](https://ggplot2-book.org/networks.html)，阅读 Erick Kolaczyk 的书籍《Statistical Analysis of Network Data with R》([Kolaczyk and Csárdi 2014](#ref-Kolaczyk2014))和发表在《R Journal》上的文章《Network Visualization with ggplot2》([Tyner, Briatte, and Hofmann 2017](#ref-Tyner2017))及其配套 R 包 [ggnetwork](https://github.com/briatte/ggnetwork)。Katherine Ognyanova 在个人博客上持续维护的材料 — [Static and dynamic network visualization with R](https://kateto.net/network-visualization)，David Schoch 介绍用 R 包 ggraph 和 graphlayouts 做网络数据可视化的材料 — [Network Visualizations in R: using ggraph and graphlayouts](http://mr.schochastics.net/netVizR.html)，Albert-László Barabási 的在线书籍[《Network Science》](http://networksciencebook.com/)，Douglas Luke 的《A User’s Guide to Network Analysis in R》([Luke 2015](#ref-Luke2015))。无论是软件工具还是相关文献，笔者相信这只是列举了很小的一部分而已，但是应该足够应付绝大部分使用场景，读者若还有补充，欢迎来统计之都论坛留言评论 — [中等规模及以上的网络图，怎么用 R 高效地绘制](https://d.cosx.org/d/419292)或灌水 — [R 社区的开发人员知多少](https://d.cosx.org/d/420670)。
+推荐 Github 上 [超棒的网络分析](https://github.com/briatte/awesome-network-analysis) 资源集合，ggplot2 关于网络数据可视化的[介绍](https://ggplot2-book.org/networks.html)，阅读 Erick Kolaczyk 的书籍《Statistical Analysis of Network Data with R》([E. D. Kolaczyk and Csárdi 2014](#ref-Kolaczyk2014), [2020](#ref-Kolaczyk2020))和发表在《R Journal》上的文章《Network Visualization with ggplot2》([Tyner, Briatte, and Hofmann 2017](#ref-Tyner2017))及其配套 R 包 [ggnetwork](https://github.com/briatte/ggnetwork)。Katherine Ognyanova 在个人博客上持续维护的材料 — [Static and dynamic network visualization with R](https://kateto.net/network-visualization)，David Schoch 介绍用 R 包 ggraph 和 graphlayouts 做网络数据可视化的材料 — [Network Visualizations in R: using ggraph and graphlayouts](http://mr.schochastics.net/netVizR.html)，Albert-László Barabási 的在线书籍[《Network Science》](http://networksciencebook.com/)，Douglas Luke 的《A User’s Guide to Network Analysis in R》([Luke 2015](#ref-Luke2015))。无论是软件工具还是相关文献，笔者相信这只是列举了很小的一部分而已，但是应该足够应付绝大部分使用场景，读者若还有补充，欢迎来统计之都论坛留言评论 — [中等规模及以上的网络图，怎么用 R 高效地绘制](https://d.cosx.org/d/419292)或灌水 — [R 社区的开发人员知多少](https://d.cosx.org/d/420670)。
+
+落园园主的博文[十八般武艺，谁主天下？](https://cosx.org/2013/02/jinyong-fiction-mining)分析金庸先生小说揭密最受欢迎的兵器，刘思喆的博文[从北京地铁规划再看地段的重要性](https://bjt.name/2021/02/13/subway.html)分析地铁网络寻找房价洼地。
 
 # 网络基础
 
-## 安装
+柯尼斯堡七桥问题：在所有桥都只走一遍的情况下，如何才能把这个地方所有的桥都走遍？欧拉将每一座桥抽象为一条线，桥所连接地区抽象为点[^1]。此处，用[tikz-network](https://ctan.org/pkg/tikz-network) 绘制网络图，如图<a href="#fig:seven-bridges">2</a>所示， `\(1,2,\cdots,7\)` 分别表示七座桥， `\(A,B,C,D\)` 分别表示四块区域。
+
+<figure>
+<img src="/img/seven-bridges.png" style="width:65.0%" alt="Figure 2: 欧拉用图抽象的柯尼斯堡七桥" /><figcaption aria-hidden="true">Figure 2: 欧拉用图抽象的柯尼斯堡七桥</figcaption>
+</figure>
+
+## 安装 R 包
 
 Rgraphviz [Graphviz](https://www.graphviz.org/)
 
@@ -145,6 +177,12 @@ if(!"BiocManager" %in% .packages(T)) install.packages("BiocManager")
 if(!"graph" %in% .packages(T)) BiocManager::install(pkgs = "graph")
 if(!"Rgraphviz" %in% .packages(T)) BiocManager::install(pkgs = "Rgraphviz")
 ```
+
+## 图的表示
+
+## 图的计算
+
+## 图的展示
 
 4个节点，给定邻接矩阵，即可画出关系图
 
@@ -181,7 +219,7 @@ plot(g1)
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/67205314-193da500-f442-11e9-834f-2617220aa084.png" style="width:35.0%" alt="Figure 2: 用 graph 包绘制4个顶点的简单网络图" /><figcaption aria-hidden="true">Figure 2: 用 <strong>graph</strong> 包绘制4个顶点的简单网络图</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/67205314-193da500-f442-11e9-834f-2617220aa084.png" style="width:35.0%" alt="Figure 3: 用 graph 包绘制4个顶点的简单网络图" /><figcaption aria-hidden="true">Figure 3: 用 <strong>graph</strong> 包绘制4个顶点的简单网络图</figcaption>
 </figure>
 
 用函数 `randomGraph()` 随机生成一个网络图
@@ -278,7 +316,7 @@ plot(g2)
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/67205315-193da500-f442-11e9-88c8-e053a35a2168.png" style="width:45.0%" alt="Figure 3: 用 graph 包生成10个顶点的随机网络图" /><figcaption aria-hidden="true">Figure 3: 用 <strong>graph</strong> 包生成10个顶点的随机网络图</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/67205315-193da500-f442-11e9-88c8-e053a35a2168.png" style="width:45.0%" alt="Figure 4: 用 graph 包生成10个顶点的随机网络图" /><figcaption aria-hidden="true">Figure 4: 用 <strong>graph</strong> 包生成10个顶点的随机网络图</figcaption>
 </figure>
 
 换个布局
@@ -288,7 +326,7 @@ plot(g2, "neato")
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/67205319-19d63b80-f442-11e9-83c8-6c68b1793526.png" style="width:55.0%" alt="Figure 4: neato 布局" /><figcaption aria-hidden="true">Figure 4: neato 布局</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/67205319-19d63b80-f442-11e9-83c8-6c68b1793526.png" style="width:55.0%" alt="Figure 5: neato 布局" /><figcaption aria-hidden="true">Figure 5: neato 布局</figcaption>
 </figure>
 
 ``` r
@@ -296,25 +334,42 @@ plot(g2, "twopi")
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/67205321-19d63b80-f442-11e9-88e0-b783d3daa5f7.png" style="width:55.0%" alt="Figure 5: twopi 布局" /><figcaption aria-hidden="true">Figure 5: twopi 布局</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/67205321-19d63b80-f442-11e9-88e0-b783d3daa5f7.png" style="width:55.0%" alt="Figure 6: twopi 布局" /><figcaption aria-hidden="true">Figure 6: twopi 布局</figcaption>
 </figure>
 
-# CRAN 关系网络
+# CRAN 网络
+
+之前肯定有人分析过，但是我的分析更加全面，更加深刻，涉及 R 包，开发者和组织生态三个层次。
 
 network-with-r 基于 CRAN 数据，分析 R 语言社区开发者关系网络。首先展示当前 R 语言社区的一些基本概览信息，目的是让外行或入坑不深的人有所了解。
 分析对象是人及其关系，价值会更高，更能吸引读者，其次 R 包依赖和贡献关系。
 邮箱后缀 @符号后面的部分，根据邮箱查所属国家，地区，开发者的邮箱分布，所属大学、企业分布。单个人物和集体人物。
 在 R 会开始之前发出来，比较应景。已经在这个事情上搞来搞去，搞了很多时间了，今天算是交作业了。围绕生态环境来写和分析，最后思考，如何引领，站在核心开发者的视角，基金会的视角来看，对统计之都有没有一些启示。
 
-[R 语言历史—再回首，已恍然如梦](http://blog.revolutionanalytics.com/2017/10/updated-history-of-r.html) 歌声响起。
+## R 包
 
-[明朝那些事儿的那些事儿](https://bjt.name/2012/09/04/ming-dynasty.html) 人物关系分析，
+只考虑 CRAN 范围内的数据
 
-[十八般武艺，谁主天下？](https://cosx.org/2013/02/jinyong-fiction-mining)。
+影响力
+关键 R 包
 
-[谈学习](https://d.cosx.org/d/419662)贴了一个 R 包作者关系网络的例子，
+用什么协议发布 MIT 还是 GPL
+在什么平台开发，Github 还是线下
 
-[如何提取R包中贡献者名字](https://d.cosx.org/d/419629)，
+R 包关系
+一度关系，安装 A 包，必须安装 B 包，则 B 包为 A 包的前置依赖。
+
+## 开发者
+
+关键开发者
+
+所属组织性质，学校、公司
+
+开发者关系
+
+## 组织
+
+关键组织
 
 ``` r
 # 逆向依赖
@@ -322,8 +377,13 @@ tools::package_dependencies(reverse = TRUE, which = "most", recursive = "strong"
 ```
 
 ``` r
+# 选择就近的 CRAN 镜像站点
 Sys.setenv(R_CRAN_WEB = "https://mirrors.tuna.tsinghua.edu.cn/CRAN")
+# 下载 R 包元数据
 pdb <- tools::CRAN_package_db()
+```
+
+``` r
 # 强依赖 igraph 包的 R 包
 igraph_deps <- tools::dependsOnPkgs('igraph', installed = pdb, recursive = FALSE)
 ```
@@ -345,7 +405,7 @@ pdb2
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/138590902-8d631fc8-37d2-4adc-8710-561cefe40697.jpg" style="width:55.0%" alt="Figure 6: R 包依赖关系网络" /><figcaption aria-hidden="true">Figure 6: R 包依赖关系网络</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/138590902-8d631fc8-37d2-4adc-8710-561cefe40697.jpg" style="width:55.0%" alt="Figure 7: R 包依赖关系网络" /><figcaption aria-hidden="true">Figure 7: R 包依赖关系网络</figcaption>
 </figure>
 
 # 环境信息
@@ -354,7 +414,8 @@ pdb2
 
 ``` r
 xfun::session_info(packages = c(
-  "knitr", "rmarkdown", "blogdown", "data.table"
+  "knitr", "rmarkdown", "blogdown",
+  "data.table", "node2vec"
 ))
 # R version 4.1.2 (2021-11-01)
 # Platform: x86_64-apple-darwin17.0 (64-bit)
@@ -363,31 +424,53 @@ xfun::session_info(packages = c(
 # Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
 # 
 # Package version:
-#   base64enc_0.1.3   blogdown_1.6      bookdown_0.24    
-#   data.table_1.14.2 digest_0.6.28     evaluate_0.14    
-#   fastmap_1.1.0     glue_1.5.0        graphics_4.1.2   
-#   grDevices_4.1.2   highr_0.9         htmltools_0.5.2  
-#   httpuv_1.6.3      jquerylib_0.1.4   jsonlite_1.7.2   
-#   knitr_1.36        later_1.3.0       magrittr_2.0.1   
-#   methods_4.1.2     mime_0.12         promises_1.2.0.1 
-#   R6_2.5.1          Rcpp_1.0.7        rlang_0.4.12     
-#   rmarkdown_2.11    servr_0.24        stats_4.1.2      
-#   stringi_1.7.5     stringr_1.4.0     tinytex_0.35     
-#   tools_4.1.2       utils_4.1.2       xfun_0.28        
-#   yaml_2.2.1       
+#   base64enc_0.1.3    blogdown_1.6       bookdown_0.24     
+#   cli_3.1.0          cluster_2.1.2      crayon_1.4.2      
+#   data.table_1.14.2  digest_0.6.28      dplyr_1.0.7       
+#   ellipsis_0.3.2     evaluate_0.14      fansi_0.5.0       
+#   fastmap_1.1.0      generics_0.1.1     glue_1.5.0        
+#   graphics_4.1.2     grDevices_4.1.2    grid_4.1.2        
+#   highr_0.9          htmltools_0.5.2    httpuv_1.6.3      
+#   igraph_1.2.8       jquerylib_0.1.4    jsonlite_1.7.2    
+#   knitr_1.36         later_1.3.0        lattice_0.20.45   
+#   lifecycle_1.0.1    magrittr_2.0.1     MASS_7.3.54       
+#   Matrix_1.3.4       methods_4.1.2      mgcv_1.8.38       
+#   mime_0.12          nlme_3.1.153       node2vec_0.1.0    
+#   permute_0.9.5      pillar_1.6.4       pkgconfig_2.0.3   
+#   promises_1.2.0.1   purrr_0.3.4        R6_2.5.1          
+#   Rcpp_1.0.7         RcppProgress_0.4.2 rlang_0.4.12      
+#   rlist_0.4.6.2      rmarkdown_2.11     servr_0.24        
+#   splines_4.1.2      stats_4.1.2        stringi_1.7.5     
+#   stringr_1.4.0      tibble_3.1.6       tidyselect_1.1.1  
+#   tinytex_0.35       tools_4.1.2        utf8_1.2.2        
+#   utils_4.1.2        vctrs_0.3.8        vegan_2.5.7       
+#   word2vec_0.3.4     xfun_0.28          XML_3.99.0.8      
+#   yaml_2.2.1        
 # 
-# Pandoc version: 2.16.1
+# Pandoc version: 2.16.2
 # 
-# Hugo version: 0.89.2
+# Hugo version: 0.89.4
 ```
 
 # 参考文献
 
 <div id="refs" class="references csl-bib-body hanging-indent">
 
+<div id="ref-networkD3" class="csl-entry">
+
+Allaire, J. J., Christopher Gandrud, Kenton Russell, and CJ Yetman. 2017. *networkD3: D3 JavaScript Network Graphs from r*. <https://CRAN.R-project.org/package=networkD3>.
+
+</div>
+
 <div id="ref-visNetwork" class="csl-entry">
 
 Almende B.V. and Contributors, Benoit Thieurmel, and Titouan Robert. 2021. *visNetwork: Network Visualization Using Vis.js Library*. <http://datastorm-open.github.io/visNetwork/>.
+
+</div>
+
+<div id="ref-Bates2013" class="csl-entry">
+
+Bates, Douglas, and Dirk Eddelbuettel. 2013. “Fast and Elegant Numerical Linear Algebra Using the RcppEigen Package.” *Journal of Statistical Software* 52 (5): 1–24. <https://www.jstatsoft.org/v52/i05/>.
 
 </div>
 
@@ -397,9 +480,33 @@ Briatte, François. 2021. *Ggnetwork: Geometries to Plot Networks with Ggplot2*.
 
 </div>
 
+<div id="ref-sna" class="csl-entry">
+
+Butts, Carter T. 2020. *Sna: Tools for Social Network Analysis*. <http://statnet.org>.
+
+</div>
+
+<div id="ref-network" class="csl-entry">
+
+———. 2021. *Network: Classes for Relational Data*. <http://statnet.org/>.
+
+</div>
+
+<div id="ref-qgraph" class="csl-entry">
+
+Epskamp, Sacha, Giulio Costantini, Jonas Haslbeck, and Adela Isvoranu. 2021. *Qgraph: Graph Plotting Methods, Psychometric Data Visualization and Graphical Model Estimation*. <https://CRAN.R-project.org/package=qgraph>.
+
+</div>
+
 <div id="ref-igraph" class="csl-entry">
 
 file., See AUTHORS. 2021. *Igraph: Network Analysis and Visualization*. <https://igraph.org>.
+
+</div>
+
+<div id="ref-Grover2016" class="csl-entry">
+
+Grover, Aditya, and Jure Leskovec. 2016. “Node2vec: Scalable Feature Learning for Networks.” In *Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining*, 855–64. KDD ’16. New York, NY, USA: Association for Computing Machinery. <https://doi.org/10.1145/2939672.2939754>.
 
 </div>
 
@@ -417,7 +524,19 @@ Iannone, Richard. 2020. *DiagrammeR: Graph/Network Visualization*. <https://gith
 
 <div id="ref-Kolaczyk2014" class="csl-entry">
 
-Kolaczyk, Eric D., and Gábor Csárdi. 2014. *Statistical Analysis of Network Data with r*. Springer, New York, NY. <https://doi.org/10.1007/978-1-4939-0983-4>.
+Kolaczyk, Eric D., and Gábor Csárdi. 2014. *Statistical Analysis of Network Data with R*. Springer, New York, NY. <https://doi.org/10.1007/978-1-4939-0983-4>.
+
+</div>
+
+<div id="ref-Kolaczyk2020" class="csl-entry">
+
+———. 2020. *Statistical Analysis of Network Data with R*. 2nd ed. Springer, New York, NY. <https://doi.org/10.1007/978-3-030-44129-6>.
+
+</div>
+
+<div id="ref-sand" class="csl-entry">
+
+Kolaczyk, Eric, and Gábor Csárdi. 2020. *Sand: Statistical Analysis of Network Data with r, 2nd Edition*. <https://github.com/kolaczyk/sand>.
 
 </div>
 
@@ -439,9 +558,21 @@ Pedersen, Thomas Lin. 2020. *Tidygraph: A Tidy API for Graph Manipulation*. <htt
 
 </div>
 
+<div id="ref-GGally" class="csl-entry">
+
+Schloerke, Barret, Di Cook, Joseph Larmarange, Francois Briatte, Moritz Marbach, Edwin Thoen, Amos Elberg, and Jason Crowley. 2021. *GGally: Extension to Ggplot2*. <https://CRAN.R-project.org/package=GGally>.
+
+</div>
+
 <div id="ref-graphlayouts" class="csl-entry">
 
 Schoch, David. 2020. *Graphlayouts: Additional Layout Algorithms for Network Visualizations*. <https://CRAN.R-project.org/package=graphlayouts>.
+
+</div>
+
+<div id="ref-node2vec" class="csl-entry">
+
+Tian, Yang, Xu Li, and Jing Ren. 2021. *Node2vec: Algorithmic Framework for Representational Learning on Graphs*. <https://CRAN.R-project.org/package=node2vec>.
 
 </div>
 
@@ -452,3 +583,5 @@ Tyner, Sam, François Briatte, and Heike Hofmann. 2017. “<span class="nocase">
 </div>
 
 </div>
+
+[^1]: <https://en.wikipedia.org/wiki/Seven_Bridges_of_K%C3%B6nigsberg>
