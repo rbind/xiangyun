@@ -1,5 +1,5 @@
 ---
-title: 从源码安装最新的开发版R
+title: 从源码安装最新的开发版 R 软件
 author: 黄湘云
 date: '2019-05-12'
 slug: r-devel-ubuntu
@@ -9,11 +9,11 @@ tags:
   - R
   - RStudio Server
   - Ubuntu
-draft: true
-thumbnail: https://cloud.r-project.org/Rlogo.svg
+toc: true
+thumbnail: /img/r.svg
 ---
 
-# 1. R
+# 1. R 软件
 
 > 本文介绍在 Ubuntu Server 16.04.X/18.04.X 服务器系统上从源码安装最新的 R 软件[^ubuntu-r-installation]，前提是服务器能联网，此安装指导大部分也同样适用于 CentOS 和 Fedora。
 
