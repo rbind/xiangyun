@@ -1,7 +1,7 @@
 ---
 title: 网络数据可视化与 R 语言
 author: 黄湘云
-date: '2021-11-08'
+date: '2022-05-30'
 slug: network-data-visualization
 categories:
   - 统计图形
@@ -10,6 +10,7 @@ tags:
   - ggplot2
   - Rgraphviz
   - igraph 
+  - ggraph
   - DiagrammeR
 bibliography: 
   - refer.bib
@@ -143,7 +144,7 @@ div.img {
 | **network** ([Butts 2021](#ref-network))                                                      | Classes for Relational Data                                                            | Carter T. Butts     | GPL (>= 2)           |
 | **sna** ([Butts 2020](#ref-sna))                                                              | Tools for Social Network Analysis                                                      | Carter T. Butts     | GPL (>= 2)           |
 | **networkD3** ([Allaire et al. 2017](#ref-networkD3))                                         | D3 JavaScript Network Graphs from R                                                    | Christopher Gandrud | GPL (>= 3)           |
-| **graphlayouts** ([Schoch 2020](#ref-graphlayouts))                                           | Additional Layout Algorithms for Network Visualizations                                | David Schoch        | MIT + file LICENSE   |
+| **graphlayouts** ([Schoch 2021](#ref-graphlayouts))                                           | Additional Layout Algorithms for Network Visualizations                                | David Schoch        | MIT + file LICENSE   |
 | **sand** ([E. Kolaczyk and Csárdi 2020](#ref-sand))                                           | Statistical Analysis of Network Data with R, 2nd Edition                               | Eric Kolaczyk       | GPL-3                |
 | **ggnetwork** ([Briatte 2021](#ref-ggnetwork))                                                | Geometries to Plot Networks with ggplot2                                               | François Briatte    | GPL-3                |
 | **statnet** ([Handcock et al. 2019](#ref-statnet))                                            | Software Tools for the Statistical Analysis of Network Data                            | Martina Morris      | GPL-3 + file LICENSE |
@@ -168,6 +169,8 @@ Table 1: 网络分析的 R 包（排名不分先后）
 <img src="/img/seven-bridges.png" style="width:65.0%" alt="Figure 2: 欧拉用图抽象的柯尼斯堡七桥" /><figcaption aria-hidden="true">Figure 2: 欧拉用图抽象的柯尼斯堡七桥</figcaption>
 </figure>
 
+柯尼斯堡七桥图的数据已经收录在 **igraphdata** 包里，数据集名称就叫 Koenigsberg
+
 ## 安装 R 包
 
 Rgraphviz [Graphviz](https://www.graphviz.org/)
@@ -176,6 +179,37 @@ Rgraphviz [Graphviz](https://www.graphviz.org/)
 if(!"BiocManager" %in% .packages(T)) install.packages("BiocManager")
 if(!"graph" %in% .packages(T)) BiocManager::install(pkgs = "graph")
 if(!"Rgraphviz" %in% .packages(T)) BiocManager::install(pkgs = "Rgraphviz")
+```
+
+``` r
+# https://www.isid.ac.in/~deepayan/R-tutorials/docs/roverview.pdf
+if(!"pkgDepTools" %in% .packages(T)) BiocManager::install(pkgs = "pkgDepTools")
+# https://github.com/r-lib/pkgcache
+library(graph)
+library(Rgraphviz)
+library(pkgDepTools)
+g <- makeDepGraph("http://cran.r-project.org", keep.builtin = TRUE)
+g
+
+revDepGraph <- function(g, pkg) {
+  olen <- 0
+  pkgKeep <- pkg
+  elist <- g@edgeL
+  elist <- elist[!(sapply(elist, is.null))]
+  while (length(pkgKeep) > olen) {
+    olen <- length(pkgKeep)
+    w <- which(g@nodes %in% pkgKeep)
+    revdep <- sapply(elist, function(x) any(w %in% x$edges))
+    pkgKeep <- union(pkgKeep, names(revdep)[revdep])
+  }
+  subGraph(pkgKeep, g)
+}
+gsub <- revDepGraph(g, "lme4")
+gsub
+library(Rgraphviz)
+graph.par(nodes = list(shape = "ellipse"))
+gl <- layoutGraph(gsub, layoutType = "twopi")
+renderGraph(gl)
 ```
 
 ## 图的表示
@@ -208,9 +242,10 @@ mat <- matrix(c(
   0, 0, 1, 1,
   1, 1, 0, 1,
   1, 1, 1, 0
-), byrow = TRUE, ncol = 4)
-rownames(mat) <- letters[1:4]
-colnames(mat) <- letters[1:4]
+),
+byrow = TRUE, ncol = 4,
+dimnames = list(letters[1:4], letters[1:4])
+)
 ```
 
 ``` r
@@ -353,11 +388,49 @@ network-with-r 基于 CRAN 数据，分析 R 语言社区开发者关系网络�
 影响力
 关键 R 包
 
-用什么协议发布 MIT 还是 GPL
 在什么平台开发，Github 还是线下
 
 R 包关系
 一度关系，安装 A 包，必须安装 B 包，则 B 包为 A 包的前置依赖。
+
+选择合适的 R 包，软件质量问题 Ohloh 网站，从 R 包开发者，依赖情况等，发现一批优质的 R 包和厉害的开发者。
+
+### 发布协议
+
+用什么协议发布 MIT 还是 GPL
+
+``` r
+license_pdb <- subset(x = pdb, select = c("Package", "License"))
+license_pdb_aggr <-aggregate(data = license_pdb, Package ~ License, FUN = function(x) length(unique(x)))
+license_pdb_aggr <- license_pdb_aggr[order(license_pdb_aggr$Package, decreasing = TRUE), ]
+
+knitr::kable(head(license_pdb_aggr, 15),
+  col.names = c("R 包协议", "R 包数量"), row.names = FALSE,
+  caption = "CRAN 上受开发者欢迎的 R 包发布协议（Top 15）"
+)
+```
+
+| R 包协议                     | R 包数量 |
+|:-----------------------------|---------:|
+| GPL (>= 2)                   |     4384 |
+| GPL-3                        |     4166 |
+| MIT + file LICENSE           |     3104 |
+| GPL-2                        |     2622 |
+| GPL (>= 3)                   |     1008 |
+| GPL                          |      524 |
+| GPL-2 \| GPL-3               |      342 |
+| CC0                          |      190 |
+| GPL-3 \| file LICENSE        |      166 |
+| LGPL-3                       |      155 |
+| BSD_3\_clause + file LICENSE |      132 |
+| AGPL-3                       |      116 |
+| BSD_2\_clause + file LICENSE |      111 |
+| Artistic-2.0                 |      109 |
+| GPL (>= 2.0)                 |      107 |
+
+Table 2: CRAN 上受开发者欢迎的 R 包发布协议（Top 15）
+
+GPL 协议占主导地位，MIT 协议次之。
 
 ## 开发者
 
@@ -365,7 +438,449 @@ R 包关系
 
 所属组织性质，学校、公司
 
-开发者关系
+### Top 组织
+
+``` r
+str_extract <- function(text, pattern, ...) regmatches(text, regexpr(pattern, text, ...))
+# 确保有邮箱 <(.*?)@(.*?)>
+org_pdb <- subset(
+  x = pdb,
+  select = c("Package", "Maintainer"),
+  subset = grepl(pattern = "[<>]", x = Maintainer)
+)
+
+org_pdb <- org_pdb |> 
+  transform(email_suffix = str_extract(text = Maintainer, pattern = "<(.*?)>")) |> 
+  transform(email_suffix = gsub(pattern = "[<>]", replacement = "", x = email_suffix)) |> 
+  transform(email_suffix = str_extract(text = email_suffix, pattern = "(?<=@).+", perl = T))
+
+org_pdb_aggr <-aggregate(data = org_pdb, Package ~ email_suffix, FUN = function(x) length(unique(x)))
+
+org_pdb_aggr <- org_pdb_aggr[order(org_pdb_aggr$Package, decreasing = TRUE), ]
+
+tmp <- head(org_pdb_aggr, 30)
+
+tmp1 <- head(tmp, ceiling(nrow(tmp) / 2))
+tmp2 <- tail(tmp, floor(nrow(tmp) / 2))
+
+knitr::kable(list(tmp1, tmp2),
+  col.names = c("邮箱后缀", "R 包数量"), row.names = FALSE,
+  caption = "最受欢迎的邮箱（Top 30）"
+)
+```
+
+<table class="kable_wrapper">
+<caption>
+Table 3: 最受欢迎的邮箱（Top 30）
+</caption>
+<tbody>
+<tr>
+<td>
+
+| 邮箱后缀      | R 包数量 |
+|:--------------|---------:|
+| gmail.com     |     6584 |
+| rstudio.com   |      206 |
+| hotmail.com   |      167 |
+| outlook.com   |      136 |
+| R-project.org |      105 |
+| uw.edu        |       85 |
+| umich.edu     |       84 |
+| berkeley.edu  |       82 |
+| 163.com       |       76 |
+| umn.edu       |       75 |
+| yahoo.com     |       74 |
+| debian.org    |       65 |
+| gmx.de        |       59 |
+| stanford.edu  |       58 |
+| ncsu.edu      |       57 |
+
+</td>
+<td>
+
+| 邮箱后缀          | R 包数量 |
+|:------------------|---------:|
+| protonmail.com    |       55 |
+| stat.math.ethz.ch |       55 |
+| auckland.ac.nz    |       54 |
+| wisc.edu          |       53 |
+| googlemail.com    |       51 |
+| r-project.org     |       49 |
+| duke.edu          |       47 |
+| ucl.ac.uk         |       44 |
+| uwaterloo.ca      |       44 |
+| mailbox.org       |       43 |
+| columbia.edu      |       41 |
+| yale.edu          |       39 |
+| inrae.fr          |       38 |
+| uiowa.edu         |       37 |
+| outlook.fr        |       36 |
+
+</td>
+</tr>
+</tbody>
+</table>
+
+看到这个结果还是蛮震惊的，竟有 6584 个 R 包使用 Gmail 邮箱，截止写作时间，CRAN 上全部 R 包 18000 多个，Gmail 邮箱覆盖率超过 1/3！
+
+我们知道 R 语言社区的很多开发者来自学界，使用学校邮箱的应该不少，因此，决定看看 Top 的大学有哪些，以及总数能否超过 Gmail 邮箱？
+
+``` r
+edu_email <- subset(x = org_pdb_aggr, subset = grepl(pattern = "edu$", x = email_suffix))
+
+tmp <- head(edu_email, 30)
+
+tmp1 <- head(tmp, ceiling(nrow(tmp) / 2))
+tmp2 <- tail(tmp, floor(nrow(tmp) / 2))
+
+knitr::kable(list(tmp1, tmp2),
+  col.names = c("邮箱后缀", "R 包数量"), row.names = FALSE,
+  caption = "贡献 R 包最多的大学（Top 30）"
+)
+```
+
+<table class="kable_wrapper">
+<caption>
+Table 4: 贡献 R 包最多的大学（Top 30）
+</caption>
+<tbody>
+<tr>
+<td>
+
+| 邮箱后缀          | R 包数量 |
+|:------------------|---------:|
+| uw.edu            |       85 |
+| umich.edu         |       84 |
+| berkeley.edu      |       82 |
+| umn.edu           |       75 |
+| stanford.edu      |       58 |
+| ncsu.edu          |       57 |
+| wisc.edu          |       53 |
+| duke.edu          |       47 |
+| columbia.edu      |       41 |
+| yale.edu          |       39 |
+| uiowa.edu         |       37 |
+| ucdavis.edu       |       34 |
+| illinois.edu      |       33 |
+| wharton.upenn.edu |       33 |
+| cornell.edu       |       30 |
+
+</td>
+<td>
+
+| 邮箱后缀        | R 包数量 |
+|:----------------|---------:|
+| monash.edu      |       29 |
+| nd.edu          |       29 |
+| fas.harvard.edu |       28 |
+| mayo.edu        |       28 |
+| psu.edu         |       26 |
+| unc.edu         |       26 |
+| usc.edu         |       25 |
+| jhu.edu         |       23 |
+| vt.edu          |       23 |
+| msu.edu         |       22 |
+| ucla.edu        |       21 |
+| vanderbilt.edu  |       21 |
+| case.edu        |       19 |
+| osu.edu         |       19 |
+| stat.umn.edu    |       19 |
+
+</td>
+</tr>
+</tbody>
+</table>
+
+好吧！我承认自己被打脸了，几乎全是欧美各个 NB 大学的，比如华盛顿大学（ uw.edu）、密歇根大学（umich.edu）、加州伯克利大学（berkeley.edu）等等。顺便一说，欧美各个大学的网站，特别是统计院系很厉害的，已经帮大家收集得差不多了，有留学打算的读者自取，邮箱后缀就是学校/院官网。
+
+而使用大学邮箱的 R 包总数竟不及 Gmail 邮箱，可见谷歌邮箱服务在全球 R 语言社区的影响力，赤裸裸的数字，赤裸裸的伤害！虽然有的学校邮箱不以 edu 结尾，有的人虽在学校，但是使用了 Gmail 邮箱，但是巨大的数字鸿沟，几乎可以断定 R 语言社区的开发主力已经从学术界转移到工业界。
+
+``` r
+sum(edu_email$Package)
+# [1] 2780
+```
+
+一般人我都不告诉他，勾搭 NB 院校老师的机会来了，我们先来看看斯坦佛大学（stanford.edu）的哪些老师贡献了哪些 R 包。
+
+``` r
+stanford_pdb <- subset(x = org_pdb, subset = grepl(pattern = "stanford.edu", x = Maintainer), select = c("Package", "Maintainer"))
+
+knitr::kable(stanford_pdb[order(stanford_pdb$Maintainer, decreasing = TRUE), ],
+  col.names = c("R 包", "开发者"), row.names = FALSE,
+  caption = "斯坦福大学开发者（部分）"
+)
+```
+
+| R 包               | 开发者                                               |
+|:-------------------|:-----------------------------------------------------|
+| QuantileGradeR     | Zoe Ashwood <zashwood@law.stanford.edu>              |
+| GenoScan           | Zihuai He <zihuai@stanford.edu>                      |
+| GhostKnockoff      | Zihuai He <zihuai@stanford.edu>                      |
+| KnockoffScreen     | Zihuai He <zihuai@stanford.edu>                      |
+| WGScan             | Zihuai He <zihuai@stanford.edu>                      |
+| Rdsdp              | Zhisu Zhu <zhuzhisu@alumni.stanford.edu>             |
+| gsynth             | Yiqing Xu <yiqingxu@stanford.edu>                    |
+| panelView          | Yiqing Xu <yiqingxu@stanford.edu>                    |
+| gam                | Trevor Hastie <hastie@stanford.edu>                  |
+| gamsel             | Trevor Hastie <hastie@stanford.edu>                  |
+| glmnet             | Trevor Hastie <hastie@stanford.edu>                  |
+| ISLR               | Trevor Hastie <hastie@stanford.edu>                  |
+| ISLR2              | Trevor Hastie <hastie@stanford.edu>                  |
+| lars               | Trevor Hastie <hastie@stanford.edu>                  |
+| mda                | Trevor Hastie <hastie@stanford.edu>                  |
+| ProDenICA          | Trevor Hastie <hastie@stanford.edu>                  |
+| softImpute         | Trevor Hastie <hastie@stanford.edu>                  |
+| sparsenet          | Trevor Hastie <hastie@stanford.edu>                  |
+| svmpath            | Trevor Hastie <hastie@stanford.edu>                  |
+| COCONUT            | Timothy E Sweeney <tes17@alumni.stanford.edu>        |
+| igraphtosonia      | Sean J Westwood <seanjw@stanford.edu>                |
+| NetCluster         | Sean J Westwood <seanjw@stanford.edu>                |
+| mdsdt              | Robert X.D. Hawkins <rxdh@stanford.edu>              |
+| glasso             | Rob Tibshirani <tibs@stat.stanford.edu>              |
+| GSA                | Rob Tibshirani <tibs@stat.stanford.edu>              |
+| clusterRepro       | Rob Tibshirani <tibs@stanford.edu>                   |
+| pcLasso            | Rob Tibshirani <tibs@stanford.edu>                   |
+| PMA                | Rob Tibshirani <tibs@stanford.edu>                   |
+| samr               | Rob Tibshirani <tibs@stanford.edu>                   |
+| selectiveInference | Rob Tibshirani <tibs@stanford.edu>                   |
+| pamr               | Rob Tibshirani <tibs@stanford.edu>                   |
+| xtreg2way          | Paulo Somaini <soma@stanford.edu>                    |
+| BHMSMAfMRI         | Nilotpal Sanyal <nsanyal@stanford.edu>               |
+| EValue             | Maya B. Mathur <mmathur@stanford.edu>                |
+| MetaUtility        | Maya B. Mathur <mmathur@stanford.edu>                |
+| NRejections        | Maya B. Mathur <mmathur@stanford.edu>                |
+| PublicationBias    | Maya B. Mathur <mmathur@stanford.edu>                |
+| Replicate          | Maya B. Mathur <mmathur@stanford.edu>                |
+| SimTimeVar         | Maya B. Mathur <mmathur@stanford.edu>                |
+| SNPknock           | Matteo Sesia <msesia@stanford.edu>                   |
+| pcdpca             | Lukasz Kidzinski <lukasz.kidzinski@stanford.edu>     |
+| CVcalibration      | Lu Tian <lutian@stanford.edu>                        |
+| exactmeta          | Lu Tian <lutian@stanford.edu>                        |
+| PBIR               | Lu Tian <lutian@stanford.edu>                        |
+| RandMeta           | Lu Tian <lutian@stanford.edu>                        |
+| VDSPCalibration    | Lu Tian <lutian@stanford.edu>                        |
+| ptycho             | Laurel Stell <lstell@stanford.edu>                   |
+| LocFDRPois         | Kris Sankaran <kriss1@stanford.edu>                  |
+| freqdom            | Kidzinski L. <lukasz.kidzinski@stanford.edu>         |
+| freqdom.fda        | Kidzinski L. <lukasz.kidzinski@stanford.edu>         |
+| relgam             | Kenneth Tay <kjytay@stanford.edu>                    |
+| akmeans            | Jungsuk Kwac <kwjusu1@stanford.edu>                  |
+| grf                | Julie Tibshirani <jtibs@cs.stanford.edu>             |
+| ebal               | Jens Hainmueller <jhain@stanford.edu>                |
+| KRLS               | Jens Hainmueller <jhain@stanford.edu>                |
+| Synth              | Jens Hainmueller <jhain@stanford.edu>                |
+| rma.exact          | Haben Michael <haben.michael@stanford.edu>           |
+| policytree         | Erik Sverdrup <erikcs@stanford.edu>                  |
+| CHOIRBM            | Eric Cramer <emcramer@stanford.edu>                  |
+| texteffect         | Christian Fong <christianfong@stanford.edu>          |
+| bcaboot            | Balasubramanian Narasimhan <naras@stat.stanford.edu> |
+| cubature           | Balasubramanian Narasimhan <naras@stat.stanford.edu> |
+| sglr               | Balasubramanian Narasimhan <naras@stat.stanford.edu> |
+| sp23design         | Balasubramanian Narasimhan <naras@stat.stanford.edu> |
+| CVXR               | Anqi Fu <anqif@alumni.stanford.edu>                  |
+| RCA                | Amir Goldberg <amirgo@stanford.edu>                  |
+| TableHC            | Alon Kipnis <kipnisal@stanford.edu>                  |
+| MetaLonDA          | Ahmed A. Metwally <ametwall@stanford.edu>            |
+| MetaIntegrator     | Aditya M. Rao <adityamr@stanford.edu>                |
+| lrgs               | Adam Mantz <amantz@slac.stanford.edu>                |
+| rgw                | Adam Mantz <amantz@slac.stanford.edu>                |
+
+Table 5: 斯坦福大学开发者（部分）
+
+### Top 开发者
+
+``` r
+author_pdb <- subset(x = pdb, select = c("Package", "Maintainer"))
+author_pdb_aggr <-aggregate(data = author_pdb, Package ~ Maintainer, FUN = function(x) length(unique(x)))
+author_pdb_aggr <- author_pdb_aggr[order(author_pdb_aggr$Package, decreasing = TRUE), ]
+
+knitr::kable(head(author_pdb_aggr, 15),
+  col.names = c("开发者", "R 包数量"), row.names = FALSE,
+  caption = "开发 R 包数量最多的人（Top 15）"
+)
+```
+
+| 开发者                                          | R 包数量 |
+|:------------------------------------------------|---------:|
+| Dirk Eddelbuettel <edd@debian.org>              |       65 |
+| Scott Chamberlain <myrmecocystus@gmail.com>     |       52 |
+| Gábor Csárdi <csardi.gabor@gmail.com>           |       50 |
+| Jeroen Ooms <jeroen@berkeley.edu>               |       46 |
+| Hadley Wickham <hadley@rstudio.com>             |       45 |
+| Stéphane Laurent <laurent_step@outlook.fr>      |       34 |
+| Henrik Bengtsson <henrikb@braju.com>            |       31 |
+| Kartikeya Bolar <kartikeya.bolar@tapmi.edu.in>  |       31 |
+| Robin K. S. Hankin <hankin.robin@gmail.com>     |       31 |
+| Kurt Hornik <Kurt.Hornik@R-project.org>         |       28 |
+| Jan Wijffels <jwijffels@bnosac.be>              |       27 |
+| John Muschelli <muschellij2@gmail.com>          |       27 |
+| Bob Rudis <bob@rud.is>                          |       26 |
+| Torsten Hothorn <Torsten.Hothorn@R-project.org> |       26 |
+| Kirill Müller <krlmlr+r@mailbox.org>            |       25 |
+
+Table 6: 开发 R 包数量最多的人（Top 15）
+
+看到这个结果既有意料之中的，又有很多意料之外的。比如谢益辉竟没有进入前 Top 15，还有好多人是我不知的，甚至是第一次看到，足见我的孤陋寡闻！顺便一提，这其实是一个值得关注的 R 语言社区顶级开发者列表。
+
+### CRAN 团队
+
+<table class="kable_wrapper">
+<caption>
+Table 7: CRAN 团队开发维护 R 包数量情况
+</caption>
+<tbody>
+<tr>
+<td>
+
+| 团队成员           | R 包数量 |
+|:-------------------|---------:|
+| Kurt Hornik        |       28 |
+| Simon Urbanek      |       27 |
+| Torsten Hothorn    |       26 |
+| Martin Maechler    |       25 |
+| Achim Zeileis      |       23 |
+| Paul Murrell       |       19 |
+| Toby Dylan Hocking |       14 |
+| Brian Ripley       |       12 |
+| Thomas Lumley      |       12 |
+| Uwe Ligges         |        9 |
+| David Meyer        |        6 |
+| Duncan Murdoch     |        6 |
+| CRAN Team          |        5 |
+
+</td>
+<td>
+
+| 团队成员         | R 包数量 |
+|:-----------------|---------:|
+| Friedrich Leisch |        5 |
+| Luke Tierney     |        5 |
+| Stefan Theussl   |        5 |
+| Stefano M. Iacus |        5 |
+| John Chambers    |        4 |
+| Michael Lawrence |        4 |
+| Douglas Bates    |        3 |
+| Simon Wood       |        3 |
+| Bettina Gruen    |        2 |
+| Bettina Grün     |        2 |
+| Deepayan Sarkar  |        2 |
+| Martyn Plummer   |        2 |
+| Peter Dalgaard   |        1 |
+
+</td>
+</tr>
+</tbody>
+</table>
+
+Martin Maechler、Simon Urbanek、Kurt Hornik、Torsten Hothorn、Achim Zeileis 等真是高产呐！除了维护 R 语言核心代码，还开发维护了**20**多个 R 包！以 Brian Ripley 为例，看看他都开发了哪些 R 包。
+
+| Package    | Title                                                                    |
+|:-----------|:-------------------------------------------------------------------------|
+| boot       | Bootstrap Functions (Originally by Angelo Canty for S)                   |
+| class      | Functions for Classification                                             |
+| fastICA    | FastICA Algorithms to Perform ICA and Projection Pursuit                 |
+| gee        | Generalized Estimation Equation Solver                                   |
+| KernSmooth | Functions for Kernel Smoothing Supporting Wand & Jones (1995)            |
+| MASS       | Support Functions and Datasets for Venables and Ripley’s MASS            |
+| mix        | Estimation/Multiple Imputation for Mixed Categorical and Continuous Data |
+| nnet       | Feed-Forward Neural Networks and Multinomial Log-Linear Models           |
+| pspline    | Penalized Smoothing Splines                                              |
+| RODBC      | ODBC Database Access                                                     |
+| spatial    | Functions for Kriging and Point Pattern Analysis                         |
+| tree       | Classification and Regression Trees                                      |
+
+震惊！有一半收录在 R 软件中，所以已经持续维护 **20** 多年了。
+
+<div class="rmdtip">
+
+根据邮箱后缀匹配抽取的 R 包及开发者，规则也许不能覆盖所有的情况，读者若有补充，欢迎 PR 给我。举个例子，Brian Ripley 的邮箱 <ripley@stats.ox.ac.uk> 就不是一路，需要单独添加。
+
+</div>
+
+看看他们开发的 R 包之间的依赖关系，数据范围就是他们开发的 R 包
+
+``` r
+# 顶点
+core_dev_pkgs <- core_dev_db[, "Package"]
+```
+
+``` r
+# A-B 边
+core_dev_pkgs_net <- tools::package_dependencies(packages = core_dev_pkgs, db = core_dev_db)
+
+# B-A 边
+# core_dev_pkgs_net <- lapply(core_dev_pkgs, tools::dependsOnPkgs, installed = core_dev_db)
+# 有效的边
+core_dev_pkgs_subnet = core_dev_pkgs_net[unlist(lapply(core_dev_pkgs_net, length)) > 0]
+
+# R 包
+# R 包对应的依赖
+# 若某个 R 包越受欢迎，它的下游依赖越多，在图上就有越多的 R 包指向它
+core_dev_pkgs_subnet_df <- data.frame(
+  from = rep(names(core_dev_pkgs_subnet),
+    times = unlist(lapply(core_dev_pkgs_subnet, length))
+  ),
+  to = unlist(core_dev_pkgs_subnet) 
+)
+
+base_pkgs = xfun::base_pkgs()
+
+core_dev_pkgs_subnet_df <- subset(x = core_dev_pkgs_subnet_df, subset = !to %in% base_pkgs)
+# 所有顶点
+node_df <- data.frame(name = unique(c(core_dev_pkgs_subnet_df$from, core_dev_pkgs_subnet_df$to)))
+
+# 统计入度
+# core_dev_pkgs_subnet_df = as.data.table(core_dev_pkgs_subnet_df)
+# 
+# core_dev_pkgs_subnet_df[, weigth := .N, by = "to"]
+```
+
+``` r
+library(igraph)
+# 从 data.frame 创建图
+net <- graph_from_data_frame(
+  d = core_dev_pkgs_subnet_df,
+  vertices = node_df, directed = TRUE
+)
+# 默认情况下
+plot(net)
+
+net <- simplify(net, remove.multiple = F, remove.loops = T)
+
+# layout_with_fr
+# layout_with_kk
+plot(net,
+  edge.arrow.size = .2, edge.curved = .1,
+  vertex.label = NA, vertex.size = 2,
+  layout = layout_with_fr(net)
+)
+
+plot(net,
+  edge.arrow.size = .2, edge.curved = .1,
+  vertex.label = NA, vertex.size = 2,
+  layout = layout_with_graphopt(net)
+)
+
+plot(net,
+  edge.arrow.size = .2, edge.curved = .1,
+  vertex.label = NA, vertex.size = 2,
+  layout = layout_with_kk(net)
+)
+
+plot(net,
+  edge.arrow.size = .5,
+  edge.curved = .1,
+  edge.color = "gray85",
+  # vertex.label=NA,
+  vertex.size = .7,
+  vertex.label.cex = 0.5,
+  layout = layout_with_kk(net)
+)
+```
+
+## 开发者关系
+
+通过 R 包贡献合作的关系
 
 ## 组织
 
@@ -398,15 +913,24 @@ pdb2
 # 255               alakazam
 # 357   AnimalHabitatNetwork
 # 362               anipaths
-# 431               apisensr
-# 473             archeofrag
-# 542              arulesViz
+# 433               apisensr
+# 475             archeofrag
+# 544              arulesViz
 ....
 ```
 
 <figure>
 <img src="https://user-images.githubusercontent.com/12031874/138590902-8d631fc8-37d2-4adc-8710-561cefe40697.jpg" style="width:55.0%" alt="Figure 7: R 包依赖关系网络" /><figcaption aria-hidden="true">Figure 7: R 包依赖关系网络</figcaption>
 </figure>
+
+# 博客网络
+
+<!-- 
+2021-11-25 再发10篇文章后，才做此分析 
+-->
+
+我和益辉的文章有很大的相似性，各自文章内的相似性，二者文章间的相似性。
+节点和边的定义，仿照落园园主的金庸小说做法。
 
 # 环境信息
 
@@ -431,7 +955,7 @@ xfun::session_info(packages = c(
 #   fastmap_1.1.0      generics_0.1.1     glue_1.5.0        
 #   graphics_4.1.2     grDevices_4.1.2    grid_4.1.2        
 #   highr_0.9          htmltools_0.5.2    httpuv_1.6.3      
-#   igraph_1.2.8       jquerylib_0.1.4    jsonlite_1.7.2    
+#   igraph_1.2.9       jquerylib_0.1.4    jsonlite_1.7.2    
 #   knitr_1.36         later_1.3.0        lattice_0.20.45   
 #   lifecycle_1.0.1    magrittr_2.0.1     MASS_7.3.54       
 #   Matrix_1.3.4       methods_4.1.2      mgcv_1.8.38       
@@ -566,7 +1090,7 @@ Schloerke, Barret, Di Cook, Joseph Larmarange, Francois Briatte, Moritz Marbach,
 
 <div id="ref-graphlayouts" class="csl-entry">
 
-Schoch, David. 2020. *Graphlayouts: Additional Layout Algorithms for Network Visualizations*. <https://CRAN.R-project.org/package=graphlayouts>.
+Schoch, David. 2021. *Graphlayouts: Additional Layout Algorithms for Network Visualizations*. <https://CRAN.R-project.org/package=graphlayouts>.
 
 </div>
 

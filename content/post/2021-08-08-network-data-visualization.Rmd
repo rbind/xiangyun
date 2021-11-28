@@ -1,7 +1,7 @@
 ---
 title: 网络数据可视化与 R 语言
 author: 黄湘云
-date: '2021-11-08'
+date: '2022-05-30'
 slug: network-data-visualization
 categories:
   - 统计图形
@@ -10,6 +10,7 @@ tags:
   - ggplot2
   - Rgraphviz
   - igraph 
+  - ggraph
   - DiagrammeR
 bibliography: 
   - refer.bib
@@ -169,6 +170,7 @@ div.img {
 ```{r network-deps, echo=FALSE, message=FALSE}
 # 获取 R 包元数据
 Sys.setenv(R_CRAN_WEB = "https://mirrors.tuna.tsinghua.edu.cn/CRAN")
+# 返回 data.frame
 pdb <- tools::CRAN_package_db()
 
 # CRAN 上的 R 包
@@ -253,6 +255,7 @@ xfun::write_utf8(bib, "packages.bib")
 
 柯尼斯堡七桥问题：在所有桥都只走一遍的情况下，如何才能把这个地方所有的桥都走遍？欧拉将每一座桥抽象为一条线，桥所连接地区抽象为点[^seven-bridges]。此处，用[tikz-network](https://ctan.org/pkg/tikz-network) 绘制网络图，如图\@ref(fig:seven-bridges)所示， $1,2,\cdots,7$ 分别表示七座桥， $A,B,C,D$ 分别表示四块区域。
 
+
 [^seven-bridges]: <https://en.wikipedia.org/wiki/Seven_Bridges_of_K%C3%B6nigsberg>
 
 ![(\#fig:seven-bridges) 欧拉用图抽象的柯尼斯堡七桥](/img/seven-bridges.png){ width=65% }
@@ -274,6 +277,16 @@ xfun::write_utf8(bib, "packages.bib")
 \end{tikzpicture}
 ```
 
+柯尼斯堡七桥图的数据已经收录在 **igraphdata** 包里，数据集名称就叫 Koenigsberg
+
+```{r,eval=FALSE,echo=FALSE}
+library(igraphdata)
+data(Koenigsberg)
+library(igraph)
+plot(Koenigsberg)
+```
+
+
 
 ## 安装 R 包
 
@@ -284,6 +297,38 @@ Rgraphviz [Graphviz](https://www.graphviz.org/)
 if(!"BiocManager" %in% .packages(T)) install.packages("BiocManager")
 if(!"graph" %in% .packages(T)) BiocManager::install(pkgs = "graph")
 if(!"Rgraphviz" %in% .packages(T)) BiocManager::install(pkgs = "Rgraphviz")
+```
+
+
+```{r,eval=FALSE}
+# https://www.isid.ac.in/~deepayan/R-tutorials/docs/roverview.pdf
+if(!"pkgDepTools" %in% .packages(T)) BiocManager::install(pkgs = "pkgDepTools")
+# https://github.com/r-lib/pkgcache
+library(graph)
+library(Rgraphviz)
+library(pkgDepTools)
+g <- makeDepGraph("http://cran.r-project.org", keep.builtin = TRUE)
+g
+
+revDepGraph <- function(g, pkg) {
+  olen <- 0
+  pkgKeep <- pkg
+  elist <- g@edgeL
+  elist <- elist[!(sapply(elist, is.null))]
+  while (length(pkgKeep) > olen) {
+    olen <- length(pkgKeep)
+    w <- which(g@nodes %in% pkgKeep)
+    revdep <- sapply(elist, function(x) any(w %in% x$edges))
+    pkgKeep <- union(pkgKeep, names(revdep)[revdep])
+  }
+  subGraph(pkgKeep, g)
+}
+gsub <- revDepGraph(g, "lme4")
+gsub
+library(Rgraphviz)
+graph.par(nodes = list(shape = "ellipse"))
+gl <- layoutGraph(gsub, layoutType = "twopi")
+renderGraph(gl)
 ```
 
 ## 图的表示
@@ -301,9 +346,10 @@ mat <- matrix(c(
   0, 0, 1, 1,
   1, 1, 0, 1,
   1, 1, 1, 0
-), byrow = TRUE, ncol = 4)
-rownames(mat) <- letters[1:4]
-colnames(mat) <- letters[1:4]
+),
+byrow = TRUE, ncol = 4,
+dimnames = list(letters[1:4], letters[1:4])
+)
 ```
 
 
@@ -369,11 +415,33 @@ network-with-r 基于 CRAN 数据，分析 R 语言社区开发者关系网络�
 影响力
 关键 R 包
 
-用什么协议发布 MIT 还是 GPL
+
 在什么平台开发，Github 还是线下
 
 R 包关系
 一度关系，安装 A 包，必须安装 B 包，则 B 包为 A 包的前置依赖。
+
+选择合适的 R 包，软件质量问题 Ohloh 网站，从 R 包开发者，依赖情况等，发现一批优质的 R 包和厉害的开发者。
+
+### 发布协议 
+
+用什么协议发布 MIT 还是 GPL
+
+```{r}
+license_pdb <- subset(x = pdb, select = c("Package", "License"))
+license_pdb_aggr <-aggregate(data = license_pdb, Package ~ License, FUN = function(x) length(unique(x)))
+license_pdb_aggr <- license_pdb_aggr[order(license_pdb_aggr$Package, decreasing = TRUE), ]
+
+knitr::kable(head(license_pdb_aggr, 15),
+  col.names = c("R 包协议", "R 包数量"), row.names = FALSE,
+  caption = "CRAN 上受开发者欢迎的 R 包发布协议（Top 15）"
+)
+```
+
+GPL 协议占主导地位，MIT 协议次之。
+
+
+
 
 ## 开发者
 
@@ -381,8 +449,298 @@ R 包关系
 
 所属组织性质，学校、公司
 
-开发者关系
 
+
+### Top 组织
+
+```{r}
+str_extract <- function(text, pattern, ...) regmatches(text, regexpr(pattern, text, ...))
+# 确保有邮箱 <(.*?)@(.*?)>
+org_pdb <- subset(
+  x = pdb,
+  select = c("Package", "Maintainer"),
+  subset = grepl(pattern = "[<>]", x = Maintainer)
+)
+
+org_pdb <- org_pdb |> 
+  transform(email_suffix = str_extract(text = Maintainer, pattern = "<(.*?)>")) |> 
+  transform(email_suffix = gsub(pattern = "[<>]", replacement = "", x = email_suffix)) |> 
+  transform(email_suffix = str_extract(text = email_suffix, pattern = "(?<=@).+", perl = T))
+
+org_pdb_aggr <-aggregate(data = org_pdb, Package ~ email_suffix, FUN = function(x) length(unique(x)))
+
+org_pdb_aggr <- org_pdb_aggr[order(org_pdb_aggr$Package, decreasing = TRUE), ]
+
+tmp <- head(org_pdb_aggr, 30)
+
+tmp1 <- head(tmp, ceiling(nrow(tmp) / 2))
+tmp2 <- tail(tmp, floor(nrow(tmp) / 2))
+
+knitr::kable(list(tmp1, tmp2),
+  col.names = c("邮箱后缀", "R 包数量"), row.names = FALSE,
+  caption = "最受欢迎的邮箱（Top 30）"
+)
+```
+
+看到这个结果还是蛮震惊的，竟有 6584 个 R 包使用 Gmail 邮箱，截止写作时间，CRAN 上全部 R 包 18000 多个，Gmail 邮箱覆盖率超过 1/3！
+
+我们知道 R 语言社区的很多开发者来自学界，使用学校邮箱的应该不少，因此，决定看看 Top 的大学有哪些，以及总数能否超过 Gmail 邮箱？
+
+
+```{r}
+edu_email <- subset(x = org_pdb_aggr, subset = grepl(pattern = "edu$", x = email_suffix))
+
+tmp <- head(edu_email, 30)
+
+tmp1 <- head(tmp, ceiling(nrow(tmp) / 2))
+tmp2 <- tail(tmp, floor(nrow(tmp) / 2))
+
+knitr::kable(list(tmp1, tmp2),
+  col.names = c("邮箱后缀", "R 包数量"), row.names = FALSE,
+  caption = "贡献 R 包最多的大学（Top 30）"
+)
+```
+
+好吧！我承认自己被打脸了，几乎全是欧美各个 NB 大学的，比如华盛顿大学（ uw.edu）、密歇根大学（umich.edu）、加州伯克利大学（berkeley.edu）等等。顺便一说，欧美各个大学的网站，特别是统计院系很厉害的，已经帮大家收集得差不多了，有留学打算的读者自取，邮箱后缀就是学校/院官网。
+
+而使用大学邮箱的 R 包总数竟不及 Gmail 邮箱，可见谷歌邮箱服务在全球 R 语言社区的影响力，赤裸裸的数字，赤裸裸的伤害！虽然有的学校邮箱不以 edu 结尾，有的人虽在学校，但是使用了 Gmail 邮箱，但是巨大的数字鸿沟，几乎可以断定 R 语言社区的开发主力已经从学术界转移到工业界。
+
+```{r}
+sum(edu_email$Package)
+```
+
+一般人我都不告诉他，勾搭 NB 院校老师的机会来了，我们先来看看斯坦佛大学（stanford.edu）的哪些老师贡献了哪些 R 包。
+
+```{r}
+stanford_pdb <- subset(x = org_pdb, subset = grepl(pattern = "stanford.edu", x = Maintainer), select = c("Package", "Maintainer"))
+
+knitr::kable(stanford_pdb[order(stanford_pdb$Maintainer, decreasing = TRUE), ],
+  col.names = c("R 包", "开发者"), row.names = FALSE,
+  caption = "斯坦福大学开发者（部分）"
+)
+```
+
+
+### Top 开发者
+
+```{r}
+author_pdb <- subset(x = pdb, select = c("Package", "Maintainer"))
+author_pdb_aggr <-aggregate(data = author_pdb, Package ~ Maintainer, FUN = function(x) length(unique(x)))
+author_pdb_aggr <- author_pdb_aggr[order(author_pdb_aggr$Package, decreasing = TRUE), ]
+
+knitr::kable(head(author_pdb_aggr, 15),
+  col.names = c("开发者", "R 包数量"), row.names = FALSE,
+  caption = "开发 R 包数量最多的人（Top 15）"
+)
+```
+
+看到这个结果既有意料之中的，又有很多意料之外的。比如谢益辉竟没有进入前 Top 15，还有好多人是我不知的，甚至是第一次看到，足见我的孤陋寡闻！顺便一提，这其实是一个值得关注的 R 语言社区顶级开发者列表。
+
+
+
+### CRAN 团队
+
+```{r,comment=NA,echo=FALSE}
+core_dev <- subset(pdb,
+  subset = grepl(
+    x = Maintainer,
+    pattern = paste0(c(
+      "(@[Rr]-project\\.org)",
+      "(ripley@stats.ox.ac.uk)", # Brian Ripley
+      "(p.murrell@auckland.ac.nz)", # Paul Murrell
+      "(paul@stat.auckland.ac.nz)", # Paul Murrell
+      "(maechler@stat.math.ethz.ch)", # Martin Maechler
+      "(mmaechler+Matrix@gmail.com)", # Martin Maechler
+      "(bates@stat.wisc.edu)", # Douglas Bates
+      "(pd.mes@cbs.dk)", # Peter Dalgaard
+      "(ligges@statistik.tu-dortmund.de)", # Uwe Ligges
+      "(tlumley@u.washington.edu)", # Thomas Lumley
+      "(t.lumley@auckland.ac.nz)", # Thomas Lumley
+      "(martyn.plummer@gmail.com)", # Martyn Plummer
+      "(luke-tierney@uiowa.edu)", # Luke Tierney
+      "(stefano.iacus@unimi.it)", # Stefano M. Iacus
+      "(murdoch.duncan@gmail.com)", # Duncan Murdoch
+      "(michafla@gene.com)" # Michael Lawrence
+    ), collapse = "|")
+  ),
+  select = c("Package", "Maintainer")
+) |>
+  transform(Maintainer = gsub(
+    x = Maintainer,
+    pattern = '(<([^<>]*)>)|(")',
+    replacement = ""
+  )) |>
+  transform(Maintainer = gsub(
+    x = Maintainer,
+    pattern = "(R-core)|(R Core Team)",
+    replacement = "CRAN Team"
+  )) |>
+  transform(Maintainer = gsub(
+    x = Maintainer,
+    pattern = "(S. M. Iacus)|(Stefano M.Iacus)|(Stefano Maria Iacus)",
+    replacement = "Stefano M. Iacus"
+  )) |>
+  transform(Maintainer = gsub(
+    x = Maintainer,
+    pattern = "(Toby Hocking)",
+    replacement = "Toby Dylan Hocking"
+  )) |>
+  transform(Maintainer = gsub(
+    x = Maintainer,
+    pattern = "(John M Chambers)",
+    replacement = "John Chambers"
+  ))
+
+tmp <- aggregate(data = core_dev, Package ~ Maintainer, FUN = function(x) length(unique(x)))
+tmp <- tmp[order(tmp$Package, decreasing = TRUE),]
+tmp1 <- head(tmp, ceiling(nrow(tmp) / 2))
+tmp2 <- tail(tmp, floor(nrow(tmp) / 2))
+knitr::kable(list(tmp1, tmp2),
+  col.names = c("团队成员", "R 包数量"), row.names = FALSE,
+  caption = "CRAN 团队开发维护 R 包数量情况"
+)
+```
+
+Martin Maechler、Simon Urbanek、Kurt Hornik、Torsten Hothorn、Achim Zeileis 等真是高产呐！除了维护 R 语言核心代码，还开发维护了**20**多个 R 包！以 Brian Ripley 为例，看看他都开发了哪些 R 包。
+
+```{r,echo=FALSE}
+subset(pdb,
+  subset = grepl(
+    x = Maintainer,
+    pattern = "Brian Ripley"
+  ),
+  select = c("Package", "Title"), drop = TRUE
+) |>
+  unique(by = "Package") |> 
+  transform(Title = gsub(
+    pattern = "(\\\n)",
+    replacement = " ", x = Title
+  )) |> 
+  knitr::kable(row.names = FALSE)
+```
+
+震惊！有一半收录在 R 软件中，所以已经持续维护 **20** 多年了。
+
+::: rmdtip
+根据邮箱后缀匹配抽取的 R 包及开发者，规则也许不能覆盖所有的情况，读者若有补充，欢迎 PR 给我。举个例子，Brian Ripley 的邮箱 <ripley@stats.ox.ac.uk> 就不是一路，需要单独添加。
+:::
+
+看看他们开发的 R 包之间的依赖关系，数据范围就是他们开发的 R 包
+
+```{r,echo=FALSE}
+core_dev_db <- subset(pdb,
+  subset = grepl(
+    x = Maintainer,
+    pattern = paste0(c(
+      "(@[Rr]-project\\.org)",
+      "(ripley@stats.ox.ac.uk)",    # Brian Ripley
+      "(p.murrell@auckland.ac.nz)", # Paul Murrell
+      "(paul@stat.auckland.ac.nz)", # Paul Murrell
+      "(maechler@stat.math.ethz.ch)", # Martin Maechler
+      "(mmaechler+Matrix@gmail.com)", # Martin Maechler
+      "(bates@stat.wisc.edu)", # Douglas Bates
+      "(pd.mes@cbs.dk)",       # Peter Dalgaard
+      "(ligges@statistik.tu-dortmund.de)", # Uwe Ligges
+      "(tlumley@u.washington.edu)",        # Thomas Lumley
+      "(t.lumley@auckland.ac.nz)",         # Thomas Lumley
+      "(martyn.plummer@gmail.com)",        # Martyn Plummer
+      "(luke-tierney@uiowa.edu)",          # Luke Tierney
+      "(stefano.iacus@unimi.it)",   # Stefano M. Iacus
+      "(murdoch.duncan@gmail.com)", # Duncan Murdoch
+      "(michafla@gene.com)"         # Michael Lawrence
+    ), collapse = "|")
+  )
+)
+```
+
+```{r}
+# 顶点
+core_dev_pkgs <- core_dev_db[, "Package"]
+```
+
+
+```{r,eval=FALSE}
+# A-B 边
+core_dev_pkgs_net <- tools::package_dependencies(packages = core_dev_pkgs, db = core_dev_db)
+
+# B-A 边
+# core_dev_pkgs_net <- lapply(core_dev_pkgs, tools::dependsOnPkgs, installed = core_dev_db)
+# 有效的边
+core_dev_pkgs_subnet = core_dev_pkgs_net[unlist(lapply(core_dev_pkgs_net, length)) > 0]
+
+# R 包
+# R 包对应的依赖
+# 若某个 R 包越受欢迎，它的下游依赖越多，在图上就有越多的 R 包指向它
+core_dev_pkgs_subnet_df <- data.frame(
+  from = rep(names(core_dev_pkgs_subnet),
+    times = unlist(lapply(core_dev_pkgs_subnet, length))
+  ),
+  to = unlist(core_dev_pkgs_subnet) 
+)
+
+base_pkgs = xfun::base_pkgs()
+
+core_dev_pkgs_subnet_df <- subset(x = core_dev_pkgs_subnet_df, subset = !to %in% base_pkgs)
+# 所有顶点
+node_df <- data.frame(name = unique(c(core_dev_pkgs_subnet_df$from, core_dev_pkgs_subnet_df$to)))
+
+# 统计入度
+# core_dev_pkgs_subnet_df = as.data.table(core_dev_pkgs_subnet_df)
+# 
+# core_dev_pkgs_subnet_df[, weigth := .N, by = "to"]
+```
+
+
+```{r,eval=FALSE}
+library(igraph)
+# 从 data.frame 创建图
+net <- graph_from_data_frame(
+  d = core_dev_pkgs_subnet_df,
+  vertices = node_df, directed = TRUE
+)
+# 默认情况下
+plot(net)
+
+net <- simplify(net, remove.multiple = F, remove.loops = T)
+
+# layout_with_fr
+# layout_with_kk
+plot(net,
+  edge.arrow.size = .2, edge.curved = .1,
+  vertex.label = NA, vertex.size = 2,
+  layout = layout_with_fr(net)
+)
+
+plot(net,
+  edge.arrow.size = .2, edge.curved = .1,
+  vertex.label = NA, vertex.size = 2,
+  layout = layout_with_graphopt(net)
+)
+
+plot(net,
+  edge.arrow.size = .2, edge.curved = .1,
+  vertex.label = NA, vertex.size = 2,
+  layout = layout_with_kk(net)
+)
+
+plot(net,
+  edge.arrow.size = .5,
+  edge.curved = .1,
+  edge.color = "gray85",
+  # vertex.label=NA,
+  vertex.size = .7,
+  vertex.label.cex = 0.5,
+  layout = layout_with_kk(net)
+)
+```
+
+
+
+
+
+## 开发者关系
+
+通过 R 包贡献合作的关系
 
 
 ## 组织
@@ -414,7 +772,17 @@ pdb2
 
 
 ![(\#fig:r-net) R 包依赖关系网络](https://user-images.githubusercontent.com/12031874/138590902-8d631fc8-37d2-4adc-8710-561cefe40697.jpg){ width=55% }
-  
+
+
+# 博客网络
+
+<!-- 
+2021-11-25 再发10篇文章后，才做此分析 
+-->
+
+我和益辉的文章有很大的相似性，各自文章内的相似性，二者文章间的相似性。
+节点和边的定义，仿照落园园主的金庸小说做法。
+
 
 # 环境信息
 
