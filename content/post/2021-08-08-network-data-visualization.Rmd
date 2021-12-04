@@ -155,6 +155,16 @@ div.img {
 
 [David Schoch](http://mr.schochastics.net/) 开发的 [graphlayouts](https://github.com/schochastics/graphlayouts) 包添加布局算法用于网络可视化，他个人网站上还有一些介绍 R 语言网络分析的文章。他开发的另一个 R 包[networkdata](https://github.com/schochastics/networkdata)收集了**980**个网络相关的数据集，用于教学、文章和书籍介绍相关知识应该足够，用不着自己还到处去找了。Thomas Lin Pedersen 开发的[ggraph](https://github.com/thomasp85/ggraph)包实现图和网络的绘图语法，类似 ggplot2 的设计，和以往的使用习惯保持一致，这就非常方便。他开发的另一个 R 包[tidygraph](https://github.com/thomasp85/tidygraph) 将净土应用到图操作上面。Martina Morris 等人开发了一批用于网络分析和建模的 R 包，类似 tidyverse 的做法都整合在 [statnet](https://github.com/statnet) 包里。
 
+[BDgraph](https://cran.r-project.org/package=BDgraph) [@BDgraph2019] 基于生灭过程的贝叶斯结构学习用于图模型，
+
+[qgraph](https://github.com/SachaEpskamp/qgraph) [@qgraph2012] 网络数据可视化和分析，高斯图模型计算
+
+[DoubleML](https://github.com/DoubleML/doubleml-for-r/)[@DoubleML2021] 构建在 mlr3 及生态上，实现 Double/Debiased 机器学习框架[@Chernozhukov2018]。
+[text2map](https://gitlab.com/culturalcartography/text2map) [@text2map2021] 文本分析，词嵌入，文本网络
+[mlpack](https://github.com/mlpack/mlpack) [@mlpack2018] 是前沿机器学习算法合集。
+
+
+
 [visNetwork](https://github.com/datastorm-open/visNetwork) 包 可以制作交互式网络图形，Richard Iannone 而开发的[DiagrammeR](https://github.com/rich-iannone/DiagrammeR) 包可以制作静态的矢量网页图形。
 
 ::: rmdnote
@@ -425,9 +435,9 @@ R 包关系
 
 ### 发布协议 
 
-用什么协议发布 MIT 还是 GPL
+R 软件以 GPL 2.0 或 GPL 3.0 协议发布
 
-```{r}
+```{r,echo=FALSE}
 license_pdb <- subset(x = pdb, select = c("Package", "License"))
 license_pdb_aggr <-aggregate(data = license_pdb, Package ~ License, FUN = function(x) length(unique(x)))
 license_pdb_aggr <- license_pdb_aggr[order(license_pdb_aggr$Package, decreasing = TRUE), ]
@@ -440,22 +450,160 @@ knitr::kable(head(license_pdb_aggr, 15),
 
 GPL 协议占主导地位，MIT 协议次之。
 
+CRAN 会检测 R 包的授权，只有授权协议包含在数据库中的才可以在 CRAN 上发布
+<https://svn.r-project.org/R/trunk/share/licenses/license.db>
 
+```{r,eval=FALSE}
+# 查看文件，如何以最合适的方式读取呢？
+db = readLines(con = "https://svn.r-project.org/R/trunk/share/licenses/license.db")
+head(db,20)
+db[grepl(x = db, pattern = "^Name:")]
+```
+
+
+
+### 更新频次
+
+
+距今10余年未更新
+
+```{r}
+subset(pdb, subset = Published == min(Published), 
+       select = c("Package", "Title", "Published"))
+```
+
+18000 多个 R 包，距离上次更新的时间间隔分布
+
+```{r}
+diff_date_pdb <- subset(pdb, select = c("Package", "Published")) |> 
+  transform(diff_date = as.integer(Sys.Date() - as.Date(Published)))
+```
+
+```{r}
+quantile(diff_date_pdb$diff_date)
+```
+
+半年时间更新 25% 的 R 包，一年半时间更新 50% 的 R 包，三年半时间也只更新 75% 的 R 包。
+
+::: rmdtip
+非常值得和 Python 对比一下，Python 模块仓库 <https://pypi.org/>。
+Python 编程风格指南 <https://www.python.org/dev/peps/pep-0008/>。
+:::
+
+### 增长速度
+
+目前手头只有一份昨天的 CRAN 日志，没法和历史对比，若有历史的 CRAN 快照日志，就可以站在 2012 年看 2000-2012 年的净增长量和速度。
+
+```{r}
+# R 包增长速度
+# 以现在的时间作为参照，看过去时间点的 R 包净增长量。
+pkgs <- subset(x = pdb, select = c("Package", "Date", "Published")) |>
+  transform(Date = ifelse(!is.na(Published), Published, Date)) |>
+  transform(Published = as.Date(Published)) |>
+  subset(Published >= as.Date("2012-01-01")) |>
+  transform(Month = format(Published, format = "%Y-%m-01")) |>
+  transform(Month = as.Date(Month))
+
+pkgs <- aggregate(formula = Package ~ Month, data = pkgs, FUN = function(x) length(unique(x)))
+```
+
+下图以 2021-12-04 观测日，统计过去每个月份的净增长量。
+
+```{r,eval=FALSE}
+library(ggplot2)
+ggplot(pkgs, aes(x = Month, y = Package)) +
+  geom_point()+
+  geom_line() +
+  geom_hline(yintercept = 0, size = 1, colour = "#535353")  +
+  labs(
+    x = "", y = "# Packages (log)",
+    title = "Packages published on CRAN ever since"
+  ) +
+  theme_minimal(base_size = 14, base_family = "sans") +
+  theme(panel.grid.major.x = element_blank()) 
+```
+
+```{r,eval=FALSE}
+# 增长速度
+Growth <- function(x) {
+  c(NA, (tail(x, -1) - head(x, length(x) - 1)) / head(x, length(x) - 1))
+}
+
+pkgs <- transform(pkgs, Growth = Growth(Package)) |> 
+  subset(subset = !is.na(Growth))
+
+# 增长速度 MoM 月环比 以多快的速度在净增长
+ggplot(pkgs, aes(x = Month, y = Growth)) +
+  geom_point() +
+  geom_line() +
+  labs(
+    y = "Growth (%)", x = "",
+    subtitle = "Packages published on CRAN since 2013"
+  ) +
+  theme_minimal(
+    base_size = 11, base_family = "sans"
+  ) +
+  theme(panel.grid.major.x = element_blank()) +
+  geom_hline(yintercept = 0, size = .6, colour = "#535353")
+```
+
+### 选择 R 包
+
+挑选合适的 R 包是一件比较困难的事情，R 社区开发的 R 包实在太多了，重复造的轮子也很多，哪个轮子结实好用就选哪个。
+
+[packagemetrics](https://github.com/sfirke/packagemetrics) 可以统计 R 包各个方面的信息，从而帮助你选择该使用哪个 R 包
+
+```{r,eval=FALSE}
+# 两个 R 包列在一起，有各项指标可以比较
+library(packagemetrics)
+
+dplyr_and_dt <- package_list_metrics(c("dplyr", "data.table"))
+glimpse(dplyr_and_dt)
+
+table_packages = c("dplyr", "data.table", "tidyr")
+
+pkg_df <- package_list_metrics(table_packages) 
+# included vector of table pkgs
+ft <- metrics_table(pkg_df)
+```
 
 
 ## 开发者
 
-关键开发者
+<!-- 
+关键开发者、所属组织性质，学校、公司 
+-->
 
-所属组织性质，学校、公司
+一个人有多个邮箱的情况比较多，因此清理了 Maintainer 字段中的邮箱，按照习惯来说，人名通常只有一种写法，国外会加入头衔、爵号什么的，这种难以清理合并了。截止目前，R 社区开发者数量已超过 **10000** 人，而根据 Python 官方网站数字 <https://pypi.org/>，Python 社区开发者超过 **55** 万人。
+
+```{r}
+maintainer_db <- subset(
+  x = pdb,
+  subset = !duplicated(Package) & Maintainer != "ORPHANED",
+  select = c("Package", "Maintainer")
+) |>
+  transform(Maintainer = gsub(pattern = "<.*?>", replacement = "", x = Maintainer)) |> 
+  transform(Maintainer = trimws(Maintainer, which = "both", whitespace = "[ \t\r\n]")) |> 
+  transform(Maintainer = tolower(Maintainer))
+
+length(unique(maintainer_db$Maintainer))
+```
 
 
 
 ### Top 组织
 
-```{r}
+[PBS Software](https://github.com/pbs-software)
+[SuperLearner](https://github.com/ecpolley/SuperLearner) [@SuperLearner]
+[DrWhy](https://github.com/ModelOriented/DrWhy)[@DrWhy2021]、
+[tidymodels](https://github.com/tidymodels/tidymodels)[@Kuhn2020]、 [easystats](https://github.com/easystats/easystats)[@Makowski2020]、 [tidyverse](https://github.com/tidyverse/tidyverse) [@Wickham2019]
+[strengejacke](https://github.com/strengejacke/strengejacke)[@Daniel2019]、 [mlr3verse](https://github.com/mlr-org/mlr3verse) [@Lang2021]
+
+目的和 tidymodels 差不多，都是提供做数据建模的完整解决方案，区别在于它不基于 tidyverse 这套东西。
+
+```{r,echo=FALSE}
 str_extract <- function(text, pattern, ...) regmatches(text, regexpr(pattern, text, ...))
-# 确保有邮箱 <(.*?)@(.*?)>
+# 确保有邮箱
 org_pdb <- subset(
   x = pdb,
   select = c("Package", "Maintainer"),
@@ -463,9 +611,7 @@ org_pdb <- subset(
 )
 
 org_pdb <- org_pdb |> 
-  transform(email_suffix = str_extract(text = Maintainer, pattern = "<(.*?)>")) |> 
-  transform(email_suffix = gsub(pattern = "[<>]", replacement = "", x = email_suffix)) |> 
-  transform(email_suffix = str_extract(text = email_suffix, pattern = "(?<=@).+", perl = T))
+  transform(email_suffix = gsub(pattern = ".*?@(.*?)>", replacement = "\\1", x = Maintainer))
 
 org_pdb_aggr <-aggregate(data = org_pdb, Package ~ email_suffix, FUN = function(x) length(unique(x)))
 
@@ -487,7 +633,7 @@ knitr::kable(list(tmp1, tmp2),
 我们知道 R 语言社区的很多开发者来自学界，使用学校邮箱的应该不少，因此，决定看看 Top 的大学有哪些，以及总数能否超过 Gmail 邮箱？
 
 
-```{r}
+```{r,echo=FALSE}
 edu_email <- subset(x = org_pdb_aggr, subset = grepl(pattern = "edu$", x = email_suffix))
 
 tmp <- head(edu_email, 30)
@@ -511,7 +657,7 @@ sum(edu_email$Package)
 
 一般人我都不告诉他，勾搭 NB 院校老师的机会来了，我们先来看看斯坦佛大学（stanford.edu）的哪些老师贡献了哪些 R 包。
 
-```{r}
+```{r,echo=FALSE}
 stanford_pdb <- subset(x = org_pdb, subset = grepl(pattern = "stanford.edu", x = Maintainer), select = c("Package", "Maintainer"))
 
 knitr::kable(stanford_pdb[order(stanford_pdb$Maintainer, decreasing = TRUE), ],
@@ -521,16 +667,20 @@ knitr::kable(stanford_pdb[order(stanford_pdb$Maintainer, decreasing = TRUE), ],
 ```
 
 
-### Top 开发者
+### 高产开发者
 
-```{r}
+```{r,echo=FALSE}
 author_pdb <- subset(x = pdb, select = c("Package", "Maintainer"))
 author_pdb_aggr <-aggregate(data = author_pdb, Package ~ Maintainer, FUN = function(x) length(unique(x)))
 author_pdb_aggr <- author_pdb_aggr[order(author_pdb_aggr$Package, decreasing = TRUE), ]
+author_pdb_aggr <- transform(author_pdb_aggr, Maintainer = gsub(pattern = "<.*?>", replacement = "", x = Maintainer))
+tmp = head(author_pdb_aggr, 30)
+tmp1 = head(tmp, 15)
+tmp2 = tail(tmp, 15)
 
-knitr::kable(head(author_pdb_aggr, 15),
+knitr::kable(list(tmp1, tmp2),
   col.names = c("开发者", "R 包数量"), row.names = FALSE,
-  caption = "开发 R 包数量最多的人（Top 15）"
+  caption = "开发 R 包数量最多的人（Top 30）"
 )
 ```
 
@@ -539,6 +689,12 @@ knitr::kable(head(author_pdb_aggr, 15),
 
 
 ### CRAN 团队
+
+
+```{r,comment=NA,echo=FALSE}
+writeLines(readLines(file.path(R.home("doc"), "AUTHORS")))
+```
+
 
 ```{r,comment=NA,echo=FALSE}
 core_dev <- subset(pdb,
@@ -740,10 +896,11 @@ plot(net,
 
 ## 开发者关系
 
+选择一个 R 包需要考虑很多因素，最关键的因素还是人，以 data.table 为例，外部依赖很少，运行效率很高，功能覆盖很广，向后兼容很好，帮助文档很全，单测回测很足。R 包的品质可以看出做人做事的品质，Code Style Should Taste Well!
+
+依赖 10 个 R 包，就是依赖 10 个维护者，如果是依赖自个的 R 包，维护者数量就没有 10 个了。
+
 通过 R 包贡献合作的关系
-
-
-## 组织
 
 关键组织
 

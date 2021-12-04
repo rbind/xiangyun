@@ -123,6 +123,14 @@ div.img {
 
 [David Schoch](http://mr.schochastics.net/) 开发的 [graphlayouts](https://github.com/schochastics/graphlayouts) 包添加布局算法用于网络可视化，他个人网站上还有一些介绍 R 语言网络分析的文章。他开发的另一个 R 包[networkdata](https://github.com/schochastics/networkdata)收集了**980**个网络相关的数据集，用于教学、文章和书籍介绍相关知识应该足够，用不着自己还到处去找了。Thomas Lin Pedersen 开发的[ggraph](https://github.com/thomasp85/ggraph)包实现图和网络的绘图语法，类似 ggplot2 的设计，和以往的使用习惯保持一致，这就非常方便。他开发的另一个 R 包[tidygraph](https://github.com/thomasp85/tidygraph) 将净土应用到图操作上面。Martina Morris 等人开发了一批用于网络分析和建模的 R 包，类似 tidyverse 的做法都整合在 [statnet](https://github.com/statnet) 包里。
 
+[BDgraph](https://cran.r-project.org/package=BDgraph) ([Mohammadi and Wit 2019](#ref-BDgraph2019)) 基于生灭过程的贝叶斯结构学习用于图模型，
+
+[qgraph](https://github.com/SachaEpskamp/qgraph) ([Epskamp et al. 2012](#ref-qgraph2012)) 网络数据可视化和分析，高斯图模型计算
+
+[DoubleML](https://github.com/DoubleML/doubleml-for-r/)([Bach et al. 2021](#ref-DoubleML2021)) 构建在 mlr3 及生态上，实现 Double/Debiased 机器学习框架([Chernozhukov et al. 2018](#ref-Chernozhukov2018))。
+[text2map](https://gitlab.com/culturalcartography/text2map) ([Stoltz and Taylor 2021](#ref-text2map2021)) 文本分析，词嵌入，文本网络
+[mlpack](https://github.com/mlpack/mlpack) ([Curtin et al. 2018](#ref-mlpack2018)) 是前沿机器学习算法合集。
+
 [visNetwork](https://github.com/datastorm-open/visNetwork) 包 可以制作交互式网络图形，Richard Iannone 而开发的[DiagrammeR](https://github.com/rich-iannone/DiagrammeR) 包可以制作静态的矢量网页图形。
 
 <div class="rmdnote">
@@ -397,26 +405,15 @@ R 包关系
 
 ### 发布协议
 
-用什么协议发布 MIT 还是 GPL
-
-``` r
-license_pdb <- subset(x = pdb, select = c("Package", "License"))
-license_pdb_aggr <-aggregate(data = license_pdb, Package ~ License, FUN = function(x) length(unique(x)))
-license_pdb_aggr <- license_pdb_aggr[order(license_pdb_aggr$Package, decreasing = TRUE), ]
-
-knitr::kable(head(license_pdb_aggr, 15),
-  col.names = c("R 包协议", "R 包数量"), row.names = FALSE,
-  caption = "CRAN 上受开发者欢迎的 R 包发布协议（Top 15）"
-)
-```
+R 软件以 GPL 2.0 或 GPL 3.0 协议发布
 
 | R 包协议                     | R 包数量 |
 |:-----------------------------|---------:|
-| GPL (>= 2)                   |     4384 |
-| GPL-3                        |     4166 |
-| MIT + file LICENSE           |     3104 |
-| GPL-2                        |     2622 |
-| GPL (>= 3)                   |     1008 |
+| GPL (>= 2)                   |     4392 |
+| GPL-3                        |     4177 |
+| MIT + file LICENSE           |     3123 |
+| GPL-2                        |     2626 |
+| GPL (>= 3)                   |     1013 |
 | GPL                          |      524 |
 | GPL-2 \| GPL-3               |      342 |
 | CC0                          |      190 |
@@ -432,42 +429,157 @@ Table 2: CRAN 上受开发者欢迎的 R 包发布协议（Top 15）
 
 GPL 协议占主导地位，MIT 协议次之。
 
+CRAN 会检测 R 包的授权，只有授权协议包含在数据库中的才可以在 CRAN 上发布
+<https://svn.r-project.org/R/trunk/share/licenses/license.db>
+
+``` r
+# 查看文件，如何以最合适的方式读取呢？
+db = readLines(con = "https://svn.r-project.org/R/trunk/share/licenses/license.db")
+head(db,20)
+db[grepl(x = db, pattern = "^Name:")]
+```
+
+### 更新频次
+
+距今10余年未更新
+
+``` r
+subset(pdb, subset = Published == min(Published), 
+       select = c("Package", "Title", "Published"))
+#        Package                          Title  Published
+# 2839 coxrobust Robust Estimation in Cox Model 2006-03-15
+```
+
+18000 多个 R 包，距离上次更新的时间间隔分布
+
+``` r
+diff_date_pdb <- subset(pdb, select = c("Package", "Published")) |> 
+  transform(diff_date = as.integer(Sys.Date() - as.Date(Published)))
+```
+
+``` r
+quantile(diff_date_pdb$diff_date)
+#     0%    25%    50%    75%   100% 
+#    1.0  186.5  538.0 1295.0 5743.0
+```
+
+半年时间更新 25% 的 R 包，一年半时间更新 50% 的 R 包，三年半时间也只更新 75% 的 R 包。
+
+<div class="rmdtip">
+
+非常值得和 Python 对比一下，Python 模块仓库 <https://pypi.org/>。
+Python 编程风格指南 <https://www.python.org/dev/peps/pep-0008/>。
+
+</div>
+
+### 增长速度
+
+目前手头只有一份昨天的 CRAN 日志，没法和历史对比，若有历史的 CRAN 快照日志，就可以站在 2012 年看 2000-2012 年的净增长量和速度。
+
+``` r
+# R 包增长速度
+# 以现在的时间作为参照，看过去时间点的 R 包净增长量。
+pkgs <- subset(x = pdb, select = c("Package", "Date", "Published")) |>
+  transform(Date = ifelse(!is.na(Published), Published, Date)) |>
+  transform(Published = as.Date(Published)) |>
+  subset(Published >= as.Date("2012-01-01")) |>
+  transform(Month = format(Published, format = "%Y-%m-01")) |>
+  transform(Month = as.Date(Month))
+
+pkgs <- aggregate(formula = Package ~ Month, data = pkgs, FUN = function(x) length(unique(x)))
+```
+
+下图以 2021-12-04 观测日，统计过去每个月份的净增长量。
+
+``` r
+library(ggplot2)
+ggplot(pkgs, aes(x = Month, y = Package)) +
+  geom_point()+
+  geom_line() +
+  geom_hline(yintercept = 0, size = 1, colour = "#535353")  +
+  labs(
+    x = "", y = "# Packages (log)",
+    title = "Packages published on CRAN ever since"
+  ) +
+  theme_minimal(base_size = 14, base_family = "sans") +
+  theme(panel.grid.major.x = element_blank()) 
+```
+
+``` r
+# 增长速度
+Growth <- function(x) {
+  c(NA, (tail(x, -1) - head(x, length(x) - 1)) / head(x, length(x) - 1))
+}
+
+pkgs <- transform(pkgs, Growth = Growth(Package)) |> 
+  subset(subset = !is.na(Growth))
+
+# 增长速度 MoM 月环比 以多快的速度在净增长
+ggplot(pkgs, aes(x = Month, y = Growth)) +
+  geom_point() +
+  geom_line() +
+  labs(
+    y = "Growth (%)", x = "",
+    subtitle = "Packages published on CRAN since 2013"
+  ) +
+  theme_minimal(
+    base_size = 11, base_family = "sans"
+  ) +
+  theme(panel.grid.major.x = element_blank()) +
+  geom_hline(yintercept = 0, size = .6, colour = "#535353")
+```
+
+### 选择 R 包
+
+挑选合适的 R 包是一件比较困难的事情，R 社区开发的 R 包实在太多了，重复造的轮子也很多，哪个轮子结实好用就选哪个。
+
+[packagemetrics](https://github.com/sfirke/packagemetrics) 可以统计 R 包各个方面的信息，从而帮助你选择该使用哪个 R 包
+
+``` r
+# 两个 R 包列在一起，有各项指标可以比较
+library(packagemetrics)
+
+dplyr_and_dt <- package_list_metrics(c("dplyr", "data.table"))
+glimpse(dplyr_and_dt)
+
+table_packages = c("dplyr", "data.table", "tidyr")
+
+pkg_df <- package_list_metrics(table_packages) 
+# included vector of table pkgs
+ft <- metrics_table(pkg_df)
+```
+
 ## 开发者
 
-关键开发者
+<!-- 
+关键开发者、所属组织性质，学校、公司 
+-->
 
-所属组织性质，学校、公司
+一个人有多个邮箱的情况比较多，因此清理了 Maintainer 字段中的邮箱，按照习惯来说，人名通常只有一种写法，国外会加入头衔、爵号什么的，这种难以清理合并了。截止目前，R 社区开发者数量已超过 **10000** 人，而根据 Python 官方网站数字 <https://pypi.org/>，Python 社区开发者超过 **55** 万人。
+
+``` r
+maintainer_db <- subset(
+  x = pdb,
+  subset = !duplicated(Package) & Maintainer != "ORPHANED",
+  select = c("Package", "Maintainer")
+) |>
+  transform(Maintainer = gsub(pattern = "<.*?>", replacement = "", x = Maintainer)) |> 
+  transform(Maintainer = trimws(Maintainer, which = "both", whitespace = "[ \t\r\n]")) |> 
+  transform(Maintainer = tolower(Maintainer))
+
+length(unique(maintainer_db$Maintainer))
+# [1] 10002
+```
 
 ### Top 组织
 
-``` r
-str_extract <- function(text, pattern, ...) regmatches(text, regexpr(pattern, text, ...))
-# 确保有邮箱 <(.*?)@(.*?)>
-org_pdb <- subset(
-  x = pdb,
-  select = c("Package", "Maintainer"),
-  subset = grepl(pattern = "[<>]", x = Maintainer)
-)
+[PBS Software](https://github.com/pbs-software)
+[SuperLearner](https://github.com/ecpolley/SuperLearner) ([Polley et al. 2021](#ref-SuperLearner))
+[DrWhy](https://github.com/ModelOriented/DrWhy)([Biecek 2021](#ref-DrWhy2021))、
+[tidymodels](https://github.com/tidymodels/tidymodels)([Kuhn and Wickham 2020](#ref-Kuhn2020))、 [easystats](https://github.com/easystats/easystats)([Makowski, Ben-Shachar, and Lüdecke 2020](#ref-Makowski2020))、 [tidyverse](https://github.com/tidyverse/tidyverse) ([Wickham et al. 2019](#ref-Wickham2019))
+[strengejacke](https://github.com/strengejacke/strengejacke)([Lüdecke 2019](#ref-Daniel2019))、 [mlr3verse](https://github.com/mlr-org/mlr3verse) ([Lang and Schratz 2021](#ref-Lang2021))
 
-org_pdb <- org_pdb |> 
-  transform(email_suffix = str_extract(text = Maintainer, pattern = "<(.*?)>")) |> 
-  transform(email_suffix = gsub(pattern = "[<>]", replacement = "", x = email_suffix)) |> 
-  transform(email_suffix = str_extract(text = email_suffix, pattern = "(?<=@).+", perl = T))
-
-org_pdb_aggr <-aggregate(data = org_pdb, Package ~ email_suffix, FUN = function(x) length(unique(x)))
-
-org_pdb_aggr <- org_pdb_aggr[order(org_pdb_aggr$Package, decreasing = TRUE), ]
-
-tmp <- head(org_pdb_aggr, 30)
-
-tmp1 <- head(tmp, ceiling(nrow(tmp) / 2))
-tmp2 <- tail(tmp, floor(nrow(tmp) / 2))
-
-knitr::kable(list(tmp1, tmp2),
-  col.names = c("邮箱后缀", "R 包数量"), row.names = FALSE,
-  caption = "最受欢迎的邮箱（Top 30）"
-)
-```
+目的和 tidymodels 差不多，都是提供做数据建模的完整解决方案，区别在于它不基于 tidyverse 这套东西。
 
 <table class="kable_wrapper">
 <caption>
@@ -477,35 +589,35 @@ Table 3: 最受欢迎的邮箱（Top 30）
 <tr>
 <td>
 
-| 邮箱后缀      | R 包数量 |
-|:--------------|---------:|
-| gmail.com     |     6584 |
-| rstudio.com   |      206 |
-| hotmail.com   |      167 |
-| outlook.com   |      136 |
-| R-project.org |      105 |
-| uw.edu        |       85 |
-| umich.edu     |       84 |
-| berkeley.edu  |       82 |
-| 163.com       |       76 |
-| umn.edu       |       75 |
-| yahoo.com     |       74 |
-| debian.org    |       65 |
-| gmx.de        |       59 |
-| stanford.edu  |       58 |
-| ncsu.edu      |       57 |
+| 邮箱后缀       | R 包数量 |
+|:---------------|---------:|
+| gmail.com      |     6600 |
+| rstudio.com    |      202 |
+| hotmail.com    |      170 |
+| outlook.com    |      136 |
+| R-project.org  |      105 |
+| uw.edu         |       85 |
+| umich.edu      |       84 |
+| berkeley.edu   |       82 |
+| 163.com        |       76 |
+| umn.edu        |       75 |
+| yahoo.com      |       74 |
+| debian.org     |       65 |
+| gmx.de         |       59 |
+| stanford.edu   |       59 |
+| protonmail.com |       58 |
 
 </td>
 <td>
 
 | 邮箱后缀          | R 包数量 |
 |:------------------|---------:|
-| protonmail.com    |       55 |
-| stat.math.ethz.ch |       55 |
+| ncsu.edu          |       57 |
+| stat.math.ethz.ch |       56 |
 | auckland.ac.nz    |       54 |
 | wisc.edu          |       53 |
 | googlemail.com    |       51 |
-| r-project.org     |       49 |
+| r-project.org     |       48 |
 | duke.edu          |       47 |
 | ucl.ac.uk         |       44 |
 | uwaterloo.ca      |       44 |
@@ -525,20 +637,6 @@ Table 3: 最受欢迎的邮箱（Top 30）
 
 我们知道 R 语言社区的很多开发者来自学界，使用学校邮箱的应该不少，因此，决定看看 Top 的大学有哪些，以及总数能否超过 Gmail 邮箱？
 
-``` r
-edu_email <- subset(x = org_pdb_aggr, subset = grepl(pattern = "edu$", x = email_suffix))
-
-tmp <- head(edu_email, 30)
-
-tmp1 <- head(tmp, ceiling(nrow(tmp) / 2))
-tmp2 <- tail(tmp, floor(nrow(tmp) / 2))
-
-knitr::kable(list(tmp1, tmp2),
-  col.names = c("邮箱后缀", "R 包数量"), row.names = FALSE,
-  caption = "贡献 R 包最多的大学（Top 30）"
-)
-```
-
 <table class="kable_wrapper">
 <caption>
 Table 4: 贡献 R 包最多的大学（Top 30）
@@ -553,7 +651,7 @@ Table 4: 贡献 R 包最多的大学（Top 30）
 | umich.edu         |       84 |
 | berkeley.edu      |       82 |
 | umn.edu           |       75 |
-| stanford.edu      |       58 |
+| stanford.edu      |       59 |
 | ncsu.edu          |       57 |
 | wisc.edu          |       53 |
 | duke.edu          |       47 |
@@ -578,8 +676,8 @@ Table 4: 贡献 R 包最多的大学（Top 30）
 | unc.edu         |       26 |
 | usc.edu         |       25 |
 | jhu.edu         |       23 |
-| vt.edu          |       23 |
 | msu.edu         |       22 |
+| vt.edu          |       22 |
 | ucla.edu        |       21 |
 | vanderbilt.edu  |       21 |
 | case.edu        |       19 |
@@ -597,19 +695,10 @@ Table 4: 贡献 R 包最多的大学（Top 30）
 
 ``` r
 sum(edu_email$Package)
-# [1] 2780
+# [1] 2788
 ```
 
 一般人我都不告诉他，勾搭 NB 院校老师的机会来了，我们先来看看斯坦佛大学（stanford.edu）的哪些老师贡献了哪些 R 包。
-
-``` r
-stanford_pdb <- subset(x = org_pdb, subset = grepl(pattern = "stanford.edu", x = Maintainer), select = c("Package", "Maintainer"))
-
-knitr::kable(stanford_pdb[order(stanford_pdb$Maintainer, decreasing = TRUE), ],
-  col.names = c("R 包", "开发者"), row.names = FALSE,
-  caption = "斯坦福大学开发者（部分）"
-)
-```
 
 | R 包               | 开发者                                               |
 |:-------------------|:-----------------------------------------------------|
@@ -645,6 +734,7 @@ knitr::kable(stanford_pdb[order(stanford_pdb$Maintainer, decreasing = TRUE), ],
 | selectiveInference | Rob Tibshirani <tibs@stanford.edu>                   |
 | pamr               | Rob Tibshirani <tibs@stanford.edu>                   |
 | xtreg2way          | Paulo Somaini <soma@stanford.edu>                    |
+| dagwood            | Noah Haber <noahhaber@stanford.edu>                  |
 | BHMSMAfMRI         | Nilotpal Sanyal <nsanyal@stanford.edu>               |
 | EValue             | Maya B. Mathur <mmathur@stanford.edu>                |
 | MetaUtility        | Maya B. Mathur <mmathur@stanford.edu>                |
@@ -687,42 +777,103 @@ knitr::kable(stanford_pdb[order(stanford_pdb$Maintainer, decreasing = TRUE), ],
 
 Table 5: 斯坦福大学开发者（部分）
 
-### Top 开发者
+### 高产开发者
 
-``` r
-author_pdb <- subset(x = pdb, select = c("Package", "Maintainer"))
-author_pdb_aggr <-aggregate(data = author_pdb, Package ~ Maintainer, FUN = function(x) length(unique(x)))
-author_pdb_aggr <- author_pdb_aggr[order(author_pdb_aggr$Package, decreasing = TRUE), ]
+<table class="kable_wrapper">
+<caption>
+Table 6: 开发 R 包数量最多的人（Top 30）
+</caption>
+<tbody>
+<tr>
+<td>
 
-knitr::kable(head(author_pdb_aggr, 15),
-  col.names = c("开发者", "R 包数量"), row.names = FALSE,
-  caption = "开发 R 包数量最多的人（Top 15）"
-)
-```
+| 开发者             | R 包数量 |
+|:-------------------|---------:|
+| Dirk Eddelbuettel  |       65 |
+| Gábor Csárdi       |       57 |
+| Scott Chamberlain  |       52 |
+| Hadley Wickham     |       47 |
+| Jeroen Ooms        |       46 |
+| Stéphane Laurent   |       34 |
+| Henrik Bengtsson   |       31 |
+| Kartikeya Bolar    |       31 |
+| Robin K. S. Hankin |       31 |
+| Kurt Hornik        |       28 |
+| Jan Wijffels       |       27 |
+| John Muschelli     |       27 |
+| Bob Rudis          |       26 |
+| Torsten Hothorn    |       26 |
+| Kirill Müller      |       25 |
 
-| 开发者                                          | R 包数量 |
-|:------------------------------------------------|---------:|
-| Dirk Eddelbuettel <edd@debian.org>              |       65 |
-| Scott Chamberlain <myrmecocystus@gmail.com>     |       52 |
-| Gábor Csárdi <csardi.gabor@gmail.com>           |       50 |
-| Jeroen Ooms <jeroen@berkeley.edu>               |       46 |
-| Hadley Wickham <hadley@rstudio.com>             |       45 |
-| Stéphane Laurent <laurent_step@outlook.fr>      |       34 |
-| Henrik Bengtsson <henrikb@braju.com>            |       31 |
-| Kartikeya Bolar <kartikeya.bolar@tapmi.edu.in>  |       31 |
-| Robin K. S. Hankin <hankin.robin@gmail.com>     |       31 |
-| Kurt Hornik <Kurt.Hornik@R-project.org>         |       28 |
-| Jan Wijffels <jwijffels@bnosac.be>              |       27 |
-| John Muschelli <muschellij2@gmail.com>          |       27 |
-| Bob Rudis <bob@rud.is>                          |       26 |
-| Torsten Hothorn <Torsten.Hothorn@R-project.org> |       26 |
-| Kirill Müller <krlmlr+r@mailbox.org>            |       25 |
+</td>
+<td>
 
-Table 6: 开发 R 包数量最多的人（Top 15）
+| 开发者               | R 包数量 |
+|:---------------------|---------:|
+| Martin Maechler      |       25 |
+| Muhammad Yaseen      |       25 |
+| Richard Cotton       |       24 |
+| Yihui Xie            |       24 |
+| Achim Zeileis        |       23 |
+| Florian Schwendinger |       21 |
+| Kevin R. Coombes     |       21 |
+| Max Kuhn             |       21 |
+| Michael D. Sumner    |       21 |
+| Guangchuang Yu       |       20 |
+| Joe Thorley          |       20 |
+| Paul Gilbert         |       20 |
+| Thomas Lin Pedersen  |       20 |
+| Carl Boettiger       |       19 |
+| Hana Sevcikova       |       19 |
+
+</td>
+</tr>
+</tbody>
+</table>
 
 看到这个结果既有意料之中的，又有很多意料之外的。比如谢益辉竟没有进入前 Top 15，还有好多人是我不知的，甚至是第一次看到，足见我的孤陋寡闻！顺便一提，这其实是一个值得关注的 R 语言社区顶级开发者列表。
 
 ### CRAN 团队
+
+    Authors of R.
+
+    R was initially written by Robert Gentleman and Ross Ihaka—also known as "R & R"
+    of the Statistics Department of the University of Auckland.
+
+    Since mid-1997 there has been a core group with write access to the R
+    source, currently consisting of
+
+    Douglas Bates
+    John Chambers
+    Peter Dalgaard
+    Robert Gentleman
+    Kurt Hornik
+    Ross Ihaka
+    Tomas Kalibera
+    Michael Lawrence
+    Friedrich Leisch
+    Uwe Ligges
+    Thomas Lumley
+    Martin Maechler
+    Sebastian Meyer
+    Paul Murrell
+    Martyn Plummer
+    Brian Ripley
+    Deepayan Sarkar
+    Duncan Temple Lang
+    Luke Tierney
+    Simon Urbanek
+
+    plus Heiner Schwarte up to October 1999, Guido Masarotto up to June 2003,
+    Stefano Iacus up to July 2014, Seth Falcon up to August 2015, Duncan Murdoch
+    up to September 2017, and Martin Morgan up to June 2021.
+
+
+    Current R-core members can be contacted via email to R-project.org
+    with name made up by replacing spaces by dots in the name listed above.
+
+    (The authors of code from other projects included in the R distribution
+    are listed in the COPYRIGHTS file.)
 
 <table class="kable_wrapper">
 <caption>
@@ -740,7 +891,7 @@ Table 7: CRAN 团队开发维护 R 包数量情况
 | Martin Maechler    |       25 |
 | Achim Zeileis      |       23 |
 | Paul Murrell       |       19 |
-| Toby Dylan Hocking |       14 |
+| Toby Dylan Hocking |       13 |
 | Brian Ripley       |       12 |
 | Thomas Lumley      |       12 |
 | Uwe Ligges         |        9 |
@@ -880,9 +1031,11 @@ plot(net,
 
 ## 开发者关系
 
-通过 R 包贡献合作的关系
+选择一个 R 包需要考虑很多因素，最关键的因素还是人，以 data.table 为例，外部依赖很少，运行效率很高，功能覆盖很广，向后兼容很好，帮助文档很全，单测回测很足。R 包的品质可以看出做人做事的品质，Code Style Should Taste Well!
 
-## 组织
+依赖 10 个 R 包，就是依赖 10 个维护者，如果是依赖自个的 R 包，维护者数量就没有 10 个了。
+
+通过 R 包贡献合作的关系
 
 关键组织
 
@@ -907,15 +1060,15 @@ igraph_deps <- tools::dependsOnPkgs('igraph', installed = pdb, recursive = FALSE
 pdb2 <- subset(pdb, select = c("Package", "Maintainer"), subset = Package %in% igraph_deps)
 pdb2
 #                    Package
-# 123               adegenet
-# 188                    AFM
-# 247                    akc
-# 255               alakazam
-# 357   AnimalHabitatNetwork
-# 362               anipaths
-# 433               apisensr
-# 475             archeofrag
-# 544              arulesViz
+# 125               adegenet
+# 191                    AFM
+# 251                    akc
+# 259               alakazam
+# 362   AnimalHabitatNetwork
+# 366               anipaths
+# 437               apisensr
+# 479             archeofrag
+# 548              arulesViz
 ....
 ```
 
@@ -950,9 +1103,9 @@ xfun::session_info(packages = c(
 # Package version:
 #   base64enc_0.1.3    blogdown_1.6       bookdown_0.24     
 #   cli_3.1.0          cluster_2.1.2      crayon_1.4.2      
-#   data.table_1.14.2  digest_0.6.28      dplyr_1.0.7       
+#   data.table_1.14.2  digest_0.6.29      dplyr_1.0.7       
 #   ellipsis_0.3.2     evaluate_0.14      fansi_0.5.0       
-#   fastmap_1.1.0      generics_0.1.1     glue_1.5.0        
+#   fastmap_1.1.0      generics_0.1.1     glue_1.5.1        
 #   graphics_4.1.2     grDevices_4.1.2    grid_4.1.2        
 #   highr_0.9          htmltools_0.5.2    httpuv_1.6.3      
 #   igraph_1.2.9       jquerylib_0.1.4    jsonlite_1.7.2    
@@ -964,7 +1117,7 @@ xfun::session_info(packages = c(
 #   promises_1.2.0.1   purrr_0.3.4        R6_2.5.1          
 #   Rcpp_1.0.7         RcppProgress_0.4.2 rlang_0.4.12      
 #   rlist_0.4.6.2      rmarkdown_2.11     servr_0.24        
-#   splines_4.1.2      stats_4.1.2        stringi_1.7.5     
+#   splines_4.1.2      stats_4.1.2        stringi_1.7.6     
 #   stringr_1.4.0      tibble_3.1.6       tidyselect_1.1.1  
 #   tinytex_0.35       tools_4.1.2        utf8_1.2.2        
 #   utils_4.1.2        vctrs_0.3.8        vegan_2.5.7       
@@ -992,9 +1145,21 @@ Almende B.V. and Contributors, Benoit Thieurmel, and Titouan Robert. 2021. *visN
 
 </div>
 
+<div id="ref-DoubleML2021" class="csl-entry">
+
+Bach, P., V. Chernozhukov, M. S. Kurz, and M. Spindler. 2021. “DoubleML – An Object-Oriented Implementation of Double Machine Learning in R.” <https://arxiv.org/abs/2103.09603>.
+
+</div>
+
 <div id="ref-Bates2013" class="csl-entry">
 
 Bates, Douglas, and Dirk Eddelbuettel. 2013. “Fast and Elegant Numerical Linear Algebra Using the RcppEigen Package.” *Journal of Statistical Software* 52 (5): 1–24. <https://www.jstatsoft.org/v52/i05/>.
+
+</div>
+
+<div id="ref-DrWhy2021" class="csl-entry">
+
+Biecek, Przemyslaw. 2021. *DrWhy: Explain, Explore and Debug Predictive Machine Learning Models*. <https://github.com/ModelOriented/DrWhy>.
 
 </div>
 
@@ -1016,9 +1181,27 @@ Butts, Carter T. 2020. *Sna: Tools for Social Network Analysis*. <http://statnet
 
 </div>
 
+<div id="ref-Chernozhukov2018" class="csl-entry">
+
+Chernozhukov, Victor, Denis Chetverikov, Mert Demirer, Esther Duflo, Christian Hansen, Whitney Newey, and James Robins. 2018. “Double/Debiased Machine Learning for Treatment and Structural Parameters.” *The Econometrics Journal* 21 (1): C1–68. <https://doi.org/10.1111/ectj.12097>.
+
+</div>
+
+<div id="ref-mlpack2018" class="csl-entry">
+
+Curtin, Ryan R., Marcus Edel, Mikhail Lozhnikov, Yannis Mentekidis, Sumedh Ghaisas, and Shangtong Zhang. 2018. “Mlpack 3: A Fast, Flexible Machine Learning Library.” *Journal of Open Source Software* 3: 726. <https://doi.org/10.21105/joss.00726>.
+
+</div>
+
 <div id="ref-qgraph" class="csl-entry">
 
 Epskamp, Sacha, Giulio Costantini, Jonas Haslbeck, and Adela Isvoranu. 2021. *Qgraph: Graph Plotting Methods, Psychometric Data Visualization and Graphical Model Estimation*. <https://CRAN.R-project.org/package=qgraph>.
+
+</div>
+
+<div id="ref-qgraph2012" class="csl-entry">
+
+Epskamp, Sacha, Angélique O. J. Cramer, Lourens J. Waldorp, Verena D. Schmittmann, and Denny Borsboom. 2012. “<span class="nocase">qgraph</span>: Network Visualizations of Relationships in Psychometric Data.” *Journal of Statistical Software* 48 (4): 1–18.
 
 </div>
 
@@ -1064,9 +1247,39 @@ Kolaczyk, Eric, and Gábor Csárdi. 2020. *Sand: Statistical Analysis of Network
 
 </div>
 
+<div id="ref-Kuhn2020" class="csl-entry">
+
+Kuhn, Max, and Hadley Wickham. 2020. *<span class="nocase">tidymodels</span>: A Collection of Packages for Modeling and Machine Learning Using <span class="nocase">tidyverse</span> Principles.* <https://www.tidymodels.org>.
+
+</div>
+
+<div id="ref-Lang2021" class="csl-entry">
+
+Lang, Michel, and Patrick Schratz. 2021. *<span class="nocase">mlr3verse</span>: Easily Install and Load the <span class="nocase">mlr3</span> Package Family*. <https://CRAN.R-project.org/package=mlr3verse>.
+
+</div>
+
+<div id="ref-Daniel2019" class="csl-entry">
+
+Lüdecke, Daniel. 2019. *<span class="nocase">strengejacke</span>: Load Packages Associated with Strenge Jacke!* <https://github.com/strengejacke/strengejacke>.
+
+</div>
+
 <div id="ref-Luke2015" class="csl-entry">
 
 Luke, Douglas. 2015. *A User’s Guide to Network Analysis in r*. Springer, Cham. <https://doi.org/10.1007/978-3-319-23883-8>.
+
+</div>
+
+<div id="ref-Makowski2020" class="csl-entry">
+
+Makowski, Dominique, Mattan S. Ben-Shachar, and Daniel Lüdecke. 2020. “The <span class="nocase">easystats</span> Collection of r Packages.” *GitHub*. <https://github.com/easystats/easystats>.
+
+</div>
+
+<div id="ref-BDgraph2019" class="csl-entry">
+
+Mohammadi, Reza, and Ernst C. Wit. 2019. “BDgraph: An R Package for Bayesian Structure Learning in Graphical Models.” *Journal of Statistical Software* 89 (3): 1–30. <https://doi.org/10.18637/jss.v089.i03>.
 
 </div>
 
@@ -1082,6 +1295,12 @@ Pedersen, Thomas Lin. 2020. *Tidygraph: A Tidy API for Graph Manipulation*. <htt
 
 </div>
 
+<div id="ref-SuperLearner" class="csl-entry">
+
+Polley, Eric, Erin LeDell, Chris Kennedy, and Mark van der Laan. 2021. *SuperLearner: Super Learner Prediction*. <https://CRAN.R-project.org/package=SuperLearner>.
+
+</div>
+
 <div id="ref-GGally" class="csl-entry">
 
 Schloerke, Barret, Di Cook, Joseph Larmarange, Francois Briatte, Moritz Marbach, Edwin Thoen, Amos Elberg, and Jason Crowley. 2021. *GGally: Extension to Ggplot2*. <https://CRAN.R-project.org/package=GGally>.
@@ -1094,6 +1313,12 @@ Schoch, David. 2021. *Graphlayouts: Additional Layout Algorithms for Network Vis
 
 </div>
 
+<div id="ref-text2map2021" class="csl-entry">
+
+Stoltz, Dustin, and Marshall Taylor. 2021. *<span class="nocase">text2map</span>: R Tools for Text Matrices, Embeddings, and Networks*. <https://CRAN.R-project.org/package=text2map>.
+
+</div>
+
 <div id="ref-node2vec" class="csl-entry">
 
 Tian, Yang, Xu Li, and Jing Ren. 2021. *Node2vec: Algorithmic Framework for Representational Learning on Graphs*. <https://CRAN.R-project.org/package=node2vec>.
@@ -1103,6 +1328,12 @@ Tian, Yang, Xu Li, and Jing Ren. 2021. *Node2vec: Algorithmic Framework for Repr
 <div id="ref-Tyner2017" class="csl-entry">
 
 Tyner, Sam, François Briatte, and Heike Hofmann. 2017. “<span class="nocase">Network Visualization with ggplot2</span>.” *The R Journal* 9 (1): 27–59. <https://doi.org/10.32614/RJ-2017-023>.
+
+</div>
+
+<div id="ref-Wickham2019" class="csl-entry">
+
+Wickham, Hadley, Mara Averick, Jennifer Bryan, Winston Chang, Lucy D’Agostino McGowan, Romain François, Garrett Grolemund, et al. 2019. “Welcome to the <span class="nocase">tidyverse</span>.” *Journal of Open Source Software* 4 (43): 1686. <https://doi.org/10.21105/joss.01686>.
 
 </div>
 
