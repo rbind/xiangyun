@@ -17,7 +17,7 @@ bibliography:
   - packages.bib
 draft: true
 toc: true
-thumbnail: /img/DiagrammeR.svg
+thumbnail: /img/seven-bridges.png
 link-citations: true
 description: "本文首先概览 R 语言在网络数据分析和可视化方面的情况；然后介绍图的表示（矩阵），图的计算（矩阵计算），图的展示（点、线等），图的工具（R 和其它软件）；最后以 CRAN 上 R 包的元数据为基础，介绍网络分析和可视化的过程，也发现了 R 语言社区中一些非常有意思的现象。"
 ---
@@ -112,8 +112,6 @@ div.img {
 [**rsparse**](https://github.com/rexyai/rsparse) 包提供很多基于稀疏矩阵的统计学习算法，支持基于 OpenMP 的并行计算。[RSpectra](https://github.com/yixuan/RSpectra) 包是 C++ 库 [Spectra](https://spectralib.org/) 的 R 接口，仅有两个函数 `eigs()` 和 `svds()` 分别用来计算 `\(N\)` 阶矩阵（稀疏或稠密都行） Top K 个最大的特征值/特征向量，适合大规模特征值和奇异值分解问题，在 k 远远小于 N 时，特别能体现优越性。后面从 CRAN 网络数据中获取 Top K 个主要的组织、个人和 R 包。
 
 <!--
-葛底斯堡战役七桥问题，图作为文章 logo
-
 [**RcppSparse**](https://github.com/zdebruine/RcppSparse)  RcppArmadillo 和 RcppEigen 深拷贝deep copy 操作，而 RcppSparse zero-copy 零拷贝，无缝衔接，而计算结果是一致的，详细描述见 [Constructing a Sparse Matrix Class in Rcpp](https://gallery.rcpp.org/articles/sparse-matrix-class/)
 -->
 
@@ -144,6 +142,75 @@ div.img {
 <figure>
 <img src="https://user-images.githubusercontent.com/12031874/120408326-6190a900-c381-11eb-9dcf-9881d33fa2b6.png" class="full" alt="Figure 1: 开发 R Shiny 应用的技术栈" /><figcaption aria-hidden="true">Figure 1: 开发 R Shiny 应用的技术栈</figcaption>
 </figure>
+
+``` r
+# 获取 R 包元数据
+Sys.setenv(R_CRAN_WEB = "https://mirrors.tuna.tsinghua.edu.cn/CRAN")
+# 返回 data.frame
+pdb <- tools::CRAN_package_db()
+
+# CRAN 上的 R 包
+pkgs <- c(
+  "igraph", "graphlayouts", "ggraph", "tidygraph",
+  "DiagrammeR", "visNetwork", "statnet", "sand",
+  "geomnet", "ggnet", "ggnetwork", "qgraph", 
+  "GGally", "sna", "network", "networkD3", 
+  "Rgraphviz", "graph", "node2vec"
+)
+
+# Github 上的 R 包
+remote_pkgs = c('geomnet' = 'sctyner', 'ggnet' = 'briatte')
+
+bioc_pkgs = c("Rgraphviz", "graph")
+
+if (length(bioc_pkgs)) {
+  if (!"BiocManager" %in% .packages(T)) install.packages("BiocManager")
+}
+# 安装依赖
+invisible(lapply(pkgs, function(pkg) {
+  if (system.file(package = pkg) != "") {
+    return()
+  }
+  if(pkg %in% bioc_pkgs){
+    BiocManager::install(pkg)
+  }
+  repo <- remote_pkgs[pkg]
+  if (is.na(repo)) { # 不在 Github 上
+    install.packages(pkg, quiet = TRUE)
+  } else {
+    remotes::install_github(paste(repo, pkg, sep = "/"))
+  }
+}))
+
+# 处理掉丑陋的成对单引号
+rmd_lib <- c(
+  "ggplot2", "vis.js"
+)
+rmd_regexp <- paste("'(", paste(rmd_lib, collapse = "|"), ")'", sep = "")
+
+# 提取 R Shiny 应用使用的 R 包及其基本描述
+sub_pdb <- subset(
+  x = pdb,
+  select = c("Package", "Title", "Maintainer", "URL", "License", "BugReports"),
+  subset = Package %in% pkgs
+) |>
+  transform(Title = gsub("(\\\n)", " ", Title)) |>
+  transform(Title = gsub(rmd_regexp, "\\1", Title)) |> 
+  transform(Maintainer = gsub("<([^<>]*)>", "", Maintainer)) |> 
+  # transform(URL = gsub("(\\\n)", " ", URL)) |> 
+  # transform(URL = gsub(",", "", URL)) |> 
+  # transform(URL = ifelse(is.na(URL), BugReports, URL)) |> 
+  # transform(URL = ifelse(is.na(URL), sprintf("https://CRAN.R-project.org/package=%s", Package), URL)) |> 
+  transform(Package = paste0("**", Package, "**", " ", "[@", Package, "]"))
+
+# 展示表格
+knitr::kable(sub_pdb[order(sub_pdb$Maintainer), 
+                     setdiff(colnames(sub_pdb), c("URL", "BugReports"))],
+  row.names = FALSE,
+  caption = "网络分析的 R 包（排名不分先后）",
+  col.names = c("R 包", "简介", "维护者", "协议")
+)
+```
 
 | R 包                                                                                          | 简介                                                                                   | 维护者              | 协议                 |
 |:----------------------------------------------------------------------------------------------|:---------------------------------------------------------------------------------------|:--------------------|:---------------------|
@@ -178,6 +245,13 @@ Table 1: 网络分析的 R 包（排名不分先后）
 </figure>
 
 柯尼斯堡七桥图的数据已经收录在 **igraphdata** 包里，数据集名称就叫 Koenigsberg
+
+``` r
+library(igraphdata)
+data(Koenigsberg)
+library(igraph)
+plot(Koenigsberg)
+```
 
 ## 安装 R 包
 
@@ -407,6 +481,17 @@ R 包关系
 
 R 软件以 GPL 2.0 或 GPL 3.0 协议发布
 
+``` r
+license_pdb <- subset(x = pdb, select = c("Package", "License"))
+license_pdb_aggr <-aggregate(data = license_pdb, Package ~ License, FUN = function(x) length(unique(x)))
+license_pdb_aggr <- license_pdb_aggr[order(license_pdb_aggr$Package, decreasing = TRUE), ]
+
+knitr::kable(head(license_pdb_aggr, 15),
+  col.names = c("R 包协议", "R 包数量"), row.names = FALSE,
+  caption = "CRAN 上受开发者欢迎的 R 包发布协议（Top 15）"
+)
+```
+
 | R 包协议                     | R 包数量 |
 |:-----------------------------|---------:|
 | GPL (>= 2)                   |     4392 |
@@ -459,8 +544,8 @@ diff_date_pdb <- subset(pdb, select = c("Package", "Published")) |>
 
 ``` r
 quantile(diff_date_pdb$diff_date)
-#     0%    25%    50%    75%   100% 
-#    1.0  186.5  538.0 1295.0 5743.0
+#   0%  25%  50%  75% 100% 
+#    1  187  539 1296 5744
 ```
 
 半年时间更新 25% 的 R 包，一年半时间更新 50% 的 R 包，三年半时间也只更新 75% 的 R 包。
@@ -581,6 +666,31 @@ length(unique(maintainer_db$Maintainer))
 
 目的和 tidymodels 差不多，都是提供做数据建模的完整解决方案，区别在于它不基于 tidyverse 这套东西。
 
+``` r
+str_extract <- function(text, pattern, ...) regmatches(text, regexpr(pattern, text, ...))
+# 确保有邮箱
+org_pdb <- subset(
+  x = pdb,
+  select = c("Package", "Maintainer"),
+  subset = grepl(pattern = "[<>]", x = Maintainer)
+) |> 
+  transform(email_suffix = gsub(pattern = ".*?@(.*?)>", replacement = "\\1", x = Maintainer))
+
+org_pdb_aggr <-aggregate(data = org_pdb, Package ~ email_suffix, FUN = function(x) length(unique(x)))
+
+org_pdb_aggr <- org_pdb_aggr[order(org_pdb_aggr$Package, decreasing = TRUE), ]
+
+tmp <- head(org_pdb_aggr, 30)
+
+tmp1 <- head(tmp, ceiling(nrow(tmp) / 2))
+tmp2 <- tail(tmp, floor(nrow(tmp) / 2))
+
+knitr::kable(list(tmp1, tmp2),
+  col.names = c("邮箱后缀", "R 包数量"), row.names = FALSE,
+  caption = "最受欢迎的邮箱（Top 30）"
+)
+```
+
 <table class="kable_wrapper">
 <caption>
 Table 3: 最受欢迎的邮箱（Top 30）
@@ -635,7 +745,23 @@ Table 3: 最受欢迎的邮箱（Top 30）
 
 看到这个结果还是蛮震惊的，竟有 6584 个 R 包使用 Gmail 邮箱，截止写作时间，CRAN 上全部 R 包 18000 多个，Gmail 邮箱覆盖率超过 1/3！
 
+### 教育机构
+
 我们知道 R 语言社区的很多开发者来自学界，使用学校邮箱的应该不少，因此，决定看看 Top 的大学有哪些，以及总数能否超过 Gmail 邮箱？
+
+``` r
+edu_email <- subset(x = org_pdb_aggr, subset = grepl(pattern = "edu$", x = email_suffix))
+
+tmp <- head(edu_email, 30)
+
+tmp1 <- head(tmp, ceiling(nrow(tmp) / 2))
+tmp2 <- tail(tmp, floor(nrow(tmp) / 2))
+
+knitr::kable(list(tmp1, tmp2),
+  col.names = c("邮箱后缀", "R 包数量"), row.names = FALSE,
+  caption = "贡献 R 包最多的大学（Top 30）"
+)
+```
 
 <table class="kable_wrapper">
 <caption>
@@ -689,7 +815,7 @@ Table 4: 贡献 R 包最多的大学（Top 30）
 </tbody>
 </table>
 
-好吧！我承认自己被打脸了，几乎全是欧美各个 NB 大学的，比如华盛顿大学（ uw.edu）、密歇根大学（umich.edu）、加州伯克利大学（berkeley.edu）等等。顺便一说，欧美各个大学的网站，特别是统计院系很厉害的，已经帮大家收集得差不多了，有留学打算的读者自取，邮箱后缀就是学校/院官网。
+好吧，几乎全是欧美各个 NB 大学的，比如华盛顿大学（ uw.edu）、密歇根大学（umich.edu）、加州伯克利大学（berkeley.edu）等等。顺便一说，欧美各个大学的网站，特别是统计院系很厉害的，已经帮大家收集得差不多了，有留学打算的读者自取，邮箱后缀就是学校/院官网。
 
 而使用大学邮箱的 R 包总数竟不及 Gmail 邮箱，可见谷歌邮箱服务在全球 R 语言社区的影响力，赤裸裸的数字，赤裸裸的伤害！虽然有的学校邮箱不以 edu 结尾，有的人虽在学校，但是使用了 Gmail 邮箱，但是巨大的数字鸿沟，几乎可以断定 R 语言社区的开发主力已经从学术界转移到工业界。
 
@@ -700,84 +826,135 @@ sum(edu_email$Package)
 
 一般人我都不告诉他，勾搭 NB 院校老师的机会来了，我们先来看看斯坦佛大学（stanford.edu）的哪些老师贡献了哪些 R 包。
 
-| R 包               | 开发者                                               |
-|:-------------------|:-----------------------------------------------------|
-| QuantileGradeR     | Zoe Ashwood <zashwood@law.stanford.edu>              |
-| GenoScan           | Zihuai He <zihuai@stanford.edu>                      |
-| GhostKnockoff      | Zihuai He <zihuai@stanford.edu>                      |
-| KnockoffScreen     | Zihuai He <zihuai@stanford.edu>                      |
-| WGScan             | Zihuai He <zihuai@stanford.edu>                      |
-| Rdsdp              | Zhisu Zhu <zhuzhisu@alumni.stanford.edu>             |
-| gsynth             | Yiqing Xu <yiqingxu@stanford.edu>                    |
-| panelView          | Yiqing Xu <yiqingxu@stanford.edu>                    |
-| gam                | Trevor Hastie <hastie@stanford.edu>                  |
-| gamsel             | Trevor Hastie <hastie@stanford.edu>                  |
-| glmnet             | Trevor Hastie <hastie@stanford.edu>                  |
-| ISLR               | Trevor Hastie <hastie@stanford.edu>                  |
-| ISLR2              | Trevor Hastie <hastie@stanford.edu>                  |
-| lars               | Trevor Hastie <hastie@stanford.edu>                  |
-| mda                | Trevor Hastie <hastie@stanford.edu>                  |
-| ProDenICA          | Trevor Hastie <hastie@stanford.edu>                  |
-| softImpute         | Trevor Hastie <hastie@stanford.edu>                  |
-| sparsenet          | Trevor Hastie <hastie@stanford.edu>                  |
-| svmpath            | Trevor Hastie <hastie@stanford.edu>                  |
-| COCONUT            | Timothy E Sweeney <tes17@alumni.stanford.edu>        |
-| igraphtosonia      | Sean J Westwood <seanjw@stanford.edu>                |
-| NetCluster         | Sean J Westwood <seanjw@stanford.edu>                |
-| mdsdt              | Robert X.D. Hawkins <rxdh@stanford.edu>              |
-| glasso             | Rob Tibshirani <tibs@stat.stanford.edu>              |
-| GSA                | Rob Tibshirani <tibs@stat.stanford.edu>              |
-| clusterRepro       | Rob Tibshirani <tibs@stanford.edu>                   |
-| pcLasso            | Rob Tibshirani <tibs@stanford.edu>                   |
-| PMA                | Rob Tibshirani <tibs@stanford.edu>                   |
-| samr               | Rob Tibshirani <tibs@stanford.edu>                   |
-| selectiveInference | Rob Tibshirani <tibs@stanford.edu>                   |
-| pamr               | Rob Tibshirani <tibs@stanford.edu>                   |
-| xtreg2way          | Paulo Somaini <soma@stanford.edu>                    |
-| dagwood            | Noah Haber <noahhaber@stanford.edu>                  |
-| BHMSMAfMRI         | Nilotpal Sanyal <nsanyal@stanford.edu>               |
-| EValue             | Maya B. Mathur <mmathur@stanford.edu>                |
-| MetaUtility        | Maya B. Mathur <mmathur@stanford.edu>                |
-| NRejections        | Maya B. Mathur <mmathur@stanford.edu>                |
-| PublicationBias    | Maya B. Mathur <mmathur@stanford.edu>                |
-| Replicate          | Maya B. Mathur <mmathur@stanford.edu>                |
-| SimTimeVar         | Maya B. Mathur <mmathur@stanford.edu>                |
-| SNPknock           | Matteo Sesia <msesia@stanford.edu>                   |
-| pcdpca             | Lukasz Kidzinski <lukasz.kidzinski@stanford.edu>     |
-| CVcalibration      | Lu Tian <lutian@stanford.edu>                        |
-| exactmeta          | Lu Tian <lutian@stanford.edu>                        |
-| PBIR               | Lu Tian <lutian@stanford.edu>                        |
-| RandMeta           | Lu Tian <lutian@stanford.edu>                        |
-| VDSPCalibration    | Lu Tian <lutian@stanford.edu>                        |
-| ptycho             | Laurel Stell <lstell@stanford.edu>                   |
-| LocFDRPois         | Kris Sankaran <kriss1@stanford.edu>                  |
-| freqdom            | Kidzinski L. <lukasz.kidzinski@stanford.edu>         |
-| freqdom.fda        | Kidzinski L. <lukasz.kidzinski@stanford.edu>         |
-| relgam             | Kenneth Tay <kjytay@stanford.edu>                    |
-| akmeans            | Jungsuk Kwac <kwjusu1@stanford.edu>                  |
-| grf                | Julie Tibshirani <jtibs@cs.stanford.edu>             |
-| ebal               | Jens Hainmueller <jhain@stanford.edu>                |
-| KRLS               | Jens Hainmueller <jhain@stanford.edu>                |
-| Synth              | Jens Hainmueller <jhain@stanford.edu>                |
-| rma.exact          | Haben Michael <haben.michael@stanford.edu>           |
-| policytree         | Erik Sverdrup <erikcs@stanford.edu>                  |
-| CHOIRBM            | Eric Cramer <emcramer@stanford.edu>                  |
-| texteffect         | Christian Fong <christianfong@stanford.edu>          |
-| bcaboot            | Balasubramanian Narasimhan <naras@stat.stanford.edu> |
-| cubature           | Balasubramanian Narasimhan <naras@stat.stanford.edu> |
-| sglr               | Balasubramanian Narasimhan <naras@stat.stanford.edu> |
-| sp23design         | Balasubramanian Narasimhan <naras@stat.stanford.edu> |
-| CVXR               | Anqi Fu <anqif@alumni.stanford.edu>                  |
-| RCA                | Amir Goldberg <amirgo@stanford.edu>                  |
-| TableHC            | Alon Kipnis <kipnisal@stanford.edu>                  |
-| MetaLonDA          | Ahmed A. Metwally <ametwall@stanford.edu>            |
-| MetaIntegrator     | Aditya M. Rao <adityamr@stanford.edu>                |
-| lrgs               | Adam Mantz <amantz@slac.stanford.edu>                |
-| rgw                | Adam Mantz <amantz@slac.stanford.edu>                |
+``` r
+stanford_pdb <- subset(
+  x = org_pdb,
+  subset = grepl(pattern = "stanford.edu", x = Maintainer),
+  select = c("Package", "Maintainer")
+) |>
+  transform(Maintainer = gsub(pattern = "<.*?>", replacement = "", x = Maintainer)) |>
+  transform(Maintainer = trimws(Maintainer, which = "both", whitespace = "[ \t\r\n]"))
 
+tmp <- stanford_pdb[order(stanford_pdb$Maintainer, decreasing = TRUE), ]
+tmp1 <- head(tmp, ceiling(nrow(tmp) / 2))
+tmp2 <- tail(tmp, floor(nrow(tmp) / 2))
+
+knitr::kable(list(tmp1, tmp2),
+  col.names = c("R 包", "开发者"), row.names = FALSE,
+  caption = "斯坦福大学开发者（部分）"
+)
+```
+
+<table class="kable_wrapper">
+<caption>
 Table 5: 斯坦福大学开发者（部分）
+</caption>
+<tbody>
+<tr>
+<td>
+
+| R 包               | 开发者              |
+|:-------------------|:--------------------|
+| QuantileGradeR     | Zoe Ashwood         |
+| GenoScan           | Zihuai He           |
+| GhostKnockoff      | Zihuai He           |
+| KnockoffScreen     | Zihuai He           |
+| WGScan             | Zihuai He           |
+| Rdsdp              | Zhisu Zhu           |
+| gsynth             | Yiqing Xu           |
+| panelView          | Yiqing Xu           |
+| gam                | Trevor Hastie       |
+| gamsel             | Trevor Hastie       |
+| glmnet             | Trevor Hastie       |
+| ISLR               | Trevor Hastie       |
+| ISLR2              | Trevor Hastie       |
+| lars               | Trevor Hastie       |
+| mda                | Trevor Hastie       |
+| ProDenICA          | Trevor Hastie       |
+| softImpute         | Trevor Hastie       |
+| sparsenet          | Trevor Hastie       |
+| svmpath            | Trevor Hastie       |
+| COCONUT            | Timothy E Sweeney   |
+| igraphtosonia      | Sean J Westwood     |
+| NetCluster         | Sean J Westwood     |
+| mdsdt              | Robert X.D. Hawkins |
+| clusterRepro       | Rob Tibshirani      |
+| glasso             | Rob Tibshirani      |
+| GSA                | Rob Tibshirani      |
+| pamr               | Rob Tibshirani      |
+| pcLasso            | Rob Tibshirani      |
+| PMA                | Rob Tibshirani      |
+| samr               | Rob Tibshirani      |
+| selectiveInference | Rob Tibshirani      |
+| xtreg2way          | Paulo Somaini       |
+| dagwood            | Noah Haber          |
+| BHMSMAfMRI         | Nilotpal Sanyal     |
+| EValue             | Maya B. Mathur      |
+| MetaUtility        | Maya B. Mathur      |
+
+</td>
+<td>
+
+| R 包            | 开发者                     |
+|:----------------|:---------------------------|
+| NRejections     | Maya B. Mathur             |
+| PublicationBias | Maya B. Mathur             |
+| Replicate       | Maya B. Mathur             |
+| SimTimeVar      | Maya B. Mathur             |
+| SNPknock        | Matteo Sesia               |
+| pcdpca          | Lukasz Kidzinski           |
+| CVcalibration   | Lu Tian                    |
+| exactmeta       | Lu Tian                    |
+| PBIR            | Lu Tian                    |
+| RandMeta        | Lu Tian                    |
+| VDSPCalibration | Lu Tian                    |
+| ptycho          | Laurel Stell               |
+| LocFDRPois      | Kris Sankaran              |
+| freqdom         | Kidzinski L.               |
+| freqdom.fda     | Kidzinski L.               |
+| relgam          | Kenneth Tay                |
+| akmeans         | Jungsuk Kwac               |
+| grf             | Julie Tibshirani           |
+| ebal            | Jens Hainmueller           |
+| KRLS            | Jens Hainmueller           |
+| Synth           | Jens Hainmueller           |
+| rma.exact       | Haben Michael              |
+| policytree      | Erik Sverdrup              |
+| CHOIRBM         | Eric Cramer                |
+| texteffect      | Christian Fong             |
+| bcaboot         | Balasubramanian Narasimhan |
+| cubature        | Balasubramanian Narasimhan |
+| sglr            | Balasubramanian Narasimhan |
+| sp23design      | Balasubramanian Narasimhan |
+| CVXR            | Anqi Fu                    |
+| RCA             | Amir Goldberg              |
+| TableHC         | Alon Kipnis                |
+| MetaLonDA       | Ahmed A. Metwally          |
+| MetaIntegrator  | Aditya M. Rao              |
+| lrgs            | Adam Mantz                 |
+| rgw             | Adam Mantz                 |
+
+</td>
+</tr>
+</tbody>
+</table>
 
 ### 高产开发者
+
+``` r
+author_pdb <- subset(x = pdb, select = c("Package", "Maintainer"))
+author_pdb_aggr <-aggregate(data = author_pdb, Package ~ Maintainer, FUN = function(x) length(unique(x)))
+author_pdb_aggr <- author_pdb_aggr[order(author_pdb_aggr$Package, decreasing = TRUE), ]
+author_pdb_aggr <- transform(author_pdb_aggr, Maintainer = gsub(pattern = "<.*?>", replacement = "", x = Maintainer))
+tmp = head(author_pdb_aggr, 30)
+tmp1 = head(tmp, 15)
+tmp2 = tail(tmp, 15)
+
+knitr::kable(list(tmp1, tmp2),
+  col.names = c("开发者", "R 包数量"), row.names = FALSE,
+  caption = "开发 R 包数量最多的人（Top 30）"
+)
+```
 
 <table class="kable_wrapper">
 <caption>
@@ -875,6 +1052,67 @@ Table 6: 开发 R 包数量最多的人（Top 30）
     (The authors of code from other projects included in the R distribution
     are listed in the COPYRIGHTS file.)
 
+``` r
+core_dev <- subset(pdb,
+  subset = grepl(
+    x = Maintainer,
+    pattern = paste0(c(
+      "(@[Rr]-project\\.org)",
+      "(ripley@stats.ox.ac.uk)", # Brian Ripley
+      "(p.murrell@auckland.ac.nz)", # Paul Murrell
+      "(paul@stat.auckland.ac.nz)", # Paul Murrell
+      "(maechler@stat.math.ethz.ch)", # Martin Maechler
+      "(mmaechler+Matrix@gmail.com)", # Martin Maechler
+      "(bates@stat.wisc.edu)", # Douglas Bates
+      "(pd.mes@cbs.dk)", # Peter Dalgaard
+      "(ligges@statistik.tu-dortmund.de)", # Uwe Ligges
+      "(tlumley@u.washington.edu)", # Thomas Lumley
+      "(t.lumley@auckland.ac.nz)", # Thomas Lumley
+      "(martyn.plummer@gmail.com)", # Martyn Plummer
+      "(luke-tierney@uiowa.edu)", # Luke Tierney
+      "(stefano.iacus@unimi.it)", # Stefano M. Iacus
+      "(murdoch.duncan@gmail.com)", # Duncan Murdoch
+      "(michafla@gene.com)" # Michael Lawrence
+    ), collapse = "|")
+  ),
+  select = c("Package", "Maintainer")
+) |>
+  transform(Maintainer = gsub(
+    x = Maintainer,
+    pattern = '(<([^<>]*)>)|(")',
+    replacement = ""
+  )) |>
+  transform(Maintainer = gsub(
+    x = Maintainer,
+    pattern = "(R-core)|(R Core Team)",
+    replacement = "CRAN Team"
+  )) |>
+  transform(Maintainer = gsub(
+    x = Maintainer,
+    pattern = "(S. M. Iacus)|(Stefano M.Iacus)|(Stefano Maria Iacus)",
+    replacement = "Stefano M. Iacus"
+  )) |>
+  transform(Maintainer = gsub(
+    x = Maintainer,
+    pattern = "(Toby Hocking)",
+    replacement = "Toby Dylan Hocking"
+  )) |>
+  transform(Maintainer = gsub(
+    x = Maintainer,
+    pattern = "(John M Chambers)",
+    replacement = "John Chambers"
+  ))
+
+tmp <- aggregate(data = core_dev, Package ~ Maintainer, FUN = function(x) length(unique(x)))
+tmp <- tmp[order(tmp$Package, decreasing = TRUE),]
+tmp1 <- head(tmp, ceiling(nrow(tmp) / 2))
+tmp2 <- tail(tmp, floor(nrow(tmp) / 2))
+knitr::kable(list(tmp1, tmp2),
+  col.names = c("团队成员", "R 包数量"), row.names = FALSE,
+  caption = "CRAN 团队开发维护 R 包数量情况"
+)
+```
+
 <table class="kable_wrapper">
 <caption>
 Table 7: CRAN 团队开发维护 R 包数量情况
@@ -925,6 +1163,22 @@ Table 7: CRAN 团队开发维护 R 包数量情况
 
 Martin Maechler、Simon Urbanek、Kurt Hornik、Torsten Hothorn、Achim Zeileis 等真是高产呐！除了维护 R 语言核心代码，还开发维护了**20**多个 R 包！以 Brian Ripley 为例，看看他都开发了哪些 R 包。
 
+``` r
+subset(pdb,
+  subset = grepl(
+    x = Maintainer,
+    pattern = "Brian Ripley"
+  ),
+  select = c("Package", "Title"), drop = TRUE
+) |>
+  unique(by = "Package") |> 
+  transform(Title = gsub(
+    pattern = "(\\\n)",
+    replacement = " ", x = Title
+  )) |> 
+  knitr::kable(row.names = FALSE)
+```
+
 | Package    | Title                                                                    |
 |:-----------|:-------------------------------------------------------------------------|
 | boot       | Bootstrap Functions (Originally by Angelo Canty for S)                   |
@@ -949,6 +1203,32 @@ Martin Maechler、Simon Urbanek、Kurt Hornik、Torsten Hothorn、Achim Zeileis 
 </div>
 
 看看他们开发的 R 包之间的依赖关系，数据范围就是他们开发的 R 包
+
+``` r
+core_dev_db <- subset(pdb,
+  subset = grepl(
+    x = Maintainer,
+    pattern = paste0(c(
+      "(@[Rr]-project\\.org)",
+      "(ripley@stats.ox.ac.uk)",    # Brian Ripley
+      "(p.murrell@auckland.ac.nz)", # Paul Murrell
+      "(paul@stat.auckland.ac.nz)", # Paul Murrell
+      "(maechler@stat.math.ethz.ch)", # Martin Maechler
+      "(mmaechler+Matrix@gmail.com)", # Martin Maechler
+      "(bates@stat.wisc.edu)", # Douglas Bates
+      "(pd.mes@cbs.dk)",       # Peter Dalgaard
+      "(ligges@statistik.tu-dortmund.de)", # Uwe Ligges
+      "(tlumley@u.washington.edu)",        # Thomas Lumley
+      "(t.lumley@auckland.ac.nz)",         # Thomas Lumley
+      "(martyn.plummer@gmail.com)",        # Martyn Plummer
+      "(luke-tierney@uiowa.edu)",          # Luke Tierney
+      "(stefano.iacus@unimi.it)",   # Stefano M. Iacus
+      "(murdoch.duncan@gmail.com)", # Duncan Murdoch
+      "(michafla@gene.com)"         # Michael Lawrence
+    ), collapse = "|")
+  )
+)
+```
 
 ``` r
 # 顶点
@@ -1029,6 +1309,87 @@ plot(net,
 )
 ```
 
+### RStudio 团队
+
+``` r
+extract_maintainer <- function(x) {
+  x <- gsub(pattern = "<.*?>", replacement = "", x = x)
+  x <- trimws(x, which = "both", whitespace = "[ \t\r\n]")
+  x
+}
+rstudio_db <- subset(pdb,
+  subset = grepl(x = Maintainer, pattern = "rstudio.com"),
+  select = c("Package", "Maintainer")
+) |> 
+  transform(Maintainer = extract_maintainer(Maintainer))
+rstudio_db <- aggregate(data = rstudio_db, Package ~ Maintainer, FUN = function(x) length(unique(x)))
+rstudio_db <- rstudio_db[order(rstudio_db$Package, decreasing = TRUE), ]
+```
+
+``` r
+tmp1 <- head(rstudio_db, ceiling(nrow(rstudio_db) / 2))
+tmp2 <- tail(rstudio_db, floor(nrow(rstudio_db) / 2))
+
+knitr::kable(list(tmp1, tmp2),
+  col.names = c("团队成员", "R 包数量"), row.names = FALSE,
+  caption = "RStudio 团队开发维护 R 包数量情况（部分）"
+)
+```
+
+<table class="kable_wrapper">
+<caption>
+Table 8: RStudio 团队开发维护 R 包数量情况（部分）
+</caption>
+<tbody>
+<tr>
+<td>
+
+| 团队成员            | R 包数量 |
+|:--------------------|---------:|
+| Hadley Wickham      |       47 |
+| Max Kuhn            |       21 |
+| Lionel Henry        |       15 |
+| Davis Vaughan       |       14 |
+| Jennifer Bryan      |       14 |
+| Winston Chang       |       14 |
+| Daniel Falbel       |       11 |
+| Carson Sievert      |        8 |
+| Yitao Li            |        7 |
+| Barret Schloerke    |        6 |
+| Thomas Lin Pedersen |        6 |
+| JJ Allaire          |        4 |
+| Joe Cheng           |        4 |
+| Kevin Ushey         |        4 |
+
+</td>
+<td>
+
+| 团队成员          | R 包数量 |
+|:------------------|---------:|
+| Richard Iannone   |        4 |
+| Tomasz Kalinowski |        4 |
+| Julia Silge       |        3 |
+| Kevin Kuo         |        3 |
+| Aron Atkins       |        2 |
+| Cole Arendt       |        2 |
+| Romain François   |        2 |
+| Brian Smith       |        1 |
+| Hannah Frick      |        1 |
+| James Blair       |        1 |
+| Jim Hester        |        1 |
+| Nathan Stephens   |        1 |
+| Nick Strayer      |        1 |
+| Sigrid Keydana    |        1 |
+
+</td>
+</tr>
+</tbody>
+</table>
+
+在开发维护的 R 包里，谢益辉所给的联系邮箱是 <xie@yihui.name>，就不在上述之列，因此，表<a href="#tab:rstudio-developers">8</a>中所列仅是部分而已。
+
+CRAN 和 RStudio 团队是 R 语言社区最为熟悉的，其它团队需借助一些网络分析算法挖掘了。
+
 ## 开发者关系
 
 选择一个 R 包需要考虑很多因素，最关键的因素还是人，以 data.table 为例，外部依赖很少，运行效率很高，功能覆盖很广，向后兼容很好，帮助文档很全，单测回测很足。R 包的品质可以看出做人做事的品质，Code Style Should Taste Well!
@@ -1037,39 +1398,97 @@ plot(net,
 
 通过 R 包贡献合作的关系
 
-关键组织
+### 贡献者
+
+以 data.table 包为例，从元数据中抽取贡献者名单
 
 ``` r
-# 逆向依赖
-tools::package_dependencies(reverse = TRUE, which = "most", recursive = "strong")
+author <- pdb[pdb$Package == "data.table", c("Authors@R")]
+author <- gsub(pattern = "[\\\n]", x = author, replacement = "")
+author <- eval(parse(text = author))
+format(author, include = c("given", "family"))
+#  [1] "Matt Dowle"               "Arun Srinivasan"         
+#  [3] "Jan Gorecki"              "Michael Chirico"         
+#  [5] "Pasha Stetsenko"          "Tom Short"               
+#  [7] "Steve Lianoglou"          "Eduard Antonyan"         
+#  [9] "Markus Bonsch"            "Hugh Parsonage"          
+# [11] "Scott Ritchie"            "Kun Ren"                 
+# [13] "Xianying Tan"             "Rick Saporta"            
+# [15] "Otto Seiskari"            "Xianghui Dong"           
+# [17] "Michel Lang"              "Watal Iwasaki"           
+# [19] "Seth Wenchel"             "Karl Broman"             
+# [21] "Tobias Schmidt"           "David Arenburg"          
+# [23] "Ethan Smith"              "Francois Cocquemas"      
+# [25] "Matthieu Gomez"           "Philippe Chataignon"     
+# [27] "Nello Blaser"             "Dmitry Selivanov"        
+# [29] "Andrey Riabushenko"       "Cheng Lee"               
+# [31] "Declan Groves"            "Daniel Possenriede"      
+# [33] "Felipe Parages"           "Denes Toth"              
+# [35] "Mus Yaramaz-David"        "Ayappan Perumal"         
+# [37] "James Sams"               "Martin Morgan"           
+# [39] "Michael Quinn"            "@javrucebo"              
+# [41] "@marc-outins"             "Roy Storey"              
+# [43] "Manish Saraswat"          "Morgan Jacob"            
+# [45] "Michael Schubmehl"        "Davis Vaughan"           
+# [47] "Toby Hocking"             "Leonardo Silvestri"      
+# [49] "Tyson Barrett"            "Jim Hester"              
+# [51] "Anthony Damico"           "Sebastian Freundt"       
+# [53] "David Simons"             "Elliott Sales de Andrade"
+# [55] "Cole Miller"              "Jens Peder Meldgaard"    
+# [57] "Vaclav Tlapak"            "Kevin Ushey"             
+# [59] "Dirk Eddelbuettel"        "Ben Schwen"
 ```
 
-``` r
-# 选择就近的 CRAN 镜像站点
-Sys.setenv(R_CRAN_WEB = "https://mirrors.tuna.tsinghua.edu.cn/CRAN")
-# 下载 R 包元数据
-pdb <- tools::CRAN_package_db()
-```
+其中，`@javrucebo` 和 `@marc-outins` 是 Github ID 并不是姓名。各个贡献者
 
 ``` r
-# 强依赖 igraph 包的 R 包
-igraph_deps <- tools::dependsOnPkgs('igraph', installed = pdb, recursive = FALSE)
+format(author, include = c("role"))
+#  [1] "[aut, cre]" "[aut]"      "[ctb]"      "[ctb]"      "[ctb]"     
+#  [6] "[ctb]"      "[ctb]"      "[ctb]"      "[ctb]"      "[ctb]"     
+# [11] "[ctb]"      "[ctb]"      "[ctb]"      "[ctb]"      "[ctb]"     
+# [16] "[ctb]"      "[ctb]"      "[ctb]"      "[ctb]"      "[ctb]"     
+# [21] "[ctb]"      "[ctb]"      "[ctb]"      "[ctb]"      "[ctb]"     
+# [26] "[ctb]"      "[ctb]"      "[ctb]"      "[ctb]"      "[ctb]"     
+# [31] "[ctb]"      "[ctb]"      "[ctb]"      "[ctb]"      "[ctb]"     
+# [36] "[ctb]"      "[ctb]"      "[ctb]"      "[ctb]"      "[ctb]"     
+# [41] "[ctb]"      "[ctb]"      "[ctb]"      "[ctb]"      "[ctb]"     
+# [46] "[ctb]"      "[ctb]"      "[ctb]"      "[ctb]"      "[ctb]"     
+# [51] "[ctb]"      "[ctb]"      "[ctb]"      "[ctb]"      "[ctb]"     
+# [56] "[ctb]"      "[ctb]"      "[ctb]"      "[ctb]"      "[ctb]"
 ```
 
+data.table 的维护者，建立60个贡献者到维护者的有向图关系
+
 ``` r
-pdb2 <- subset(pdb, select = c("Package", "Maintainer"), subset = Package %in% igraph_deps)
-pdb2
-#                    Package
-# 125               adegenet
-# 191                    AFM
-# 251                    akc
-# 259               alakazam
-# 362   AnimalHabitatNetwork
-# 366               anipaths
-# 437               apisensr
-# 479             archeofrag
-# 548              arulesViz
+pdb[pdb$Package == "data.table", "Maintainer"]
+# [1] "Matt Dowle <mattjdowle@gmail.com>"
+```
+
+直接依赖 data.table 的 R 包近 1000 个
+
+``` r
+# 强依赖 data.table 包的 R 包
+tools::dependsOnPkgs('data.table', installed = pdb, dependencies = "strong", recursive = FALSE)
+#   [1] "Ac3net"                        "actel"                        
+#   [3] "ActivePathways"                "ActivityIndex"                
+#   [5] "AdhereR"                       "AdhereRViz"                   
+#   [7] "AeRobiology"                   "AF"                           
+#   [9] "AFM"                           "AggregateR"                   
+#  [11] "AGread"                        "akc"                          
 ....
+```
+
+若算上逆向间接依赖的数量，则多达 2700 多个 R 包。
+
+``` r
+tools::dependsOnPkgs('data.table', installed = pdb, dependencies = "strong", recursive = TRUE)
+```
+
+前向依赖更是达到了惊人的 4350 个 R 包
+
+``` r
+# 前向依赖
+tools::package_dependencies(packages = "data.table", db = pdb, reverse = TRUE, which = "most", recursive = "strong")
 ```
 
 <figure>

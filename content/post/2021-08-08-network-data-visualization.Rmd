@@ -17,7 +17,7 @@ bibliography:
   - packages.bib
 draft: true
 toc: true
-thumbnail: /img/DiagrammeR.svg
+thumbnail: /img/seven-bridges.png
 link-citations: true
 description: "本文首先概览 R 语言在网络数据分析和可视化方面的情况；然后介绍图的表示（矩阵），图的计算（矩阵计算），图的展示（点、线等），图的工具（R 和其它软件）；最后以 CRAN 上 R 包的元数据为基础，介绍网络分析和可视化的过程，也发现了 R 语言社区中一些非常有意思的现象。"
 ---
@@ -142,8 +142,6 @@ div.img {
 
 
 <!--
-葛底斯堡战役七桥问题，图作为文章 logo
-
 [**RcppSparse**](https://github.com/zdebruine/RcppSparse)  RcppArmadillo 和 RcppEigen 深拷贝deep copy 操作，而 RcppSparse zero-copy 零拷贝，无缝衔接，而计算结果是一致的，详细描述见 [Constructing a Sparse Matrix Class in Rcpp](https://gallery.rcpp.org/articles/sparse-matrix-class/)
 -->
 
@@ -177,7 +175,7 @@ div.img {
 
 
 
-```{r network-deps, echo=FALSE, message=FALSE}
+```{r network-deps, message=FALSE}
 # 获取 R 包元数据
 Sys.setenv(R_CRAN_WEB = "https://mirrors.tuna.tsinghua.edu.cn/CRAN")
 # 返回 data.frame
@@ -289,7 +287,7 @@ xfun::write_utf8(bib, "packages.bib")
 
 柯尼斯堡七桥图的数据已经收录在 **igraphdata** 包里，数据集名称就叫 Koenigsberg
 
-```{r,eval=FALSE,echo=FALSE}
+```{r,eval=FALSE}
 library(igraphdata)
 data(Koenigsberg)
 library(igraph)
@@ -437,7 +435,7 @@ R 包关系
 
 R 软件以 GPL 2.0 或 GPL 3.0 协议发布
 
-```{r,echo=FALSE}
+```{r}
 license_pdb <- subset(x = pdb, select = c("Package", "License"))
 license_pdb_aggr <-aggregate(data = license_pdb, Package ~ License, FUN = function(x) length(unique(x)))
 license_pdb_aggr <- license_pdb_aggr[order(license_pdb_aggr$Package, decreasing = TRUE), ]
@@ -601,16 +599,14 @@ length(unique(maintainer_db$Maintainer))
 
 目的和 tidymodels 差不多，都是提供做数据建模的完整解决方案，区别在于它不基于 tidyverse 这套东西。
 
-```{r,echo=FALSE}
+```{r}
 str_extract <- function(text, pattern, ...) regmatches(text, regexpr(pattern, text, ...))
 # 确保有邮箱
 org_pdb <- subset(
   x = pdb,
   select = c("Package", "Maintainer"),
   subset = grepl(pattern = "[<>]", x = Maintainer)
-)
-
-org_pdb <- org_pdb |> 
+) |> 
   transform(email_suffix = gsub(pattern = ".*?@(.*?)>", replacement = "\\1", x = Maintainer))
 
 org_pdb_aggr <-aggregate(data = org_pdb, Package ~ email_suffix, FUN = function(x) length(unique(x)))
@@ -630,10 +626,12 @@ knitr::kable(list(tmp1, tmp2),
 
 看到这个结果还是蛮震惊的，竟有 6584 个 R 包使用 Gmail 邮箱，截止写作时间，CRAN 上全部 R 包 18000 多个，Gmail 邮箱覆盖率超过 1/3！
 
+### 教育机构
+
 我们知道 R 语言社区的很多开发者来自学界，使用学校邮箱的应该不少，因此，决定看看 Top 的大学有哪些，以及总数能否超过 Gmail 邮箱？
 
 
-```{r,echo=FALSE}
+```{r}
 edu_email <- subset(x = org_pdb_aggr, subset = grepl(pattern = "edu$", x = email_suffix))
 
 tmp <- head(edu_email, 30)
@@ -647,7 +645,7 @@ knitr::kable(list(tmp1, tmp2),
 )
 ```
 
-好吧！我承认自己被打脸了，几乎全是欧美各个 NB 大学的，比如华盛顿大学（ uw.edu）、密歇根大学（umich.edu）、加州伯克利大学（berkeley.edu）等等。顺便一说，欧美各个大学的网站，特别是统计院系很厉害的，已经帮大家收集得差不多了，有留学打算的读者自取，邮箱后缀就是学校/院官网。
+好吧，几乎全是欧美各个 NB 大学的，比如华盛顿大学（ uw.edu）、密歇根大学（umich.edu）、加州伯克利大学（berkeley.edu）等等。顺便一说，欧美各个大学的网站，特别是统计院系很厉害的，已经帮大家收集得差不多了，有留学打算的读者自取，邮箱后缀就是学校/院官网。
 
 而使用大学邮箱的 R 包总数竟不及 Gmail 邮箱，可见谷歌邮箱服务在全球 R 语言社区的影响力，赤裸裸的数字，赤裸裸的伤害！虽然有的学校邮箱不以 edu 结尾，有的人虽在学校，但是使用了 Gmail 邮箱，但是巨大的数字鸿沟，几乎可以断定 R 语言社区的开发主力已经从学术界转移到工业界。
 
@@ -657,10 +655,20 @@ sum(edu_email$Package)
 
 一般人我都不告诉他，勾搭 NB 院校老师的机会来了，我们先来看看斯坦佛大学（stanford.edu）的哪些老师贡献了哪些 R 包。
 
-```{r,echo=FALSE}
-stanford_pdb <- subset(x = org_pdb, subset = grepl(pattern = "stanford.edu", x = Maintainer), select = c("Package", "Maintainer"))
+```{r}
+stanford_pdb <- subset(
+  x = org_pdb,
+  subset = grepl(pattern = "stanford.edu", x = Maintainer),
+  select = c("Package", "Maintainer")
+) |>
+  transform(Maintainer = gsub(pattern = "<.*?>", replacement = "", x = Maintainer)) |>
+  transform(Maintainer = trimws(Maintainer, which = "both", whitespace = "[ \t\r\n]"))
 
-knitr::kable(stanford_pdb[order(stanford_pdb$Maintainer, decreasing = TRUE), ],
+tmp <- stanford_pdb[order(stanford_pdb$Maintainer, decreasing = TRUE), ]
+tmp1 <- head(tmp, ceiling(nrow(tmp) / 2))
+tmp2 <- tail(tmp, floor(nrow(tmp) / 2))
+
+knitr::kable(list(tmp1, tmp2),
   col.names = c("R 包", "开发者"), row.names = FALSE,
   caption = "斯坦福大学开发者（部分）"
 )
@@ -669,7 +677,7 @@ knitr::kable(stanford_pdb[order(stanford_pdb$Maintainer, decreasing = TRUE), ],
 
 ### 高产开发者
 
-```{r,echo=FALSE}
+```{r}
 author_pdb <- subset(x = pdb, select = c("Package", "Maintainer"))
 author_pdb_aggr <-aggregate(data = author_pdb, Package ~ Maintainer, FUN = function(x) length(unique(x)))
 author_pdb_aggr <- author_pdb_aggr[order(author_pdb_aggr$Package, decreasing = TRUE), ]
@@ -696,7 +704,7 @@ writeLines(readLines(file.path(R.home("doc"), "AUTHORS")))
 ```
 
 
-```{r,comment=NA,echo=FALSE}
+```{r,comment=NA}
 core_dev <- subset(pdb,
   subset = grepl(
     x = Maintainer,
@@ -759,7 +767,7 @@ knitr::kable(list(tmp1, tmp2),
 
 Martin Maechler、Simon Urbanek、Kurt Hornik、Torsten Hothorn、Achim Zeileis 等真是高产呐！除了维护 R 语言核心代码，还开发维护了**20**多个 R 包！以 Brian Ripley 为例，看看他都开发了哪些 R 包。
 
-```{r,echo=FALSE}
+```{r}
 subset(pdb,
   subset = grepl(
     x = Maintainer,
@@ -783,7 +791,7 @@ subset(pdb,
 
 看看他们开发的 R 包之间的依赖关系，数据范围就是他们开发的 R 包
 
-```{r,echo=FALSE}
+```{r}
 core_dev_db <- subset(pdb,
   subset = grepl(
     x = Maintainer,
@@ -892,6 +900,36 @@ plot(net,
 
 
 
+### RStudio 团队
+
+
+```{r}
+extract_maintainer <- function(x) {
+  x <- gsub(pattern = "<.*?>", replacement = "", x = x)
+  x <- trimws(x, which = "both", whitespace = "[ \t\r\n]")
+  x
+}
+rstudio_db <- subset(pdb,
+  subset = grepl(x = Maintainer, pattern = "rstudio.com"),
+  select = c("Package", "Maintainer")
+) |> 
+  transform(Maintainer = extract_maintainer(Maintainer))
+rstudio_db <- aggregate(data = rstudio_db, Package ~ Maintainer, FUN = function(x) length(unique(x)))
+rstudio_db <- rstudio_db[order(rstudio_db$Package, decreasing = TRUE), ]
+```
+```{r rstudio-developers}
+tmp1 <- head(rstudio_db, ceiling(nrow(rstudio_db) / 2))
+tmp2 <- tail(rstudio_db, floor(nrow(rstudio_db) / 2))
+
+knitr::kable(list(tmp1, tmp2),
+  col.names = c("团队成员", "R 包数量"), row.names = FALSE,
+  caption = "RStudio 团队开发维护 R 包数量情况（部分）"
+)
+```
+
+在开发维护的 R 包里，谢益辉所给的联系邮箱是 <xie@yihui.name>，就不在上述之列，因此，表\@ref(tab:rstudio-developers)中所列仅是部分而已。
+
+CRAN 和 RStudio 团队是 R 语言社区最为熟悉的，其它团队需借助一些网络分析算法挖掘了。
 
 
 ## 开发者关系
@@ -902,29 +940,47 @@ plot(net,
 
 通过 R 包贡献合作的关系
 
-关键组织
+### 贡献者
 
-```{r,eval=FALSE}
-# 逆向依赖
-tools::package_dependencies(reverse = TRUE, which = "most", recursive = "strong")
-```
+以 data.table 包为例，从元数据中抽取贡献者名单
 
-
-```{r,eval=FALSE}
-# 选择就近的 CRAN 镜像站点
-Sys.setenv(R_CRAN_WEB = "https://mirrors.tuna.tsinghua.edu.cn/CRAN")
-# 下载 R 包元数据
-pdb <- tools::CRAN_package_db()
-```
 ```{r}
-# 强依赖 igraph 包的 R 包
-igraph_deps <- tools::dependsOnPkgs('igraph', installed = pdb, recursive = FALSE)
+author <- pdb[pdb$Package == "data.table", c("Authors@R")]
+author <- gsub(pattern = "[\\\n]", x = author, replacement = "")
+author <- eval(parse(text = author))
+format(author, include = c("given", "family"))
 ```
 
+其中，`@javrucebo` 和 `@marc-outins` 是 Github ID 并不是姓名。各个贡献者
 
-```{r out.lines=10}
-pdb2 <- subset(pdb, select = c("Package", "Maintainer"), subset = Package %in% igraph_deps)
-pdb2
+```{r}
+format(author, include = c("role"))
+```
+
+data.table 的维护者，建立`r length(author)`个贡献者到维护者的有向图关系
+
+```{r}
+pdb[pdb$Package == "data.table", "Maintainer"]
+```
+
+直接依赖 data.table 的 R 包近 1000 个
+
+```{r, out.lines=6}
+# 强依赖 data.table 包的 R 包
+tools::dependsOnPkgs('data.table', installed = pdb, dependencies = "strong", recursive = FALSE)
+```
+
+若算上逆向间接依赖的数量，则多达 2700 多个 R 包。
+
+```{r,eval=FALSE}
+tools::dependsOnPkgs('data.table', installed = pdb, dependencies = "strong", recursive = TRUE)
+```
+
+前向依赖更是达到了惊人的 4350 个 R 包
+
+```{r,eval=FALSE}
+# 前向依赖
+tools::package_dependencies(packages = "data.table", db = pdb, reverse = TRUE, which = "most", recursive = "strong")
 ```
 
 
