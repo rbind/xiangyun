@@ -18,6 +18,7 @@ thumbnail: /img/gganimate.svg
 link-citations: true
 bibliography: 
   - refer.bib
+  - packages.bib
 description: "本文是把动态图形的范围稍微扩展了一下，凡是可以自己动的图形都称之为「动态图形」，包含动图、动画、影视等一切可以自动播放一帧帧画面的图形图像，这就包含各种各样的形式，如 GIF 动图，SWF 动画，MP4 视频，以及网页渲染的动画，当然还有三维动画。本文会先介绍 **ggplot2** 静态图，然后介绍 **gganimate** 动态图， **echarts4r** 二维平面动画，rgl 三维立体动画，以及相关的一些 R 包和软件，为保持行文连贯，均以 gapminder 数据集为基础予以介绍，希望读者能举一反三。"
 ---
 
@@ -135,17 +136,17 @@ div.img {
 
 简单交代交待一下与之前介绍的[交互式图形](/2021/11/interactive-web-graphics)的区别，提及一下《现代统计图形》里关于 [**rgl**](https://github.com/dmurdoch/rgl) 和 [**animation**](https://github.com/yihui/animation) 包的介绍，本文重点介绍 [**gganimate**](https://github.com/thomasp85/gganimate) 和 [**echarts4r**](https://github.com/JohnCoene/echarts4r) 等更加现代化的工具和技术，以及笔者在使用动态图形展示数据方面的经验和教训。
 
-稍微扩展一下，动态图形包含动图、动画、影视等一切可以自动播放一帧帧画面的图形图像，这就包含各种各样的形式，如 GIF 动图，SWF 动画，MP4 视频，以及网页渲染的动画，当然还有三维动画。本文会先介绍 **ggplot2** 静态图，然后介绍 **gganimate** 动态图， **echarts4r** 二维平面动画，rgl 三维立体动画，以及相关的一些 R 包和软件，为保持行文连贯，均以 gapminder 数据集为基础予以介绍，希望读者能举一反三。
+稍微扩展一下，动态图形包含动图、动画、影视等一切可以自动播放一帧帧画面的图形图像，这就包含各种各样的形式，如 GIF 动图，SWF 动画，MP4 视频，以及网页渲染的动画，当然还有三维动画。本文会先介绍 **ggplot2** 静态图，然后介绍 **gganimate** 动态图， **echarts4r** 二维平面动画，**rgl** 三维立体动画，以及相关的一些 R 包和软件，为保持行文连贯，均以 **gapminder** 包内置的 gapminder 数据集为基础予以介绍，希望读者能举一反三。
 
 Thomas Lin Pedersen 从 David Robinson 接手维护后，大刀阔斧地开发 **gganimate** ，打造「A Grammar of Animated Graphics」，他还是另一个图形语法的开山之作 **ggplot2** 的维护者。
 
 领域内相关商业软件有很多，Adobe Flash 是早年的二维平面动画，Adobe 的 AE 和 PR 主打影视后期制作，Autodesk 的 Maya 和 3D Max 在三维场景建模、动画渲染等领域几成行业标准。开源软件也有不少，面向网页输出、支持 GPU 渲染的 three.js，[Blender](https://www.blender.org/) 是 GPL 协议开源的自由免费软件，GitHub 上存放了[源码镜像](https://github.com/blender/blender)。
 
 
-有人戏称 [rayrender](https://github.com/tylermorganwall/rayrender) 是 好看但是没什么卵用的 R 包，不依赖 rgl 包，主打 3D 建模，渲染复杂场景，没有外部依赖，可制作三维立体感的 ggplot2 图形，推荐其替代 rgl 制作三维动画。[rayshader](https://github.com/tylermorganwall/rayshader) 依赖 rgl 和 rayrender 等提供阴影特效，适合地形景观图，Tyler Morgan-Wall 也曾在 RStudio 大会上介绍过 **rayshader**，Github 星赞超过 1500，算是比较流行的 R 包了。
+有人戏称 [**rayrender**](https://github.com/tylermorganwall/rayrender) 是 好看但是没什么卵用的 R 包，不依赖 rgl 包，主打 3D 建模，渲染复杂场景，没有外部依赖，可制作三维立体感的 **ggplot2** 图形，推荐其替代 **rgl** 制作三维动画。[**rayshader**](https://github.com/tylermorganwall/rayshader) 依赖 **rgl** 和 **rayrender** 等提供阴影特效，适合地形景观图，Tyler Morgan-Wall 也曾在 RStudio 大会上介绍过 **rayshader**，Github 星赞超过 1500，算是比较流行的 R 包了。
 
 
-[gifski](https://gif.ski/) 是一个制作 GIF 动图的 Rust 库，[Jeroen Ooms](https://github.com/jeroen) 开发了同名的 R 语言接口 [gifski](https://github.com/r-rust/gifski) 包，**gganimate** 制作 ggplot2 风格的动图或 MP4 格式视频也是采用 **gifski** 做转化。
+[gifski](https://gif.ski/) 是一个制作 GIF 动图的 Rust 库，[Jeroen Ooms](https://github.com/jeroen) 开发了同名的 R 语言接口 [**gifski**](https://github.com/r-rust/gifski) 包，**gganimate** 制作 ggplot2 风格的动图或 MP4 格式视频也是采用 **gifski** 做转化。
 
 [imagemagick](https://imagemagick.org/) 是一个独立的图像后期处理软件，它可以将一系列静态图片合成 GIF 动图，[**magick**](https://github.com/ropensci/magick) 是 Jeroen Ooms 开发的又一 R 接口包，[ffmpeg](https://www.ffmpeg.org/) 是一个独立的视频处理软件。
 
@@ -154,20 +155,67 @@ LaTeX 宏包 [animate](https://ctan.org/pkg/animate)，常用于 [beamer](https:
 
 
 
+```{r table-deps, echo=FALSE}
+# 获取 R 包元数据
+Sys.setenv(R_CRAN_WEB = "https://mirrors.tuna.tsinghua.edu.cn/CRAN")
+pdb <- tools::CRAN_package_db()
+
+# 处理掉丑陋的成对单引号
+rmd_lib <- c(
+  "plotly.js", "Echarts JavaScript"
+)
+rmd_regexp <- paste("'(", paste(rmd_lib, collapse = "|"), ")'", sep = "")
+
+pkgs <- c(
+  "plotly", "gganimate", "echarts4r", 
+  "animation", "rgl", "magick", "rayrender"
+)
+# 若有未安装的 R 包先安装，后面才能写入引用数据到文件
+if(any(!pkgs %in% .packages(T))){
+  install.packages(pkgs[!pkgs %in% .packages(T)])
+}
+# 提取 R Shiny 应用使用的 R 包及其基本描述
+sub_pdb <- subset(
+  x = pdb,
+  select = c("Package", "Title", "Maintainer", "URL", "License"),
+  subset = Package %in% pkgs
+) |>
+  transform(Title = gsub("(\\\n)", " ", Title)) |>
+  transform(Title = gsub(rmd_regexp, "\\1", Title)) |> 
+  transform(Maintainer = gsub("<([^<>]*)>", "", Maintainer)) |> 
+  transform(URL = gsub("(\\\n)", " ", URL)) |> 
+  transform(URL = gsub(",", "", URL)) |> 
+  transform(Package = paste0("**", Package, "**", " ", "[@", Package, "]"))
+
+# 展示表格
+knitr::kable(sub_pdb[order(sub_pdb$Maintainer), ],
+  row.names = FALSE,
+  caption = "制作动画的 R 包（排名不分先后）",
+  col.names = c("R 包", "简介", "维护者", "网站", "协议")
+)
+```
+```{r write-bib, include=FALSE}
+bib <- knitr::write_bib(
+  x = pkgs, file = NULL, prefix = ""
+)
+bib <- unlist(bib)
+bib <- gsub("(\\\n)", " ", bib)
+xfun::write_utf8(bib, "packages.bib")
+```
+
 
 
 
 # 环境准备
 
-
-
+限于笔者目前所拥有的设备，后续介绍均在 MacOS 系统上。首先安装 [Rust 软件](https://www.rust-lang.org/) 以及 [Gifski](https://gif.ski/) 转化器，它可将视频、图片文件转化为 GIF 动图，且转化效率和质量非常高。 
 
 ```bash
 brew install rust
 cargo install gifski
 ```
 
-在 `~/.cargo/config` 里配置就近的镜像地址加快[cargo](https://github.com/nabijaczleweli/cargo-update)下载速度
+在 `~/.cargo/config` 里配置就近的镜像地址加快[cargo](https://github.com/nabijaczleweli/cargo-update)下载速度，下面配置的是上海交通大学 Linux 用户组 (SJTUG)  维护的[镜像站点](https://mirrors.sjtug.sjtu.edu.cn/)。
 
 ```
 [source.crates-io]
@@ -177,10 +225,7 @@ replace-with = "sjtu"
 registry = "https://mirrors.sjtug.sjtu.edu.cn/git/crates.io-index"
 ```
 
-将路径 `~/.cargo/bin` 添加到 PATH 变量里
-
-
-gifski 命令行工具有几个参数，如下
+将路径 `~/.cargo/bin` 添加到 PATH 变量里，接着就可以直接使用 gifski 命令行工具了，它有几个参数，如下：
 
 ```bash
 gifski --help
@@ -219,7 +264,11 @@ ARGS:
     <FILE>...    one video file supported by FFmpeg, or multiple PNG image files
 ```
 
+帮助文档非常简单，就不翻译了，举个例子，下面将一段视频 `INPUT.mov` 转化为 GIF 动图 `OUTPUT.gif`。
 
+```bash
+gifski -W 800 -H 600 INPUT.mov -o OUTPUT.gif
+```
 
 # ggplot2
 
@@ -281,9 +330,7 @@ John (JP) Coene 为 [G2](https://github.com/antvis/g2) 开发的 R 包 [g2r](htt
 
 ```{r,eval=FALSE}
 library(echarts4r)
-
 data("gapminder", package = "gapminder")
-
 # 准备动画标题
 titles <- lapply(unique(gapminder$year), FUN = function(x) {
   list(
@@ -291,8 +338,6 @@ titles <- lapply(unique(gapminder$year), FUN = function(x) {
     left = "center"
   )
 })
-
-
 # 准备动画背景文字
 years <- lapply(unique(gapminder$year), FUN = function(x) {
   list(
@@ -429,20 +474,25 @@ gifski -W 800 -H 600 gapminder-echarts4r.mov -o gapminder-echarts4r.gif
 
 ## plotly
 
-
+下面采用 Carson Sievert 开发的 [plotly](https://github.com/plotly/plotly.R) 包[@Sievert2020]制作网页动画，仍是以 gapminder 数据集为例。关于 plotly 以及绘制散点图的介绍，见前文[交互式网页图形与 R 语言](/2021/11/interactive-web-graphics/)，此处不再赘述。
 
 ```{r,eval=FALSE}
-# 关键帧动画
 library(plotly)
 
 plot_ly(
   data = gapminder,
+  # 横轴
   x = ~gdpPercap,
+  # 纵轴
   y = ~lifeExp,
+  # 气泡大小
   size = ~pop,
   fill = ~"",
+  # 分组配色
   color = ~continent,
+  # 时间变量
   frame = ~year,
+  # 悬浮提示
   text = ~ paste0(
     "年份：", year, "<br>",
     "国家：", country, "<br>",
@@ -473,8 +523,9 @@ plot_ly(
   ) |>
   animation_slider(
     currentvalue = list(
-      prefix = "年份 ", xanchor = "right",
-      font = list(color = "red", size = 20)
+      prefix = "年份 ",
+      xanchor = "right",
+      font = list(color = "gray", size = 30)
     )
   ) |>
   animation_button(
@@ -482,15 +533,23 @@ plot_ly(
     x = 0, xanchor = "right",
     y = -0.2, yanchor = "bottom",
     label = "播放", # 按钮文本
-    # bgcolor = "#5b89f7", font = list(color = "#fff"),
+    # bgcolor = "#5b89f7", # 按钮背景色
+    # font = list(color = "#fff"), # 文本颜色
     visible = TRUE # 显示播放按钮
   ) |>
   config(
+    # 去掉图片右上角工具条
     displayModeBar = FALSE
   )
 ```
 
-动画播放和暂停的控制按钮一直有问题，详见 plotly 包的 Github [问题贴](https://github.com/plotly/plotly.R/issues/1207)。
+![(\#fig:gapminder-plotly) plotly 制作网页动画](https://user-images.githubusercontent.com/12031874/145671224-e3617a52-e9be-4197-aa6b-cdde2d2b7724.gif){.full}
+
+如动图 \@ref(fig:gapminder-plotly) 所示，视频下载[点击这里](https://user-images.githubusercontent.com/12031874/145671216-8ef13eaf-3f19-4a36-808f-7e812a5bdf60.mov)，相比于 **echarts4r**， 气泡即使有重叠和覆盖，只要鼠标悬浮其上，就能显示被覆盖的 tooltip。
+
+::: rmdwarn
+动画播放和暂停的控制按钮一直有问题，即点击播放后，按钮不会切换为暂停按钮，点击暂停后也不能恢复，详见 plotly 包的 Github [问题贴](https://github.com/plotly/plotly.R/issues/1207)。
+:::
 
 ::: rmdtip
 读者看到 `plot_ly(fill = ~"",...)` 可能会奇怪，为什么参数 `fill` 的值是空字符串？这应该是 plotly 的 R 包或 JS 库的问题，不加会有很多警告：
@@ -502,12 +561,17 @@ plot_ly(
 笔者是参考[SO](https://stackoverflow.com/questions/52692760/)的帖子加上的。
 :::
 
+
+
 # 环境信息
 
 在 RStudio IDE 内编辑本文的 R Markdown 源文件，用 **blogdown** 构建网站，[Hugo](https://github.com/gohugoio/hugo) 渲染 knitr 之后的 Markdown 文件，得益于 **blogdown** 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：
 
 ```{r, message=FALSE}
 xfun::session_info(packages = c(
-  "knitr", "rmarkdown", "blogdown"
-))
+  "knitr", "rmarkdown", "blogdown",
+  "plotly", "gapminder", "echarts4r"
+), dependencies = FALSE)
 ```
+
+# 参考文献
