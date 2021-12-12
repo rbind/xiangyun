@@ -28,7 +28,7 @@ link-citations: true
 bibliography: 
   - refer.bib
   - packages.bib
-description: "本文是把动态图形的范围稍微扩展了一下，凡是可以自己动的图形都称之为「动态图形」，涵盖动图、动画、影视等一切可以自动播放一帧帧画面的图形图像，这就包含各种各样的形式，如 GIF 动图，SWF 动画，MP4 视频，以及网页渲染的动画，当然还有三维动画。本文会先介绍 **ggplot2** 静态图，然后介绍 **gganimate** 动态图， **echarts4r** 二维平面动画，**rgl** 三维立体动画，以及相关的一些 R 包和软件，为保持行文连贯，均以 gapminder 数据集为基础予以介绍，希望读者能举一反三。"
+description: "本文是把动态图形的范围稍微扩展了一下，凡是可以自己动的图形都称之为「动态图形」，涵盖动图、动画、影视等一切可以自动播放一帧帧画面的图形图像。本文会先介绍 **ggplot2** 静态图，然后介绍 **gganimate** 动态图， **echarts4r** 二维平面动画，**rgl** 三维立体动画，以及相关的一些 R 包和软件，为保持行文连贯，均以 gapminder 数据集为基础予以介绍，希望读者能举一反三。"
 ---
 
 <style type="text/css">
@@ -111,13 +111,21 @@ div.img {
 
 </div>
 
+<div class="rmdtip">
+
+本文含有多个动画和短视频，在流畅的网络环境中阅读效果会更佳。
+
+</div>
+
 # 本文概览
 
 本文源起笔者在统计之都上发的一个[帖子](https://d.cosx.org/d/422311)，后因工作需要，自己抽空也整理了一下，遂成此文。
 
+2006 年 Hans Rosling（汉斯·罗琳）在 TED 上的演讲 — [The best stats you’ve ever seen](https://www.ted.com/talks/hans_rosling_the_best_stats_you_ve_ever_seen)，期间展示了一系列生动形象的动画，用数据呈现的事实帮助大家解读世界的变化，可谓是动态图形的惊世之作。后来，创立了 <https://www.gapminder.org/tools> 建立基于事实的世界观，理解不断变化的世界，网站名字 gap minder 意在提醒大家关注差异和理解变化。数据可视化在数据科学中扮演数据探索、展示和交流的关键角色，在合适的数据集和应用场景上，动态图形包含的信息更加丰富，说不定还能像汉斯·罗琳那样收到奇效。
+
 简单交代交待一下与之前介绍的[交互式图形](/2021/11/interactive-web-graphics)的区别，提及一下《现代统计图形》里关于 [**rgl**](https://github.com/dmurdoch/rgl) 和 [**animation**](https://github.com/yihui/animation) 包的介绍，本文重点介绍 [**gganimate**](https://github.com/thomasp85/gganimate) 和 [**echarts4r**](https://github.com/JohnCoene/echarts4r) 等更加现代化的工具和技术，以及笔者在使用动态图形展示数据方面的经验和教训。
 
-稍微扩展一下，动态图形包含动图、动画、影视等一切可以自动播放一帧帧画面的图形图像，这就包含各种各样的形式，如 GIF 动图，SWF 动画，MP4 视频，以及网页渲染的动画，当然还有三维动画。本文会先介绍 **ggplot2** 静态图，然后介绍 **gganimate** 动态图， **echarts4r** 二维平面动画，**rgl** 三维立体动画，以及相关的一些 R 包和软件，为保持行文连贯，均以 **gapminder** 包内置的 gapminder 数据集为基础予以介绍，希望读者能举一反三。
+稍微扩展一下，动态图形包含动图、动画、影视等一切可以自动播放一帧帧画面的图形图像，这就包含各种各样的形式，如 GIF 动图，SWF 动画，MP4 视频，以及网页渲染的动画，当然还有三维动画。本文会先介绍 **ggplot2** 静态图，然后介绍 **gganimate** 动态图， **echarts4r** 二维平面动画，**rgl** 三维立体动画，以及相关的一些 R 包和软件，为保持行文连贯，均以 [**gapminder**](https://github.com/jennybc/gapminder) 包内置的 gapminder 数据集为基础予以介绍，希望读者能举一反三。
 
 Thomas Lin Pedersen 从 David Robinson 接手维护后，大刀阔斧地开发 **gganimate** ，打造「A Grammar of Animated Graphics」，他还是另一个图形语法的开山之作 **ggplot2** 的维护者。
 
@@ -285,6 +293,59 @@ gapminder 数据集中 2002 年数据为例，绘图气泡图 <a href="#fig:gapm
 library(gganimate)
 ```
 
+阐述收入二八定律，分布变化的动态图形
+
+``` r
+# 准备 Noto 中英文字体
+sysfonts::font_paths(new = "~/Library/Fonts/")
+## 宋体
+sysfonts::font_add(
+  family = "Noto Serif CJK SC",
+  regular = "NotoSerifCJKsc-Regular.otf",
+  bold = "NotoSerifCJKsc-Bold.otf"
+)
+
+sysfonts::font_add(
+  family = "Noto Sans",
+  regular = "NotoSans-Regular.ttf",
+  bold = "NotoSans-Bold.ttf",
+  italic = "NotoSans-Italic.ttf",
+  bolditalic = "NotoSans-BoldItalic.ttf"
+)
+
+svglite::svglite(filename = "gapminder-ggplot.svg")
+
+ggplot(
+  data = gapminder[gapminder$year == "2002", ],
+  aes(x = gdpPercap, y = stat(density * n), fill = continent)
+) +
+  geom_density(position = "stack", colour = "white") +
+  scale_fill_brewer(palette = "Spectral") +
+  scale_x_log10() +
+  theme_minimal(base_family = "Noto Serif CJK SC", base_size = 15) +
+  labs(
+    x = "人均 GDP（美元）", y = "国家数量（个）", fill = "大洲",
+    title = "人均GDP的国家分布关系（2002年）"
+  ) +
+  theme(
+    axis.text.x = element_text(family = "Noto Sans", color = "black"),
+    axis.text.y = element_text(
+      family = "Noto Sans", color = "black",
+      angle = 90, vjust = 1.5, hjust = 0.5
+    ),
+    legend.text = element_text(family = "Noto Sans"),
+    plot.tag = element_text(family = "Noto Serif CJK SC", color = "black"),
+    plot.tag.position = "topright"
+  )
+dev.off()
+```
+
+如图<a href="#fig:gapminder-ggplot">2</a> 所示，各个洲的收入分布图
+
+<figure>
+<img src="/img/gapminder-ggplot.svg" class="full" alt="Figure 2: ggplot2 制作累积分布图" /><figcaption aria-hidden="true">Figure 2: ggplot2 制作累积分布图</figcaption>
+</figure>
+
 # 网页动画
 
 [Apache ECharts](https://github.com/apache/echarts)、[plotly](https://github.com/plotly/plotly.js)、[G2](https://github.com/antvis/g2)、[highcharts](https://github.com/highcharts/highcharts)（此为商业软件） 都支持一定的动画制作能力。相对比较成熟的 R 语言接口是前面几个，下面详细介绍一二。
@@ -422,7 +483,7 @@ gapminder |>
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/145659289-cabd0c66-35e9-448c-adf3-f3934a72f4f2.gif" class="full" alt="Figure 2: echarts4r 制作网页动画" /><figcaption aria-hidden="true">Figure 2: echarts4r 制作网页动画</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/145659289-cabd0c66-35e9-448c-adf3-f3934a72f4f2.gif" class="full" alt="Figure 3: echarts4r 制作网页动画" /><figcaption aria-hidden="true">Figure 3: echarts4r 制作网页动画</figcaption>
 </figure>
 
 因为 blogdown 不支持直接插入视频，而笔者也不想把视频传至商业视频网站，因此录制的高质量视频，读者可以[点击这里](https://user-images.githubusercontent.com/12031874/145657748-0db6c4ee-47e9-4b1b-941d-1022937dcf4a.mov)下载观看，最好还是在 R 控制台运行上述代码，效果会更好。
@@ -449,13 +510,12 @@ gifski -W 800 -H 600 gapminder-echarts4r.mov -o gapminder-echarts4r.gif
 
 </div>
 
-## plotly
+## plotly （R 语言版）
 
-下面采用 Carson Sievert 开发的 [plotly](https://github.com/plotly/plotly.R) 包([Sievert 2020](#ref-Sievert2020))制作网页动画，仍是以 gapminder 数据集为例，示例修改自 plotly 官网的 [动画示例](https://plotly.com/r/animations/)。关于 plotly 以及绘制散点图的介绍，见前文[交互式网页图形与 R 语言](/2021/11/interactive-web-graphics/)，此处不再赘述。
+下面采用 Carson Sievert 开发的 [plotly](https://github.com/plotly/plotly.R) 包([Sievert 2020](#ref-Sievert2020))制作网页动画，仍是以 gapminder 数据集为例，示例修改自 plotly 官网的 [动画示例](https://plotly.com/r/animations/)。关于 plotly 以及绘制散点图的介绍，见前文[交互式网页图形与 R 语言](/2021/11/interactive-web-graphics/)，此处不再赘述[^1]。
 
 ``` r
 library(plotly)
-
 plot_ly(
   data = gapminder,
   # 横轴
@@ -521,14 +581,18 @@ plot_ly(
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/145671224-e3617a52-e9be-4197-aa6b-cdde2d2b7724.gif" class="full" alt="Figure 3: plotly 制作网页动画" /><figcaption aria-hidden="true">Figure 3: plotly 制作网页动画</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/145671224-e3617a52-e9be-4197-aa6b-cdde2d2b7724.gif" class="full" alt="Figure 4: plotly 制作网页动画" /><figcaption aria-hidden="true">Figure 4: plotly 制作网页动画</figcaption>
 </figure>
 
-如动图 <a href="#fig:gapminder-plotly">3</a> 所示，视频下载[点击这里](https://user-images.githubusercontent.com/12031874/145671216-8ef13eaf-3f19-4a36-808f-7e812a5bdf60.mov)，相比于 **echarts4r**， 气泡即使有重叠和覆盖，只要鼠标悬浮其上，就能显示被覆盖的 tooltip。
+如动图 <a href="#fig:gapminder-plotly">4</a> 所示，视频下载[点击这里](https://user-images.githubusercontent.com/12031874/145671216-8ef13eaf-3f19-4a36-808f-7e812a5bdf60.mov)，相比于 **echarts4r**， 气泡即使有重叠和覆盖，只要鼠标悬浮其上，就能显示被覆盖的 tooltip。
 
 <div class="rmdwarn">
 
-动画播放和暂停的控制按钮一直有问题，即点击播放后，按钮不会切换为暂停按钮，点击暂停后也不能恢复，详见 plotly 包的 Github [问题贴](https://github.com/plotly/plotly.R/issues/1207)。然而，Python 版的 plotly 模块制作此[动画](https://plotly.com/python/animations/)，一切正常，代码也紧凑很多，见下方。
+动画播放和暂停的控制按钮一直有问题，即点击播放后，按钮不会切换为暂停按钮，点击暂停后也不能恢复，详见 plotly 包的 Github [问题贴](https://github.com/plotly/plotly.R/issues/1207)。然而，Python 版的 plotly 模块制作此[动画](https://plotly.com/python/animations/)，一切正常，代码也紧凑很多，请读者接着往下看[^2]。
+
+</div>
+
+## plotly （Python 语言版）
 
 ``` python
 import plotly.express as px
@@ -559,11 +623,16 @@ px.scatter(
     range_x=[100, 100000],
     # 纵轴范围
     range_y=[25, 90],
+    # 动画标题
+    title = "各国人均寿命与人均GDP关系演变",
     # 设置横纵坐标轴标题
     labels={
         "gdpPercap": "人均 GDP (美元)",
         "lifeExp": "人均寿命 (岁)",
         "year": "年份",
+        "continent": "大洲",
+        "country": "国家",
+        "pop": "人口总数"
     },
     # 调用来自 colorbrewer 的 Set2 调色板
     color_discrete_sequence=px.colors.colorbrewer.Set2
@@ -571,10 +640,12 @@ px.scatter(
 ```
 
 <figure>
-<video src="https://user-images.githubusercontent.com/12031874/145701692-d2847ae6-6646-4fc7-bf9d-031a4e262555.mov" class="full" controls=""><a href="https://user-images.githubusercontent.com/12031874/145701692-d2847ae6-6646-4fc7-bf9d-031a4e262555.mov">Figure 4: Python 版 plotly 制作动画</a></video><figcaption aria-hidden="true">Figure 4: Python 版 plotly 制作动画</figcaption>
+<video src="https://user-images.githubusercontent.com/12031874/145701692-d2847ae6-6646-4fc7-bf9d-031a4e262555.mov" class="full" controls=""><a href="https://user-images.githubusercontent.com/12031874/145701692-d2847ae6-6646-4fc7-bf9d-031a4e262555.mov">Figure 5: Python 版 plotly 制作动画</a></video><figcaption aria-hidden="true">Figure 5: Python 版 plotly 制作动画</figcaption>
 </figure>
 
-值得一提的是，支持丰富的调色板，涵盖常用的三大类型：无序的分类调色板、有序的分类调色板、连续型的调色板。调用其中一个调色板，只需 `px.colors.qualitative.Set2` 或者其逆序版本 `px.colors.qualitative.Set2_r`。也只需两行代码即可预览任意一组调色板， colorbrewer 调色板见图<a href="#fig:plotly-colorbrewer">5</a>。
+### 调色板
+
+值得一提的是，支持丰富的调色板，涵盖常用的三大类型：无序的分类调色板、有序的分类调色板、连续型的调色板。调用其中一个调色板，只需 `px.colors.qualitative.Set2` 或者其逆序版本 `px.colors.qualitative.Set2_r`。也只需两行代码即可预览任意一组调色板， colorbrewer 调色板见图<a href="#fig:plotly-colorbrewer">6</a>。
 
 ``` python
 # 无序的分类调色板
@@ -595,10 +666,33 @@ fig.show()
 ```
 
 <figure>
-<img src="/img/plotly-colorbrewer.png" class="full" alt="Figure 5: plotly 的 colorbrewer 调色板" /><figcaption aria-hidden="true">Figure 5: plotly 的 colorbrewer 调色板</figcaption>
+<img src="/img/plotly-colorbrewer.png" class="full" alt="Figure 6: plotly 的 colorbrewer 调色板" /><figcaption aria-hidden="true">Figure 6: plotly 的 colorbrewer 调色板</figcaption>
 </figure>
 
-设置[图形主题](https://plotly.com/python/templates/)
+### 图形主题
+
+类似 ggplot2 的主题设置，Plotly Express 也是支持 自定义[风格样式](https://plotly.com/python/styling-plotly-express/)的，其中[图形主题](https://plotly.com/python/templates/) 最为方便快捷。默认主题为 `plotly`，可用的有：
+
+``` python
+import plotly.io as pio
+pio.templates
+```
+
+    Templates configuration
+    -----------------------
+        Default template: 'plotly'
+        Available templates:
+            ['ggplot2', 'seaborn', 'simple_white', 'plotly',
+             'plotly_white', 'plotly_dark', 'presentation', 'xgridoff',
+             'ygridoff', 'gridon', 'none']
+
+只需将 `template="none"` 换为以上任意一种即可获得不一样的效果。
+
+<figure>
+<video src="https://user-images.githubusercontent.com/12031874/145711359-1fc543bd-d371-408b-abc0-929ae8fba4e4.mov" class="full" controls=""><a href="https://user-images.githubusercontent.com/12031874/145711359-1fc543bd-d371-408b-abc0-929ae8fba4e4.mov">Figure 7: plotly 的暗黑主题</a></video><figcaption aria-hidden="true">Figure 7: plotly 的暗黑主题</figcaption>
+</figure>
+
+## 举一反三
 
 实际上， plotly 模块的 [express 组件](https://plotly.com/python/plotly-express/)封装了 30 多种[图形](https://plotly.com/python-api-reference/plotly.express.html)，是一种高级/快速的绘图接口，非常类似 R 语言 **graphics** 包提供的系列函数，如柱形图/条形图 `barplot()`、箱线图 `boxplot()`、直方图 `hist()`、透视图 `persp()`、饼图 `pie()` 等等，下面是 **graphics** 包提供的所有高级绘图函数。
 
@@ -635,7 +729,7 @@ ls("package:graphics")
 # [85] "xspline"         "xyinch"          "yinch"
 ```
 
-熟悉 **ggplot2** 绘图的读者，可能立马联想到这不和函数 `qplot()` 一样吗？是的，惊人地相似，请注意看下面绘图部分的代码和图<a href="#fig:gapminder-qplot">6</a>，也是将数据和几何元素、图层建立关系。
+熟悉 **ggplot2** 绘图的读者，可能立马联想到这不和函数 `qplot()` 一样吗？是的，惊人地相似，请注意看下面绘图部分的代码和图<a href="#fig:gapminder-qplot">8</a>，也是将数据和几何元素、图层建立关系。
 
 ``` r
 # 加载数据
@@ -659,36 +753,15 @@ qplot(
   ylab = "人均寿命（岁）"
 ) +
   theme_minimal(base_family = "wqy-microhei", base_size = 15)
+# 关闭图形设备
 dev.off()
 ```
 
 <figure>
-<img src="/img/gapminder-qplot.svg" class="full" alt="Figure 6: ggplot2 快速绘图函数qplot()" /><figcaption aria-hidden="true">Figure 6: <strong>ggplot2</strong> 快速绘图函数<code>qplot()</code></figcaption>
+<img src="/img/gapminder-qplot.svg" class="full" alt="Figure 8: ggplot2 快速绘图函数qplot()" /><figcaption aria-hidden="true">Figure 8: <strong>ggplot2</strong> 快速绘图函数<code>qplot()</code></figcaption>
 </figure>
 
 当然，如果想更加精细地绘制复杂图形，还是要学习 [`ggplot()` 函数](https://ggplot2.tidyverse.org/reference/ggplot.html)，在 Python 里也是一样，你需要放弃调用 **plotly.express** 组件，转向学习低水平绘图的 API [Graph Objects](https://plotly.com/python-api-reference/plotly.graph_objects.html#graph-objects)。
-
-https://plotly.com/python/styling-plotly-express/
-
-嘴周，顺便一说，添加如下 CSS 可以去掉图形右上角烦人的工具条。
-
-``` css
-.modebar {
-  display: none !important;
-}
-```
-
-</div>
-
-<div class="rmdtip">
-
-读者看到 `plot_ly(fill = ~"",...)` 可能会奇怪，为什么参数 `fill` 的值是空字符串？这应该是 plotly 的 R 包或 JS 库的问题，不加会有很多警告：
-
-    `line.width` does not currently support multiple values.
-
-笔者是参考[SO](https://stackoverflow.com/questions/52692760/)的帖子加上的。
-
-</div>
 
 # OpenGL 动画
 
@@ -824,3 +897,17 @@ Xie, Yihui. 2021. *Animation: A Gallery of Animations in Statistics and Utilitie
 </div>
 
 </div>
+
+[^1]: 读者看到 `plot_ly(fill = ~"",...)` 可能会奇怪，为什么参数 `fill` 的值是空字符串？这应该是 plotly 的 R 包或 JS 库的问题，不加会有很多警告：
+
+        `line.width` does not currently support multiple values.
+
+    笔者是参考[SO](https://stackoverflow.com/questions/52692760/)的帖子加上的。
+
+[^2]: 最后，顺便一说，添加如下 CSS 可以去掉图形右上角烦人的工具条。
+
+    ``` css
+    .modebar {
+      display: none !important;
+    }
+    ```
