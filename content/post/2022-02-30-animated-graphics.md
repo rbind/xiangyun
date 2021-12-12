@@ -102,7 +102,7 @@ div.img {
 
 </div>
 
-# 概览
+# 本文概览
 
 本文源起笔者在统计之都上发的一个[帖子](https://d.cosx.org/d/422311)，后因工作需要和自己抽空整理了一下，遂成此文。
 
@@ -134,7 +134,7 @@ LaTeX 宏包 [animate](https://ctan.org/pkg/animate)，常用于 [beamer](https:
 
 Table 1: 制作动画的 R 包（排名不分先后）
 
-# 环境准备
+# 软件准备
 
 限于笔者目前所拥有的设备，后续介绍均在 MacOS 系统上。首先安装 [Rust 软件](https://www.rust-lang.org/) 以及 [Gifski](https://gif.ski/) 转化器，它可将视频、图片文件转化为 GIF 动图，且转化效率和质量非常高。
 
@@ -195,7 +195,9 @@ gifski --help
 gifski -W 800 -H 600 INPUT.mov -o OUTPUT.gif
 ```
 
-# ggplot2
+# GIF 动画
+
+## ggplot2
 
 不是希望你也画如此糟糕的图形，此图的目的是告诉你，绘图的细节，涉及到的方方面面。掌握其一，你就能精通 ggplot2 和 plotly 等。
 
@@ -235,6 +237,43 @@ legend("top",
   box.col = "gray", horiz = TRUE
 )
 box()
+```
+
+``` r
+library(showtext)
+library(gapminder)
+library(ggplot2)
+library(ggrepel)
+ggplot(
+  data = gapminder[gapminder$year == 2002, ],
+  aes(x = gdpPercap, y = lifeExp)
+) +
+  geom_point(aes(size = pop / 10^6, color = continent), alpha = 0.5) +
+  geom_text_repel(
+    data = gapminder[gapminder$year == 2002 & gapminder$pop > 50 * 10^6, ],
+    aes(size = pop/(5*10^7), label = country), 
+    alpha = 0.7, max.overlaps = 50, segment.colour = "gray", seed = 2021
+  ) +
+  scale_x_log10() +
+  scale_size(breaks = c(1, 10, 100, 1000), range = c(1, 30)) +
+  labs(
+    x = "人均 GDP（美元，对数尺度）", y = "人均寿命（岁）",
+    size = "人口总数\n（百万）", color = "地区"
+  ) +
+  theme_bw(base_size = 13, base_family = "sans") +
+  theme(title = element_text(family = "wqy-microhei"))
+```
+
+gapminder 数据集中 2002 年数据为例，绘图气泡图 <a href="#fig:gapminder-ggplot2">1</a>
+
+<figure>
+<img src="https://user-images.githubusercontent.com/12031874/145673108-e6c143a9-3010-4a5d-8a91-59c1e5c13b6c.png" class="full" alt="Figure 1: ggplot2 制作静态气泡图" /><figcaption aria-hidden="true">Figure 1: ggplot2 制作静态气泡图</figcaption>
+</figure>
+
+## gganimate
+
+``` r
+library(gganimate)
 ```
 
 # 网页动画
@@ -374,7 +413,7 @@ gapminder |>
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/145659289-cabd0c66-35e9-448c-adf3-f3934a72f4f2.gif" class="full" alt="Figure 1: echarts4r 制作网页动画" /><figcaption aria-hidden="true">Figure 1: echarts4r 制作网页动画</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/145659289-cabd0c66-35e9-448c-adf3-f3934a72f4f2.gif" class="full" alt="Figure 2: echarts4r 制作网页动画" /><figcaption aria-hidden="true">Figure 2: echarts4r 制作网页动画</figcaption>
 </figure>
 
 因为 blogdown 不支持直接插入视频，而笔者也不想把视频传至商业视频网站，因此录制的高质量视频，读者可以[点击这里](https://user-images.githubusercontent.com/12031874/145657748-0db6c4ee-47e9-4b1b-941d-1022937dcf4a.mov)下载观看，最好还是在 R 控制台运行上述代码，效果会更好。
@@ -403,7 +442,7 @@ gifski -W 800 -H 600 gapminder-echarts4r.mov -o gapminder-echarts4r.gif
 
 ## plotly
 
-下面采用 Carson Sievert 开发的 [plotly](https://github.com/plotly/plotly.R) 包([Sievert 2020](#ref-Sievert2020))制作网页动画，仍是以 gapminder 数据集为例。关于 plotly 以及绘制散点图的介绍，见前文[交互式网页图形与 R 语言](/2021/11/interactive-web-graphics/)，此处不再赘述。
+下面采用 Carson Sievert 开发的 [plotly](https://github.com/plotly/plotly.R) 包([Sievert 2020](#ref-Sievert2020))制作网页动画，仍是以 gapminder 数据集为例，示例修改自 plotly 官网的 [动画示例](https://plotly.com/r/animations/)。关于 plotly 以及绘制散点图的介绍，见前文[交互式网页图形与 R 语言](/2021/11/interactive-web-graphics/)，此处不再赘述。
 
 ``` r
 library(plotly)
@@ -473,14 +512,158 @@ plot_ly(
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/145671224-e3617a52-e9be-4197-aa6b-cdde2d2b7724.gif" class="full" alt="Figure 2: plotly 制作网页动画" /><figcaption aria-hidden="true">Figure 2: plotly 制作网页动画</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/145671224-e3617a52-e9be-4197-aa6b-cdde2d2b7724.gif" class="full" alt="Figure 3: plotly 制作网页动画" /><figcaption aria-hidden="true">Figure 3: plotly 制作网页动画</figcaption>
 </figure>
 
-如动图 <a href="#fig:gapminder-plotly">2</a> 所示，视频下载[点击这里](https://user-images.githubusercontent.com/12031874/145671216-8ef13eaf-3f19-4a36-808f-7e812a5bdf60.mov)，相比于 **echarts4r**， 气泡即使有重叠和覆盖，只要鼠标悬浮其上，就能显示被覆盖的 tooltip。
+如动图 <a href="#fig:gapminder-plotly">3</a> 所示，视频下载[点击这里](https://user-images.githubusercontent.com/12031874/145671216-8ef13eaf-3f19-4a36-808f-7e812a5bdf60.mov)，相比于 **echarts4r**， 气泡即使有重叠和覆盖，只要鼠标悬浮其上，就能显示被覆盖的 tooltip。
 
 <div class="rmdwarn">
 
-动画播放和暂停的控制按钮一直有问题，即点击播放后，按钮不会切换为暂停按钮，点击暂停后也不能恢复，详见 plotly 包的 Github [问题贴](https://github.com/plotly/plotly.R/issues/1207)。
+动画播放和暂停的控制按钮一直有问题，即点击播放后，按钮不会切换为暂停按钮，点击暂停后也不能恢复，详见 plotly 包的 Github [问题贴](https://github.com/plotly/plotly.R/issues/1207)。然而，Python 版的 plotly 模块制作此[动画](https://plotly.com/python/animations/)，一切正常，代码也紧凑很多，见下方。
+
+``` python
+import plotly.express as px
+
+df = px.data.gapminder()
+px.scatter(
+    df,
+    # 横轴
+    x="gdpPercap",
+    # 纵轴
+    y="lifeExp",
+    # 动画帧
+    animation_frame="year",
+    # 动画分组
+    animation_group="country",
+    # 气泡大小映射到总人口
+    size="pop",
+    # 颜色映射到地区/大洲
+    color="continent",
+    # 悬浮
+    hover_name="country",
+    # 图形主题
+    template="none",
+    # 横轴坐标取对数
+    log_x=True,
+    size_max=55,
+    # 横轴范围
+    range_x=[100, 100000],
+    # 纵轴范围
+    range_y=[25, 90],
+    # 设置横纵坐标轴标题
+    labels={
+        "gdpPercap": "人均 GDP (美元)",
+        "lifeExp": "人均寿命 (岁)",
+        "year": "年份",
+    },
+    # 调用来自 colorbrewer 的 Set2 调色板
+    color_discrete_sequence=px.colors.colorbrewer.Set2
+)
+```
+
+值得一提的是，支持丰富的调色板，涵盖常用的三大类型：无序的分类调色板、有序的分类调色板、连续型的调色板。调用其中一个调色板，只需 `px.colors.qualitative.Set2` 或者其逆序版本 `px.colors.qualitative.Set2_r`。也只需两行代码即可预览任意一组调色板， colorbrewer 调色板见图<a href="#fig:plotly-colorbrewer">4</a>。
+
+``` python
+# 无序的分类调色板
+fig = px.colors.qualitative.swatches()
+fig.show()
+# 发散型的调色板
+fig = px.colors.diverging.swatches()
+fig.show()
+# 有序的分类调色板
+fig = px.colors.sequential.swatches()
+fig.show()
+# 周期性的调色板
+fig = px.colors.cyclical.swatches()
+fig.show()
+# 收录所有 colorbrewer 调色板
+fig = px.colors.colorbrewer.swatches()
+fig.show()
+```
+
+<figure>
+<img src="/img/plotly-colorbrewer.png" class="full" alt="Figure 4: plotly 的 colorbrewer 调色板" /><figcaption aria-hidden="true">Figure 4: plotly 的 colorbrewer 调色板</figcaption>
+</figure>
+
+设置[图形主题](https://plotly.com/python/templates/)
+
+实际上， plotly 模块的 [express 组件](https://plotly.com/python/plotly-express/)封装了 30 多种[图形](https://plotly.com/python-api-reference/plotly.express.html)，是一种高级/快速的绘图接口，非常类似 R 语言 **graphics** 包提供的系列函数，如柱形图/条形图 `barplot()`、箱线图 `boxplot()`、直方图 `hist()`、透视图 `persp()`、饼图 `pie()` 等等，下面是 **graphics** 包提供的所有高级绘图函数。
+
+``` r
+ls("package:graphics")
+#  [1] "abline"          "arrows"          "assocplot"      
+#  [4] "axis"            "Axis"            "axis.Date"      
+#  [7] "axis.POSIXct"    "axTicks"         "barplot"        
+# [10] "barplot.default" "box"             "boxplot"        
+# [13] "boxplot.default" "boxplot.matrix"  "bxp"            
+# [16] "cdplot"          "clip"            "close.screen"   
+# [19] "co.intervals"    "contour"         "contour.default"
+# [22] "coplot"          "curve"           "dotchart"       
+# [25] "erase.screen"    "filled.contour"  "fourfoldplot"   
+# [28] "frame"           "grconvertX"      "grconvertY"     
+# [31] "grid"            "hist"            "hist.default"   
+# [34] "identify"        "image"           "image.default"  
+# [37] "layout"          "layout.show"     "lcm"            
+# [40] "legend"          "lines"           "lines.default"  
+# [43] "locator"         "matlines"        "matplot"        
+# [46] "matpoints"       "mosaicplot"      "mtext"          
+# [49] "pairs"           "pairs.default"   "panel.smooth"   
+# [52] "par"             "persp"           "pie"            
+# [55] "plot"            "plot.default"    "plot.design"    
+# [58] "plot.function"   "plot.new"        "plot.window"    
+# [61] "plot.xy"         "points"          "points.default" 
+# [64] "polygon"         "polypath"        "rasterImage"    
+# [67] "rect"            "rug"             "screen"         
+# [70] "segments"        "smoothScatter"   "spineplot"      
+# [73] "split.screen"    "stars"           "stem"           
+# [76] "strheight"       "stripchart"      "strwidth"       
+# [79] "sunflowerplot"   "symbols"         "text"           
+# [82] "text.default"    "title"           "xinch"          
+# [85] "xspline"         "xyinch"          "yinch"
+```
+
+熟悉 **ggplot2** 绘图的读者，可能立马联想到这不和函数 `qplot()` 一样吗？是的，惊人地相似，请注意看下面绘图部分的代码和图<a href="#fig:gapminder-qplot">5</a>，也是将数据和几何元素、图层建立关系。
+
+``` r
+# 加载数据
+data(gapminder, package = "gapminder")
+# 加载 ggplot2 包
+library(ggplot2)
+# 加载 showtext 包
+library(showtext)
+# 处理中文
+showtext_auto()
+# 调 svglite 包保存高质量矢量图片
+svglite::svglite(filename = "gapminder-qplot.svg")
+# 绘图部分
+qplot(
+  x = gdpPercap, y = lifeExp, 
+  color = continent, size = pop / 10^6,
+  data = gapminder[gapminder$year == "2002", ],
+  log = "x", geom = "point", alpha = 0.8,
+  main = "各国人均寿命与人均GDP关系（2002年）",
+  xlab = "人均GDP（美元）",
+  ylab = "人均寿命（岁）"
+) +
+  theme_minimal(base_family = "wqy-microhei", base_size = 15)
+dev.off()
+```
+
+<figure>
+<img src="/img/gapminder-qplot.svg" class="full" alt="Figure 5: ggplot2 快速绘图函数qplot()" /><figcaption aria-hidden="true">Figure 5: <strong>ggplot2</strong> 快速绘图函数<code>qplot()</code></figcaption>
+</figure>
+
+当然，如果想更加精细地绘制复杂图形，还是要学习 [`ggplot()` 函数](https://ggplot2.tidyverse.org/reference/ggplot.html)，在 Python 里也是一样，你需要放弃调用 **plotly.express** 组件，转向学习低水平绘图的 API [Graph Objects](https://plotly.com/python-api-reference/plotly.graph_objects.html#graph-objects)。
+
+https://plotly.com/python/styling-plotly-express/
+
+嘴周，顺便一说，添加如下 CSS 可以去掉图形右上角烦人的工具条。
+
+``` css
+.modebar {
+  display: none !important;
+}
+```
 
 </div>
 
@@ -494,6 +677,52 @@ plot_ly(
 
 </div>
 
+# OpenGL 动画
+
+[OpenGL](https://www.opengl.org/)
+
+## rgl
+
+``` r
+library(rgl)
+```
+
+## rayrender
+
+``` r
+library(rayrender)
+```
+
+# WebGL 动画
+
+[WebGL](https://developer.mozilla.org/zh-CN/docs/Web/API/WebGL_API)
+
+[WebGL](https://www.khronos.org/webgl/)
+
+GPU 加速，大规模数据集
+
+## mapdeck
+
+R 接口 Deck.gl 和 Mapbox
+
+[mapdeck](https://github.com/SymbolixAU/mapdeck)
+
+## echarts4r
+
+## plotly
+
+plotly type 参数类型，带 GL
+
+# 其它工具
+
+Python 绘图模块 matplotlib 的[animation](https://matplotlib.org/stable/api/animation_api.html)
+
+Julia 的 [Plots.jl](https://github.com/JuliaPlots/Plots.jl) 包
+
+企业级数据大屏、数据可视化 [MapGL](https://github.com/shiliangL/vue-datav-mapgl)
+
+JavaScript 3D 图形库[three.js](https://github.com/mrdoob/three.js)
+
 # 环境信息
 
 在 RStudio IDE 内编辑本文的 R Markdown 源文件，用 **blogdown** 构建网站，[Hugo](https://github.com/gohugoio/hugo) 渲染 knitr 之后的 Markdown 文件，得益于 **blogdown** 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：
@@ -501,7 +730,9 @@ plot_ly(
 ``` r
 xfun::session_info(packages = c(
   "knitr", "rmarkdown", "blogdown",
-  "plotly", "gapminder", "echarts4r"
+  "plotly", "gapminder", "echarts4r",
+  "gganimate", "ggplot2", "showtext",
+  "MASS", "ggrepel", "rgl", "rayrender"
 ), dependencies = FALSE)
 # R version 4.1.2 (2021-11-01)
 # Platform: x86_64-apple-darwin17.0 (64-bit)
@@ -510,8 +741,11 @@ xfun::session_info(packages = c(
 # Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
 # 
 # Package version:
-#   blogdown_1.6    echarts4r_0.4.2 gapminder_0.3.0 knitr_1.36     
-#   plotly_4.10.0   rmarkdown_2.11 
+#   blogdown_1.6     echarts4r_0.4.2  gapminder_0.3.0 
+#   gganimate_1.0.7  ggplot2_3.3.5    ggrepel_0.9.1   
+#   knitr_1.36       MASS_7.3.54      plotly_4.10.0   
+#   rayrender_0.23.6 rgl_0.108.3      rmarkdown_2.11  
+#   showtext_0.9.4  
 # 
 # Pandoc version: 2.16.2
 # 
