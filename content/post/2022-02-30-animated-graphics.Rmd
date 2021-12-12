@@ -12,6 +12,15 @@ tags:
   - animation
   - gifski
   - rayrender
+  - rgl
+  - OpenGL
+  - WebGL
+  - Python 语言
+  - matplotlib
+  - Julia 语言
+  - Plots.jl
+  - JavaScript
+  - three.js
 draft: true
 toc: true
 thumbnail: /img/gganimate.svg
@@ -19,7 +28,7 @@ link-citations: true
 bibliography: 
   - refer.bib
   - packages.bib
-description: "本文是把动态图形的范围稍微扩展了一下，凡是可以自己动的图形都称之为「动态图形」，包含动图、动画、影视等一切可以自动播放一帧帧画面的图形图像，这就包含各种各样的形式，如 GIF 动图，SWF 动画，MP4 视频，以及网页渲染的动画，当然还有三维动画。本文会先介绍 **ggplot2** 静态图，然后介绍 **gganimate** 动态图， **echarts4r** 二维平面动画，rgl 三维立体动画，以及相关的一些 R 包和软件，为保持行文连贯，均以 gapminder 数据集为基础予以介绍，希望读者能举一反三。"
+description: "本文是把动态图形的范围稍微扩展了一下，凡是可以自己动的图形都称之为「动态图形」，涵盖动图、动画、影视等一切可以自动播放一帧帧画面的图形图像，这就包含各种各样的形式，如 GIF 动图，SWF 动画，MP4 视频，以及网页渲染的动画，当然还有三维动画。本文会先介绍 **ggplot2** 静态图，然后介绍 **gganimate** 动态图， **echarts4r** 二维平面动画，**rgl** 三维立体动画，以及相关的一些 R 包和软件，为保持行文连贯，均以 gapminder 数据集为基础予以介绍，希望读者能举一反三。"
 ---
 
 
@@ -132,7 +141,7 @@ div.img {
 
 # 本文概览
 
-本文源起笔者在统计之都上发的一个[帖子](https://d.cosx.org/d/422311)，后因工作需要和自己抽空整理了一下，遂成此文。
+本文源起笔者在统计之都上发的一个[帖子](https://d.cosx.org/d/422311)，后因工作需要，自己抽空也整理了一下，遂成此文。
 
 简单交代交待一下与之前介绍的[交互式图形](/2021/11/interactive-web-graphics)的区别，提及一下《现代统计图形》里关于 [**rgl**](https://github.com/dmurdoch/rgl) 和 [**animation**](https://github.com/yihui/animation) 包的介绍，本文重点介绍 [**gganimate**](https://github.com/thomasp85/gganimate) 和 [**echarts4r**](https://github.com/JohnCoene/echarts4r) 等更加现代化的工具和技术，以及笔者在使用动态图形展示数据方面的经验和教训。
 
@@ -630,6 +639,9 @@ px.scatter(
 )
 ```
 
+![(\#fig:gapminder-plotly-python) Python 版 plotly 制作动画](https://user-images.githubusercontent.com/12031874/145701692-d2847ae6-6646-4fc7-bf9d-031a4e262555.mov){.full}
+
+
 值得一提的是，支持丰富的调色板，涵盖常用的三大类型：无序的分类调色板、有序的分类调色板、连续型的调色板。调用其中一个调色板，只需 `px.colors.qualitative.Set2` 或者其逆序版本 `px.colors.qualitative.Set2_r`。也只需两行代码即可预览任意一组调色板， colorbrewer 调色板见图\@ref(fig:plotly-colorbrewer)。
 
 ```python
@@ -768,11 +780,17 @@ plotly type 参数类型，带 GL
 
 # 其它工具
 
+## Python 的 matplotlib
+
 Python 绘图模块 matplotlib 的[animation](https://matplotlib.org/stable/api/animation_api.html)
+
+## Julia 的 Plots.jl
 
 Julia 的 [Plots.jl](https://github.com/JuliaPlots/Plots.jl) 包
 
 企业级数据大屏、数据可视化 [MapGL](https://github.com/shiliangL/vue-datav-mapgl)
+
+## JavaScript 的 three.js
 
 JavaScript 3D 图形库[three.js](https://github.com/mrdoob/three.js)
 
