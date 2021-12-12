@@ -483,10 +483,8 @@ gapminder |>
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/145659289-cabd0c66-35e9-448c-adf3-f3934a72f4f2.gif" class="full" alt="Figure 3: echarts4r 制作网页动画" /><figcaption aria-hidden="true">Figure 3: echarts4r 制作网页动画</figcaption>
+<video src="https://user-images.githubusercontent.com/12031874/145657748-0db6c4ee-47e9-4b1b-941d-1022937dcf4a.mov" class="full" controls=""><a href="https://user-images.githubusercontent.com/12031874/145657748-0db6c4ee-47e9-4b1b-941d-1022937dcf4a.mov">Figure 3: echarts4r 制作网页动画</a></video><figcaption aria-hidden="true">Figure 3: echarts4r 制作网页动画</figcaption>
 </figure>
-
-因为 blogdown 不支持直接插入视频，而笔者也不想把视频传至商业视频网站，因此录制的高质量视频，读者可以[点击这里](https://user-images.githubusercontent.com/12031874/145657748-0db6c4ee-47e9-4b1b-941d-1022937dcf4a.mov)下载观看，最好还是在 R 控制台运行上述代码，效果会更好。
 
 <div class="rmdnote">
 
@@ -494,19 +492,9 @@ gapminder |>
 
 </div>
 
-<div class="sidebar">
-
-上面的 GIF 动图是借助 GifSki 将录制的 MOV 视频转化来的，转化命令如下：
-
-``` bash
-gifski -W 800 -H 600 gapminder-echarts4r.mov -o gapminder-echarts4r.gif
-```
-
-</div>
-
 <div class="rmdwarn">
 
-动画里，大气泡覆盖小气泡，尽管设置了透明度，可以看到小气泡的位置，但是鼠标悬浮在小气泡上无法显示 tooltip，这有可能是 Apache ECharts 的问题，官方示例也有此[问题](https://echarts.apache.org/examples/zh/editor.html?c=scatter-life-expectancy-timeline)。
+动画里，大气泡覆盖小气泡，尽管设置了透明度，可以看到小气泡的位置，但是鼠标悬浮在小气泡上无法显示 tooltip，这很有可能是 Apache ECharts 的问题，因为官方示例也有此[问题](https://echarts.apache.org/examples/zh/editor.html?c=scatter-life-expectancy-timeline)。
 
 </div>
 
@@ -698,6 +686,8 @@ fig.show()
 
 <!-- 
 补充 plotly 保存 SVG 图形的代码
+
+fig.write_image('gapminder-plotly-choropleth.svg')
 -->
 
 ### 图形主题

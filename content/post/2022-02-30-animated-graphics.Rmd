@@ -555,23 +555,16 @@ gapminder |>
   e_grid(bottom = 100)
 ```
 
-![(\#fig:gapminder-echarts4r) echarts4r 制作网页动画 ](https://user-images.githubusercontent.com/12031874/145659289-cabd0c66-35e9-448c-adf3-f3934a72f4f2.gif){.full}
-
-因为 blogdown 不支持直接插入视频，而笔者也不想把视频传至商业视频网站，因此录制的高质量视频，读者可以[点击这里](https://user-images.githubusercontent.com/12031874/145657748-0db6c4ee-47e9-4b1b-941d-1022937dcf4a.mov)下载观看，最好还是在 R 控制台运行上述代码，效果会更好。
+![(\#fig:gapminder-echarts4r) echarts4r 制作网页动画 ](https://user-images.githubusercontent.com/12031874/145657748-0db6c4ee-47e9-4b1b-941d-1022937dcf4a.mov){.full}
 
 ::: rmdnote
 对照 Apache ECharts 时间轴 [timeline](https://echarts.apache.org/zh/option.html#timeline) 组件的帮助文档，设置以上参数，echarts4r 有的参数名称和 Apache ECharts 略微不同，函数 `e_timeline_opts()` 的 `axis_type` 对应 `axisType`，`e_timeline_serie()` 的 `index` 对应 `currentIndex`。
 :::
 
-::: sidebar
-上面的 GIF 动图是借助 GifSki 将录制的 MOV 视频转化来的，转化命令如下：
-```bash
-gifski -W 800 -H 600 gapminder-echarts4r.mov -o gapminder-echarts4r.gif
-```
-:::
+
 
 ::: rmdwarn
-动画里，大气泡覆盖小气泡，尽管设置了透明度，可以看到小气泡的位置，但是鼠标悬浮在小气泡上无法显示 tooltip，这有可能是 Apache ECharts 的问题，官方示例也有此[问题](https://echarts.apache.org/examples/zh/editor.html?c=scatter-life-expectancy-timeline)。
+动画里，大气泡覆盖小气泡，尽管设置了透明度，可以看到小气泡的位置，但是鼠标悬浮在小气泡上无法显示 tooltip，这很有可能是 Apache ECharts 的问题，因为官方示例也有此[问题](https://echarts.apache.org/examples/zh/editor.html?c=scatter-life-expectancy-timeline)。
 :::
 
 
@@ -775,6 +768,8 @@ fig.show()
 
 <!-- 
 补充 plotly 保存 SVG 图形的代码
+
+fig.write_image('gapminder-plotly-choropleth.svg')
 -->
 
 
