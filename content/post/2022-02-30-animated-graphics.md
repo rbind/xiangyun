@@ -569,10 +569,10 @@ plot_ly(
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/145671224-e3617a52-e9be-4197-aa6b-cdde2d2b7724.gif" class="full" alt="Figure 4: plotly 制作网页动画" /><figcaption aria-hidden="true">Figure 4: plotly 制作网页动画</figcaption>
+<video src="https://user-images.githubusercontent.com/12031874/145713395-5f692a24-e4b7-4900-94f2-bc0a4911ac28.mov" class="full" controls=""><a href="https://user-images.githubusercontent.com/12031874/145713395-5f692a24-e4b7-4900-94f2-bc0a4911ac28.mov">Figure 4: plotly 制作网页动画</a></video><figcaption aria-hidden="true">Figure 4: plotly 制作网页动画</figcaption>
 </figure>
 
-如动图 <a href="#fig:gapminder-plotly">4</a> 所示，视频下载[点击这里](https://user-images.githubusercontent.com/12031874/145671216-8ef13eaf-3f19-4a36-808f-7e812a5bdf60.mov)，相比于 **echarts4r**， 气泡即使有重叠和覆盖，只要鼠标悬浮其上，就能显示被覆盖的 tooltip。
+如图 <a href="#fig:gapminder-plotly">4</a> 所示，相比于 **echarts4r**， 气泡即使有重叠和覆盖，只要鼠标悬浮其上，就能显示被覆盖的 tooltip。
 
 <div class="rmdwarn">
 
