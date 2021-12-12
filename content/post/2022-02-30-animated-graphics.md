@@ -594,6 +594,11 @@ plot_ly(
 
 ## plotly （Python 语言版）
 
+<!-- 
+plotly express io color 等子组件，绘图组件包含的图形种类
+绘制结构图，提供概览
+-->
+
 ``` python
 import plotly.express as px
 
@@ -668,6 +673,32 @@ fig.show()
 <figure>
 <img src="/img/plotly-colorbrewer.png" class="full" alt="Figure 6: plotly 的 colorbrewer 调色板" /><figcaption aria-hidden="true">Figure 6: plotly 的 colorbrewer 调色板</figcaption>
 </figure>
+
+``` python
+import plotly.express as px
+# 提取 2007 年的数据
+df = px.data.gapminder().query("year == 2007")
+# 2007 年世界平均寿命
+avg_lifeExp = (df["lifeExp"] * df["pop"]).sum() / df["pop"].sum()
+# 绘制瓦片图/围栏图
+fig = px.choropleth(
+    df,
+    locations="iso_alpha",
+    color="lifeExp",
+    color_continuous_scale=px.colors.diverging.BrBG,
+    color_continuous_midpoint=avg_lifeExp,
+    title="2007 年世界平均寿命 %.1f（岁）" % avg_lifeExp,
+    labels={
+        "iso_alpha": "国家编码",
+        "lifeExp": "人均寿命 (岁)"
+    }
+)
+fig.show()
+```
+
+<!-- 
+补充 plotly 保存 SVG 图形的代码
+-->
 
 ### 图形主题
 
