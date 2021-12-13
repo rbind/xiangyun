@@ -131,7 +131,15 @@ Thomas Lin Pedersen 从 David Robinson 接手维护后，大刀阔斧地开发 *
 
 领域内相关商业软件有很多，Adobe Flash 是早年的二维平面动画，Adobe 的 AE 和 PR 主打影视后期制作，Autodesk 的 Maya 和 3D Max 在三维场景建模、动画渲染等领域几成行业标准。开源软件也有不少，面向网页输出、支持 GPU 渲染的 three.js，[Blender](https://www.blender.org/) 是 GPL 协议开源的自由免费软件，GitHub 上存放了[源码镜像](https://github.com/blender/blender)。
 
-有人戏称 [**rayrender**](https://github.com/tylermorganwall/rayrender) 是 好看但是没什么卵用的 R 包，不依赖 rgl 包，主打 3D 建模，渲染复杂场景，没有外部依赖，可制作三维立体感的 **ggplot2** 图形，推荐其替代 **rgl** 制作三维动画。[**rayshader**](https://github.com/tylermorganwall/rayshader) 依赖 **rgl** 和 **rayrender** 等提供阴影特效，适合地形景观图，Tyler Morgan-Wall 也曾在 RStudio 大会上介绍过 **rayshader**，Github 星赞超过 1500，算是比较流行的 R 包了。
+相比于常见的用函数 `persp()` 制作的三维透视图，**rgl** 算是非常**早**的实现**真**三维图形绘制的 R 包，它在 2004 年就发布在 CRAN 上了，时间一晃，17 年过去了。
+
+<!-- 
+动画使用不当真的会弄巧成拙！
+-->
+
+mikefc 戏称自己造了好看不中用的 [ggrgl](https://github.com/coolbutuseless/ggrgl) 包，其 Github ID 正是 coolbutuseless，按字面意思拆开来就是「cool but useless」[^1]。这让我一下想到贾宝玉在假山下和林黛玉一起偷看《西厢记》的场景，贾宝玉问：银样蜡枪头是什么意思？林黛玉回答说：中看不中用。有些图形实在没有必要升维做成立体的，比如条形图或柱形图，一些反面例子可以在[漫谈条形图](https://cosx.org/2017/10/discussion-about-bar-graph)和[你问我答](https://msg2020.pzhao.org/qa/)两篇文章中找到。
+
+[**rayrender**](https://github.com/tylermorganwall/rayrender) 不依赖 rgl 包，主打 3D 建模，渲染复杂场景，没有外部依赖，可制作三维立体感的 **ggplot2** 图形，推荐其替代 **rgl** 制作三维动画。[**rayshader**](https://github.com/tylermorganwall/rayshader) 依赖 **rgl** 和 **rayrender** 等提供阴影特效，适合地形景观图，Tyler Morgan-Wall 也曾在 RStudio 大会上介绍过 **rayshader**，Github 星赞超过 1500，算是比较流行的 R 包了。
 
 [gifski](https://gif.ski/) 是一个制作 GIF 动图的 Rust 库，[Jeroen Ooms](https://github.com/jeroen) 开发了同名的 R 语言接口 [**gifski**](https://github.com/r-rust/gifski) 包，**gganimate** 制作 ggplot2 风格的动图或 MP4 格式视频也是采用 **gifski** 做转化。
 
@@ -346,6 +354,25 @@ dev.off()
 <img src="/img/gapminder-ggplot.svg" class="full" alt="Figure 2: ggplot2 制作累积分布图" /><figcaption aria-hidden="true">Figure 2: ggplot2 制作累积分布图</figcaption>
 </figure>
 
+抓住最具代表性的指标，找最能引起观众共鸣和达成共识的点，比如先入为主的偏见，发达国家收入高寿命长，发展中国家收入中等寿命较长，不发达国家收入低寿命短，以及婴儿死亡率高、家庭成员多等主观印象出发。收集尽可能准确的数据，包括来自开放组织的数据和亲自设计实验收集数据，从一些看似简单实则富含统计和因果推理理论的实验中发现一系列反事实（先入为主的偏见）的结论。比如成对的两个国家的婴儿死亡率之间至少有两倍的差距，以确保数据之间的差距远大于数据本身的误差（组间误差和组内误差，系统误差和随机误差，干预效应和随机效应），再将问卷对象从学生扩展到教授，再拿大猩猩做对照，整个实验既有生动性又有戏剧性，强烈的反差给观众留下深刻的印象，真是一个精彩的数据故事。
+
+汉斯·罗琳从健康和经济的关系看发展中国家和发达国家
+
+``` r
+library(gapminder)
+
+ggplot(gapminder, aes(gdpPercap, lifeExp, size = pop, colour = country)) +
+  geom_point(alpha = 0.7, show.legend = FALSE) +
+  scale_colour_manual(values = country_colors) +
+  scale_size(range = c(2, 12)) +
+  scale_x_log10() +
+  facet_wrap(~continent) +
+  # gganimate 
+  labs(title = 'Year: {frame_time}', x = 'GDP per capita', y = 'life expectancy') +
+  transition_time(year) +
+  ease_aes('linear')
+```
+
 # 网页动画
 
 [Apache ECharts](https://github.com/apache/echarts)、[plotly](https://github.com/plotly/plotly.js)、[G2](https://github.com/antvis/g2)、[highcharts](https://github.com/highcharts/highcharts)（此为商业软件） 都支持一定的动画制作能力。相对比较成熟的 R 语言接口是前面几个，下面详细介绍一二。
@@ -500,7 +527,7 @@ gapminder |>
 
 ## plotly （R 语言版）
 
-下面采用 Carson Sievert 开发的 [plotly](https://github.com/plotly/plotly.R) 包([Sievert 2020](#ref-Sievert2020))制作网页动画，仍是以 gapminder 数据集为例，示例修改自 plotly 官网的 [动画示例](https://plotly.com/r/animations/)。关于 plotly 以及绘制散点图的介绍，见前文[交互式网页图形与 R 语言](/2021/11/interactive-web-graphics/)，此处不再赘述[^1]。
+下面采用 Carson Sievert 开发的 [plotly](https://github.com/plotly/plotly.R) 包([Sievert 2020](#ref-Sievert2020))制作网页动画，仍是以 gapminder 数据集为例，示例修改自 plotly 官网的 [动画示例](https://plotly.com/r/animations/)。关于 plotly 以及绘制散点图的介绍，见前文[交互式网页图形与 R 语言](/2021/11/interactive-web-graphics/)，此处不再赘述[^2]。
 
 ``` r
 library(plotly)
@@ -576,7 +603,7 @@ plot_ly(
 
 <div class="rmdwarn">
 
-动画播放和暂停的控制按钮一直有问题，即点击播放后，按钮不会切换为暂停按钮，点击暂停后也不能恢复，详见 plotly 包的 Github [问题贴](https://github.com/plotly/plotly.R/issues/1207)。然而，Python 版的 plotly 模块制作此[动画](https://plotly.com/python/animations/)，一切正常，代码也紧凑很多，请读者接着往下看[^2]。
+动画播放和暂停的控制按钮一直有问题，即点击播放后，按钮不会切换为暂停按钮，点击暂停后也不能恢复，详见 plotly 包的 Github [问题贴](https://github.com/plotly/plotly.R/issues/1207)。然而，Python 版的 plotly 模块制作此[动画](https://plotly.com/python/animations/)，一切正常，代码也紧凑很多，请读者接着往下看[^3]。
 
 </div>
 
@@ -802,23 +829,56 @@ library(rayrender)
 
 # WebGL 动画
 
-[WebGL](https://developer.mozilla.org/zh-CN/docs/Web/API/WebGL_API)
+[WebGL](https://www.khronos.org/webgl/)是一种 JavaScript API，可以使用计算机的 GPU 硬件资源加速 2D 和 3D 图形渲染，2011 年发布 1.0 规范，2017 年完成 2.0 规范，目前，主流浏览器 Safari、Chrome、Edge 和 Firefox 等均已支持。
 
-[WebGL](https://www.khronos.org/webgl/)
+本节利用 **ggplot2** 包内置的钻石数据集 diamonds，它有 53940 条记录，
+WebGL 技术可以极大地加速大规模数据集渲染展示，虽说在这个数据集用 WebGL，有点杀鸡用牛刀，但是足以展示用和不用之间的差异，而在更大规模的数据集上，比如百万、千万级别，性能差异将会更加凸显 WebGL 的相对优势。
 
-GPU 加速，大规模数据集
+[plotly.js](https://github.com/plotly/plotly.js) 提供很多图层用于绘制各类图形，见[plotly.js 源码库](https://github.com/plotly/plotly.js/tree/master/src/traces)，其中支持 WebGL 的有热力图 `heatmapgl`、 散点图 `scattergl` 和极坐标系下的散点图 `scatterpolargl`。
 
-## mapdeck
+Apache Echarts 支持 WebGL 的图形有散点图、路径图、矢量场图、网络图，详见官方[示例文档](https://echarts.apache.org/examples/zh/index.html)，大规模的数据可视化需要比较好的硬件资源支持。
 
-R 接口 Deck.gl 和 Mapbox
-
-[mapdeck](https://github.com/SymbolixAU/mapdeck)
+[**mapdeck**](https://github.com/SymbolixAU/mapdeck) 提供了 [Deck.gl](https://github.com/visgl/deck.gl) 和 [Mapbox](https://github.com/mapbox/mapbox-gl-js) 的 R 语言接口，Deck.gl 号称是 WebGL 2.0 加持的高性能大规模数据可视化渲染组件，也是以 MIT 协议开源的软件，而后者是商业收费软件。
 
 ## echarts4r
 
 ## plotly
 
-plotly type 参数类型，带 GL
+函数 `plot_ly()` 的图形类型参数 `type= "scatter"` 替换为 `type= "scattergl"`，即可从普通散点图切换到有 WebGL 加速的散点图，直观感受就是鼠标悬浮散点上并拖动带来的流畅感。**plotly** 包还提供函数 `toWebGL()` 实现转化 WebGL 的转化。
+
+``` r
+# 普通散点图
+plot_ly(data = diamonds,
+  x = ~carat, y = ~price, color = ~cut,
+  type = "scatter", mode = "markers"
+)
+# WebGL 散点图
+plot_ly(data = diamonds,
+  x = ~carat, y = ~price, color = ~cut,
+  type = "scattergl", mode = "markers"
+)
+# 普通散点图转化为 WebGL 散点图
+plot_ly(data = diamonds,
+  x = ~carat, y = ~price, color = ~cut,
+  type = "scatter", mode = "markers"
+) %>% 
+  toWebGL()
+```
+
+[rasterly](https://github.com/plotly/rasterly) 包是受到[datashader](https://github.com/holoviz/datashader/)项目启发，希望借助 plotly.js 和 **plotly** 实现百万、乃至千万级别的空间位置数据的渲染和可视化，探索和分析空间点模式，挖掘空间聚集分布规律。
+
+``` r
+library(rasterly)
+plotly::plot_ly(quakes, x = ~long, y = ~lat) %>%
+  add_rasterly_heatmap()
+
+rasterly(data = quakes, mapping = aes(x = long, y = lat)) %>%
+  rasterly_points()
+
+# 读取原始数据
+# uber 轨迹数据来自 https://github.com/plotly/rasterly
+uber <- readRDS(file = 'data/uber.rds')
+```
 
 # 其它工具
 
@@ -847,7 +907,7 @@ xfun::session_info(packages = c(
   "gganimate", "ggplot2", "showtext",
   "MASS", "ggrepel", "rgl", "rayrender"
 ), dependencies = FALSE)
-# R version 4.1.2 (2021-11-01)
+# R version 4.1.1 (2021-08-10)
 # Platform: x86_64-apple-darwin17.0 (64-bit)
 # Running under: macOS Big Sur 10.16
 # 
@@ -862,7 +922,7 @@ xfun::session_info(packages = c(
 # 
 # Pandoc version: 2.16.2
 # 
-# Hugo version: 0.89.4
+# Hugo version: 0.89.3
 ```
 
 # 参考文献
@@ -919,13 +979,15 @@ Xie, Yihui. 2021. *Animation: A Gallery of Animations in Statistics and Utilitie
 
 </div>
 
-[^1]: 读者看到 `plot_ly(fill = ~"",...)` 可能会奇怪，为什么参数 `fill` 的值是空字符串？这应该是 plotly 的 R 包或 JS 库的问题，不加会有很多警告：
+[^1]: 话又说回来，mikefc 的个人博客干货很多，而且非常高产，推荐读者看看 <https://coolbutuseless.github.io/>。
+
+[^2]: 读者看到 `plot_ly(fill = ~"",...)` 可能会奇怪，为什么参数 `fill` 的值是空字符串？这应该是 plotly 的 R 包或 JS 库的问题，不加会有很多警告：
 
         `line.width` does not currently support multiple values.
 
     笔者是参考[SO](https://stackoverflow.com/questions/52692760/)的帖子加上的。
 
-[^2]: 最后，顺便一说，添加如下 CSS 可以去掉图形右上角烦人的工具条。
+[^3]: 最后，顺便一说，添加如下 CSS 可以去掉图形右上角烦人的工具条。
 
     ``` css
     .modebar {
