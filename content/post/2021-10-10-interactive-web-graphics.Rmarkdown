@@ -120,6 +120,14 @@ R 语言在数据可视化方面有很长时间的积累，除了内置的基础
 Sys.setenv(R_CRAN_WEB = "https://mirrors.tuna.tsinghua.edu.cn/CRAN")
 pdb <- tools::CRAN_package_db()
 
+# 抽取 R 包的 URL
+extract_url <- function(url) {
+  x <- trimws(unlist(strsplit(url, split = ",")), which = "both", whitespace = " ")
+  git <- grepl(x = x, pattern = "(github|gitlab)")
+  x = ifelse(any(git), x[git][1], x[1])
+  x
+}
+
 # 处理掉丑陋的成对单引号
 rmd_lib <- c(
   "ggplot2", "plotly.js", "Echarts JavaScript",
@@ -146,14 +154,19 @@ sub_pdb <- subset(
   transform(Title = gsub(rmd_regexp, "\\1", Title)) |> 
   transform(Maintainer = gsub("<([^<>]*)>", "", Maintainer)) |> 
   transform(URL = gsub("(\\\n)", " ", URL)) |> 
-  transform(URL = gsub(",", "", URL)) |> 
-  transform(Package = paste0("**", Package, "**", " ", "[@", Package, "]"))
+  transform(URL1 = unlist(lapply(URL, extract_url)) ) |> 
+  transform(Package1 = paste0("**", Package, "**")) |> 
+  transform(Package1 = paste0("[", Package1, "](", URL1, ")")) |> 
+  transform(Package = paste0(Package1, "[@", Package, "]"))
+  
+sub_pdb = sub_pdb[order(sub_pdb$Maintainer), ] |> 
+  subset(select = c("Package", "Title", "Maintainer", "License"))
 
 # 展示表格
-knitr::kable(sub_pdb[order(sub_pdb$Maintainer), ],
+knitr::kable(sub_pdb,
   row.names = FALSE,
   caption = "制作交互式网页图形的 R 包（排名不分先后）",
-  col.names = c("R 包", "简介", "维护者", "网站", "协议")
+  col.names = c("R 包", "简介", "维护者", "协议")
 )
 ```
 ```{r write-bib, include=FALSE}

@@ -112,14 +112,14 @@ R 语言在数据可视化方面有很长时间的积累，除了内置的基础
 
 本文将主要介绍 R 语言绘制交互式网页图形的扩展包，综合考虑了使用权限，图形种类，接口成熟度等方面因素，挑选了 [**plotly**](https://github.com/plotly/plotly.R)、 [**ggiraph**](https://github.com/davidgohel/ggiraph)、 [**scatterD3**](https://github.com/juba/scatterD3)、 [**apexcharter**](https://github.com/dreamRs/apexcharter) 和 [**echarts4r**](https://github.com/JohnCoene/echarts4r) 等几个 R 包，见表<a href="#tab:table-deps">1</a>。R 语言还有一些专门化的可视化扩展包，比如绘制交互网络图的[**visNetwork**](https://github.com/datastorm-open/visNetwork) ，绘制交互地图的[**leaflet**](https://github.com/rstudio/leaflet) 等，更多详见[Ryan Hafen](https://github.com/hafen) 收集整理的交互式图形[展览网站](https://gallery.htmlwidgets.org/)。
 
-| R 包                                                         | 简介                                                             | 维护者              | 网站                                                                          | 协议                    |
-|:-------------------------------------------------------------|:-----------------------------------------------------------------|:--------------------|:------------------------------------------------------------------------------|:------------------------|
-| **plotly** ([Sievert et al. 2021](#ref-plotly))              | Create Interactive Web Graphics via plotly.js                    | Carson Sievert      | https://plotly-r.com https://github.com/plotly/plotly.R https://plotly.com/r/ | MIT + file LICENSE      |
-| **ggiraph** ([Gohel and Skintzos 2021](#ref-ggiraph))        | Make ggplot2 Graphics Interactive                                | David Gohel         | https://davidgohel.github.io/ggiraph/                                         | GPL-3                   |
-| **echarts4r** ([Coene 2021](#ref-echarts4r))                 | Create Interactive Graphs with Echarts JavaScript Version 5      | John Coene          | https://echarts4r.john-coene.com/ https://github.com/JohnCoene/echarts4r      | Apache License (>= 2.0) |
-| **scatterD3** ([Barnier et al. 2021](#ref-scatterD3))        | D3 JavaScript Scatterplot from R                                 | Julien Barnier      | https://juba.github.io/scatterD3/                                             | GPL (>= 3)              |
-| **ggplot2** ([Wickham et al. 2021](#ref-ggplot2))            | Create Elegant Data Visualisations Using the Grammar of Graphics | Thomas Lin Pedersen | https://ggplot2.tidyverse.org https://github.com/tidyverse/ggplot2            | MIT + file LICENSE      |
-| **apexcharter** ([Perrier and Meyer 2021](#ref-apexcharter)) | Create Interactive Chart with the JavaScript ApexCharts Library  | Victor Perrier      | https://github.com/dreamRs/apexcharter https://dreamrs.github.io/apexcharter/ | MIT + file LICENSE      |
+| R 包                                                                                                  | 简介                                                             | 维护者              | 协议                    |
+|:------------------------------------------------------------------------------------------------------|:-----------------------------------------------------------------|:--------------------|:------------------------|
+| [**plotly**](https://github.com/plotly/plotly.R)([Sievert et al. 2021](#ref-plotly))                  | Create Interactive Web Graphics via plotly.js                    | Carson Sievert      | MIT + file LICENSE      |
+| [**ggiraph**](https://davidgohel.github.io/ggiraph/)([Gohel and Skintzos 2021](#ref-ggiraph))         | Make ggplot2 Graphics Interactive                                | David Gohel         | GPL-3                   |
+| [**echarts4r**](https://github.com/JohnCoene/echarts4r)([Coene 2021](#ref-echarts4r))                 | Create Interactive Graphs with Echarts JavaScript Version 5      | John Coene          | Apache License (>= 2.0) |
+| [**scatterD3**](https://juba.github.io/scatterD3/)([Barnier et al. 2021](#ref-scatterD3))             | D3 JavaScript Scatterplot from R                                 | Julien Barnier      | GPL (>= 3)              |
+| [**ggplot2**](https://github.com/tidyverse/ggplot2)([Wickham et al. 2021](#ref-ggplot2))              | Create Elegant Data Visualisations Using the Grammar of Graphics | Thomas Lin Pedersen | MIT + file LICENSE      |
+| [**apexcharter**](https://github.com/dreamRs/apexcharter)([Perrier and Meyer 2021](#ref-apexcharter)) | Create Interactive Chart with the JavaScript ApexCharts Library  | Victor Perrier      | MIT + file LICENSE      |
 
 Table 1: 制作交互式网页图形的 R 包（排名不分先后）
 
@@ -633,8 +633,8 @@ xfun::session_info(packages = c(
     ## Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
     ## 
     ## Package version:
-    ##   apexcharter_0.3.0 blogdown_1.6      echarts4r_0.4.2   ggiraph_0.7.10   
-    ##   ggplot2_3.3.5     knitr_1.36        plotly_4.10.0     rmarkdown_2.11   
+    ##   apexcharter_0.3.0 blogdown_1.6      echarts4r_0.4.2   ggiraph_0.8.1    
+    ##   ggplot2_3.3.5     knitr_1.37        plotly_4.10.0     rmarkdown_2.11   
     ##   scatterD3_1.0.1  
     ## 
     ## Pandoc version: 2.16.2
