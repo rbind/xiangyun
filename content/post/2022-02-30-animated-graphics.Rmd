@@ -655,8 +655,14 @@ plot_ly(
     legend = list(title = list(text = "<b> 大洲 </b>"))
   ) |>
   animation_opts(
-    frame = 1000, easing = "linear", redraw = FALSE,
-    transition = 1000, mode = "immediate"
+    # 帧与帧之间播放的时间间隔，包含转场时间
+    frame = 1000, 
+    # 转场的效果
+    easing = "linear", 
+    redraw = FALSE,
+    # 动画帧与帧之间转场的时间间隔，单位毫秒
+    transition = 1000,
+    mode = "immediate"
   ) |>
   animation_slider(
     currentvalue = list(
@@ -665,14 +671,15 @@ plot_ly(
       font = list(color = "gray", size = 30)
     )
   ) |>
+  # 下面的参数会传递给 layout.updatemenus 的 button 对象
   animation_button(
     # 按钮位置
     x = 0, xanchor = "right",
-    y = -0.2, yanchor = "bottom",
+    y = -0.3, yanchor = "bottom",
+    visible = TRUE, # 显示播放按钮
     label = "播放", # 按钮文本
     # bgcolor = "#5b89f7", # 按钮背景色
-    # font = list(color = "#fff"), # 文本颜色
-    visible = TRUE # 显示播放按钮
+    font = list(color = "orange")# 文本颜色
   ) |>
   config(
     # 去掉图片右上角工具条
@@ -683,6 +690,30 @@ plot_ly(
 ![(\#fig:gapminder-plotly) plotly 制作网页动画](https://user-images.githubusercontent.com/12031874/145713395-5f692a24-e4b7-4900-94f2-bc0a4911ac28.mov){.full}
 
 如图 \@ref(fig:gapminder-plotly) 所示，相比于 **echarts4r**， 气泡即使有重叠和覆盖，只要鼠标悬浮其上，就能显示被覆盖的 tooltip。
+
+动画控制参数 `animation_opts()`，详见 Plotly [动画属性](https://github.com/plotly/plotly.js/blob/master/src/plots/animation_attributes.js)，结合此帮助文档，可知参数 `easing` 除了上面的取值 `linear`，还有很多，全部参数值见表\@ref(tab:easing)。
+
+```{r easing, echo=FALSE}
+# 或者 plotly:::easingOpts()
+easing <- c(
+  "linear", "quad", "cubic", "sin",
+  "exp", "circle", "elastic", "back", "bounce",
+  "linear-in", "quad-in", "cubic-in",
+  "sin-in", "exp-in", "circle-in", "elastic-in",
+  "back-in", "bounce-in", "linear-out",
+  "quad-out", "cubic-out", "sin-out",
+  "exp-out", "circle-out",
+  "elastic-out", "back-out",
+  "bounce-out", "linear-in-out",
+  "quad-in-out", "cubic-in-out",
+  "sin-in-out", "exp-in-out",
+  "circle-in-out", "elastic-in-out",
+  "back-in-out", "bounce-in-out"
+)
+knitr::kable(x = matrix(easing, byrow = TRUE, ncol = 6), caption = "动画转场特效")
+```
+
+`animation_opts()` 的其它默认参数设置见 `plotly:::animation_opts_defaults()`。
 
 
 [^modebar]: 最后，顺便一说，添加如下 CSS 可以去掉图形右上角烦人的工具条。

@@ -570,8 +570,14 @@ plot_ly(
     legend = list(title = list(text = "<b> 大洲 </b>"))
   ) |>
   animation_opts(
-    frame = 1000, easing = "linear", redraw = FALSE,
-    transition = 1000, mode = "immediate"
+    # 帧与帧之间播放的时间间隔，包含转场时间
+    frame = 1000, 
+    # 转场的效果
+    easing = "linear", 
+    redraw = FALSE,
+    # 动画帧与帧之间转场的时间间隔，单位毫秒
+    transition = 1000,
+    mode = "immediate"
   ) |>
   animation_slider(
     currentvalue = list(
@@ -580,14 +586,15 @@ plot_ly(
       font = list(color = "gray", size = 30)
     )
   ) |>
+  # 下面的参数会传递给 layout.updatemenus 的 button 对象
   animation_button(
     # 按钮位置
     x = 0, xanchor = "right",
-    y = -0.2, yanchor = "bottom",
+    y = -0.3, yanchor = "bottom",
+    visible = TRUE, # 显示播放按钮
     label = "播放", # 按钮文本
     # bgcolor = "#5b89f7", # 按钮背景色
-    # font = list(color = "#fff"), # 文本颜色
-    visible = TRUE # 显示播放按钮
+    font = list(color = "orange")# 文本颜色
   ) |>
   config(
     # 去掉图片右上角工具条
@@ -600,6 +607,21 @@ plot_ly(
 </figure>
 
 如图 <a href="#fig:gapminder-plotly">4</a> 所示，相比于 **echarts4r**， 气泡即使有重叠和覆盖，只要鼠标悬浮其上，就能显示被覆盖的 tooltip。
+
+动画控制参数 `animation_opts()`，详见 Plotly [动画属性](https://github.com/plotly/plotly.js/blob/master/src/plots/animation_attributes.js)，结合此帮助文档，可知参数 `easing` 除了上面的取值 `linear`，还有很多，全部参数值见表<a href="#tab:easing">2</a>。
+
+|             |            |               |                |             |               |
+|:------------|:-----------|:--------------|:---------------|:------------|:--------------|
+| linear      | quad       | cubic         | sin            | exp         | circle        |
+| elastic     | back       | bounce        | linear-in      | quad-in     | cubic-in      |
+| sin-in      | exp-in     | circle-in     | elastic-in     | back-in     | bounce-in     |
+| linear-out  | quad-out   | cubic-out     | sin-out        | exp-out     | circle-out    |
+| elastic-out | back-out   | bounce-out    | linear-in-out  | quad-in-out | cubic-in-out  |
+| sin-in-out  | exp-in-out | circle-in-out | elastic-in-out | back-in-out | bounce-in-out |
+
+Table 2: 动画转场特效
+
+`animation_opts()` 的其它默认参数设置见 `plotly:::animation_opts_defaults()`。
 
 <div class="rmdwarn">
 
@@ -907,7 +929,7 @@ xfun::session_info(packages = c(
   "gganimate", "ggplot2", "showtext",
   "MASS", "ggrepel", "rgl", "rayrender"
 ), dependencies = FALSE)
-# R version 4.1.1 (2021-08-10)
+# R version 4.1.2 (2021-11-01)
 # Platform: x86_64-apple-darwin17.0 (64-bit)
 # Running under: macOS Big Sur 10.16
 # 
@@ -922,7 +944,7 @@ xfun::session_info(packages = c(
 # 
 # Pandoc version: 2.16.2
 # 
-# Hugo version: 0.89.3
+# Hugo version: 0.89.4
 ```
 
 # 参考文献
