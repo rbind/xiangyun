@@ -151,7 +151,7 @@ div.img {
 <img src="https://user-images.githubusercontent.com/12031874/142166760-91408f3a-1a30-4c0d-9e22-6e7993a678bc.png" class="full" alt="Figure 3: rattle 包：数据挖掘与 Gtk+ 应用" /><figcaption aria-hidden="true">Figure 3: <strong>rattle</strong> 包：数据挖掘与 Gtk+ 应用</figcaption>
 </figure>
 
-期间，还陆续出现了一些开源统计分析软件，比如 [GNU PSPP](https://www.gnu.org/software/pspp/) 和 [JASP](https://jasp-stats.org)，都提供图形化的用户界面，也都号称是 SPSS 软件 的免费替代，但是从来没有真的替代过。专门化的贝叶斯分析软件有 [JAGS](https://mcmc-jags.sourceforge.io/) 和 [Stan](https://mc-stan.org/) 等，而商业化的软件更是可以列出一个长长的单子，此处略去。下面仅就 JASP 简单介绍，JASP 是一款独立免费开源的统计软件，不是一个 R 包，源代码托管在 [Github](https://github.com/jasp-stats/jasp-desktop) 上，主要由阿姆斯特丹大学 [E. J. Wagenmakers](https://www.ejwagenmakers.com/) 教授领导的团队维护开发，实现了很多贝叶斯和频率统计方法，具体功能见[这里](https://jasp-stats.org/current-functionality/)，统计方法和原理见[博客](https://www.bayesianspectacles.org/)，相似的图形用户界面使得 JASP 可以作为 SPSS 的替代，也远非前面的 JGR 可比，实际上，后者已经多年未更新功能了，笔者亲测已经不可用。
+期间，还陆续出现了一些开源统计分析软件，比如 [GNU PSPP](https://www.gnu.org/software/pspp/)、[jamovi](https://www.jamovi.org/) 和 [JASP](https://jasp-stats.org)，都提供图形化的用户界面，也都号称是 SPSS 软件 的免费替代，但是从来没有真的替代过。专门化的贝叶斯分析软件有 [JAGS](https://mcmc-jags.sourceforge.io/) 和 [Stan](https://mc-stan.org/) 等，而商业化的软件更是可以列出一个长长的单子，此处略去。下面仅就 JASP 简单介绍，JASP 是一款独立免费开源的统计软件，不是一个 R 包，源代码托管在 [Github](https://github.com/jasp-stats/jasp-desktop) 上，主要由阿姆斯特丹大学 [E. J. Wagenmakers](https://www.ejwagenmakers.com/) 教授领导的团队维护开发，实现了很多贝叶斯和频率统计方法，具体功能见[这里](https://jasp-stats.org/current-functionality/)，统计方法和原理见[博客](https://www.bayesianspectacles.org/)，相似的图形用户界面使得 JASP 可以作为 SPSS 的替代，也远非前面的 JGR 可比，实际上，后者已经多年未更新功能了，笔者亲测已经不可用。
 
 | Analysis                                                          | Frequentist | Bayesian |
 |:------------------------------------------------------------------|:------------|:---------|
@@ -195,6 +195,10 @@ Table 1: JASP 软件的主要统计分析功能
 
 <figure>
 <img src="https://user-images.githubusercontent.com/12031874/142556557-997700a0-e449-4849-a0db-8aa00317225b.png" class="full" alt="Figure 4: 2021 年 Gartner 分析和商业智能平台魔力象限" /><figcaption aria-hidden="true">Figure 4: 2021 年 Gartner 分析和商业智能平台魔力象限</figcaption>
+</figure>
+
+<figure>
+<img src="/img/data-science.webp" class="full" alt="Figure 4: 2021 年 Gartner 数据科学与机器学习平台魔力象限" /><figcaption aria-hidden="true">Figure 4: 2021 年 Gartner 数据科学与机器学习平台魔力象限</figcaption>
 </figure>
 
 ## Shiny
@@ -373,17 +377,19 @@ xfun::session_info(packages = c(
     ## Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
     ## 
     ## Package version:
-    ##   base64enc_0.1.3  blogdown_1.6     bookdown_0.24    digest_0.6.28   
-    ##   evaluate_0.14    fastmap_1.1.0    glue_1.5.0       graphics_4.1.2  
-    ##   grDevices_4.1.2  highr_0.9        htmltools_0.5.2  httpuv_1.6.3    
-    ##   jquerylib_0.1.4  jsonlite_1.7.2   knitr_1.36       later_1.3.0     
+    ##   base64enc_0.1.3  blogdown_1.6     bookdown_0.24    digest_0.6.29   
+    ##   evaluate_0.14    fastmap_1.1.0    glue_1.5.1       graphics_4.1.2  
+    ##   grDevices_4.1.2  highr_0.9        htmltools_0.5.2  httpuv_1.6.4    
+    ##   jquerylib_0.1.4  jsonlite_1.7.2   knitr_1.37       later_1.3.0     
     ##   magrittr_2.0.1   methods_4.1.2    mime_0.12        promises_1.2.0.1
     ##   R6_2.5.1         Rcpp_1.0.7       rlang_0.4.12     rmarkdown_2.11  
-    ##   servr_0.24       stats_4.1.2      stringi_1.7.5    stringr_1.4.0   
-    ##   tinytex_0.35     tools_4.1.2      utils_4.1.2      xfun_0.28       
+    ##   servr_0.24       stats_4.1.2      stringi_1.7.6    stringr_1.4.0   
+    ##   tinytex_0.35     tools_4.1.2      utils_4.1.2      xfun_0.29       
     ##   yaml_2.2.1      
     ## 
-    ## Pandoc version: 2.16.1
+    ## Pandoc version: 2.16.2
+    ## 
+    ## Hugo version: 0.89.4
 
 # 参考文献
 

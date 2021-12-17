@@ -183,7 +183,7 @@ subset(x = pdb, subset = grepl(pattern = "^RcmdrPlugin", x = Package), select = 
     ```
 
 
-期间，还陆续出现了一些开源统计分析软件，比如 [GNU PSPP](https://www.gnu.org/software/pspp/) 和 [JASP](https://jasp-stats.org)，都提供图形化的用户界面，也都号称是 SPSS 软件 的免费替代，但是从来没有真的替代过。专门化的贝叶斯分析软件有 [JAGS](https://mcmc-jags.sourceforge.io/) 和 [Stan](https://mc-stan.org/) 等，而商业化的软件更是可以列出一个长长的单子，此处略去。下面仅就 JASP 简单介绍，JASP 是一款独立免费开源的统计软件，不是一个 R 包，源代码托管在 [Github](https://github.com/jasp-stats/jasp-desktop) 上，主要由阿姆斯特丹大学 [E. J. Wagenmakers](https://www.ejwagenmakers.com/) 教授领导的团队维护开发，实现了很多贝叶斯和频率统计方法，具体功能见[这里](https://jasp-stats.org/current-functionality/)，统计方法和原理见[博客](https://www.bayesianspectacles.org/)，相似的图形用户界面使得 JASP 可以作为 SPSS 的替代，也远非前面的 JGR 可比，实际上，后者已经多年未更新功能了，笔者亲测已经不可用。
+期间，还陆续出现了一些开源统计分析软件，比如 [GNU PSPP](https://www.gnu.org/software/pspp/)、[jamovi](https://www.jamovi.org/) 和 [JASP](https://jasp-stats.org)，都提供图形化的用户界面，也都号称是 SPSS 软件 的免费替代，但是从来没有真的替代过。专门化的贝叶斯分析软件有 [JAGS](https://mcmc-jags.sourceforge.io/) 和 [Stan](https://mc-stan.org/) 等，而商业化的软件更是可以列出一个长长的单子，此处略去。下面仅就 JASP 简单介绍，JASP 是一款独立免费开源的统计软件，不是一个 R 包，源代码托管在 [Github](https://github.com/jasp-stats/jasp-desktop) 上，主要由阿姆斯特丹大学 [E. J. Wagenmakers](https://www.ejwagenmakers.com/) 教授领导的团队维护开发，实现了很多贝叶斯和频率统计方法，具体功能见[这里](https://jasp-stats.org/current-functionality/)，统计方法和原理见[博客](https://www.bayesianspectacles.org/)，相似的图形用户界面使得 JASP 可以作为 SPSS 的替代，也远非前面的 JGR 可比，实际上，后者已经多年未更新功能了，笔者亲测已经不可用。
 
 Table: (\#tab:jasp) JASP 软件的主要统计分析功能
 
@@ -232,6 +232,9 @@ Table: (\#tab:jasp) JASP 软件的主要统计分析功能
 
 
 ![(\#fig:magic-quadrant) 2021 年 Gartner 分析和商业智能平台魔力象限](https://user-images.githubusercontent.com/12031874/142556557-997700a0-e449-4849-a0db-8aa00317225b.png){.full}
+
+
+![(\#fig:magic-quadrant) 2021 年 Gartner 数据科学与机器学习平台魔力象限](/img/data-science.webp){.full}
 
 
 
