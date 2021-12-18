@@ -8,8 +8,7 @@ categories:
   - 统计软件
 tags:
   - 技术笔记
-thumbnail: /img/Fedora.svg
-description: "软件环境配置是个既麻烦又耗时的苦力活，笔者曾经在 Windows 上折腾多年，换过几次电脑，工作之后，转向 MacOS 系统，又开始折腾，人生苦短，现收集整理出来，以后遇到新的坑也会填上来，尽量节省一些不必要的重复折腾。一些历史的折腾也搬上来了，爷青也结！"
+description: "软件环境配置是个既麻烦又耗时的苦力活，笔者曾经在 Windows 上折腾多年，换过几次电脑，工作之后，转向 MacOS 系统，又开始折腾，人生苦短，现收集整理出来，以后遇到新的坑也会填上来，尽量节省一些不必要的重复折腾。一些历史的折腾也搬上来了，生命不息，重装不止！"
 ---
 
 # 基础软件
@@ -17,6 +16,26 @@ description: "软件环境配置是个既麻烦又耗时的苦力活，笔者曾
 -   命令行工具 [Xcode](https://developer.apple.com/download/all/)
 
 -   软件包管理工具 [brew](https://mirrors.tuna.tsinghua.edu.cn/help/homebrew/)
+
+
+# 高频设置
+
+-   [Mac 截图去阴影等常用设置](https://macos-defaults.com/)
+
+-   [终端的命令行提示符自定义](https://stackoverflow.com/questions/37286971/)
+
+-   解决 [raw.githubusercontent.com port 443: Connection refused](https://blog.csdn.net/Rainbow1995/article/details/111475551)
+    在网站 <https://ipaddress.com/> 输入 `raw.githubusercontent.com` 拿到 IP 地址，添加到 hosts 文件。
+    
+    ```bash
+    sudo vi /etc/hosts
+    ```
+    ```
+    185.199.108.133   raw.githubusercontent.com
+    185.199.109.133   raw.githubusercontent.com
+    185.199.110.133   raw.githubusercontent.com
+    185.199.111.133   raw.githubusercontent.com
+    ```
 
 # 文本编辑
 
@@ -31,7 +50,7 @@ brew install --cask atom
 
 ``` bash
 brew install --cask lyx
-brew install --cask typora
+brew install --cask mark-text
 brew install --cask calibre
 brew install pandoc hugo
 ```
@@ -248,12 +267,18 @@ Rscript -e 'install.packages(c("rJava", "sparklyr"))'
     export HADOOP_VERSION=3.2
     export SPARK_HOME=/opt/spark/spark-3.1.1-bin-hadoop3.2
 
-推荐从清华镜像站点下载 Spark 环境
+推荐从[Apache Spark](https://spark.apache.org)下载 Spark 环境
 
 ``` bash
 sudo mkdir -p /opt/spark/
-tar -xzf spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz -C /opt/spark/
 sudo chown -R $(whoami):admin /opt/spark/
+tar -xzf spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz -C /opt/spark/
+```
+
+Spark 环境自带了 R 接口 **SparkR** 包，可这样加载：
+
+```r
+library(SparkR, lib.loc = "/opt/spark/spark-3.1.1-bin-hadoop3.2/R/lib/")
 ```
 
 # R 包与 OpenMP
