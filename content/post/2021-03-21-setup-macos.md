@@ -11,18 +11,20 @@ tags:
 description: "软件环境配置是个既麻烦又耗时的苦力活，笔者曾经在 Windows 上折腾多年，换过几次电脑，工作之后，转向 MacOS 系统，又开始折腾，人生苦短，现收集整理出来，以后遇到新的坑也会填上来，尽量节省一些不必要的重复折腾。一些历史的折腾也搬上来了，生命不息，重装不止！"
 ---
 
-# 基础软件
-
--   命令行工具 [Xcode](https://developer.apple.com/download/all/)
-
--   软件包管理工具 [brew](https://mirrors.tuna.tsinghua.edu.cn/help/homebrew/)
-
 
 # 高频设置
 
+-   命令行工具 [Xcode](https://developer.apple.com/download/all/) 等，在线安装迷你版命令行工具。
+
+    ```bash
+    xcode-select --install
+    ```
+
+-   软件包管理工具 [brew](https://mirrors.tuna.tsinghua.edu.cn/help/homebrew/)
+
 -   [Mac 截图去阴影等常用设置](https://macos-defaults.com/)
 
--   [终端的命令行提示符自定义](https://stackoverflow.com/questions/37286971/)
+-   [自定义终端的命令行提示符](https://stackoverflow.com/questions/37286971/)
 
 -   解决 [raw.githubusercontent.com port 443: Connection refused](https://blog.csdn.net/Rainbow1995/article/details/111475551)
     在网站 <https://ipaddress.com/> 输入 `raw.githubusercontent.com` 拿到 IP 地址，添加到 hosts 文件。
@@ -37,22 +39,29 @@ description: "软件环境配置是个既麻烦又耗时的苦力活，笔者曾
     185.199.111.133   raw.githubusercontent.com
     ```
 
+-   配置 MacOS 终端：MacOS 自带 [zsh](https://github.com/zsh-users/zsh)，只需安装 [Oh My Zsh](https://github.com/ohmyzsh/ohmyzsh) 配置工具、[nerd-font](https://github.com/ryanoasis/nerd-fonts) 图标字体和 [powerlevel10k](https://github.com/romkatv/powerlevel10k) 主题。
+
+    ```bash
+    # 安装 fira-code 字体及其配套的图标字体
+    brew install --cask font-fira-code font-fira-code-nerd-font
+    ```
+
 # 文本编辑
+
+## 编辑工具
 
 通用代码文本集成开发编辑环境 IDE
 
-``` bash
-brew install --cask visual-studio-code 
-brew install --cask atom
+```bash
+brew install --cask visual-studio-code atom 
 ```
 
-文本编辑和转化工具
+文字编辑和文档转化工具
 
-``` bash
-brew install --cask lyx
-brew install --cask mark-text
-brew install --cask calibre
+```bash
 brew install pandoc hugo
+brew install --cask mark-text
+brew install --cask calibre lyx
 ```
 
 运行 LyX 内置的 knitr 模版，需要一些 LaTeX 包
@@ -61,13 +70,15 @@ brew install pandoc hugo
 tinytex::tlmgr_install(c('palatino', 'babel-english', 'mathpazo'))
 ```
 
-安装中文字体
+## 中文字体
 
 ``` bash
 brew tap homebrew/cask-fonts
 brew install --cask font-noto-sans-cjk-sc font-noto-serif-cjk-sc
 brew install --cask font-alegreya-sans-sc font-alegreya-sc
 ```
+
+## 字体使用
 
 LaTeX 宏包 **xecjk** 支持中文，不必使用 **ctex** 宏包，MacOS 系统上，在 LaTeX 文档里使用 Windows 系统上的黑体、宋体、仿宋、楷体四款中文字体。
 
@@ -89,7 +100,7 @@ LaTeX 宏包 **xecjk** 支持中文，不必使用 **ctex** 宏包，MacOS 系�
 \newcommand{\fangsong}{\CJKfamily{fangsong}}
 ```
 
-安装英文字体
+## 英文字体
 
 ``` bash
 # 用于 RStudio IDE 内的代码编辑器
@@ -101,9 +112,7 @@ brew install font-dejavu font-liberation
 brew install font-fira-sans font-fira-mono font-fira-code 
 brew install font-open-sans font-open-sans-condensed
 # 思源英文字体
-brew install --cask font-source-code-pro 
-brew install --cask font-source-sans-pro 
-brew install --cask font-source-serif-pro
+brew install --cask font-source-code-pro font-source-sans-pro  font-source-serif-pro
 # 用于终端显示
 brew install --cask font-source-code-pro-for-powerline
 # 漫画字体
@@ -114,83 +123,49 @@ brew install --cask font-noto-emoji font-noto-color-emoji
 brew install --cask font-arial font-andale-mono
 ```
 
-# 图像视频
-
-``` bash
-brew install ghostscript imagemagick optipng graphviz
-brew install ffmpeg gifski
-brew install --cask drawio inkscape gimp
-brew install --cask zy-player
-brew install --cask iina
-```
 
 刘志进实验室有很多免费音乐，支持外链，可以插入博客 <https://music.liuzhijin.cn/>
 
 # 常用软件
 
-> 解压、下载软件
 
 ``` bash
-brew install --cask rar
-brew install --cask free-download-manager
-```
+# 图像处理
+brew install ghostscript imagemagick optipng graphviz
+brew install ffmpeg gifski
+brew install --cask drawio inkscape gimp
 
-> 数据库管理
+# 视频播放
+brew install --cask zy-player
+brew install --cask iina
 
-``` bash
-# 免费社区版本
+# 解压、下载软件
+brew install --cask rar free-download-manager
+
+# 数据库管理
 brew install --cask dbeaver-community
-```
 
-> Python 和 Java 开发环境
-
-``` bash
-brew install --cask pycharm-ce intellij-idea-ce
-```
-
-> 空间数据分析 QGIS
-
-``` bash
-brew install --cask qgis
-```
-
-> 统计软件
-
-``` bash
+# 统计软件
 brew install jags
-brew install --cask jasp
+brew install --cask jasp qgis
 brew install --cask julia
-```
 
-> 办公软件
+# Python 和 Java 开发环境
+brew install --cask pycharm-ce intellij-idea-ce
 
-``` bash
-brew install --cask microsoft-office
-brew install --cask zoom
-brew install --cask tencent-meeting
+# 办公软件
+brew install --cask tencent-meeting zoom
 brew install --cask google-chrome
-brew install --cask notion
-brew install --cask slack
 brew install --cask adobe-acrobat-reader
+brew install --cask notion
+brew install --cask microsoft-office
 brew install --cask adobe-creative-cloud
-```
 
-> Github 相关
-
-``` bash
 # Github CLI 命令行工具
 brew install tig tree
 brew install gh gnupg
-brew install --cask github dropbox
 ```
 
-> 虚拟化相关
-
-``` bash
-brew install --cask vmware-fusion
-brew install --cask virtualbox
-brew install --cask docker 
-```
 
 # R 和 RStudio 软件
 
@@ -214,14 +189,16 @@ brew install glpk
 brew install clp
 brew install udunits gdal
 brew install v8
-brew install apache-arrow
 ```
 
 安装完 apache-arrow 后，固定下来
 
 ``` bash
+brew install apache-arrow
 brew pin apache-arrow 
 ```
+
+## R 包与 Orca
 
 安装 orca 将 plotly 绘制的交互式动态图形转化为静态的 SVG/PDF 格式矢量图形
 
@@ -229,18 +206,22 @@ brew pin apache-arrow
 brew install --cask orca
 ```
 
+## R 包与 PhantomJS
+
 安装 phantomjs 用于 **webshot** 包
 
 ``` bash
 brew install --cask phantomjs
 ```
 
-`webshot::install_phantomjs()` 将动态图形截图放在书里
+`webshot::install_phantomjs()` 将交互式图形截图放在 bookdown 书里
 
-# R 包与 Java 开发环境
+## R 包与 Java JDK
+
+[JDK](https://github.com/openjdk/jdk)
 
 ``` bash
-# 推荐
+# 推荐 Java JDK 11 (or later)
 brew install openjdk@11
 ```
 
@@ -281,7 +262,7 @@ Spark 环境自带了 R 接口 **SparkR** 包，可这样加载：
 library(SparkR, lib.loc = "/opt/spark/spark-3.1.1-bin-hadoop3.2/R/lib/")
 ```
 
-# R 包与 OpenMP
+## R 包与 OpenMP
 
 目前，发现 R 包 **data.table**、**RandomFields** 和 **RandomFieldsUtils** 需启用 OpenMP 从源码编译才能获得共享内存的多线程并行计算的能力。
 
@@ -297,7 +278,7 @@ brew install libomp # OpenMP
     CPPFLAGS += -Xclang -fopenmp
     LDFLAGS += -lomp
 
-# Rmpi 包和 open-mpi
+## Rmpi 包和 open-mpi
 
 先安装外部软件依赖
 
@@ -345,7 +326,7 @@ install.packages('Rmpi', type = 'source')
     ** testing if installed package keeps a record of temporary installation path
     * DONE (Rmpi)
 
-# stringi 包和 icu4c
+## stringi 包和 icu4c
 
 安装 icu4c
 
@@ -378,7 +359,9 @@ echo 'export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig"' >> ~/.zshrc
 
     FLIBS = -L/usr/local/Cellar/gcc/11.2.0/lib/gcc/11 -lgfortran -lquadmath -lm
 
-# 用 miniconda 配置 Python 虚拟环境
+# Python 虚拟环境
+
+##  用 miniconda 配置
 
 `~/.condarc` 指定虚拟环境所在目录
 
@@ -418,7 +401,7 @@ conda env remove -p /opt/miniconda-virtualenvs/r-reticulate
 conda update conda
 ```
 
-# 用 virtualenv 配置 Python 虚拟环境
+## 用 virtualenv 配置
 
 安装 virtualenv
 
