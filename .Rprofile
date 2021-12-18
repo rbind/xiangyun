@@ -1,7 +1,6 @@
 if (file.exists("~/.Rprofile")) sys.source("~/.Rprofile", envir = environment())
 
 options(
-  servr.port = 4321L, 
   blogdown.author = "黄湘云", 
   blogdown.warn.future = FALSE,
   blogdown.method = 'markdown',
@@ -13,7 +12,6 @@ options(
     if (xfun::is_ascii(x)) tools::toTitleCase(x) else x
   }, blogdown.hugo.server = c("--buildDrafts", "--buildFuture", "--navigateToChanged"),
   blogdown.publishDir = paste(getwd(), "public", sep = "-"),
-  blogdown.hugo.version = "0.89.3",
   blogdown.files_filter = "content/post/",
   blogdown.draft.output = FALSE,
   blogdown.knit.on_save = TRUE,
