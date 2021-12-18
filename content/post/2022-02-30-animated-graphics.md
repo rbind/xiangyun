@@ -147,15 +147,15 @@ mikefc 戏称自己造了好看不中用的 [ggrgl](https://github.com/coolbutus
 
 LaTeX 宏包 [animate](https://ctan.org/pkg/animate)，常用于 [beamer](https://ctan.org/pkg/beamer) 幻灯片或 PDF 文档中，将一系列 PNG/PDF 图片合成动画，就是将一幅幅图片以快速地方式播放，形成动画效果，需要使用 Adobe 阅读器播放才可见效果。
 
-| R 包                                                         | 简介                                                                     | 维护者              | 网站                                                                                   | 协议                    |
-|:-------------------------------------------------------------|:-------------------------------------------------------------------------|:--------------------|:---------------------------------------------------------------------------------------|:------------------------|
-| **plotly** ([Sievert et al. 2021](#ref-plotly))              | Create Interactive Web Graphics via plotly.js                            | Carson Sievert      | https://plotly-r.com https://github.com/plotly/plotly.R https://plotly.com/r/          | MIT + file LICENSE      |
-| **rgl** ([Adler and Murdoch 2021](#ref-rgl))                 | 3D Visualization Using OpenGL                                            | Duncan Murdoch      | https://github.com/dmurdoch/rgl https://dmurdoch.github.io/rgl/                        | GPL                     |
-| **magick** ([Ooms 2021](#ref-magick))                        | Advanced Graphics and Image-Processing in R                              | Jeroen Ooms         | https://docs.ropensci.org/magick/ (website) https://github.com/ropensci/magick (devel) | MIT + file LICENSE      |
-| **echarts4r** ([Coene 2021](#ref-echarts4r))                 | Create Interactive Graphs with Echarts JavaScript Version 5              | John Coene          | https://echarts4r.john-coene.com/ https://github.com/JohnCoene/echarts4r               | Apache License (>= 2.0) |
-| **gganimate** ([Pedersen and Robinson 2020](#ref-gganimate)) | A Grammar of Animated Graphics                                           | Thomas Lin Pedersen | https://gganimate.com https://github.com/thomasp85/gganimate                           | MIT + file LICENSE      |
-| **rayrender** ([Morgan-Wall 2021](#ref-rayrender))           | Build and Raytrace 3D Scenes                                             | Tyler Morgan-Wall   | https://www.rayrender.net https://github.com/tylermorganwall/rayrender                 | GPL-3                   |
-| **animation** ([Xie 2021](#ref-animation))                   | A Gallery of Animations in Statistics and Utilities to Create Animations | Yihui Xie           | https://yihui.org/animation/                                                           | GPL                     |
+| R 包                                                                                                                                 | 简介                                                                     | 维护者              | 协议                    |
+|:-------------------------------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------------------------|:--------------------|:------------------------|
+| [**plotly**](https://github.com/plotly/plotly.R)([Sievert et al. 2021](#ref-plotly))                                                 | Create Interactive Web Graphics via plotly.js                            | Carson Sievert      | MIT + file LICENSE      |
+| [**rgl**](https://github.com/dmurdoch/rgl)([Adler and Murdoch 2021](#ref-rgl))                                                       | 3D Visualization Using OpenGL                                            | Duncan Murdoch      | GPL                     |
+| [**magick**](https://docs.ropensci.org/magick/%20(website)%20https://github.com/ropensci/magick%20(devel))([Ooms 2021](#ref-magick)) | Advanced Graphics and Image-Processing in R                              | Jeroen Ooms         | MIT + file LICENSE      |
+| [**echarts4r**](https://github.com/JohnCoene/echarts4r)([Coene 2021](#ref-echarts4r))                                                | Create Interactive Graphs with Echarts JavaScript Version 5              | John Coene          | Apache License (>= 2.0) |
+| [**gganimate**](https://github.com/thomasp85/gganimate)([Pedersen and Robinson 2020](#ref-gganimate))                                | A Grammar of Animated Graphics                                           | Thomas Lin Pedersen | MIT + file LICENSE      |
+| [**rayrender**](https://github.com/tylermorganwall/rayrender)([Morgan-Wall 2021](#ref-rayrender))                                    | Build and Raytrace 3D Scenes                                             | Tyler Morgan-Wall   | GPL-3                   |
+| [**animation**](https://yihui.org/animation/)([Xie 2021](#ref-animation))                                                            | A Gallery of Animations in Statistics and Utilities to Create Animations | Yihui Xie           | GPL                     |
 
 Table 1: 制作动画的 R 包（排名不分先后）
 
@@ -163,8 +163,12 @@ Table 1: 制作动画的 R 包（排名不分先后）
 
 限于笔者目前所拥有的设备，后续介绍均在 MacOS 系统上。首先安装 [Rust 软件](https://www.rust-lang.org/) 以及 [Gifski](https://gif.ski/) 转化器，它可将视频、图片文件转化为 GIF 动图，且转化效率和质量非常高。
 
+-   方法一：
+
 ``` bash
+# 安装 rust
 brew install rust
+# 安装 gifski 库
 cargo install gifski
 ```
 
@@ -218,6 +222,12 @@ gifski --help
 
 ``` bash
 gifski -W 800 -H 600 INPUT.mov -o OUTPUT.gif
+```
+
+-   方法二：直接安装 gifski 软件
+
+``` bash
+brew install gifski
 ```
 
 # GIF 动画
@@ -861,6 +871,27 @@ WebGL 技术可以极大地加速大规模数据集渲染展示，虽说在这�
 Apache Echarts 支持 WebGL 的图形有散点图、路径图、矢量场图、网络图，详见官方[示例文档](https://echarts.apache.org/examples/zh/index.html)，大规模的数据可视化需要比较好的硬件资源支持。
 
 [**mapdeck**](https://github.com/SymbolixAU/mapdeck) 提供了 [Deck.gl](https://github.com/visgl/deck.gl) 和 [Mapbox](https://github.com/mapbox/mapbox-gl-js) 的 R 语言接口，Deck.gl 号称是 WebGL 2.0 加持的高性能大规模数据可视化渲染组件，也是以 MIT 协议开源的软件，而后者是商业收费软件。[**rdeck**](https://github.com/anthonynorth/rdeck) 类似 **mapdeck**，但是提供更多实用的功能，优化的数据存储方式，过滤了不可见的数据，更加友好的配色主题，适用于图例和悬浮提示等。
+Kyle Walker 开发了 [mapboxapi](https://github.com/walkerke/mapboxapi) 包，提供 [Mapbox Web 服务](https://docs.mapbox.com/api/)的 R 语言接口
+
+## rgl
+
+rgl 包也支持 WebGL 输出，特别是当环境不支持 OpenGL 的时候，比如在 Github Action 上使用 rgl 生成三维图形。
+
+``` r
+## 加载 rgl 
+library(rgl)
+## 准备启用 WebGL 
+knitr::knit_hooks$set(webgl = rgl::hook_webgl)
+## 详见帮助文档 rgl::hook_webgl
+options(rgl.printRglwidget = TRUE)
+options(rgl.useNULL = TRUE)
+```
+
+添加代码块运行控制选项 `webgl=TRUE` ，运行示例
+
+``` r
+example("plot3d", "rgl")
+```
 
 ## echarts4r
 
@@ -938,13 +969,13 @@ xfun::session_info(packages = c(
 # Package version:
 #   blogdown_1.6     echarts4r_0.4.2  gapminder_0.3.0 
 #   gganimate_1.0.7  ggplot2_3.3.5    ggrepel_0.9.1   
-#   knitr_1.36       MASS_7.3.54      plotly_4.10.0   
+#   knitr_1.37       MASS_7.3.54      plotly_4.10.0   
 #   rayrender_0.23.6 rgl_0.108.3      rmarkdown_2.11  
 #   showtext_0.9.4  
 # 
 # Pandoc version: 2.16.2
 # 
-# Hugo version: 0.89.4
+# Hugo version: 0.90.1
 ```
 
 # 参考文献

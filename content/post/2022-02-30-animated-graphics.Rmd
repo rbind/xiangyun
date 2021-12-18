@@ -183,6 +183,14 @@ LaTeX 宏包 [animate](https://ctan.org/pkg/animate)，常用于 [beamer](https:
 Sys.setenv(R_CRAN_WEB = "https://mirrors.tuna.tsinghua.edu.cn/CRAN")
 pdb <- tools::CRAN_package_db()
 
+# 抽取 R 包的 URL
+extract_url <- function(url) {
+  x <- trimws(unlist(strsplit(url, split = ",")), which = "both", whitespace = " ")
+  git <- grepl(x = x, pattern = "(github|gitlab)")
+  x = ifelse(any(git), x[git][1], x[1])
+  x
+}
+
 # 处理掉丑陋的成对单引号
 rmd_lib <- c(
   "plotly.js", "Echarts JavaScript"
@@ -207,14 +215,18 @@ sub_pdb <- subset(
   transform(Title = gsub(rmd_regexp, "\\1", Title)) |> 
   transform(Maintainer = gsub("<([^<>]*)>", "", Maintainer)) |> 
   transform(URL = gsub("(\\\n)", " ", URL)) |> 
-  transform(URL = gsub(",", "", URL)) |> 
-  transform(Package = paste0("**", Package, "**", " ", "[@", Package, "]"))
+  transform(URL1 = unlist(lapply(URL, extract_url)) ) |> 
+  transform(Package1 = paste0("**", Package, "**")) |> 
+  transform(Package1 = paste0("[", Package1, "](", URL1, ")")) |> 
+  transform(Package = paste0(Package1, "[@", Package, "]"))
 
+sub_pdb = sub_pdb[order(sub_pdb$Maintainer), ] |> 
+  subset(select = c("Package", "Title", "Maintainer", "License"))
 # 展示表格
-knitr::kable(sub_pdb[order(sub_pdb$Maintainer), ],
+knitr::kable(sub_pdb,
   row.names = FALSE,
   caption = "制作动画的 R 包（排名不分先后）",
-  col.names = c("R 包", "简介", "维护者", "网站", "协议")
+  col.names = c("R 包", "简介", "维护者", "协议")
 )
 ```
 ```{r write-bib, include=FALSE}
@@ -232,8 +244,12 @@ xfun::write_utf8(bib, "packages.bib")
 
 限于笔者目前所拥有的设备，后续介绍均在 MacOS 系统上。首先安装 [Rust 软件](https://www.rust-lang.org/) 以及 [Gifski](https://gif.ski/) 转化器，它可将视频、图片文件转化为 GIF 动图，且转化效率和质量非常高。 
 
+- 方法一：
+
 ```bash
+# 安装 rust
 brew install rust
+# 安装 gifski 库
 cargo install gifski
 ```
 
@@ -292,6 +308,11 @@ ARGS:
 gifski -W 800 -H 600 INPUT.mov -o OUTPUT.gif
 ```
 
+- 方法二：直接安装 gifski 软件
+
+```bash
+brew install gifski
+```
 
 # GIF 动画
 
@@ -930,6 +951,27 @@ Apache Echarts 支持 WebGL 的图形有散点图、路径图、矢量场图、�
 
 [**mapdeck**](https://github.com/SymbolixAU/mapdeck) 提供了 [Deck.gl](https://github.com/visgl/deck.gl) 和 [Mapbox](https://github.com/mapbox/mapbox-gl-js) 的 R 语言接口，Deck.gl 号称是 WebGL 2.0 加持的高性能大规模数据可视化渲染组件，也是以 MIT 协议开源的软件，而后者是商业收费软件。[**rdeck**](https://github.com/anthonynorth/rdeck) 类似 **mapdeck**，但是提供更多实用的功能，优化的数据存储方式，过滤了不可见的数据，更加友好的配色主题，适用于图例和悬浮提示等。
 Kyle Walker 开发了 [mapboxapi](https://github.com/walkerke/mapboxapi) 包，提供 [Mapbox Web 服务](https://docs.mapbox.com/api/)的 R 语言接口
+
+
+## rgl 
+
+rgl 包也支持 WebGL 输出，特别是当环境不支持 OpenGL 的时候，比如在 Github Action 上使用 rgl 生成三维图形。
+
+```r
+## 加载 rgl 
+library(rgl)
+## 准备启用 WebGL 
+knitr::knit_hooks$set(webgl = rgl::hook_webgl)
+## 详见帮助文档 rgl::hook_webgl
+options(rgl.printRglwidget = TRUE)
+options(rgl.useNULL = TRUE)
+```
+
+添加代码块运行控制选项 `webgl=TRUE` ，运行示例
+
+```r
+example("plot3d", "rgl")
+```
 
 
 ## echarts4r
