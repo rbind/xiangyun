@@ -1,0 +1,488 @@
+---
+title: 地理可视化与 R 语言
+author: 黄湘云
+date: '2022-03-25'
+slug: maps-in-r
+categories:
+  - 统计图形
+tags:
+  - 地理可视化
+  - ggplot2
+  - ggmap
+  - maps
+  - leaflet
+  - leafletCN
+  - baidumap
+  - RgoogleMaps
+  - choroplethr
+  - lattice
+  - latticeExtra
+toc: true
+draft: true
+thumbnail: /img/sf.png
+link-citations: true
+bibliography: 
+  - refer.bib
+description: "介绍用于地理可视化的几种常用数据结构，比如 **sp** 包、**sf** 包和 **raster** 包提供的三种空间数据存储、操作的类和方法。
+介绍地理可视化常用的展示形式，如瓦片图、围栏图、气泡图等，以及绘制过程中需要注意的制图规范问题，地理信息是比较敏感的数据，从大的层面上来说，涉及国家主权和领土完整。笔者合著的书籍《现代统计图形》曾因此将所有地图相关的介绍全部摘除，本文也意图去梳理和填补这方面的坑点。"
+---
+
+
+```{r setup, echo=FALSE}
+library(data.table)
+knitr::opts_chunk$set(
+  comment = "#",
+    error = FALSE,
+     tidy = FALSE,
+    cache = FALSE,
+ collapse = TRUE
+)
+# 修改输出的显示行数
+knitr::knit_hooks$set(output = local({
+  # the default output hook
+  hook_output = knitr::knit_hooks$get('output')
+  function(x, options) {
+    if (!is.null(n <- options$out.lines)) { # out.lines
+      x = xfun::split_lines(x)
+      if (length(x) > n) {
+        # truncate the output
+        x = c(head(x, n), '....\n')
+      }
+      x = paste(x, collapse = '\n') # paste first n lines together
+    }
+    hook_output(x, options)
+  }
+}))
+# 控制输出的宽度
+options(width = 69)
+```
+
+```{css, echo=FALSE}
+.sidebar {
+  border: 1px solid #ccc;
+}
+
+.rmdwarn {
+  border: 1px solid #EA4335;
+}
+
+.rmdnote {
+  border: 1px solid #FBBC05;
+}
+
+.rmdtip {
+  border: 1px solid #34A853;
+}
+
+.sidebar, .rmdwarn, .rmdnote, .rmdtip {
+  border-left-width: 5px;
+  border-radius: 5px;
+  padding: 1em;
+  margin: 1em 0;
+}
+
+div.rmdwarn::before, div.rmdnote::before, div.rmdtip::before {
+  display: block;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-bottom: 0.25em;
+}
+
+div.rmdwarn::before {
+  content: "警告";
+  color: #EA4335;
+}
+
+div.rmdnote::before {
+  content: "注意";
+  color: #FBBC05;
+}
+
+div.rmdtip::before {
+  content: "提示";
+  color: #34A853;
+}
+
+.rmdinfo {
+  border: 1px solid #ccc;
+  border-left-width: 5px;
+  border-radius: 5px;
+  padding: 1em;
+  margin: 1em 0;
+}
+div.rmdinfo::before {
+  content: "声明";
+  color: block;
+  display: block;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-bottom: 0.25em;
+}
+
+figure {
+  text-align: center;
+}
+
+div.img {
+  text-align: center;
+  display: block; 
+  margin-left: auto; 
+  margin-right: auto;
+}
+```
+
+::: rmdinfo
+本文引用的所有信息均为公开信息，仅代表作者本人观点，与就职单位无关。
+:::
+
+
+# 概览
+
+介绍用于地理可视化的几种常用数据结构，比如 sp 包、sf 包和 raster 包提供的三种空间数据存储、操作的类和方法。
+介绍地理可视化常用的展示形式，如瓦片图、围栏图、气泡图等，以及绘制过程中需要注意的制图规范问题，地理信息是比较敏感的数据，从大的层面上来说，涉及国家主权和领土完整。
+
+
+
+# 地图服务
+
+比较常见的地图服务，国外有谷歌、微软，国内有百度、高德，凡是提供本地生活服务的公司都或多或少地依赖高精地图，如美团外卖，阿里飞猪等。本文主要带领读者了解地图服务，以及使用 R 语言来做地理可视化，为增加代入感，笔者就以「中国矿业大学（北京）学院路校区」这个地标的 IP 定位开始。首先用 [curl](https://curl.se/) 工具请求网站 <https://ipinfo.io/>[^ipinfo]，它会自动获取用户上网使用的 IP 以及 IP 所处的地理位置，如下：
+
+```bash
+curl ipinfo.io
+```
+```
+{
+  "ip": "223.71.83.98",
+  "city": "Beijing",
+  "region": "Beijing",
+  "country": "CN",
+  "loc": "39.9288,116.3890",
+  "org": "AS56048 China Mobile Communicaitons Corporation"
+}
+```
+
+可知学校所处位置：纬度 39.9288 经度 116.3890，当然这离高精地图还有十万八千里，也正因定位的粗糙性，笔者才敢把它放在博客里，毕竟高精地理信息是涉及国家安全的内容。
+
+[^ipinfo]: [ipinfo](https://github.com/ipinfo) 工具是开源可商用的，由前 Facebook 工程师 Ben Dowling 于 2013 年创建，后来发展成 IPinfo 公司，专门提供 IP 定位服务，服务的公司包括腾讯、戴尔、耐克等。
+
+## 谷歌地图
+
+
+David Kahle 开发的[**ggmap**](https://github.com/dkahle/ggmap) [@Kahle2013] 包在 2011 年发布在 CRAN 上，是一个基于 ggplot2 的空间可视化包，背景地图来自谷歌地图。目前，由于 Google 地图服务策略调整，需要申请 Google 地图服务的访问令牌才可以使用地图服务。
+可将申请到的 `GGMAP_GOOGLE_API_KEY` 保存到本地文件 `~/.Renviron`，以供 **ggmap** 后续使用。
+
+
+Google 提供的是一种瓦片地图，即由一张张小图片拼凑起来形成一张完整的地图，就好像盖房用的瓦片。精度由瓦片的分辨率决定，且是栅格 raster 地图，而非矢量地图，如图 \@ref(fig:ggmap-tile) 所示。
+
+![(\#fig:ggmap-tile) ggmap 地形图](http://tile.stamen.com/terrain-background/5/4/10.png){.full}
+
+ggmap 可以调用多种样式的地图，地形图、水彩图等，如图\@ref(fig:ggmap-tiles) 所示。
+
+```{r,eval=FALSE}
+library(ggplot2)
+library(ggmap)
+library(patchwork)
+
+us <- c(left = -125, bottom = 25.75, right = -67, top = 49)
+# 从 tile server 服务器上下载 Stamen Maps 数据，组成一个图片
+dat1 <- get_stamenmap(
+  bbox = us, zoom = 5, maptype = "toner-lite"
+  )
+p1 <- ggmap(dat1)
+# 地形图
+dat2 <- get_stamenmap(
+  bbox = us, zoom = 5, maptype = "terrain"
+)
+p2 <- ggmap(dat2)
+
+dat3 <- get_stamenmap(
+  bbox = us, zoom = 5, maptype = "watercolor"
+)
+p3 <- ggmap(dat3)
+
+dat4 <- get_stamenmap(
+  bbox = us, zoom = 5, maptype = "terrain-background"
+)
+p4 <- ggmap(dat4)
+
+p1 / p2 | p3 / p4
+```
+
+![(\#fig:ggmap-tiles) ggmap 几种常用背景地图](/img/maps-in-r/ggmap-tiles.png){.full}
+
+## 必应地图
+
+与 **ggmap** 相比，[**RgoogleMaps**](https://github.com/markusloecher/rgooglemaps) [@Loecher2015] 支持更多的地图服务，除了 Google 地图外，还支持必应地图，以及基于 lattice 的可视化，借助 [**loa**](https://r-forge.r-project.org/scm/?group_id=1400) 和 [**latticeExtra**](https://r-forge.r-project.org/projects/latticeextra/) 还可以支持高级的自定义，如何使用见[ggmap 使用案例](https://github.com/vertica/Vertica-Geospatial) 
+、[loa 文档](https://loa.r-forge.r-project.org/loa.intro.html)和[latticeExtra 文档](https://latticeextra.r-forge.r-project.org/)。
+
+
+```{r,eval=FALSE}
+library(RgoogleMaps) # 同时需要 RCurl
+library(RCurl)
+```
+
+使用 Bing 地图服务也是需要 `API_KEY` 的，可先去 [Bing 地图开发中心](https://www.bingmapsportal.com/) 用 Outlook 邮箱创建账户，然后申请免费的基础版，过程见[说明](https://www.microsoft.com/en-us/maps/create-a-bing-maps-key)。
+
+```{r,eval=FALSE}
+map_cumtb <- GetBingMap(
+  center = c(lat = 40.0, lon = 116.4), zoom = 12, 
+  apiKey = Sys.getenv("BingMap_API_KEY"), verbose = 0, 
+  destfile = "CUMTB.png"
+)
+PlotOnStaticMap(map_cumtb)
+```
+
+如图 \@ref(fig:bing-cumtb) 所示，坐标（40.0, 116.4）定位在中国矿业大学（北京）学院路校区。
+
+![(\#fig:bing-cumtb) 微软必应地图](/img/maps-in-r/bing-cumtb.png){.full}
+
+
+
+
+
+
+
+
+
+
+## 百度地图
+
+
+杜亚磊开发的[baidumap](https://github.com/badbye/baidumap)包可以调用百度地图服务 <https://map.baidu.com/> 提供地理可视化的背景地图。百度是国内比较早的互联网公司，之前介绍的 Apache Echarts 最早也是百度可视化团队开发的，百度地理信息可视化平台使用的地理可视化组件来自开源的[mapv](https://github.com/huiyan-fe/mapv)。
+
+在百度地图上，根据地理名称获得经纬度信息，获得经纬度后，可以将位置标记在地图上，下面以「中国矿业大学（北京）」为例
+
+```{r,eval=FALSE}
+remotes::install_github('badbye/baidumap')
+```
+
+`BaiduMap_API_Key` 是从[百度 LBS 云服务](https://lbsyun.baidu.com/)申请到的地图 API 访问令牌，保存到本地 `.Renviron` 文件里 `BaiduMap_API_Key=[key]`，这样启动 R 软件时就会自动载入。
+
+```{r}
+library(baidumap)
+options(baidumap.key = Sys.getenv("BaiduMap_API_Key"))
+getCoordinate('中国矿业大学（北京）学院路校区', formatted = T)
+```
+
+
+```{r,eval=FALSE}
+library(ggplot2)
+cumtb_map <- getBaiduMap("中国矿业大学（北京）学院路校区", zoom = 12)
+cumtb_coordinate <- getCoordinate("中国矿业大学（北京）学院路校区", formatted = T)
+cumtb_coordinate <- data.frame(t(cumtb_coordinate))
+# 调 ggmap 绘制背景地图
+ggmap::ggmap(cumtb_map) +
+  geom_point(aes(x = longtitude, y = latitude),
+    data = cumtb_coordinate, col = "red", size = 5
+  )
+```
+
+![(\#fig:baidumap-cumtb) 百度地图-中国矿业大学（北京）](/img/maps-in-r/baidumap-cumtb.png){.full}
+
+
+
+## 开放地图
+
+OpenStreetMap 虽是开放数据，来自世界各地的贡献者，不提供免费的地图 API，使用此地图服务，不会将自己的数据上传至 OpenStreetMap 的服务器上。而 Leaflet 是开源的交互式地理可视化 JS 库。
+
+![(\#fig:leaflet) 开源交互式 JavaScript 库 Leaflet](/img/leaflet.svg){.full}
+
+Joe Cheng 开发维护的 [leaflet](https://github.com/rstudio/leaflet) 包是 JavaScript 库 [Leaflet](https://github.com/Leaflet/Leaflet) 的 R 语言接口。
+
+
+
+在 leaflet 地图上实际经纬度为 `c(116.34394, 39.99665)`
+
+```{r,eval=FALSE}
+library(magrittr)
+library(leaflet)
+cumtb_map1 = leaflet() %>% 
+  setView(lng = 116.34394, lat = 39.99665, zoom = 17) %>%
+  addTiles() %>% 
+  addPopups(116.34394, 39.99665, '这里是 <b>学院路校区</b>, 中国矿业大学（北京）')
+cumtb_map1
+```
+
+![(\#fig:leaflet-cumtb) OpenStreetMap 地图-中国矿业大学（北京）](/img/maps-in-r/leaflet-cumtb.png){.full}
+
+
+不难看出，百度地图和 leaflet 地图的坐标系不是同一个，获取的经纬度不同，这里将矿大（北京）定位到农大了
+
+```{r,eval=FALSE}
+cumtb_map2 = leaflet() %>% 
+  setView(lng = 116.35688, lat = 40.00314, zoom = 17) %>%
+  addTiles() %>% 
+  addPopups(116.35688, 40.00314, '这里是 <b>学院路校区</b>, 中国矿业大学（北京）')
+cumtb_map2
+```
+
+注意：GeoIP 只能给定一个粗略的经纬度信息，根据IP解析出来的经纬度 `c(116,39.9)` ，相比百度地图API根据地理名称获取的经纬度`c(116.35688,40.00314 )`就更加模糊了
+
+
+## 高德地图
+
+<!-- 
+补充此测绘资质意味着什么？
+-->
+
+高德和百度都是有甲级测绘资质的单位
+
+```{r,eval=FALSE}
+library(leaflet)
+library(leafletCN)
+
+leaflet(options = leafletOptions(
+  minZoom = 4, maxZoom = 18,
+  zoomControl = FALSE
+)) %>%
+  amap() %>%
+  addCircles(
+    data = data.frame(lon = 116.35688, lat = 40.00314, size = 50),
+    lng = ~lon, lat = ~lat, radius = ~size, color = "red",
+    fillOpacity = 0.55, stroke = T, weight = 1,
+    label = htmltools::HTML("这里是 <b>学院路校区</b>, 中国矿业大学（北京）")
+  )
+```
+
+
+高德地图采用的是火星坐标系和 leaflet 采用的 GPS 坐标系不同，导致矿大定位到了农大，如图\@ref(fig:leaflet-amap-cumtb)
+
+![(\#fig:leaflet-amap-cumtb)高德地图-中国矿业大学（北京）](/img/maps-in-r/leaflet-amap-cumtb.png){.full}
+
+
+# 数据可视化
+
+添加空间数据
+
+```{r}
+library(RgoogleMaps)
+# 加载 incidents 
+data(incidents)
+# 查看数据
+head(incidents)
+```
+
+
+
+[choroplethr](https://github.com/trulia/choroplethr) 主要用来制作地区分布图，需要的区域数据
+
+choroplethr: Simplify the Creation of Choropleth Maps in R
+https://arilamstein.com/open-source/ 有很多介绍材料
+
+
+```{r,eval=FALSE}
+library(choroplethr)
+library(choroplethrMaps)
+```
+
+
+
+
+
+
+```{r,eval=FALSE}
+mapSF_Z15 <- plotmap(lat, lon,
+  zoom = 15,
+  col = "Category", 
+  pch = 20, data = incidents,
+  API = "OSM"
+  # API = "google", apiKey = Sys.getenv("GGMAP_GOOGLE_API_KEY")
+)
+
+# 或者
+with(incidents, plotmap(lat, lon, zoom = 13, col = "Category", pch=20)) 
+
+```
+
+
+条件图
+
+```{r,eval=FALSE}
+library(lattice)
+library(loa) # loa: Lattice Options and Add-Ins
+library(RColorBrewer)
+library(latticeExtra) 
+# latticeExtra: Extra Graphical Utilities Based on Lattice
+
+data(incidents)
+
+cols <- c("yellow", "darkred")
+GoogleMap(~ lat * lon | DayOfWeek, # plot conditioned
+  data = incidents, map = NULL,
+  groups = incidents$violent,
+  col = cols, cex = 0.1, alpha = 0.3,
+  panel = panel.loaPlot2,
+  key.groups = list(
+    main = "Violent",
+    cex = 1, col = cols
+  )
+)  
+
+```
+
+
+
+<!-- 
+Geohash 转化为经纬度坐标 
+-->
+
+
+# 空间数据结构
+
+## sp
+
+sp 是一个 R 包，提供一种存储和操作空间数据的对象类型
+
+```{r}
+library(sp)
+```
+
+
+```{r,eval=FALSE}
+data(meuse)
+summary(meuse)
+coordinates(meuse) <- ~x+y
+proj4string(meuse) <- CRS("+init=epsg:28992")
+```
+
+```{r,eval=FALSE}
+plot(meuse)
+```
+
+
+## raster
+
+
+```{r}
+library(raster)
+```
+
+
+## sf
+
+
+```{r}
+library(sf)
+```
+
+
+
+
+
+# 环境信息
+
+在 RStudio IDE 内编辑本文的 R Markdown 源文件，用 **blogdown** [@Xie2017] 构建网站，[Hugo](https://github.com/gohugoio/hugo) 渲染 knitr 之后的 Markdown 文件，得益于 **blogdown** 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：
+
+```{r}
+xfun::session_info(packages = c(
+  "knitr", "rmarkdown", "blogdown",
+  "ggmap", "ggplot2", "sp", "leaflet",
+  "baidumap", "RgoogleMaps",
+  "lattice", "latticeExtra", "loa",
+  "raster", "sf"
+), dependencies = FALSE)
+```
+
+
+# 参考文献
+
