@@ -19,7 +19,6 @@ tags:
   - latticeExtra
 toc: true
 draft: true
-thumbnail: /img/sf.png
 link-citations: true
 bibliography: 
   - refer.bib
