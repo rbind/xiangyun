@@ -22,6 +22,7 @@ draft: true
 link-citations: true
 bibliography: 
   - refer.bib
+  - packages.bib
 description: "介绍用于地理可视化的几种常用数据结构，比如 **sp** 包、**sf** 包和 **raster** 包提供的三种空间数据存储、操作的类和方法。
 介绍地理可视化常用的展示形式，如瓦片图、围栏图、气泡图等，以及绘制过程中需要注意的制图规范问题，地理信息是比较敏感的数据，从大的层面上来说，涉及国家主权和领土完整。笔者合著的书籍《现代统计图形》曾因此将所有地图相关的介绍全部摘除，本文也意图去梳理和填补这方面的坑点。"
 ---
@@ -140,6 +141,22 @@ div.img {
 介绍用于地理可视化的几种常用数据结构，比如 sp 包、sf 包和 raster 包提供的三种空间数据存储、操作的类和方法。
 介绍地理可视化常用的展示形式，如瓦片图、围栏图、气泡图等，以及绘制过程中需要注意的制图规范问题，地理信息是比较敏感的数据，从大的层面上来说，涉及国家主权和领土完整。
 
+<!-- 
+需要数据的话，R 语言社区有很多开放数据
+
+百度地图慧眼 迁徙 https://qianxi.baidu.com/ 
+
+腾讯大数据 https://data.qq.com/
+腾讯开放平台
+https://open.tencent.com/
+城市数据派 需要会员注册才能下载数据
+https://www.udparty.com/
+
+创建一个 R Shiny 应用将会比较有趣
+https://lbs.amap.com/ 申请 API 令牌
+用 R 调用高德地图实现路径规划
+https://cxy.rbind.io/post/2021/10/14/r-amap/
+-->
 
 
 # 地图服务
@@ -363,7 +380,7 @@ data(incidents)
 head(incidents)
 ```
 
-
+数据集 incidents 来自 2012 年旧金山的犯罪数据，更多数据见 [DataSF 项目](https://datasf.org/opendata/)，一些数据分析见 Github [项目](https://github.com/datasf)。数据集 incidents 随机抽取了 5000 行，16个观测变量，分别是犯罪数目 IncidntNum、犯罪类型 Category、犯罪行为描述 Descript、犯罪行为发生在周几 DayOfWeek、犯罪行为发生的日期 Date、犯罪行为发生的时间（hh::mm） Time、警局辖区 PdDistrict、罪行是否解决 Resolution、位置 Location、经度 lon、纬度 lat、是否发生暴力行为 violent、发生时间（小时，以2位整数计） HrOfDay、发生时间（小时，以10进制计）TimeOfDay、发生时间（一周168个小时，0-168之间的数字）HourOfWeek、人口普查的区块标记 censusBlock。
 
 [choroplethr](https://github.com/trulia/choroplethr) 主要用来制作地区分布图，需要的区域数据
 
@@ -422,44 +439,333 @@ GoogleMap(~ lat * lon | DayOfWeek, # plot conditioned
 ```
 
 
+## echarts4r
+
+**echarts4r** [@echarts4r] 支持使用多种地图服务，包括 OSM（OpenStreetMap）、Mapbox 等
+
+```{r,eval=FALSE}
+library(echarts4r)
+# OSM
+quakes |>
+  e_charts(long) |>
+  e_leaflet(center = c(175, -20), zoom = 4) |>
+  e_leaflet_tile() |>
+  e_scatter(lat, size = mag, coord_system = "leaflet")
+```
+
+
+![(\#fig:quakes-osm) **echarts4r** 使用 OpenStreetMap 地图](/img/maps-in-r/quakes-osm.png){.full}
+
+类似谷歌的要求，使用 Mapbox 地图服务也需要先申请个人访问令牌，申请下来后，也把它设置到 R 语言环境变量里 `MAPBOX_TOKEN`，以便后续使用。
+
+```{r,eval=FALSE}
+# MAPBOX 地图
+quakes |>
+  e_charts(long) |>
+  e_mapbox(
+    # MAPBOX 的访问令牌
+    token = Sys.getenv("MAPBOX_TOKEN"),
+    style = "mapbox://styles/mapbox/dark-v9",
+    # 视角：地图中心
+    center = c(175, -20),
+    # 缩放等级
+    zoom = 4
+  ) |>
+  e_scatter_3d(lat, mag, coord_system = "mapbox") |>
+  e_visual_map(mag)
+```
+
+
+![(\#fig:quakes-mapbox) **echarts4r** 使用 MAPBOX 地图](/img/maps-in-r/quakes-mapbox.png){.full}
+
+
+在国内，最好使用百度、高德这样的国家认可的地图服务提供商，这也很容易，只需用高德的 tile 服务数据替换 OSM 的。
+
+```{r,eval=FALSE}
+# 高德地图
+quakes |>
+  e_charts(long) |>
+  e_leaflet(center = c(175, -20), zoom = 4) |>
+  e_leaflet_tile(
+    template = "http://webrd02.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}",
+    options = list(tileSize = 256, minZoom = 3, maxZoom = 17)
+  ) |>
+  e_scatter(lat, size = mag, coord_system = "leaflet")
+```
+
+
+![(\#fig:quakes-amap) **echarts4r** 使用高德地图](/img/maps-in-r/quakes-amap.png){.full}
+
+
+百度、阿里、腾讯等公司都提供大量面向不同场景的地图服务，一些软件也内置了地图，如[tableau](https://www.tableau.com/products/desktop) 和[QGIS](https://www.qgis.org/)等，下图\@ref(fig:qgis) 展示 QGIS 软件使用在线的 OpenStreetMap 地图。
+
+![(\#fig:qgis) QGIS 软件内的 OpenStreetMap 地图](/img/maps-in-r/qgis.png){.full}
+
+## leaflet
+
+**leaflet** [@leaflet] 包
+
+```{r,eval=FALSE}
+colorize_numeric <- function(x) {
+  n <- 9 # 设置颜色梯度数目
+  scales::col_numeric(palette = "viridis", domain = range(x))(x)
+}
+quakes <- transform(quakes, color = colorize_numeric(mag))
+# 绘图
+plot(data = quakes, lat ~ long, col = color, pch = 19)
+
+# 注意因子水平个数
+colorize_factor <- function(x) {
+  scales::col_factor(palette = "Set2", levels = unique(x))(x)
+}
+# 给每个点设置一个颜色
+iris <- transform(iris, color = colorize_factor(Species))
+# 绘图
+plot(data = iris, Petal.Length ~ Petal.Width, col = color, pch = 19)
+```
+
+[**colourvalues**](https://github.com/SymbolixAU/colourvalues) 包专门颜色转化工作。
+
+
+```{r,eval=FALSE}
+library(leaflet)
+data(quakes)
+# Pop 提示
+quakes$popup_text <- lapply(paste(
+  "编号:", "<strong>", quakes$stations, "</strong>", "<br>",
+  "震深:", quakes$depth, "<br>",
+  "震级:", quakes$mag
+), htmltools::HTML)
+# 构造调色板
+pal <- colorBin("Spectral", bins = pretty(quakes$mag), reverse = TRUE)
+
+leaflet(quakes, options = leafletOptions(attributionControl = FALSE)) |>
+  addProviderTiles(providers$CartoDB.Positron) |>
+  addCircles(lng = ~long, lat = ~lat, color = ~ pal(mag), label = ~popup_text) |>
+  addLegend("bottomright",
+    pal = pal, values = ~mag,
+    title = "地震震级"
+  ) |>
+  addScaleBar(position = c("bottomleft"))
+```
+
+![(\#fig:quakes-leaflet) **leaflet** 包使用 OpenStreetMap 地图](/img/maps-in-r/quakes-leaflet.png){.full}
 
 <!-- 
 Geohash 转化为经纬度坐标 
+IP 定位
+GPS 定位
+页面城市
 -->
 
+## plotly
+
+**plotly** [@plotly] 包调用 Mapbox 地图服务做地理可视化
+
+
+```{r,eval=FALSE}
+plotly::plot_mapbox(
+  data = quakes, colors = "Spectral",
+  lon = ~long, lat = ~lat, color = ~mag,
+  type = "scattermapbox", mode = "markers",
+  marker = list(size = 10, opacity = 0.5)
+) |>
+  plotly::layout(
+    title = "斐济地震带",
+    mapbox = list(
+      # style = 'dark', # 暗黑主题
+      zoom = 4, # 缩放级别
+      center = list(lat = -20, lon = 175)
+    )
+  ) |>
+  plotly::config(
+    mapboxAccessToken = Sys.getenv("MAPBOX_TOKEN"),
+    displayModeBar = FALSE
+  )
+```
+
+![(\#fig:quakes-plotly) **plotly** 包使用 Mapbox 地图](/img/maps-in-r/quakes-plotly.png){.full}
+
+布局设置以 `layout(mapbox = ...)` 内的 style 参数为例， 它是用来设置地图风格样式的，除了默认的参数值 `basic`，还可以设置为夜晚暗黑 `dark`，卫星地图 `satellite` 等，其他见[文档](https://plotly.com/r/reference/layout/mapbox/)。
+
+
+![(\#fig:quakes-satellite) **plotly** 包使用 Mapbox 卫星地图](/img/maps-in-r/quakes-satellite.png){.full}
 
 # 空间数据结构
 
-## sp
+空间数据操作 Spatial Data Manipulation
 
-sp 是一个 R 包，提供一种存储和操作空间数据的对象类型
+空间区域的面积、空间点的路径、区域叠加、基于空间关系的数据查询等。
+
+空间数据分析 Spatial Data Analysis
+空间数据的描述性和探索性分析
+
+空间统计分析 Spatial Statistical Analysis
+
+传统的统计模型认为观测值之间常常是独立的，而空间数据自带空间相关性，需要专门的统计分析方法。
+
+空间数据建模 Spatial Data Modeling
+
+空间过程预测，空间分析：空间点模式分析 Spatial Point Pattern Analysis、格网/面状数据分析 Area Data/Grid Data/lattice Data、地统计分析 Geostatistics
+
+描述空间相关性：莫兰指数 用于 面状数据，变差函数 用于 连续数据
+
+[**rnaturalearth**](https://github.com/ropenscilabs/rnaturalearth) 和 [**rnaturalearthdata**](https://github.com/ropenscilabs/rnaturalearthdata) 提供 [美国国家地理](https://www.naturalearthdata.com/)网站的 R 语言接口，可以免费下载矢量和栅格地图数据。
+
+```{r}
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(rnaturalearthhires)
+```
+
+下载和绘制中国地图数据，如图\@ref(fig:china-map)
+
+```{r china-map, eval=FALSE}
+sp::plot(rnaturalearth::ne_countries(
+  country = "China",
+  continent = "Asia",
+  type = "countries",
+  scale = 10, returnclass = "sp"
+))
+```
+
+![(\#fig:china-map) 美国国家地理网站提供的中国地图数据](/img/maps-in-r/china-map.png){.full}
+
+
+::: rmdnote
+**rnaturalearthhires** 有 20 多 M，不在 CRAN 上，安装命令如下：
+
+```{r,eval=FALSE}
+install.packages(
+  pkgs = "rnaturalearthhires",
+  repos = "http://packages.ropensci.org",
+  type = "source"
+)
+```
+:::
+
+
+## 矢量数据 sp
+
+**sp** [@sp]
+
+**sp** 是一个 R 包，提供一种存储和操作空间数据的对象类型
 
 ```{r}
 library(sp)
 ```
 
 
-```{r,eval=FALSE}
+
+meuse 数据集为例
+
+```{r}
 data(meuse)
 summary(meuse)
-coordinates(meuse) <- ~x+y
-proj4string(meuse) <- CRS("+init=epsg:28992")
 ```
+
+Ruud van Rijn 和 Mathieu Rikken 最初收集了 Stein 村 Meuse 河洪泛区地表土壤重金属浓度数据，Edzer Pebesma 将数据整理打包后做成 **sp** 内置的数据集 meuse。除了几种重金属浓度，还包含土壤、周围环境相关的变量，共 155 个采样点，14 个观测变量，具体情况：
+
+- x 东西方向坐标，单位米，坐标参照系为 RDH（Rijksdriehoek） 荷兰地形。 
+- y 南北方向坐标，单位米。
+- cadmium 表土**镉**浓度，每千克土壤中镉含量（按毫克计），因此，浓度单位为 ppm，若原始数据中镉浓度为 0，则漂移至 0.2，即最小的镉浓度的一半。
+- copper 表土**铜**浓度，单位 ppm。
+- lead 表土**铅**浓度，单位 ppm。
+- zinc 表土**锌**浓度，单位 ppm。
+- elev 以当地河床为水平面，相对高度，单位米。
+- dist 采样点至 Meuse 河的距离，距离归一化到 0-1 区间。
+- om 每100千克土壤中有机质的占比，百分数。
+- ffreq 洪水等级，1 表示两年一次，2 表示十年一次，3 表示 五十年一次。
+- soil 土壤类型，按照荷兰 1:50000 的土壤图划分，1 表示 Rd10A （钙质弱发育草甸土，轻质砂质粘土），2 表示 Rd90C/VII （非钙质弱发育草甸土，重砂质粘土至轻质粘土），3 表示 Bkd26/VII
+（红砖土、细砂质、粉质轻质粘土）。
+- landuse 土地利用类别：Aa 农业/未指定 = ，Ab = Agr/糖用甜菜，Ag = Agr/小谷物，Ah = Agr/??，Am = Agr/玉米，B = 树林，Bw = 牧场中的树木，DEN = ?? , Fh = 高果树，Fl = 矮果树； Fw = 牧场果树，Ga = 家庭花园，SPO = 运动场，STA = 马厩，Tv = ?? , W = 牧场。
+- dist.m 采样点到 Meuse 河的距离，单位以米计，数据来自实地调查。
+
+最后，数据集 meuse 中的行名 `row.names` 表示原始的采样点的编号。
+
+```{r}
+
+```
+
+
+meuse 指定坐标系
+
+```{r}
+coordinates(meuse) <- ~x+y
+proj4string(meuse) <- CRS("+proj=lcc +lat_1=49 +lat_2=77 +lat_0=0 +lon_0=-95 +x_0=0 +y_0=0 +ellps=GRS80 +datum=WGS84 +units=m +no_defs")
+class(meuse)
+```
+
+将普通的数据框 data.frame 转化为空间点数据框 SpatialPointsDataFrame， sp 包不仅提供了数据类型的转化方法，而且对这种新的数据类型提供相应的绘图方法，使用方法和普通的 `plot()` 函数一样，这也是 S3 泛型函数的特色。
 
 ```{r,eval=FALSE}
 plot(meuse)
 ```
 
+![(\#fig:sp-meuse) **sp** 包绘图空间点数据](/img/maps-in-r/sp-meuse.png){.full}
 
-## raster
+```{r,eval=FALSE}
+data(meuse.grid)
+coordinates(meuse.grid) = ~x+y
+proj4string(meuse.grid) <- CRS("+init=epsg:28992")
+gridded(meuse.grid) = TRUE
+spplot(meuse.grid)
+```
 
+
+实际上，截止目前 `plot()` 函数已经汇集很多方法了，它已经是一个绘图对象，对于不同类型的数据对象，它会调用相应的绘图方法。记住，一切都是对象，一切的操作都是函数调用。
+
+```{r methods-plot, echo=FALSE}
+# library(raster)
+# library(lattice)
+# library(nlme)
+knitr::kable(matrix(c(methods(plot), ""), ncol = 4),
+  caption = "plot 绘图方法"
+)
+```
+
+
+## 栅格数据 raster
+
+栅格数据是空间数据的另一种类型，比如遥感卫星拍摄的照片，**raster** [@raster] 可以处理这类数据的分析和可视化。
 
 ```{r}
 library(raster)
 ```
 
+```{r raster-grain, eval=FALSE}
+data(grain, package = 'spData')
+raster::plot(grain, asp = NA)
+```
 
-## sf
+![(\#fig:raster-grain) **raster** 包绘制栅格数据](/img/maps-in-r/raster-grain.png){.full}
+
+[**spData**](https://github.com/Nowosad/spData/)
+
+
+**spData** 内的 wheat 数据集来自非常经典的空间统计书籍《Statistics for Spatial Data》[@Cressie1993]。
+
+sf 读取 shp 文件
+
+```{r}
+library(sf)
+wheat <- st_read(system.file("shapes/wheat.shp", package = "spData"))
+wheat
+```
+```{r,eval=FALSE}
+plot(wheat["yield"])
+```
+
+![(\#fig:sf-wheat) 小麦产量空间分布图](/img/maps-in-r/sf-wheat.png){.full}
+
+
+
+## 矢量数据 sf
+
+[Proj](https://proj.org/)
+
+**sf** [@sf] 可以看作是继 sp 后的第二代空间数据处理和分析的框架，上一代的 maptools rgdal 和 rgeos 包退役。 历史遗留的部分陆续迁移至 sp 新的开发阵地已经迁移到 sf 上。哪些遗留的部分会迁移到 sp 而新的阵地又是什么？
+
 
 
 ```{r}
@@ -467,23 +773,70 @@ library(sf)
 ```
 
 
+```{r}
+data(alaska, package = 'spData')
+alaska
+```
+
+数据集 alaska 使用的坐标参考系是 Alaska Albers (EPSG:3467)。各个变量分别是 GEOID 地理标识符（geographic identifiers），NAME 州的名称，REGION 区域的名称，AREA 面积（平方千米），total_pop_10 2010 年人口，total_pop_15 2015 年人口，geometry 表示 sf 多边形类的集合属性。
+
+```{r,eval=FALSE}
+plot(alaska["total_pop_15"])
+```
+
+![(\#fig:sf-alaska) **sf** 包绘制多边形数据](/img/maps-in-r/sf-alaska.png){.full}
+
+```{r}
+data(world, package = 'spData')
+world
+```
+
+world 包含 177 个国家和地区的人口数据，area_km2 面积、pop 人口（2014 年）、lifeExp 人均寿命（2014 年）和 gdpPercap 人均 GDP （2014 年）。地理信息相关的数据有 iso_a2 国标 ISO 的国家编码，name_long 国家名字，continent 大洲名字，region_un 区域名称，subregion 子区域名称和 type 类型。数据收集自国家地理 [Natural Earth](https://www.naturalearthdata.com/) 和世界银行 [World Bank](https://data.worldbank.org/)，Jakub Nowosad 整理在 **spData** 包里。
+
+[rnaturalearth](https://github.com/ropenscilabs/rnaturalearth)
+
+```{r,eval=FALSE}
+plot(world["gdpPercap"])
+```
+
+![(\#fig:sf-world) 2014 年世界各国人均 GDP](/img/maps-in-r/sf-world.png){.full}
+
+::: rmdnote
+**spData** 包内置的 world 数据集将台湾和中国大陆的地区用不同的颜色标记，严格来讲，这是不符合国家地图规范的，不能出现在期刊、书籍等正式的出版物里。
+:::
 
 
 
 # 环境信息
 
-在 RStudio IDE 内编辑本文的 R Markdown 源文件，用 **blogdown** [@Xie2017] 构建网站，[Hugo](https://github.com/gohugoio/hugo) 渲染 knitr 之后的 Markdown 文件，得益于 **blogdown** 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：
+在 RStudio IDE 内编辑本文的 R Markdown 源文件，用 **blogdown** [@Xie2017] 构建网站，[Hugo](https://github.com/gohugoio/hugo) 渲染 **knitr** 之后的 Markdown 文件，得益于 **blogdown** 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：
 
 ```{r}
 xfun::session_info(packages = c(
   "knitr", "rmarkdown", "blogdown",
-  "ggmap", "ggplot2", "sp", "leaflet",
+  "ggmap", "ggplot2", "sp", 
+  "leaflet", "echarts4r",
   "baidumap", "RgoogleMaps",
   "lattice", "latticeExtra", "loa",
-  "raster", "sf"
+  "raster", "sf", "plotly"
 ), dependencies = FALSE)
 ```
-
+```{r write-bib, include=FALSE}
+pkgs <- c(
+  "knitr", "rmarkdown", "blogdown",
+  "ggmap", "ggplot2", "sp", 
+  "leaflet", "echarts4r",
+  "baidumap", "RgoogleMaps",
+  "lattice", "latticeExtra", "loa",
+  "raster", "sf", "plotly"
+)
+bib <- knitr::write_bib(
+  x = pkgs, file = NULL, prefix = ""
+)
+bib <- unlist(bib)
+bib <- gsub("(\\\n)", " ", bib)
+xfun::write_utf8(bib, "packages.bib")
+```
 
 # 参考文献
 
