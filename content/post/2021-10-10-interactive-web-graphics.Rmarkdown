@@ -578,6 +578,18 @@ e_color(color = RColorBrewer::brewer.pal(n = 3, name = "Set2"))
 
 ![(\#fig:echarts4r-theme) Apache Echarts 的配色主题](https://user-images.githubusercontent.com/12031874/141679368-19883e05-278e-4eff-bfb2-d31d4b63c9f3.png){.full}
 
+值得注意，目前，**echarts4r** 对统计图形的支持十分有限，分组线性回归尚且做不到，**echarts4r**官网对此也有[示例说明](https://echarts4r.john-coene.com/articles/stats.html#linear)。
+
+```{r,eval=FALSE}
+iris |> 
+  group_by(Species) |> 
+  e_charts(x = Sepal.Width) |> 
+  e_scatter(serie = Sepal.Length, bind = Species, symbol_size = 10) |> 
+  # 添加回归
+  e_lm(Sepal.Length ~ Sepal.Width, name = "线性回归") |> 
+  # 设置调色板 Set2
+  e_color(color = RColorBrewer::brewer.pal(n = 3, name = "Set2"))
+```
 :::
 
 # 如何选择

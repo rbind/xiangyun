@@ -545,6 +545,19 @@ e_color(color = RColorBrewer::brewer.pal(n = 3, name = "Set2"))
 <img src="https://user-images.githubusercontent.com/12031874/141679368-19883e05-278e-4eff-bfb2-d31d4b63c9f3.png" class="full" alt="Figure 16: Apache Echarts 的配色主题" /><figcaption aria-hidden="true">Figure 16: Apache Echarts 的配色主题</figcaption>
 </figure>
 
+值得注意，目前，**echarts4r** 对统计图形的支持十分有限，分组线性回归尚且做不到，**echarts4r**官网对此也有[示例说明](https://echarts4r.john-coene.com/articles/stats.html#linear)。
+
+``` r
+iris |> 
+  group_by(Species) |> 
+  e_charts(x = Sepal.Width) |> 
+  e_scatter(serie = Sepal.Length, bind = Species, symbol_size = 10) |> 
+  # 添加回归
+  e_lm(Sepal.Length ~ Sepal.Width, name = "线性回归") |> 
+  # 设置调色板 Set2
+  e_color(color = RColorBrewer::brewer.pal(n = 3, name = "Set2"))
+```
+
 </div>
 
 # 如何选择
@@ -633,13 +646,13 @@ xfun::session_info(packages = c(
     ## Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
     ## 
     ## Package version:
-    ##   apexcharter_0.3.0 blogdown_1.6      echarts4r_0.4.2   ggiraph_0.8.1    
+    ##   apexcharter_0.3.0 blogdown_1.7      echarts4r_0.4.2   ggiraph_0.8.1    
     ##   ggplot2_3.3.5     knitr_1.37        plotly_4.10.0     rmarkdown_2.11   
     ##   scatterD3_1.0.1  
     ## 
     ## Pandoc version: 2.16.2
     ## 
-    ## Hugo version: 0.89.4
+    ## Hugo version: 0.91.2
 
 # 参考文献
 
