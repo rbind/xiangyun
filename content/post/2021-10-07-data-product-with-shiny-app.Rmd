@@ -145,7 +145,7 @@ subset(x = pdb, subset = grepl(pattern = "^RcmdrPlugin", x = Package), select = 
 
 [**JGR**](https://github.com/markush81/JGR)[^rJava] (**J**ava **G**ui for **R**) 主要由 Markus Helbig 开发，它非常小巧，但是提供了大部分常用的数据操作、探索和统计分析功能，如单样本、两样本和 K 样本检验，相关性分析、列联分析、线性和广义线性模型等。在那个年代以如此迅速的手法集成 R 语言和学术界的成果是非常厉害的，也不怪乎它敢对标 [SPSS](https://en.wikipedia.org/wiki/SPSS)、 [JMP](https://en.wikipedia.org/wiki/JMP_(statistical_software)) 和 [Minitab](https://en.wikipedia.org/wiki/Minitab) 等商业统计分析软件。
 
-![(\#fig:rJava-JGR) **JGR** 包：统计分析与 **rJava** 应用](https://user-images.githubusercontent.com/12031874/142404769-e9d078e4-6355-4f03-b53e-a2bf5f6ae9bc.png){.full}
+![(\#fig:rJava-JGR) **JGR** 包：统计分析与 **rJava** 应用](https://user-images.githubusercontent.com/12031874/148053902-b1b29824-b7b2-493c-af68-79b3a8cceb2f.png){.full}
 
 
 [^rJava]: 安装 **JGR** 包需要如下两步，其一安装 JDK 和配置 R 环境，让 R 软件能够识别到 Java 开发环境
@@ -183,7 +183,7 @@ subset(x = pdb, subset = grepl(pattern = "^RcmdrPlugin", x = Package), select = 
     ```
 
 
-期间，还陆续出现了一些开源统计分析软件，比如 [GNU PSPP](https://www.gnu.org/software/pspp/)、[jamovi](https://www.jamovi.org/) 和 [JASP](https://jasp-stats.org)，都提供图形化的用户界面，也都号称是 SPSS 软件 的免费替代，但是从来没有真的替代过。专门化的贝叶斯分析软件有 [JAGS](https://mcmc-jags.sourceforge.io/) 和 [Stan](https://mc-stan.org/) 等，而商业化的典型统计软件，还有 [SAS](https://www.sas.com/zh_cn/home.html)，最近它开始[筹备上市](https://www.sas.com/zh_cn/news/press-releases/2021/july/sas-charts-path-to-ipo-readiness.html)了，其它专门化的软件更是可以列出一个长长的单子，此处略去。下面仅就 JASP 简单介绍，JASP 是一款独立免费开源的统计软件，不是一个 R 包，源代码托管在 [Github](https://github.com/jasp-stats/jasp-desktop) 上，主要由阿姆斯特丹大学 [E. J. Wagenmakers](https://www.ejwagenmakers.com/) 教授领导的团队维护开发，实现了很多贝叶斯和频率统计方法，具体功能见[这里](https://jasp-stats.org/current-functionality/)，统计方法和原理见[博客](https://www.bayesianspectacles.org/)，相似的图形用户界面使得 JASP 可以作为 SPSS 的替代，也远非前面的 JGR 可比，实际上，后者已经多年未更新功能了，笔者亲测已经不可用。
+期间，还陆续出现了一些开源统计分析软件，比如 [GNU PSPP](https://www.gnu.org/software/pspp/)、[jamovi](https://www.jamovi.org/) 和 [JASP](https://jasp-stats.org)，都提供图形化的用户界面，也都号称是 SPSS 软件 的免费替代，但是从来没有真的替代过。专门化的贝叶斯分析软件有 [JAGS](https://mcmc-jags.sourceforge.io/) 和 [Stan](https://mc-stan.org/) 等，而商业化的典型统计软件，还有 [SAS](https://www.sas.com/zh_cn/home.html)，最近它开始[筹备上市](https://www.sas.com/zh_cn/news/press-releases/2021/july/sas-charts-path-to-ipo-readiness.html)了，其它专门化的软件更是可以列出一个长长的单子，此处略去。下面仅就 JASP 简单介绍，JASP 是一款独立免费开源的统计软件，不是一个 R 包，源代码托管在 [Github](https://github.com/jasp-stats/jasp-desktop) 上，主要由阿姆斯特丹大学 [E. J. Wagenmakers](https://www.ejwagenmakers.com/) 教授领导的团队维护开发，实现了很多贝叶斯和频率统计方法，具体功能见[这里](https://jasp-stats.org/current-functionality/)，统计方法和原理见[博客](https://www.bayesianspectacles.org/)，相似的图形用户界面使得 JASP 可以作为 SPSS 的替代，也远非前面的 JGR 可比。
 
 Table: (\#tab:jasp) JASP 软件的主要统计分析功能
 
@@ -226,7 +226,6 @@ Table: (\#tab:jasp) JASP 软件的主要统计分析功能
 [^ttest]: 等效 T 检验：零假设是 $\mu = \mu_0$ 而备择假设是 $\mu \neq \mu_0$，其中 $\mu_0$ 已知，它是一般 T 检验的特殊形式。
 
 [^mediation]: 中介分析是因果推断中非常重要的部分，R 语言扩展包 **mediation** [@Tingley2014] 是典型的代表。
-
 
 
 ## Shiny
