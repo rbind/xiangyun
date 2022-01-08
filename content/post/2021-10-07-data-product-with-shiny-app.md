@@ -140,7 +140,7 @@ div.img {
 [**JGR**](https://github.com/markush81/JGR)[^1] (**J**ava **G**ui for **R**) 主要由 Markus Helbig 开发，它非常小巧，但是提供了大部分常用的数据操作、探索和统计分析功能，如单样本、两样本和 K 样本检验，相关性分析、列联分析、线性和广义线性模型等。在那个年代以如此迅速的手法集成 R 语言和学术界的成果是非常厉害的，也不怪乎它敢对标 [SPSS](https://en.wikipedia.org/wiki/SPSS)、 [JMP](https://en.wikipedia.org/wiki/JMP_(statistical_software)) 和 [Minitab](https://en.wikipedia.org/wiki/Minitab) 等商业统计分析软件。
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/142404769-e9d078e4-6355-4f03-b53e-a2bf5f6ae9bc.png" class="full" alt="Figure 2: JGR 包：统计分析与 rJava 应用" /><figcaption aria-hidden="true">Figure 2: <strong>JGR</strong> 包：统计分析与 <strong>rJava</strong> 应用</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/148053902-b1b29824-b7b2-493c-af68-79b3a8cceb2f.png" class="full" alt="Figure 2: JGR 包：统计分析与 rJava 应用" /><figcaption aria-hidden="true">Figure 2: <strong>JGR</strong> 包：统计分析与 <strong>rJava</strong> 应用</figcaption>
 </figure>
 
 ## rattle
@@ -151,7 +151,7 @@ div.img {
 <img src="https://user-images.githubusercontent.com/12031874/142166760-91408f3a-1a30-4c0d-9e22-6e7993a678bc.png" class="full" alt="Figure 3: rattle 包：数据挖掘与 Gtk+ 应用" /><figcaption aria-hidden="true">Figure 3: <strong>rattle</strong> 包：数据挖掘与 Gtk+ 应用</figcaption>
 </figure>
 
-期间，还陆续出现了一些开源统计分析软件，比如 [GNU PSPP](https://www.gnu.org/software/pspp/)、[jamovi](https://www.jamovi.org/) 和 [JASP](https://jasp-stats.org)，都提供图形化的用户界面，也都号称是 SPSS 软件 的免费替代，但是从来没有真的替代过。专门化的贝叶斯分析软件有 [JAGS](https://mcmc-jags.sourceforge.io/) 和 [Stan](https://mc-stan.org/) 等，而商业化的典型统计软件，还有 [SAS](https://www.sas.com/zh_cn/home.html)，最近它开始[筹备上市](https://www.sas.com/zh_cn/news/press-releases/2021/july/sas-charts-path-to-ipo-readiness.html)了，其它专门化的软件更是可以列出一个长长的单子，此处略去。下面仅就 JASP 简单介绍，JASP 是一款独立免费开源的统计软件，不是一个 R 包，源代码托管在 [Github](https://github.com/jasp-stats/jasp-desktop) 上，主要由阿姆斯特丹大学 [E. J. Wagenmakers](https://www.ejwagenmakers.com/) 教授领导的团队维护开发，实现了很多贝叶斯和频率统计方法，具体功能见[这里](https://jasp-stats.org/current-functionality/)，统计方法和原理见[博客](https://www.bayesianspectacles.org/)，相似的图形用户界面使得 JASP 可以作为 SPSS 的替代，也远非前面的 JGR 可比，实际上，后者已经多年未更新功能了，笔者亲测已经不可用。
+期间，还陆续出现了一些开源统计分析软件，比如 [GNU PSPP](https://www.gnu.org/software/pspp/)、[jamovi](https://www.jamovi.org/) 和 [JASP](https://jasp-stats.org)，都提供图形化的用户界面，也都号称是 SPSS 软件 的免费替代，但是从来没有真的替代过。专门化的贝叶斯分析软件有 [JAGS](https://mcmc-jags.sourceforge.io/) 和 [Stan](https://mc-stan.org/) 等，而商业化的典型统计软件，还有 [SAS](https://www.sas.com/zh_cn/home.html)，最近它开始[筹备上市](https://www.sas.com/zh_cn/news/press-releases/2021/july/sas-charts-path-to-ipo-readiness.html)了，其它专门化的软件更是可以列出一个长长的单子，此处略去。下面仅就 JASP 简单介绍，JASP 是一款独立免费开源的统计软件，不是一个 R 包，源代码托管在 [Github](https://github.com/jasp-stats/jasp-desktop) 上，主要由阿姆斯特丹大学 [E. J. Wagenmakers](https://www.ejwagenmakers.com/) 教授领导的团队维护开发，实现了很多贝叶斯和频率统计方法，具体功能见[这里](https://jasp-stats.org/current-functionality/)，统计方法和原理见[博客](https://www.bayesianspectacles.org/)，相似的图形用户界面使得 JASP 可以作为 SPSS 的替代，也远非前面的 JGR 可比。
 
 | Analysis                                                          | Frequentist | Bayesian |
 |:------------------------------------------------------------------|:------------|:---------|
@@ -372,7 +372,7 @@ xfun::session_info(packages = c(
 ))
 ```
 
-    ## R version 4.1.2 (2021-11-01)
+    ## R version 4.1.1 (2021-08-10)
     ## Platform: x86_64-apple-darwin17.0 (64-bit)
     ## Running under: macOS Big Sur 10.16
     ## 
@@ -380,13 +380,13 @@ xfun::session_info(packages = c(
     ## 
     ## Package version:
     ##   base64enc_0.1.3  blogdown_1.7     bookdown_0.24    digest_0.6.29   
-    ##   evaluate_0.14    fastmap_1.1.0    glue_1.6.0       graphics_4.1.2  
-    ##   grDevices_4.1.2  highr_0.9        htmltools_0.5.2  httpuv_1.6.4    
+    ##   evaluate_0.14    fastmap_1.1.0    glue_1.6.0       graphics_4.1.1  
+    ##   grDevices_4.1.1  highr_0.9        htmltools_0.5.2  httpuv_1.6.4    
     ##   jquerylib_0.1.4  jsonlite_1.7.2   knitr_1.37       later_1.3.0     
-    ##   magrittr_2.0.1   methods_4.1.2    mime_0.12        promises_1.2.0.1
+    ##   magrittr_2.0.1   methods_4.1.1    mime_0.12        promises_1.2.0.1
     ##   R6_2.5.1         Rcpp_1.0.7       rlang_0.4.12     rmarkdown_2.11  
-    ##   servr_0.24       stats_4.1.2      stringi_1.7.6    stringr_1.4.0   
-    ##   tinytex_0.36     tools_4.1.2      utils_4.1.2      xfun_0.29       
+    ##   servr_0.24       stats_4.1.1      stringi_1.7.6    stringr_1.4.0   
+    ##   tinytex_0.36     tools_4.1.1      utils_4.1.1      xfun_0.29       
     ##   yaml_2.2.1      
     ## 
     ## Pandoc version: 2.16.2
