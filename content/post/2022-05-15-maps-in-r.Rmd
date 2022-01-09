@@ -366,6 +366,59 @@ leaflet(options = leafletOptions(
 ![(\#fig:leaflet-amap-cumtb)高德地图-中国矿业大学（北京）](/img/maps-in-r/leaflet-amap-cumtb.png){.full}
 
 
+## GeoIP 定位
+
+GeoIP 数据库 [MaxMind](https://github.com/maxmind)
+
+```bash
+brew install geoip geoipupdate
+```
+
+如何使用？R 包如何使用它们？
+
+
+离线下载 [GeoLite2 数据库](https://dev.maxmind.com/geoip/geoip2/geolite2/)，下载地址 
+
+```bash
+curl -C - -O http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz
+```
+
+![GeoLite2 数据库下载页面](https://wp-contents.netlify.com/2018/12/GeoIP2.png)
+
+
+将 maxmind 格式数据库移动到 [**rgeolocate** 包](https://github.com/ironholds/rgeolocate) 的额外数据存放位置
+
+**rgeolocate** 只包含 GeoLite2-Country.mmdb 数据
+
+解析 IP，获取 IP 指向的洲名，国家代码，国家，城市，城市唯一识别码，所在时区和经纬度。
+
+```{r}
+library(rgeolocate)
+results <- maxmind(
+  ips = "111.203.130.69",
+  file = system.file("extdata", "GeoLite2-Country.mmdb", package = "rgeolocate"),
+  fields = c(
+    "continent_name", "country_code", "country_name",
+    "region_name", "city_name", "city_geoname_id",
+    "timezone", "longitude", "latitude"
+  )
+)
+results
+```
+
+依次是洲、国家编码简称、国家名称、区域（省级）名称、城市名称、城市代码（不确定编码体系，此外国家行政区划编码）、时区、经度和纬度。
+
+这里使用的 IP 地址 111.203.130.69 在中国矿业大学（北京）校区内。
+
+
+
+## GPS 坐标
+
+
+
+
+## GeoHash 编码
+
 
 
 # 数据可视化
@@ -501,6 +554,42 @@ quakes |>
 
 ![(\#fig:qgis) QGIS 软件内的 OpenStreetMap 地图](/img/maps-in-r/qgis.png){.full}
 
+
+
+### 动画
+
+```{r, eval=FALSE}
+gapminder |>
+  group_by(year) |>
+  e_charts(x = country, timeline = TRUE) |>
+  e_map(serie = gdpPercap) |>
+  e_visual_map(serie = gdpPercap) |>
+  e_tooltip(
+    # 数据项图形触发，用于散点图等，设置 'axis' 表示坐标轴触发，主要在柱状图/条形图
+    trigger = "item",
+    # 鼠标移动或点击时触发
+    triggerOn = "mousemove|click",
+    # 定制悬浮内容 params.name 取自 bind 变量
+    formatter = htmlwidgets::JS("
+      function(params){
+        return('国家: <strong>' + params.name + '</strong>' +
+               '<br />人均 GDP: ' + Math.round(params.value) + '美元')
+      }
+    ")
+  )
+```
+
+[Choropleth map](https://en.wikipedia.org/wiki/Choropleth_map)
+
+参考苏玮制作的日本新冠疫情看板 [COVID-19](https://github.com/swsoyee/2019-ncov-japan)
+
+
+### 3D 交互
+
+[3D 地球数据可视化](https://github.com/z3tt/ports_globe/blob/main/echarts_globe.R)
+
+
+
 ## leaflet
 
 **leaflet** [@leaflet] 包
@@ -551,12 +640,6 @@ leaflet(quakes, options = leafletOptions(attributionControl = FALSE)) |>
 
 ![(\#fig:quakes-leaflet) **leaflet** 包使用 OpenStreetMap 地图](/img/maps-in-r/quakes-leaflet.png){.full}
 
-<!-- 
-Geohash 转化为经纬度坐标 
-IP 定位
-GPS 定位
-页面城市
--->
 
 ## plotly
 
@@ -590,6 +673,44 @@ plotly::plot_mapbox(
 
 
 ![(\#fig:quakes-satellite) **plotly** 包使用 Mapbox 卫星地图](/img/maps-in-r/quakes-satellite.png){.full}
+
+### 动画
+
+参考 plotly 官网 [choropleth map](https://plotly.com/python/choropleth-maps/)
+
+```python
+import plotly.express as px
+df = px.data.gapminder()
+df.head(6)
+```
+```
+       country continent  year  lifeExp       pop   gdpPercap iso_alpha  iso_num
+0  Afghanistan      Asia  1952   28.801   8425333  779.445314       AFG        4
+1  Afghanistan      Asia  1957   30.332   9240934  820.853030       AFG        4
+2  Afghanistan      Asia  1962   31.997  10267083  853.100710       AFG        4
+3  Afghanistan      Asia  1967   34.020  11537966  836.197138       AFG        4
+4  Afghanistan      Asia  1972   36.088  13079460  739.981106       AFG        4
+5  Afghanistan      Asia  1977   38.438  14880372  786.113360       AFG        4
+```
+
+相比于 R 语言 gapminder 数据集，添加了新的一列 `iso_alpha`
+
+```python
+fig = px.choropleth(
+    df,
+    locations="iso_alpha",
+    color="lifeExp"
+    # 动画帧
+    animation_frame="year",
+    # 动画分组
+    animation_group="country",
+    # 悬浮提示
+    hover_name="country", 
+    color_continuous_scale=px.colors.sequential.Viridis,
+)
+fig.show()
+```
+
 
 # 空间数据结构
 
@@ -733,12 +854,36 @@ knitr::kable(matrix(c(methods(plot), ""), ncol = 4),
 library(raster)
 ```
 
+
+
 ```{r raster-grain, eval=FALSE}
 data(grain, package = 'spData')
 raster::plot(grain, asp = NA)
 ```
 
 ![(\#fig:raster-grain) **raster** 包绘制栅格数据](/img/maps-in-r/raster-grain.png){.full}
+
+美国西南部犹他州锡安国家公园的高程珊格数据 elevation，该数据集由 [Jakub Nowosad](https://nowosad.github.io/) 收集于 [spDataLarge](https://github.com/Nowosad/spDataLarge) 包内，由于该 R 包收集的地理信息数据很多又很大，超出了 CRAN 对 R 包的大小限制，需要从作者制作的 drat 站点下载。
+
+```{r check-spDataLarge, eval=FALSE}
+install.packages("spDataLarge", repos = "https://nowosad.github.io/drat/")
+```
+
+elevation 数据集通过雷达地形测绘 SRTM (Shuttle Radar Topography Mission) 获得，其分辨率为 90m $\times$ 90m，属于高精度地形网格数据，更多细节描述见 <http://srtm.csi.cgiar.org/>，下图\@ref(fig:raster-elevation)将公园的地形清晰地展示出来了，读者不妨再借助维基百科词条 (<https://en.wikipedia.org/wiki/Zion_National_Park>) 从整体上了解该公园的情况，结合丰富的实景图可以获得更加直观的感受。
+
+```{r}
+#| elevation-zion,
+#| fig.cap="锡安国家公园的高程珊格数据",
+#| fig.height=5,fig.width=5.5, 
+#| eval=FALSE,
+#| echo=FALSE
+
+data("elevation", package = "spDataLarge")
+raster::plot(elevation, asp = NA)
+```
+
+![(\#fig:raster-elevation) **raster** 包绘制锡安国家公园地形](/img/maps-in-r/raster-elevation.png){.full}
+
 
 [**spData**](https://github.com/Nowosad/spData/)
 
@@ -759,13 +904,22 @@ plot(wheat["yield"])
 ![(\#fig:sf-wheat) 小麦产量空间分布图](/img/maps-in-r/sf-wheat.png){.full}
 
 
+```{r}
+meuse.test <- raster(x = system.file("external/test.grd", package="raster"))
+class(meuse.test)
+```
+
+
+```{r,eval=FALSE}
+plot(meuse.test, legend = F)
+```
+
 
 ## 矢量数据 sf
 
 [Proj](https://proj.org/)
 
 **sf** [@sf] 可以看作是继 sp 后的第二代空间数据处理和分析的框架，上一代的 maptools rgdal 和 rgeos 包退役。 历史遗留的部分陆续迁移至 sp 新的开发阵地已经迁移到 sf 上。哪些遗留的部分会迁移到 sp 而新的阵地又是什么？
-
 
 
 ```{r}
@@ -805,6 +959,135 @@ plot(world["gdpPercap"])
 **spData** 包内置的 world 数据集将台湾和中国大陆的地区用不同的颜色标记，严格来讲，这是不符合国家地图规范的，不能出现在期刊、书籍等正式的出版物里。
 :::
 
+再看一个稍微复杂的例子，涉及数据读取、操作和绘图，数据集 SIDS 来自 sf 包，描述美国北卡罗来纳州各个区县的
+
+```{r}
+# 读取数据，且读取后不要转化为 tibble 数据类型
+nc <- read_sf(system.file("gpkg/nc.gpkg", package = "sf"), as_tibble = FALSE)
+# 提取部分列
+nc2 <- subset(x = nc, select = c("SID74", "SID79"))
+# 查看数据
+nc2
+```
+
+```{r,echo=FALSE}
+# Base R 方式的变形操作
+# https://gis.stackexchange.com/questions/381112/
+# 如下变形操作亦可用 tidyr::pivot_longer 实现
+# nc2 <- tidyr::pivot_longer(
+#   data = nc2, c("SID74", "SID79"),
+#   names_to = "VAR", values_to = "SID"
+# )
+```
+
+nc2 是一种宽格式数据，有两列 SID74 和 SID79，现在希望在地图上以 ggplot2 的分面绘图方式同时展示两个变量的空间分布，因此，需要先将数据由「宽格式」转为「长格式」。转化前，先来看下 nc2 的数据类型：
+
+```{r}
+class(nc2)
+```
+
+它是一个非常复杂的数据类型，集合了 `sf` 和 `data.frame` 两种基本类型，在数据操作和绘图时，会根据类型的先后顺序依次查找和调用对应类型下的方法。
+
+```{r}
+# 将 nc2 强制转化为简单的 data.frame 类型
+nc2 <- as.data.frame(nc2)
+# 对 nc2 做「宽格式」转「长格式」的变形操作
+nc3 <- reshape(
+  data = nc2,
+  varying = c("SID74", "SID79"), # 需要转行的列，也可以用索引位置代替
+  times = c("SID74", "SID79"),
+  v.names = "SID", # 列转行 列值构成的新列，指定名称
+  timevar = "VAR", # 列转行 列名构成的新列，指定名称
+  idvar = "geom",
+  new.row.names = 1:(2 * 100), # 2 列拉长，每列有 100 个值，长格式有 2*100 行
+  direction = "long"
+)
+# 变形完成后，恢复原来的数据类型
+nc3 <- st_as_sf(nc3, sf_column_name = "geom")
+class(nc3)
+```
+
+ggplot2 提供的几何图层 `geom_sf()` 是专门为 sf 数据对象准备的，`facet_wrap()` 和 `facet_grid()` 都可以用来实现分面，布局样式稍有不同，如图 \@ref(fig:sf-nc)。
+
+```{r,eval=FALSE}
+library(ggplot2)
+ggplot() +
+  geom_sf(data = nc3, aes(fill = SID)) +
+  facet_wrap(~VAR, ncol = 1)
+# 或
+# ggplot() +
+#   geom_sf(data = nc3, aes(fill = SID)) +
+#   facet_grid(rows = vars(VAR))
+```
+
+![(\#fig:sf-nc) sf 数据可视化](/img/maps-in-r/sf-nc.png){.full}
+
+
+```{r,eval=FALSE}
+library(maptools)
+nc <- readShapePoly(
+  fn = system.file("shapes/sids.shp", package = "maptools"),
+  proj4string = CRS("+proj=longlat +datum=NAD27")
+)
+```
+
+::: rmdwarn
+**maptools** 包提供的 `readShapePoly` 函数去读取 shp 文件的方式已经过时，将在 2023 年底不可用，推荐使用 `rgdal::readOGR` 或者 `sf::st_read` 方式读取
+:::
+
+**sp** 包提供的函数 `spplot()` 方法绘制类似的分面图，这其中借助了 **lattice** 包的绘图能力，效果如\@ref(fig:lattice-nc)所示。
+
+```{r,eval=FALSE}
+spplot(nc, c("SID74", "SID79"),
+  as.table = TRUE,
+  scales = list(draw = T, 
+    # 去掉图形上边、右边多余的刻度线
+    x = list(alternating = 1, tck = c(1, 0)),
+    y = list(alternating = 1, tck = c(1, 0))
+  ),
+  sp.layout = list("SpatialPolygonsRescale",
+    layout.north.arrow(2),
+    offset = c(-76, 34), scale = 0.5, which = 2
+  )
+)
+```
+
+
+![(\#fig:lattice-nc) **lattice** 数据可视化](/img/maps-in-r/lattice-nc.png){.full}
+
+事实上，**lattice** 在绘图能力上丝毫不逊色于 **ggplot2**，甚至还有超越，本篇主要介绍空间数据，下面以地形数据为例
+
+```{r}
+#| volcano-shade, 
+#| fig.cap="Auckland Maunga Whau 火山地形图 $10m\times 10m$。火山的实况地形图", 
+#| fig.width=5, fig.height=5, 
+#| out.width="75%",
+#| eval=FALSE
+
+library(lattice)
+# 减少三维图形的边空
+lattice.options(
+  layout.widths = list(
+    left.padding = list(x = -.6, units = "inches"),
+    right.padding = list(x = -1.0, units = "inches")
+  ),
+  layout.heights = list(
+    bottom.padding = list(x = -.8, units = "inches"),
+    top.padding = list(x = -1.0, units = "inches")
+  )
+)
+wireframe(volcano,
+  shade = TRUE,
+  xlab = expression(x[1]),
+  ylab = expression(x[2]),
+  zlab = list(expression(italic(f) ~ group("(", list(x[1], x[2]), ")")), rot = 90),
+  scales = list(arrows = FALSE, col = "black"),
+  par.settings = list(axis.line = list(col = "transparent")),
+  screen = list(z = -45, x = -50, y = 0)
+)
+```
+
+![(\#fig:lattice-volcano) [Auckland Maunga Whau 火山](https://en.wikipedia.org/wiki/Maungawhau_/_Mount_Eden)三维地形图 $10m\times 10m$。](/img/maps-in-r/lattice-volcano.png){.full}
 
 
 # 环境信息
