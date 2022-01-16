@@ -1,7 +1,7 @@
 ---
-title: 地理可视化与 R 语言
+title: 空间数据可视化与 R 语言（上篇）
 author: 黄湘云
-date: '2022-03-25'
+date: '2022-05-25'
 slug: maps-in-r
 categories:
   - 统计图形
@@ -9,6 +9,8 @@ tags:
   - 地理可视化
   - ggplot2
   - ggmap
+  - echarts4r
+  - plotly
   - maps
   - leaflet
   - leafletCN
@@ -16,7 +18,9 @@ tags:
   - RgoogleMaps
   - choroplethr
   - lattice
-  - latticeExtra
+  - sf
+  - terra
+  - sp
 toc: true
 draft: true
 link-citations: true
@@ -194,7 +198,7 @@ Google 提供的是一种瓦片地图，即由一张张小图片拼凑起来形�
 
 ggmap 可以调用多种样式的地图，地形图、水彩图等，如图\@ref(fig:ggmap-tiles) 所示。
 
-```{r,eval=FALSE}
+```{r,eval=FALSE,echo=FALSE}
 library(ggplot2)
 library(ggmap)
 library(patchwork)
@@ -467,7 +471,7 @@ p1 + p2
 ![(\#fig:sf-crs)坐标系统](/img/maps-in-r/sf-crs.png){.full}
 
 
-# 数据可视化
+# 空间数据
 
 地理可视化的展示形式有气泡图、热力图、瓦片图、地形图等，下面陆续使用 **lattice** 、**ggplot2** 和 **leaflet** 来绘制静态和交互图形。
 
@@ -667,14 +671,14 @@ elevation 数据集通过雷达地形测绘 SRTM (Shuttle Radar Topography Missi
 #| echo=FALSE
 
 data("elevation", package = "spDataLarge")
-raster::plot(elevation, asp = NA)
+terra::plot(elevation, asp = NA)
 ```
 
-![(\#fig:raster-elevation) **raster** 包绘制锡安国家公园地形](/img/maps-in-r/raster-elevation.png){.full}
+![(\#fig:raster-elevation) **terra** 包绘制锡安国家公园地形](/img/maps-in-r/raster-elevation.png){.full}
 
 
 
-# 常见绘图包
+# 可视化包
 
 ## echarts4r
 
@@ -740,7 +744,7 @@ quakes |>
 
 
 
-### 动画
+### 时空动画
 
 ```{r, eval=FALSE}
 gapminder |>
@@ -855,7 +859,7 @@ plotly::plot_mapbox(
 
 ![(\#fig:quakes-satellite) **plotly** 包使用 Mapbox 卫星地图](/img/maps-in-r/quakes-satellite.png){.full}
 
-### 动画
+### 时空动画
 
 参考 plotly 官网 [choropleth map](https://plotly.com/python/choropleth-maps/)
 
@@ -893,7 +897,7 @@ fig.show()
 ```
 
 
-# 空间数据结构
+# 数据结构
 
 空间数据操作 Spatial Data Manipulation
 
@@ -1032,26 +1036,24 @@ OpenStreetMapPlot(lead * 2 + zinc ~ latitude * longitude,
 
 ## 栅格数据 raster
 
-栅格数据是空间数据的另一种类型，比如遥感卫星拍摄的照片，**raster** [@raster] 可以处理这类数据的分析和可视化。
+栅格数据是空间数据的另一种类型，比如遥感卫星拍摄的照片，**raster** [@raster] 可以处理这类数据的分析和可视化。raster 包正在过渡到 terra 包，后者速度更快，接口函数是相似的。
 
 [layer](https://github.com/marcosci/layer) 层次性
-
-
 
 笔者用 iPhone 12 Pro 拍摄的天空照片和银杏树照片，层次，通道， 
 TIFF 照片卫星拍摄的照片与此大致相仿，所使用的镜头不同而已。下面介绍一下如何处理这类图像数据。图像处理，检测 detection，分割 segmentation，识别 recognition，如何识别出来图片中是乌云还是银杏叶，乌云和银杏叶的轮廓，如何将一朵朵乌云分割开来，一片片银杏叶呢？
 
 
 ```{r}
-library(raster)
+library(terra)
 ```
 
 ```{r raster-grain, eval=FALSE}
 data(grain, package = 'spData')
-raster::plot(grain, asp = NA)
+terra::plot(grain, asp = NA)
 ```
 
-![(\#fig:raster-grain) **raster** 包绘制栅格数据](/img/maps-in-r/raster-grain.png){.full}
+![(\#fig:raster-grain) **terra** 包绘制栅格数据](/img/maps-in-r/raster-grain.png){.full}
 
 ::: rmdtip
 R 软件内置的调色板 `terrain.colors()` 专用于地形图配色，从翠绿色、土黄色、沙白色，无不暗示海拔变化，读者不妨想象一下，山上的树呈翠绿色，山腰的砂石土块呈土黄色，山脚的河床小路呈沙白色，十分符合我国南方的丘陵山地印象。
@@ -1077,16 +1079,6 @@ plot(wheat["yield"])
 
 ![(\#fig:sf-wheat) 小麦产量空间分布图](/img/maps-in-r/sf-wheat.png){.full}
 
-
-```{r}
-meuse.test <- raster(x = system.file("external/test.grd", package="raster"))
-class(meuse.test)
-```
-
-
-```{r,eval=FALSE}
-plot(meuse.test, legend = F)
-```
 
 
 ## 矢量数据 sf
@@ -1384,8 +1376,9 @@ xfun::session_info(packages = c(
   "ggmap", "ggplot2", "sp", 
   "leaflet", "echarts4r", "layer",
   "baidumap", "RgoogleMaps",
-  "lattice", "latticeExtra", "loa",
-  "raster", "rasterVis", "sf", "plotly"
+  "lattice", "loa",
+  "terra", "raster", 
+  "sf", "plotly"
 ), dependencies = FALSE)
 ```
 ```{r write-bib, include=FALSE}
@@ -1394,8 +1387,9 @@ pkgs <- c(
   "ggmap", "ggplot2", "sp", 
   "leaflet", "echarts4r",
   "baidumap", "RgoogleMaps",
-  "lattice", "latticeExtra", "loa",
-  "raster", "sf", "plotly"
+  "lattice", "loa",
+  "terra", "sf", "plotly",
+  "raster"
 )
 bib <- knitr::write_bib(
   x = pkgs, file = NULL, prefix = ""
