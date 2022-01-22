@@ -21,6 +21,7 @@ tags:
   - sf
   - terra
   - sp
+  - raster
 toc: true
 draft: true
 link-citations: true
@@ -33,7 +34,7 @@ description: "介绍用于地理可视化的几种常用数据结构，比如 **
 
 
 ```{r setup, echo=FALSE}
-library(data.table)
+# library(data.table)
 knitr::opts_chunk$set(
   comment = "#",
     error = FALSE,
@@ -142,7 +143,7 @@ div.img {
 
 # 概览
 
-介绍用于地理可视化的几种常用数据结构，比如 sp 包、sf 包和 raster 包提供的三种空间数据存储、操作的类和方法。
+介绍用于地理可视化的几种常用数据结构，比如 **sp** 包、**raster** 包、**sf** 包和 **terra** 包 提供的三种空间数据存储、操作的类和方法。
 介绍地理可视化常用的展示形式，如瓦片图、围栏图、气泡图等，以及绘制过程中需要注意的制图规范问题，地理信息是比较敏感的数据，从大的层面上来说，涉及国家主权和领土完整。
 
 <!-- 
@@ -395,7 +396,7 @@ curl -C - -O http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.ta
 
 将 maxmind 格式数据库移动到 [**rgeolocate** 包](https://github.com/ironholds/rgeolocate) 的额外数据存放位置
 
-**rgeolocate** 只包含 GeoLite2-Country.mmdb 数据
+**rgeolocate** [@rgeolocate] 只包含 GeoLite2-Country.mmdb 数据
 
 解析 IP，获取 IP 指向的洲名，国家代码，国家，城市，城市唯一识别码，所在时区和经纬度。
 
@@ -419,9 +420,38 @@ results
 
 
 
-## 坐标编码
+## 地理编码
 
-GeoHash
+地球上每一块区域都对应有一个唯一的 GeoHash 值，比起区、县、乡、镇行政单元，它是用来刻画规则的更小的网格单元，广泛用于本地生活服务场景，比如外卖、打车、配送等。
+
+[geohashTools](https://github.com/MichaelChirico/geohashTools) 包[@geohashTools]可以非常高效地将 GeoHash 编码的地理区域转为经纬度坐标。
+
+```{r,eval=FALSE}
+# 随意造几个位置
+geohash_df <- data.frame(geohash = c(
+  "wmd0k2ktr", "wmd0k2kv3", "wmd0k2kv7",
+  "wmd0k2kvq", "wmd0k2mj0", "wmd0k2mj4"
+))
+# 转码为经纬度
+dat <- geohashTools::gh_decode(geohashes = geohash_df$geohash)
+dat2 <- data.frame(latitude = dat$latitude, longitude = dat$longitude)
+# 将位置绘制在地图上
+leaflet::leaflet(data = dat2) |> 
+  leafletCN::amap() |> 
+  leaflet::addCircles(lng = ~longitude, lat = ~latitude, radius = 3)
+```
+
+![(\#fig:sf-geohash) GeoHash 地理区域编码](/img/maps-in-r/sf-geohash.png){.full}
+
+
+**lwgeom** 包[@lwgeom]提供函数 `st_geohash()` 可将经纬度坐标转为 GeoHash 码。
+
+```{r}
+library(sf)
+library(lwgeom)
+st_geohash(st_sfc(st_point(c(116.35688, 40.00314)), st_point(c(0, 90))), 9)
+```
+
 
 ## 坐标系统
 
@@ -624,22 +654,57 @@ knitr::kable(x = dat, caption = "事件性质")
 
 ## 示例：美国人口普查统计数据
 
+<!--
 静态的和交互式的地图
 
 [Choropleth Map](https://en.wikipedia.org/wiki/Choropleth_map)
 
 参考苏玮制作的日本新冠疫情看板 [COVID-19](https://github.com/swsoyee/2019-ncov-japan)
 
-
 [用 tidycensus 和 tmap 创建人口统计数据地图](http://zevross.com/blog/2018/10/02/creating-beautiful-demographic-maps-in-r-with-the-tidycensus-and-tmap-packages/)
+-->
 
+**ggplot2** 提供的 `map_data()` 函数可以从 **maps** 包中提取和转化地图数据，而 `coord_map()` 函数结合 **mapproj** 包可以实现坐标转化。下面以 R 内置的数据集 state.x77 为例，它记录了美国 1977 年 50 个州的人口普查情况，Population 各州的人口数量 （1975 年 7 月 1 日估计），Income 人均收入（1974年），Illiteracy 文盲比例（人口百分比），平均寿命（1969-1971年统计），Murder 谋杀和非过失杀人率（单位：十万分之一，1976年统计），HS Grad 高中毕业生百分比（1970 年统计），Frost 首都或大城市最低气温低于冰点的平均天数（1931-1960年统计），Area 土地面积（单位：平方英里）。如图\@ref(fig:ggplot2-statex77)， **maps** 包内置的美国各州的地图数据缺少夏威夷和阿拉斯加州。
 
 
 ```{r,eval=FALSE}
 library(ggplot2)
-state.x77 <- data.frame(state = tolower(rownames(state.x77)), state.x77)
+# 准备地图数据
+# maps 包的地图数据提取转为 data.frame 数据类型
+states_map <- map_data(map = "state")
+# 准备观测数据
+state.x77 <- data.frame(region = tolower(rownames(state.x77)), state.x77)
 
-usmap::plot_usmap(data = state.x77, values = "Population", labels = TRUE) +
+# 将观测数据合并进地图数据
+states_map <- merge(states_map, state.x77, by = "region", all.x = TRUE, sort = FALSE)
+# 地图数据排序保证地图绘制顺序
+states_map <- states_map[order(states_map$order), ]
+# 绘图
+ggplot(states_map, aes(x = long, y = lat, group = group)) +
+  geom_polygon(aes(group = group, fill = Population)) +
+  scale_fill_binned(
+    type = "viridis",
+    guide = guide_colourbar(
+      barwidth = 25, barheight = 0.4,
+      title.position = "top" # 图例标题位于图例上方
+    )
+  ) +
+  coord_map(projection = "albers", lat0 = 45.5, lat1 = 29.5) +
+  labs(x = "Longitude", y = "Latitude", fill = "State Population (1975)") +
+  theme_void() +
+  theme(legend.position = "bottom") # 图例位置图形下方
+```
+
+![(\#fig:ggplot2-statex77) 1975年美国各个州的人口](/img/maps-in-r/ggplot2-statex77.png){.full}
+
+
+[**usmap**](https://github.com/pdil/usmap/) 提供 `plot_usmap()` 函数可谓专门用来绘制美国各州县的地图，包含夏威夷和阿拉斯加州，参数 `data` 需要传入一个数据框，且必须有一列可以和地图提供的区域名称映射上，即需要有一列的列名是 state 或 fips。实际上，**usmap** 包 还内置有区县级地图数据，也支持抽取特定的州县，更多介绍见[这里](https://usmap.dev/)。
+
+```{r,eval=FALSE}
+library(ggplot2)
+state_x77 <- data.frame(state = tolower(rownames(state.x77)), state_x77)
+
+usmap::plot_usmap(data = state_x77, values = "Population", labels = TRUE) +
   scale_fill_gradientn(
     colours = hcl.colors(10), na.value = "grey90",
     guide = guide_colourbar(
@@ -652,6 +717,7 @@ usmap::plot_usmap(data = state.x77, values = "Population", labels = TRUE) +
 ```
 
 ![(\#fig:usmap-statex77) 1975年美国各个州的人口](/img/maps-in-r/usmap-statex77.png){.full}
+
 
 ## 示例：美国锡安公园地形数据
 
@@ -680,12 +746,41 @@ terra::plot(elevation, asp = NA)
 
 # 可视化包
 
+本节主要介绍几个 R 语言社区提供的地理可视化 R 包，分别是绘制交互式地图的 **echarts4r** 包 [@echarts4r]、**leaflet** 包和 **plotly** 包。
+
+
 ## echarts4r
 
-**echarts4r** [@echarts4r] 支持使用多种地图服务，包括 OSM（OpenStreetMap）、Mapbox 等
+**echarts4r** 支持使用多种地图服务，包括 OSM（OpenStreetMap）、Mapbox、谷歌、高德 等，只要提供引用瓦片服务数据模版即可。**echarts4r** 默认使用了一份矢量地图数据，如图\@ref(fig:quakes-echarts4r)所示。简单起见，这里使用了 R 内置的数据集 quakes，它描述了太平洋岛国斐济及周边自 1964 年以来的四级以上的地震活动。从图中不难看出有两个非常清晰的地震带。结合背景材料，一个在主要板块交界处，另一个是新西兰附近的汤加海沟。2022年1月14日，汤加海底火山爆发，引发海啸等一系列自然灾害，中国地震局也发布新闻资讯---[汤加火山喷发，会造成哪些影响？](https://www.cea.gov.cn/cea/xwzx/fzjzyw/5647231/index.html)详细介绍了这一事件。
+
+
 
 ```{r,eval=FALSE}
 library(echarts4r)
+# 默认使用的地图
+quakes |>
+  e_charts(x = long) |>
+  e_geo(
+    roam = TRUE,
+    map = "world",
+    boundingCoords = list(
+      c(165.67, -38.59),
+      c(188.13, -10.72)
+    )
+  )  |>
+  e_scatter(
+    serie = lat, size = mag, name = "Fiji",
+    coord_system = "geo"
+  ) |>
+  e_visual_map(mag, scale = e_scale)
+```
+
+![(\#fig:quakes-echarts4r) **echarts4r** 使用内置矢量地图数据](/img/maps-in-r/quakes-echarts4r.png){.full}
+
+**echarts4r** 提供地理图层 `e_geo()` 专门用来加载地图数据，在这个例子中，只需要展示局部地图，因此基于数据集 quakes 提取经纬度范围，获取了边界信息，设置了参数 `boundingCoords`，即矩形的左上顶点和右下顶点的两个坐标，关于其它参数更加详尽的介绍，见 Apache Echarts 官方文档里 [地理图层](https://echarts.apache.org/en/option.html#geo.boundingCoords)。下面介绍在瓦片地图数据的基础上展示 quakes 数据，如图\@ref(fig:quakes-osm) 所示，这里采用地理图层 `e_leaflet()` 调用开放的 OpenStreetMap 瓦片服务。
+
+
+```{r,eval=FALSE}
 # OSM
 quakes |>
   e_charts(long) |>
@@ -706,6 +801,7 @@ quakes |>
   e_mapbox(
     # MAPBOX 的访问令牌
     token = Sys.getenv("MAPBOX_TOKEN"),
+    # 地图风格样式
     style = "mapbox://styles/mapbox/dark-v9",
     # 视角：地图中心
     center = c(175, -20),
@@ -744,40 +840,9 @@ quakes |>
 
 
 
-### 时空动画
-
-```{r, eval=FALSE}
-gapminder |>
-  group_by(year) |>
-  e_charts(x = country, timeline = TRUE) |>
-  e_map(serie = gdpPercap) |>
-  e_visual_map(serie = gdpPercap) |>
-  e_tooltip(
-    # 数据项图形触发，用于散点图等，设置 'axis' 表示坐标轴触发，主要在柱状图/条形图
-    trigger = "item",
-    # 鼠标移动或点击时触发
-    triggerOn = "mousemove|click",
-    # 定制悬浮内容 params.name 取自 bind 变量
-    formatter = htmlwidgets::JS("
-      function(params){
-        return('国家: <strong>' + params.name + '</strong>' +
-               '<br />人均 GDP: ' + Math.round(params.value) + '美元')
-      }
-    ")
-  )
-```
-
-
-
-### 3D 交互
-
-[3D 地球数据可视化](https://github.com/z3tt/ports_globe/blob/main/echarts_globe.R)
-
-
-
 ## leaflet
 
-**leaflet** [@leaflet] 包
+**leaflet** [@leaflet] 包借助 htmlwidgets 封装了鼎鼎大名的 leaflet 库，
 
 ```{r,eval=FALSE}
 colorize_numeric <- function(x) {
@@ -804,7 +869,7 @@ plot(data = iris, Petal.Length ~ Petal.Width, col = color, pch = 19)
 ```{r,eval=FALSE}
 library(leaflet)
 data(quakes)
-# Pop 提示
+# 构造 Pop 提示
 quakes$popup_text <- lapply(paste(
   "编号:", "<strong>", quakes$stations, "</strong>", "<br>",
   "震深:", quakes$depth, "<br>",
@@ -812,14 +877,14 @@ quakes$popup_text <- lapply(paste(
 ), htmltools::HTML)
 # 构造调色板
 pal <- colorBin("Spectral", bins = pretty(quakes$mag), reverse = TRUE)
-
+# 绘图可视化
 leaflet(quakes, options = leafletOptions(attributionControl = FALSE)) |>
   addProviderTiles(providers$CartoDB.Positron) |>
+  # 添加带颜色的散点图
   addCircles(lng = ~long, lat = ~lat, color = ~ pal(mag), label = ~popup_text) |>
-  addLegend("bottomright",
-    pal = pal, values = ~mag,
-    title = "地震震级"
-  ) |>
+  # 在右下角添加图例
+  addLegend("bottomright", pal = pal, values = ~mag, title = "地震震级") |>
+  # 在左下角添加地图比例尺
   addScaleBar(position = c("bottomleft"))
 ```
 
@@ -859,42 +924,8 @@ plotly::plot_mapbox(
 
 ![(\#fig:quakes-satellite) **plotly** 包使用 Mapbox 卫星地图](/img/maps-in-r/quakes-satellite.png){.full}
 
-### 时空动画
 
-参考 plotly 官网 [choropleth map](https://plotly.com/python/choropleth-maps/)
 
-```python
-import plotly.express as px
-df = px.data.gapminder()
-df.head(6)
-```
-```
-       country continent  year  lifeExp       pop   gdpPercap iso_alpha  iso_num
-0  Afghanistan      Asia  1952   28.801   8425333  779.445314       AFG        4
-1  Afghanistan      Asia  1957   30.332   9240934  820.853030       AFG        4
-2  Afghanistan      Asia  1962   31.997  10267083  853.100710       AFG        4
-3  Afghanistan      Asia  1967   34.020  11537966  836.197138       AFG        4
-4  Afghanistan      Asia  1972   36.088  13079460  739.981106       AFG        4
-5  Afghanistan      Asia  1977   38.438  14880372  786.113360       AFG        4
-```
-
-相比于 R 语言 gapminder 数据集，添加了新的一列 `iso_alpha`
-
-```python
-fig = px.choropleth(
-    df,
-    locations="iso_alpha",
-    color="lifeExp"
-    # 动画帧
-    animation_frame="year",
-    # 动画分组
-    animation_group="country",
-    # 悬浮提示
-    hover_name="country", 
-    color_continuous_scale=px.colors.sequential.Viridis,
-)
-fig.show()
-```
 
 
 # 数据结构
@@ -915,40 +946,6 @@ fig.show()
 空间过程预测，空间分析：空间点模式分析 Spatial Point Pattern Analysis、格网/面状数据分析 Area Data/Grid Data/lattice Data、地统计分析 Geostatistics
 
 描述空间相关性：莫兰指数 用于 面状数据，变差函数 用于 连续数据
-
-[**rnaturalearth**](https://github.com/ropenscilabs/rnaturalearth) 和 [**rnaturalearthdata**](https://github.com/ropenscilabs/rnaturalearthdata) 提供 [美国国家地理](https://www.naturalearthdata.com/)网站的 R 语言接口，可以免费下载矢量和栅格地图数据。
-
-```{r}
-library(rnaturalearth)
-library(rnaturalearthdata)
-library(rnaturalearthhires)
-```
-
-下载和绘制中国地图数据，如图\@ref(fig:china-map)
-
-```{r china-map, eval=FALSE}
-sp::plot(rnaturalearth::ne_countries(
-  country = "China",
-  continent = "Asia",
-  type = "countries",
-  scale = 10, returnclass = "sp"
-))
-```
-
-![(\#fig:china-map) 美国国家地理网站提供的中国地图数据](/img/maps-in-r/china-map.png){.full}
-
-
-::: rmdnote
-**rnaturalearthhires** 有 20 多 M，不在 CRAN 上，安装命令如下：
-
-```{r,eval=FALSE}
-install.packages(
-  pkgs = "rnaturalearthhires",
-  repos = "http://packages.ropensci.org",
-  type = "source"
-)
-```
-:::
 
 
 ## 矢量数据 sp
@@ -1044,7 +1041,7 @@ OpenStreetMapPlot(lead * 2 + zinc ~ latitude * longitude,
 TIFF 照片卫星拍摄的照片与此大致相仿，所使用的镜头不同而已。下面介绍一下如何处理这类图像数据。图像处理，检测 detection，分割 segmentation，识别 recognition，如何识别出来图片中是乌云还是银杏叶，乌云和银杏叶的轮廓，如何将一朵朵乌云分割开来，一片片银杏叶呢？
 
 
-```{r}
+```{r,eval=FALSE}
 library(terra)
 ```
 
@@ -1125,7 +1122,151 @@ plot(world["gdpPercap"])
 **spData** 包内置的 world 数据集将台湾和中国大陆的地区用不同的颜色标记，严格来讲，这是不符合国家地图规范的，不能出现在期刊、书籍等正式的出版物里。
 :::
 
-再看一个稍微复杂的例子，涉及数据读取、操作和绘图，数据集 SIDS (Sudden Infant Death Syndrome，简称 SIDS)来自 **sf** 包，更早些时候收集在 **sp** 包内，更多细节见 **sp** 包 [帮助文档](https://edzer.github.io/sp/)，描述美国北卡罗来纳州各个区县的婴儿猝死综合征 1974 年和 1979 年的情况。
+## 栅格数据 terra
+
+
+
+## 示例：中国地图数据
+
+R 语言社区有不少 R 包涉及中国地图数据，但是质量不一，下面简单说下几个主要的数据源。
+
+### 地图数据源
+
+[**rnaturalearth**](https://github.com/ropenscilabs/rnaturalearth) 和 [**rnaturalearthdata**](https://github.com/ropenscilabs/rnaturalearthdata) 提供 [美国国家地理](https://www.naturalearthdata.com/)网站的 R 语言接口，可以免费下载矢量和栅格地图数据。
+
+```{r}
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(rnaturalearthhires)
+```
+
+下载和绘制中国地图数据，如图\@ref(fig:china-map)
+
+```{r china-map, eval=FALSE}
+sp::plot(rnaturalearth::ne_countries(
+  country = "China",
+  continent = "Asia",
+  type = "countries",
+  scale = 10, returnclass = "sp"
+))
+```
+
+![(\#fig:china-map) 美国国家地理网站提供的中国地图数据](/img/maps-in-r/china-map.png){.full}
+
+
+::: rmdnote
+**rnaturalearthhires** 有 20 多 M，不在 CRAN 上，安装命令如下：
+
+```{r,eval=FALSE}
+install.packages(
+  pkgs = "rnaturalearthhires",
+  repos = "http://packages.ropensci.org",
+  type = "source"
+)
+```
+:::
+
+另一个提供地图数据的是商业软件 [Highcharts Maps](https://www.highcharts.com/)，国内外有不少商业公司是它的客户，它也有一个 R 包[**highcharter**](https://github.com/jbkunst/highcharter)，
+有一个以美国地图数据为背景的博客详细介绍了使用过程，详见 [Highcharts 官方博客](https://www.highcharts.com/blog/tutorials/using-highcharter-in-tidytuesday-internet-access/)。[简数科技](https://www.highcharts.com.cn/) 定制了一份 GeoJSON 格式的中国地图数据，还提供了地图预览和下载的服务，因为涉及商业版权和地图数据合规性，使用需要注意，读者可前往[网站](https://www.highcharts.com.cn/mapdata)了解。另一个 R 包[**hchinamap**](https://github.com/czxa/hchinamap) 也是使用这份中国地图数据和 JavaScript 库 [Highcharts JS](https://github.com/highcharts/highcharts)。
+
+```{r,eval=FALSE}
+library(hchinamap)
+# name 是地图数据中的各个区域单元的名称
+hchinamap(
+  name = c("北京", "天津", "上海", "湖南", "台湾", "海南"),
+  value = c(120, 200, 126, 300, 150, 225),
+  width = "100%",
+  height = "650px",
+  title = "分省地图",
+  region = "China",
+  minColor = "#f1eef6",
+  maxColor = "#980043",
+  itermName = "指标",
+  hoverColor = "#f6acf5"
+)
+```
+
+![(\#fig:china-hchinamap) 中国地图数据](/img/maps-in-r/china-hchinamap.png){.full}
+
+
+
+### 交互地图
+
+交互地图采用 **leaflet** 包绘制，采用 **leafletCN** 包汉化，并且提供合规的中国地图，核心函数是 `geojsonMap()`，它封装了 GeoJSON 格式的地图数据和绘图函数，更多定制参考`leaflet::leaflet()`，只要数据包含的一列区域名称和地图数据能映射上，就可以绘制出图\@ref(fig:china-leafletcn)，图中数据是随机生成的，调色板采用 `RdBu`，将连续的数据分段，每段对应一个色块。 
+
+```{r,eval=FALSE}
+library(leaflet)
+library(leafletCN) # 提供 geojsonMap 函数
+dat <- data.frame(name = regionNames("china"), value = runif(34))
+# 还有很多其他参数设置，类似 leaflet::leaflet
+geojsonMap(dat, mapName = "china", palette = "RdBu", colorMethod = "bin")
+```
+
+![(\#fig:china-leafletcn) 交互地图数据可视化](/img/maps-in-r/china-leafletcn.png){.full}
+
+
+### 静态地图
+
+[中华人民共和国民政部](http://xzqh.mca.gov.cn)提供了中国地图数据，是 GeoJSON 格式的，属于权威数据源，推荐使用。
+
+```{r,eval=FALSE}
+library(sf)
+china_map = st_read(dsn = "http://xzqh.mca.gov.cn/data/quanguo_Line.geojson", stringsAsFactors = FALSE)
+```
+```
+Reading layer `线' from data source 
+  `http://xzqh.mca.gov.cn/data/quanguo_Line.geojson' using driver `GeoJSON'
+Simple feature collection with 104 features and 3 fields
+Geometry type: LINESTRING
+Dimension:     XY
+Bounding box:  xmin: 73.68 ymin: 3.554 xmax: 135.2 ymax: 53.65
+Geodetic CRS:  WGS 84
+```
+```r
+china_map
+```
+```
+Simple feature collection with 104 features and 3 fields
+Geometry type: LINESTRING
+Dimension:     XY
+Bounding box:  xmin: 73.68 ymin: 3.554 xmax: 135.2 ymax: 53.65
+Geodetic CRS:  WGS 84
+First 10 features:
+     NAME  QUHUADAIMA strZTValue                       geometry
+1         hainansheng            LINESTRING (121.9 30.84, 12...
+2         hainansheng            LINESTRING (121.4 30.82, 12...
+3         hainansheng            LINESTRING (121.5 31.64, 12...
+4          tiaohuijie            LINESTRING (124.4 40.08, 12...
+5          tiaohuijie            LINESTRING (124.5 40.13, 12...
+6  台湾岛      daoyu6            LINESTRING (121.4 22.46, 12...
+7  海南岛      daoyu5            LINESTRING (111.5 19, 112.4...
+8  钓鱼岛      daoyu6            LINESTRING (122.8 26.07, 12...
+9  赤尾屿      daoyu6            LINESTRING (125.2 25.86, 12...
+10 黄岩岛      daoyu6            LINESTRING (117.2 14.61, 11...
+```
+```r
+plot(china_map)
+```
+
+![(\#fig:china-linestring) 静态地图数据](/img/maps-in-r/china-linestring.png){.full}
+
+
+另一份地图数据是全国各地的行政区域，只有省一级。
+
+```{r,eval=FALSE}
+china_map = st_read(dsn = "http://xzqh.mca.gov.cn/data/quanguo.json", stringsAsFactors = FALSE)
+# 原数据集没有坐标系信息，因此设置一下
+st_crs(china_map) = 4326
+plot(china_map["QUHUADAIMA"])
+```
+
+![(\#fig:china-province) 静态地图数据](/img/maps-in-r/china-province.png){.full}
+
+
+# 案例：美国北卡婴儿猝死综合征数据
+
+
+再看一个稍微复杂的例子，涉及数据读取、操作和绘图，数据集 SIDS (Sudden Infant Death Syndrome，简称 SIDS)来自 **sf** 包，更早些时候收集在 **sp** 包内，更多细节见 Edzer Pebesma 开发的 **sp** 包[帮助文档](https://edzer.github.io/sp/)，描述 1974 年和 1979 年美国北卡罗来纳州各个区县的婴儿猝死综合征的情况。
 
 ```{r}
 # 读取数据，且读取后不要转化为 tibble 数据类型
@@ -1155,10 +1296,10 @@ class(nc2)
 
 ```{r}
 # 将 nc2 强制转化为简单的 data.frame 类型
-nc2 <- as.data.frame(nc2)
+nc3 <- as.data.frame(nc2)
 # 对 nc2 做「宽格式」转「长格式」的变形操作
 nc3 <- reshape(
-  data = nc2,
+  data = nc3,
   varying = c("SID74", "SID79"), # 需要转行的列，也可以用索引位置代替
   times = c("SID74", "SID79"),
   v.names = "SID", # 列转行 列值构成的新列，指定名称
@@ -1171,6 +1312,8 @@ nc3 <- reshape(
 nc3 <- st_as_sf(nc3, sf_column_name = "geom")
 class(nc3)
 ```
+
+## ggplot2
 
 **ggplot2** 提供的几何图层 `geom_sf()` 是专门为 sf 数据对象准备的，`facet_wrap()` 和 `facet_grid()` 都可以用来实现分面，布局样式稍有不同，更多绘图细节介绍见《ggplot2: Elegant Graphics for Data Analysis》[@Wickham2022]
 第三版的地图章节，如图 \@ref(fig:sf-nc)。在地图上绘制栅格图形，有个专业的制图术语 --- Choropleth maps，翻译过来，大致叫填充地图、等值域图、瓦片图、围栏图、面量图、断层图等，可以非常直观地展示观测变量在地理区域内的变化情况。
@@ -1188,6 +1331,7 @@ ggplot() +
 
 ![(\#fig:sf-nc) sf 数据可视化](/img/maps-in-r/sf-nc.png){.full}
 
+## sp::spplot
 
 ```{r,eval=FALSE}
 library(maptools)
@@ -1221,6 +1365,50 @@ spplot(nc, c("SID74", "SID79"),
 
 ![(\#fig:lattice-nc) **lattice** 数据可视化](/img/maps-in-r/lattice-nc.png){.full}
 
+```{r,eval=FALSE}
+library(ggmap)
+bgMap = get_map(as.vector(bbox(nc)), source = "google", zoom = 8) 
+spplot(spTransform(nc, CRS("+init=epsg:3857")),
+  c("SID74", "SID79"),
+  as.table = TRUE,
+  scales = list(
+    draw = T,
+    # 去掉图形上边、右边多余的刻度线
+    x = list(alternating = 1, tck = c(1, 0)),
+    y = list(alternating = 1, tck = c(1, 0))
+  ),
+  sp.layout = list(panel.ggmap, bgMap, first = TRUE)
+)
+```
+
+![(\#fig:sp-nc) **sp** 数据可视化](/img/maps-in-r/sp-nc.png){.full}
+
+
+## leaflet
+
+而 leaflet 支持绘制交互式的图形，如图 \@ref(fig:leaflet-nc) 所示。
+
+```{r,eval=FALSE}
+# https://stackoverflow.com/questions/57223853/
+# 转化坐标和 leaflet 的坐标系保持一致
+nc2 <- sf::st_transform(nc2, crs = "+proj=longlat +datum=WGS84")
+library(leaflet)
+# 调色板
+pal <- colorNumeric("plasma", domain = NULL)
+# 绘图
+leaflet(nc2) %>%
+  addTiles() %>%
+  addPolygons(
+    stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1.0,
+    fillColor = ~ pal(SID74)
+  ) %>%
+  addLegend(pal = pal, values = ~SID74, opacity = 1.0)
+```
+
+![(\#fig:leaflet-nc) **leaflet** 数据可视化](/img/maps-in-r/leaflet-nc.png){.full}
+
+## latticeExtra::mapplot
+
 **latticeExtra** 在 **lattice** 的基础上，封装了一些高级函数，围绕本篇主题，下面介绍一下 `mapplot()` 函数，读者不妨类比 `spplot()` 函数，可知它是专门为 map 数据类型提供绘图服务。 map 数据类型在 R 语言中存在很多年了，算得上是古老了，以前绘图的 R 包主要是基础地图 **maps**， 更多地图 **mapdata**， 地图投影 **mapproj** 和读写操作 **maptools**。
 
 ```{r,eval=FALSE}
@@ -1250,12 +1438,50 @@ panel.mapplot(x, y, map,
 # 加载 maps 包
 library(maps)
 # 将 sp 多边形类型 SpatialPolygons 转化为 map 类型
-nc_map <- SpatialPolygons2map(nc)
-# 调 map 函数绘制地图
-map(database = nc_map)
+# 每个多边形单元的名字（郡县）都是唯一的
+# 原数据 nc 里面标识每个单元的字段 NAME
+nc_map <- SpatialPolygons2map(nc, namefield = "NAME")
+# 查看转化后的数据类型
+class(nc_map)
 ```
 
+```{r,eval=FALSE}
+# 提取原数据中的观测变量
+dat <- nc@data
+library(latticeExtra)
+# 绘图
+mapplot(NAME ~ SID79 + SID74,
+  data = dat, border = NA,
+  map = nc_map,
+  colramp = viridisLite::plasma, # hcl.colors,
+  scales = list(
+    draw = T,
+    # 去掉图形上边、右边多余的刻度线
+    x = list(alternating = 1, tck = c(1, 0)),
+    y = list(alternating = 1, tck = c(1, 0))
+  ),
+  xlab = "Long", ylab = "Lat"
+)
+```
 
+![(\#fig:latticeExtra-nc) **latticeExtra** 数据可视化](/img/maps-in-r/latticeExtra-nc.png){.full}
+
+
+# 案例：中国改革开放40年人均GDP数据
+
+
+# 总结归纳
+
+## sp vs sf
+
+性能提升是非常显著的
+
+## raster vs terra
+
+性能提升是非常显著的
+
+
+## lattice vs ggplot2
 
 事实上，**lattice** 在绘图能力上丝毫不逊色于 **ggplot2**，甚至还有超越，本篇主要介绍空间数据，下面以 R 软件内置的地形数据 volcano 为例。
 
@@ -1366,6 +1592,14 @@ wireframe(volcano,
 
 ![(\#fig:lattice-volcano-contour) Auckland Maunga Whau 火山带等值线的三维地形图 $10m\times 10m$](/img/maps-in-r/lattice-volcano-contour.png){.full}
 
+
+
+
+
+
+
+
+
 # 环境信息
 
 在 RStudio IDE 内编辑本文的 R Markdown 源文件，用 **blogdown** [@Xie2017] 构建网站，[Hugo](https://github.com/gohugoio/hugo) 渲染 **knitr** 之后的 Markdown 文件，得益于 **blogdown** 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：
@@ -1384,11 +1618,13 @@ xfun::session_info(packages = c(
 ```{r write-bib, include=FALSE}
 pkgs <- c(
   "knitr", "rmarkdown", "blogdown",
-  "ggmap", "ggplot2", "sp", 
-  "leaflet", "echarts4r",
+  "ggmap", "ggplot2", 
+  "leaflet", "leafletCN", 
+  "echarts4r", "plotly",
   "baidumap", "RgoogleMaps",
   "lattice", "loa",
-  "terra", "sf", "plotly",
+  "geohashTools", "lwgeom", "rgeolocate",
+  "terra", "sf", "sp", 
   "raster"
 )
 bib <- knitr::write_bib(
