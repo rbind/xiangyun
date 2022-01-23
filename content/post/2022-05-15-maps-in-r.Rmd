@@ -1556,6 +1556,44 @@ remotes::install_github("tradingeconomics/tradingeconomics/R/tradingeconomics")
 
 # 总结归纳
 
+分两块，其一提供基础的空间数据类型，以及相应的数据操作方法，包括导入各种各样格式的空间数据，其二是空间数据分析和可视化方法，支持接入各种各样的地图服务，渲染静态和交互图形。表\@ref(tab:spatial-deps)列出了基础的空间数据处理、分析和可视化的 R 包，更多详情见 CRAN 上空间数据的[任务视图](https://cran.r-project.org/view=Spatial)。
+
+```{r spatial-deps, message=FALSE, echo=FALSE}
+# 获取 R 包元数据
+Sys.setenv(R_CRAN_WEB = "https://mirrors.tuna.tsinghua.edu.cn/CRAN")
+# 返回 data.frame
+pdb <- tools::CRAN_package_db()
+library(data.table)
+pdb <- as.data.table(pdb)
+pdb <- unique(pdb, by = "Package")
+# CRAN 上的 R 包
+pkgs <- c(
+  "sp", "rgeos", "rgdal", "maps", 
+  "mapdata", "mapproj", "maptools",
+  "sf", "raster", "terra", "stars", "loa",
+  "lattice", "latticeExtra", "rasterVis",
+  "leaflet", "mapview", "mapedit", "mapsf",
+  "ggmap", "RgoogleMaps", "echarts4r",
+  "ggplot2", "plotly"
+)
+# 提取 R Shiny 应用使用的 R 包及其基本描述
+sub_pdb <- subset(
+  x = pdb, subset = Package %in% pkgs,
+  select = c("Package", "Title", "Maintainer")
+) |>
+  transform(Title = gsub("(\\\n)", " ", Title)) |>
+  transform(Maintainer = gsub("<([^<>]*)>", "", Maintainer)) |> 
+  transform(Package = paste0("**", Package, "**", " ", "[@", Package, "]"))
+
+# 展示表格
+knitr::kable(sub_pdb[order(sub_pdb$Maintainer), ],
+  row.names = FALSE,
+  caption = "空间分析的 R 包（排名不分先后）",
+  col.names = c("R 包", "简介", "维护者")
+)
+```
+
+
 ## sp vs sf
 
 性能提升是非常显著的
@@ -1695,7 +1733,7 @@ xfun::session_info(packages = c(
   "leaflet", "echarts4r", "layer",
   "baidumap", "RgoogleMaps",
   "lattice", "loa",
-  "terra", "raster", 
+  "terra", "raster", "stars",
   "sf", "plotly"
 ), dependencies = FALSE)
 ```
@@ -1705,10 +1743,12 @@ pkgs <- c(
   "ggmap", "ggplot2", 
   "leaflet", "leafletCN", 
   "echarts4r", "plotly",
-  "baidumap", "RgoogleMaps",
-  "lattice", "loa",
+  "baidumap", "RgoogleMaps", 
+  "mapview", "mapedit", "mapsf",
+  "lattice", "loa", "latticeExtra", "rasterVis",
   "geohashTools", "lwgeom", "rgeolocate",
-  "terra", "sf", "sp", 
+  "terra", "sf", "sp", "stars",
+  "maps", "mapdata", "mapproj",
   "raster", "rgeos", "rgdal", "maptools"
 )
 bib <- knitr::write_bib(
