@@ -716,7 +716,7 @@ terra::plot(elevation, asp = NA)
 
 ```{r,eval=FALSE}
 library(echarts4r)
-# 默认使用的地图
+# 使用默认的地图
 quakes |>
   e_charts(x = long) |>
   e_geo(
@@ -736,7 +736,69 @@ quakes |>
 
 ![(\#fig:quakes-echarts4r) **echarts4r** 使用内置矢量地图数据](/img/maps-in-r/quakes-echarts4r.png){.full}
 
-**echarts4r** 提供地理图层 `e_geo()` 专门用来加载地图数据，在这个例子中，只需要展示局部地图，因此基于数据集 quakes 提取经纬度范围，获取了边界信息，设置了参数 `boundingCoords`，即矩形的左上顶点和右下顶点的两个坐标，关于其它参数更加详尽的介绍，见 Apache Echarts 官方文档里 [地理图层](https://echarts.apache.org/en/option.html#geo.boundingCoords)。下面介绍在瓦片地图数据的基础上展示 quakes 数据，如图\@ref(fig:quakes-osm) 所示，这里采用地理图层 `e_leaflet()` 调用开放的 OpenStreetMap 瓦片服务。
+**echarts4r** 提供地理图层 `e_geo()` 专门用来加载地图数据，在这个例子中，只需要展示局部地图，因此基于数据集 quakes 提取经纬度范围，获取了边界信息，设置了参数 `boundingCoords`，即矩形的左上顶点和右下顶点的两个坐标，关于其它参数更加详尽的介绍，见 Apache Echarts 官方文档里 [地理图层](https://echarts.apache.org/en/option.html#geo.boundingCoords)。下面做一些更加细致的调整，最终效果如图\@ref(fig:quakes-dark)。
+
+- `e_effect_scatter()` 替换 `e_scatter()` 实现一些动态特效，和地震的震波建立一些视觉联系，不过会增加渲染压力；设置 `scale = NULL` 去掉默认对 size 变量的尺度变换；
+- `e_title()` 添加一些文字介绍斐济地震带背后的数据背景；
+- `e_tooltip()` 参考 Apache Echarts 官方文档[tooltip](https://echarts.apache.org/zh/option.html#geo.tooltip.formatter)在气泡上定制悬浮提示，补充震点位置和震级信息，定性和定量结合；
+- `e_visual_map()` 设置透明度缓解数据点覆盖，设置颜色和气泡大小的变化范围；
+- `e_legend()` 隐藏图例，已用 `e_visual_map()` 替代；
+- `e_theme()` 参考[主题配置页面](https://echarts.apache.org/zh/theme-builder.html)挑选黑色背景主题。
+
+```{r,eval=FALSE}
+# 使用默认的地图
+quakes |>
+  e_charts(x = long) |>
+  e_geo(
+    roam = TRUE,
+    map = "world",
+    boundingCoords = list(
+      c(165.67, -38.59),
+      c(188.13, -10.72)
+    )
+  ) |>
+  e_effect_scatter(
+    serie = lat,
+    scale = NULL, # 去掉尺度变换
+    size = mag, name = "地震点",
+    coord_system = "geo"
+  ) |>
+  e_visual_map(
+    serie = mag, # 震级图例
+    inRange = list(
+      color = hcl.colors(10), # 填充颜色
+      colorAlpha = 0.7, # 设置透明度
+      symbolSize = c(1, 15) # 设置气泡大小
+    )
+  ) |>
+  e_tooltip(
+    formatter = htmlwidgets::JS(
+      '
+        function(params) {
+          if(params.value) {
+            return(`<strong>${params.seriesName}</strong><br>经度：${params.value[0]}<br>纬度：${params.value[1]}<br>震级：${params.value[2]}`)
+          } else {
+            return("");
+          }
+        }
+      '
+    )
+  ) |>
+  e_title(
+    text = "斐济地震带",
+    subtext = "斐济是南太平洋上的一个岛国",
+    left = "center",
+    sublink = "https://echarts4r.john-coene.com/"
+  ) |> 
+  e_legend(show = FALSE) |>  # 隐藏图例
+  e_theme(name = "chalk")
+```
+
+
+![(\#fig:quakes-dark) **echarts4r** 使用内置矢量地图数据](/img/maps-in-r/quakes-dark.png){.full}
+
+
+下面介绍在瓦片地图数据的基础上展示 quakes 数据，如图\@ref(fig:quakes-osm) 所示，这里采用地理图层 `e_leaflet()` 调用开放的 OpenStreetMap 瓦片服务。
 
 
 ```{r,eval=FALSE}
@@ -909,6 +971,9 @@ plotly::plot_mapbox(
 本节开始介绍一些空间数据相关的基础知识，R 语言有一些扩展包是专门处理空间数据的，提供基础数据结构和类型，了解这些是为空间数据操作、分析、建模打基础。空间数据操作（Spatial Data Manipulation），如计算空间区域的面积、空间点的路径、区域叠加、基于空间关系的数据查询等。空间数据分析（Spatial Data Analysis），空间数据的描述性分析和探索性分析，帮助发现数据中的模式规律。空间统计分析（Spatial Statistical Analysis），传统的统计模型认为观测值之间常常是独立的，而空间数据自带空间相关性，需要专门的统计分析方法。空间数据建模（Spatial Data Modeling），面对不同的空间数据类型需要不同的建模方法，比如空间点模式分析（Spatial Point Pattern Analysis）、格网/面状数据分析（Area Data/Grid Data/lattice Data Analysis）、地统计分析（Geostatistics）等。
 
 
+**rgeos** [@rgeos]、**rgdal** [@rgdal] 和 **maptools** [@maptools] 都将于 2023 年底移出 CRAN，不再维护，它们主要用来读取和操作空间数据，相比于 **sf** [@sf] 加 **terra** [@terra] 的新方案，它们都落后了。部分功能会迁移到 **sp** 包[@sp]，而 **raster** 包[@raster]也不推荐使用，大迁移背景介绍见[这里](https://github.com/r-spatial/evolution)，几十年过去了，维护者退休了，代码的历史包袱很重，很难维护，功能和性能也没新的好。2019 年出版的开源书籍[《Geocomputation with R》](https://geocompr.robinlovelace.net/) 已经在紧锣密鼓地升级了，感兴趣的读者不妨看看新旧[详细比较](https://keen-swartz-3146c4.netlify.app/older.html)。
+
+
 ## 矢量数据 sp
 
 **sp** [@sp] 是一个 R 包，提供一种存储和操作空间数据的对象类型，具体地，提供点 SpatialPoints / SpatialMultiPoints、线 SpatialLines、多边形 SpatialPolygons、栅格 SpatialGrid / SpatialPixels 等基础空间数据类型以及相应构造方法，还有聚合 `aggregate()`，合并 `merge()`，转化 `spTransform()` 和绘图 `spplot()` / `bubble()` / `image()` 等空间数据操作和可视化函数。
@@ -997,6 +1062,34 @@ OpenStreetMapPlot(lead * 2 + zinc ~ latitude * longitude,
 栅格数据是空间数据的另一种类型，比如遥感卫星拍摄的照片，**raster** [@raster] 可以处理这类数据的分析和可视化。raster 包正在过渡到 terra 包，后者速度更快，接口函数是相似的。
 
 [layer](https://github.com/marcosci/layer) 层次性
+
+
+iPhone 12 Pro 拍摄的照片默认采用 HEIC (High Efficiency Image Container) 格式保存，这是一张层次很丰富的乌云照片，原始尺寸为 $4032 \times 3024$，这里先用 [ImageMagick](https://imagemagick.org/) 将 HEIC 格式转化为 Tiff 格式，长宽尺寸均缩小为原来的十分之一，方便后续处理。
+
+```bash
+magick dark_cloud.HEIC -resize 10% dark_cloud.tif
+```
+
+```{r,eval=FALSE}
+library(stars)
+dark_cloud = stars::read_stars("~/Documents/xiangyun/static/img/maps-in-r/dark-cloud.tif")
+plot(dark_cloud)
+# 调用 ggplot2 绘图
+library(ggplot2)
+ggplot() +
+  geom_stars(data = dark_cloud) +
+  facet_wrap(~band, ncol = 2) +
+  coord_equal() +
+  theme_void() +
+  scale_x_discrete(expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0)) +
+  scale_fill_viridis_c()
+```
+
+![(\#fig:cloud-stars) **stars** 包读取 raster 数据](/img/maps-in-r/cloud-stars.png){.full}
+
+颜色越深，乌云越厚，RGB 三颜色加 alpha 通道
+
 
 笔者用 iPhone 12 Pro 拍摄的天空照片和银杏树照片，层次，通道， 
 TIFF 照片卫星拍摄的照片与此大致相仿，所使用的镜头不同而已。下面介绍一下如何处理这类图像数据。图像处理，检测 detection，分割 segmentation，识别 recognition，如何识别出来图片中是乌云还是银杏叶，乌云和银杏叶的轮廓，如何将一朵朵乌云分割开来，一片片银杏叶呢？
@@ -1126,6 +1219,23 @@ install.packages(
 )
 ```
 :::
+
+
+```{r,eval=FALSE}
+# 存储临时地形文件
+xfun::dir_create("~/data/") 
+# 下载数据
+china_map <- raster::getData(name = "alt", country = "CHN", mask = TRUE, path = sp_path)
+# 若已经下载，直接读取
+china_map <- raster::raster(x = "~/data/CHN_msk_alt.grd")
+# 查看数据
+class(china_map)
+# 调 terra 包绘图速度快
+terra::plot(china_map, col = terrain.colors(20, rev = F))
+```
+
+![(\#fig:china-elevation) 中国地图海拔数据](/img/maps-in-r/china-elevation.png){.full}
+
 
 另一个提供地图数据的是商业软件 [Highcharts Maps](https://www.highcharts.com/)，国内外有不少商业公司是它的客户，它也有一个 R 包[**highcharter**](https://github.com/jbkunst/highcharter)，
 有一个以美国地图数据为背景的博客详细介绍了使用过程，详见 [Highcharts 官方博客](https://www.highcharts.com/blog/tutorials/using-highcharter-in-tidytuesday-internet-access/)。[简数科技](https://www.highcharts.com.cn/) 定制了一份 GeoJSON 格式的中国地图数据，还提供了地图预览和下载的服务，因为涉及商业版权和地图数据合规性，使用需要注意，读者可前往[网站](https://www.highcharts.com.cn/mapdata)了解。另一个 R 包[**hchinamap**](https://github.com/czxa/hchinamap) 也是使用这份中国地图数据和 JavaScript 库 [Highcharts JS](https://github.com/highcharts/highcharts)。
@@ -1303,7 +1413,7 @@ nc <- readShapePoly(
 ```
 
 ::: rmdwarn
-**maptools** 包提供的 `readShapePoly` 函数去读取 shp 文件的方式已经过时，将在 2023 年底不可用，推荐使用 `rgdal::readOGR` 或者 `sf::st_read` 方式读取
+**maptools** 包提供的 `readShapePoly` 函数去读取 shp 文件的方式已经过时，将在 2023 年底不可用，推荐使用 `rgdal::readOGR` 或者 `sf::st_read` 方式读取。
 :::
 
 **sp** 包提供的函数 `spplot()` 方法绘制类似的分面图，这其中借助了 **lattice** 包的绘图能力，效果如\@ref(fig:lattice-nc)所示。
@@ -1429,6 +1539,19 @@ mapplot(NAME ~ SID79 + SID74,
 
 
 # 案例：中国改革开放40年人均GDP数据
+
+世界经济状况，历史至今，GDP 增速和失业率
+
+https://tradingeconomics.com/matrix
+
+贸易经济，GDP 速度，数据源都是官方发布
+[Trading Economics](https://github.com/tradingeconomics/tradingeconomics)
+
+https://github.com/tradingeconomics/tradingeconomics/tree/master/R/tradingeconomics
+
+```{r,eval=FALSE}
+remotes::install_github("tradingeconomics/tradingeconomics/R/tradingeconomics")
+```
 
 
 # 总结归纳
@@ -1586,7 +1709,7 @@ pkgs <- c(
   "lattice", "loa",
   "geohashTools", "lwgeom", "rgeolocate",
   "terra", "sf", "sp", 
-  "raster"
+  "raster", "rgeos", "rgdal", "maptools"
 )
 bib <- knitr::write_bib(
   x = pkgs, file = NULL, prefix = ""
