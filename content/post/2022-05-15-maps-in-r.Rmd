@@ -147,6 +147,10 @@ div.img {
 介绍地理可视化常用的展示形式，如瓦片图、围栏图、气泡图等，以及绘制过程中需要注意的制图规范问题，地理信息是比较敏感的数据，从大的层面上来说，涉及国家主权和领土完整。
 
 
+Python 语言社区关于空间数据操作的流行模块有[shapely](https://github.com/shapely/shapely)和[geopandas](https://github.com/geopandas/geopandas)，后者还包含基于[matplotlib](https://github.com/matplotlib/matplotlib)的地理可视化，而做空间数据可视化的有[bokeh](https://github.com/bokeh/bokeh)、[pyecharts](https://github.com/pyecharts/pyecharts)和[plotly](https://github.com/plotly/plotly.py)等。[basemap](https://github.com/matplotlib/basemap) 基于 matplotlib 提供地图坐标映射，作用类似 R 包 **mapproj**。[geoplot](https://github.com/ResidentMario/geoplot) 提供高级易用的使用接口，扩展 [cartopy](https://github.com/SciTools/cartopy) 和 matplotlib 在地理可视化方面的能力。[rasterio](https://github.com/rasterio/rasterio) 读写栅格数据，以及[地理资源列表](https://github.com/sacridini/Awesome-Geospatial)。
+
+
+
 # 地图服务
 
 比较常见的地图服务，国外有谷歌、微软，国内有百度、高德，凡是提供本地生活服务的公司都或多或少地依赖高精地图，如美团外卖，阿里飞猪等。本文主要带领读者了解地图服务，以及使用 R 语言来做地理可视化，为增加代入感，笔者就以「中国矿业大学（北京）学院路校区」这个地标的 IP 定位开始。首先用 [curl](https://curl.se/) 工具请求网站 <https://ipinfo.io/>[^ipinfo]，它会自动获取用户上网使用的 IP 以及 IP 所处的地理位置，如下：
@@ -699,6 +703,173 @@ terra::plot(elevation, asp = NA)
 
 ![(\#fig:raster-elevation) **terra** 包绘制锡安国家公园地形](/img/maps-in-r/raster-elevation.png){.full}
 
+## 示例：中国地图数据
+
+R 语言社区有不少 R 包涉及中国地图数据，但是质量不一，下面简单说下几个主要的数据源。
+
+### 地图数据源
+
+[**rnaturalearth**](https://github.com/ropenscilabs/rnaturalearth) 和 [**rnaturalearthdata**](https://github.com/ropenscilabs/rnaturalearthdata) 提供 [美国国家地理](https://www.naturalearthdata.com/)网站的 R 语言接口，可以免费下载矢量和栅格地图数据。
+
+```{r}
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(rnaturalearthhires)
+```
+
+下载和绘制中国地图数据，如图\@ref(fig:china-map)
+
+```{r china-map, eval=FALSE}
+sp::plot(rnaturalearth::ne_countries(
+  country = "China",
+  continent = "Asia",
+  type = "countries",
+  scale = 10, returnclass = "sp"
+))
+```
+
+![(\#fig:china-map) 美国国家地理网站提供的中国地图数据](/img/maps-in-r/china-map.png){.full}
+
+
+::: rmdnote
+**rnaturalearthhires** 有 20 多 M，不在 CRAN 上，安装命令如下：
+
+```{r,eval=FALSE}
+install.packages(
+  pkgs = "rnaturalearthhires",
+  repos = "http://packages.ropensci.org",
+  type = "source"
+)
+```
+:::
+
+
+```{r,eval=FALSE}
+# 创建目录存储临时地形文件
+xfun::dir_create("~/data/") 
+# 从 raster::getData('ISO3') 可以知道各个国家或地区的 ISO3 代码
+# 下载 Raster 数据 
+# 中国大陆地区
+chn_map <- raster::getData(name = "alt", country = "CHN", mask = TRUE, path = "~/data/")
+# 台湾地区
+twn_map <- raster::getData(name = "alt", country = "TWN", mask = TRUE, path = "~/data/")
+# 香港地区
+hkg_map <- raster::getData(name = "alt", country = "HKG", mask = TRUE, path = "~/data/")
+# 澳门地区
+mac_map <- raster::getData(name = "alt", country = "MAC", mask = TRUE, path = "~/data/")
+
+# 若已经下载到本地，可直接读取
+chn_map <- raster::raster(x = "~/data/CHN_msk_alt.grd")
+twn_map <- raster::raster(x = "~/data/TWN_msk_alt.grd")
+hkg_map <- raster::raster(x = "~/data/HKG_msk_alt.grd")
+mac_map <- raster::raster(x = "~/data/MAC_msk_alt.grd")
+# 合并 Raster 数据
+china_map = terra::merge(chn_map, twn_map, hkg_map, mac_map)
+# 查看数据类型
+class(china_map)
+# 调 terra 包绘图速度快
+terra::plot(china_map, col = terrain.colors(20, rev = F))
+```
+
+![(\#fig:china-elevation) 中国地图海拔数据](/img/maps-in-r/china-elevation.png){.full}
+
+
+另一个提供地图数据的是商业软件 [Highcharts Maps](https://www.highcharts.com/)，国内外有不少商业公司是它的客户，它也有一个 R 包[**highcharter**](https://github.com/jbkunst/highcharter)，
+有一个以美国地图数据为背景的博客详细介绍了使用过程，详见 [Highcharts 官方博客](https://www.highcharts.com/blog/tutorials/using-highcharter-in-tidytuesday-internet-access/)。[简数科技](https://www.highcharts.com.cn/) 定制了一份 GeoJSON 格式的中国地图数据，还提供了地图预览和下载的服务，因为涉及商业版权和地图数据合规性，使用需要注意，读者可前往[网站](https://www.highcharts.com.cn/mapdata)了解。另一个 R 包[**hchinamap**](https://github.com/czxa/hchinamap) 也是使用这份中国地图数据和 JavaScript 库 [Highcharts JS](https://github.com/highcharts/highcharts)。
+
+```{r,eval=FALSE}
+library(hchinamap)
+# name 是地图数据中的各个区域单元的名称
+hchinamap(
+  name = c("北京", "天津", "上海", "湖南", "台湾", "海南"),
+  value = c(120, 200, 126, 300, 150, 225),
+  width = "100%",
+  height = "650px",
+  title = "分省地图",
+  region = "China",
+  minColor = "#f1eef6",
+  maxColor = "#980043",
+  itermName = "指标",
+  hoverColor = "#f6acf5"
+)
+```
+
+![(\#fig:china-hchinamap) 中国地图数据](/img/maps-in-r/china-hchinamap.png){.full}
+
+
+
+### 交互地图
+
+交互地图采用 **leaflet** 包绘制，采用 **leafletCN** 包汉化，并且提供合规的中国地图，核心函数是 `geojsonMap()`，它封装了 GeoJSON 格式的地图数据和绘图函数，更多定制参考`leaflet::leaflet()`，只要数据包含的一列区域名称和地图数据能映射上，就可以绘制出图\@ref(fig:china-leafletcn)，图中数据是随机生成的，调色板采用 `RdBu`，将连续的数据分段，每段对应一个色块。 
+
+```{r,eval=FALSE}
+library(leaflet)
+library(leafletCN) # 提供 geojsonMap 函数
+dat <- data.frame(name = regionNames("china"), value = runif(34))
+# 还有很多其他参数设置，类似 leaflet::leaflet
+geojsonMap(dat, mapName = "china", palette = "RdBu", colorMethod = "bin")
+```
+
+![(\#fig:china-leafletcn) 交互地图数据可视化](/img/maps-in-r/china-leafletcn.png){.full}
+
+
+### 静态地图
+
+[中华人民共和国民政部](http://xzqh.mca.gov.cn)提供了中国地图数据，是 GeoJSON 格式的，属于权威数据源，推荐使用。
+
+```{r,eval=FALSE}
+library(sf)
+china_map = st_read(dsn = "http://xzqh.mca.gov.cn/data/quanguo_Line.geojson", stringsAsFactors = FALSE)
+```
+```
+Reading layer `线' from data source 
+  `http://xzqh.mca.gov.cn/data/quanguo_Line.geojson' using driver `GeoJSON'
+Simple feature collection with 104 features and 3 fields
+Geometry type: LINESTRING
+Dimension:     XY
+Bounding box:  xmin: 73.68 ymin: 3.554 xmax: 135.2 ymax: 53.65
+Geodetic CRS:  WGS 84
+```
+```r
+china_map
+```
+```
+Simple feature collection with 104 features and 3 fields
+Geometry type: LINESTRING
+Dimension:     XY
+Bounding box:  xmin: 73.68 ymin: 3.554 xmax: 135.2 ymax: 53.65
+Geodetic CRS:  WGS 84
+First 10 features:
+     NAME  QUHUADAIMA strZTValue                       geometry
+1         hainansheng            LINESTRING (121.9 30.84, 12...
+2         hainansheng            LINESTRING (121.4 30.82, 12...
+3         hainansheng            LINESTRING (121.5 31.64, 12...
+4          tiaohuijie            LINESTRING (124.4 40.08, 12...
+5          tiaohuijie            LINESTRING (124.5 40.13, 12...
+6  台湾岛      daoyu6            LINESTRING (121.4 22.46, 12...
+7  海南岛      daoyu5            LINESTRING (111.5 19, 112.4...
+8  钓鱼岛      daoyu6            LINESTRING (122.8 26.07, 12...
+9  赤尾屿      daoyu6            LINESTRING (125.2 25.86, 12...
+10 黄岩岛      daoyu6            LINESTRING (117.2 14.61, 11...
+```
+```r
+plot(china_map)
+```
+
+![(\#fig:china-linestring) 静态地图数据](/img/maps-in-r/china-linestring.png){.full}
+
+
+另一份地图数据是全国各地的行政区域，只有省一级。
+
+```{r,eval=FALSE}
+china_map = st_read(dsn = "http://xzqh.mca.gov.cn/data/quanguo.json", stringsAsFactors = FALSE)
+# 原数据集没有坐标系信息，因此设置一下
+st_crs(china_map) = 4326
+plot(china_map["QUHUADAIMA"])
+```
+
+![(\#fig:china-province) 静态地图数据](/img/maps-in-r/china-province.png){.full}
+
 
 
 # 可视化包
@@ -747,6 +918,14 @@ quakes |>
 
 ```{r,eval=FALSE}
 # 使用默认的地图
+annotation_point <- c(-21.0744, 183.7499, 0, 7, 0)
+quakes <- rbind(quakes, annotation_point) # 把这个点加到数据集里面
+# 新加一列专用于文本注释
+# 火山爆发和地震不是一回事
+quakes$annotation <- ' '
+quakes[which(quakes$lat == -21.0744 & quakes$long == 183.7499), ]$annotation <- '汤加火山'
+
+# 绘图
 quakes |>
   e_charts(x = long) |>
   e_geo(
@@ -760,29 +939,33 @@ quakes |>
   e_effect_scatter(
     serie = lat,
     scale = NULL, # 去掉尺度变换
-    size = mag, name = "地震点",
+    bind = annotation, # 用于 params.name
+    size = mag, 
+    name = "地震点",
     coord_system = "geo"
   ) |>
   e_visual_map(
     serie = mag, # 震级图例
+    textStyle = list(color = "white"),
     inRange = list(
       color = hcl.colors(10), # 填充颜色
       colorAlpha = 0.7, # 设置透明度
       symbolSize = c(1, 15) # 设置气泡大小
     )
   ) |>
+  e_labels(
+    position = 'top',
+    formatter = htmlwidgets::JS("function(params){return( params.name )}")
+  ) |> 
   e_tooltip(
-    formatter = htmlwidgets::JS(
-      '
+    formatter = htmlwidgets::JS("
         function(params) {
-          if(params.value) {
-            return(`<strong>${params.seriesName}</strong><br>经度：${params.value[0]}<br>纬度：${params.value[1]}<br>震级：${params.value[2]}`)
-          } else {
-            return("");
-          }
+          return('<strong>' + params.seriesName + '</strong>' + 
+          '<br>经度：' + params.value[0] + 
+          '<br>纬度：' + params.value[1] + 
+          '<br>震级：' + params.value[2])
         }
-      '
-    )
+      ")
   ) |>
   e_title(
     text = "斐济地震带",
@@ -795,7 +978,7 @@ quakes |>
 ```
 
 
-![(\#fig:quakes-dark) **echarts4r** 使用内置矢量地图数据](/img/maps-in-r/quakes-dark.png){.full}
+![(\#fig:quakes-dark) **echarts4r** 使用内置矢量地图数据](/img/maps-in-r/quakes-dark2.png){.full}
 
 
 下面介绍在瓦片地图数据的基础上展示 quakes 数据，如图\@ref(fig:quakes-osm) 所示，这里采用地理图层 `e_leaflet()` 调用开放的 OpenStreetMap 瓦片服务。
@@ -845,7 +1028,7 @@ quakes |>
   e_charts(long) |>
   e_leaflet(center = c(175, -20), zoom = 4) |>
   e_leaflet_tile(
-    template = "http://webrd02.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}",
+    template = "https://webrd02.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}",
     options = list(tileSize = 256, minZoom = 3, maxZoom = 17)
   ) |>
   e_scatter(lat, size = mag, coord_system = "leaflet")
@@ -853,6 +1036,22 @@ quakes |>
 
 
 ![(\#fig:quakes-amap) **echarts4r** 使用高德地图](/img/maps-in-r/quakes-amap.png){.full}
+
+```{r,eval=FALSE}
+# 谷歌地图
+quakes |>
+  e_charts(long) |>
+  e_leaflet(center = c(175, -20), zoom = 4) |>
+  e_leaflet_tile(
+    template = "http://mt2.google.cn/vt/lyrs=m@167000000&hl=zh-CN&gl=cn&x={x}&y={y}&z={z}&s=Galil",
+    options = list(tileSize = 256, minZoom = 3, maxZoom = 17)
+  ) |>
+  e_scatter(lat, size = mag, coord_system = "leaflet")
+```
+
+![(\#fig:quakes-ggmap) **echarts4r** 使用谷歌地图](/img/maps-in-r/quakes-ggmap.png){.full}
+
+
 
 
 百度、阿里、腾讯等公司都提供大量面向不同场景的地图服务，一些软件也内置了地图，如[tableau](https://www.tableau.com/products/desktop) 和[QGIS](https://www.qgis.org/)等，下图\@ref(fig:qgis) 展示 QGIS 软件使用在线的 OpenStreetMap 地图。
@@ -1179,159 +1378,6 @@ plot(world["gdpPercap"])
 ## 栅格数据 terra
 
 
-
-## 示例：中国地图数据
-
-R 语言社区有不少 R 包涉及中国地图数据，但是质量不一，下面简单说下几个主要的数据源。
-
-### 地图数据源
-
-[**rnaturalearth**](https://github.com/ropenscilabs/rnaturalearth) 和 [**rnaturalearthdata**](https://github.com/ropenscilabs/rnaturalearthdata) 提供 [美国国家地理](https://www.naturalearthdata.com/)网站的 R 语言接口，可以免费下载矢量和栅格地图数据。
-
-```{r}
-library(rnaturalearth)
-library(rnaturalearthdata)
-library(rnaturalearthhires)
-```
-
-下载和绘制中国地图数据，如图\@ref(fig:china-map)
-
-```{r china-map, eval=FALSE}
-sp::plot(rnaturalearth::ne_countries(
-  country = "China",
-  continent = "Asia",
-  type = "countries",
-  scale = 10, returnclass = "sp"
-))
-```
-
-![(\#fig:china-map) 美国国家地理网站提供的中国地图数据](/img/maps-in-r/china-map.png){.full}
-
-
-::: rmdnote
-**rnaturalearthhires** 有 20 多 M，不在 CRAN 上，安装命令如下：
-
-```{r,eval=FALSE}
-install.packages(
-  pkgs = "rnaturalearthhires",
-  repos = "http://packages.ropensci.org",
-  type = "source"
-)
-```
-:::
-
-
-```{r,eval=FALSE}
-# 存储临时地形文件
-xfun::dir_create("~/data/") 
-# 下载数据
-china_map <- raster::getData(name = "alt", country = "CHN", mask = TRUE, path = sp_path)
-# 若已经下载，直接读取
-china_map <- raster::raster(x = "~/data/CHN_msk_alt.grd")
-# 查看数据
-class(china_map)
-# 调 terra 包绘图速度快
-terra::plot(china_map, col = terrain.colors(20, rev = F))
-```
-
-![(\#fig:china-elevation) 中国地图海拔数据](/img/maps-in-r/china-elevation.png){.full}
-
-
-另一个提供地图数据的是商业软件 [Highcharts Maps](https://www.highcharts.com/)，国内外有不少商业公司是它的客户，它也有一个 R 包[**highcharter**](https://github.com/jbkunst/highcharter)，
-有一个以美国地图数据为背景的博客详细介绍了使用过程，详见 [Highcharts 官方博客](https://www.highcharts.com/blog/tutorials/using-highcharter-in-tidytuesday-internet-access/)。[简数科技](https://www.highcharts.com.cn/) 定制了一份 GeoJSON 格式的中国地图数据，还提供了地图预览和下载的服务，因为涉及商业版权和地图数据合规性，使用需要注意，读者可前往[网站](https://www.highcharts.com.cn/mapdata)了解。另一个 R 包[**hchinamap**](https://github.com/czxa/hchinamap) 也是使用这份中国地图数据和 JavaScript 库 [Highcharts JS](https://github.com/highcharts/highcharts)。
-
-```{r,eval=FALSE}
-library(hchinamap)
-# name 是地图数据中的各个区域单元的名称
-hchinamap(
-  name = c("北京", "天津", "上海", "湖南", "台湾", "海南"),
-  value = c(120, 200, 126, 300, 150, 225),
-  width = "100%",
-  height = "650px",
-  title = "分省地图",
-  region = "China",
-  minColor = "#f1eef6",
-  maxColor = "#980043",
-  itermName = "指标",
-  hoverColor = "#f6acf5"
-)
-```
-
-![(\#fig:china-hchinamap) 中国地图数据](/img/maps-in-r/china-hchinamap.png){.full}
-
-
-
-### 交互地图
-
-交互地图采用 **leaflet** 包绘制，采用 **leafletCN** 包汉化，并且提供合规的中国地图，核心函数是 `geojsonMap()`，它封装了 GeoJSON 格式的地图数据和绘图函数，更多定制参考`leaflet::leaflet()`，只要数据包含的一列区域名称和地图数据能映射上，就可以绘制出图\@ref(fig:china-leafletcn)，图中数据是随机生成的，调色板采用 `RdBu`，将连续的数据分段，每段对应一个色块。 
-
-```{r,eval=FALSE}
-library(leaflet)
-library(leafletCN) # 提供 geojsonMap 函数
-dat <- data.frame(name = regionNames("china"), value = runif(34))
-# 还有很多其他参数设置，类似 leaflet::leaflet
-geojsonMap(dat, mapName = "china", palette = "RdBu", colorMethod = "bin")
-```
-
-![(\#fig:china-leafletcn) 交互地图数据可视化](/img/maps-in-r/china-leafletcn.png){.full}
-
-
-### 静态地图
-
-[中华人民共和国民政部](http://xzqh.mca.gov.cn)提供了中国地图数据，是 GeoJSON 格式的，属于权威数据源，推荐使用。
-
-```{r,eval=FALSE}
-library(sf)
-china_map = st_read(dsn = "http://xzqh.mca.gov.cn/data/quanguo_Line.geojson", stringsAsFactors = FALSE)
-```
-```
-Reading layer `线' from data source 
-  `http://xzqh.mca.gov.cn/data/quanguo_Line.geojson' using driver `GeoJSON'
-Simple feature collection with 104 features and 3 fields
-Geometry type: LINESTRING
-Dimension:     XY
-Bounding box:  xmin: 73.68 ymin: 3.554 xmax: 135.2 ymax: 53.65
-Geodetic CRS:  WGS 84
-```
-```r
-china_map
-```
-```
-Simple feature collection with 104 features and 3 fields
-Geometry type: LINESTRING
-Dimension:     XY
-Bounding box:  xmin: 73.68 ymin: 3.554 xmax: 135.2 ymax: 53.65
-Geodetic CRS:  WGS 84
-First 10 features:
-     NAME  QUHUADAIMA strZTValue                       geometry
-1         hainansheng            LINESTRING (121.9 30.84, 12...
-2         hainansheng            LINESTRING (121.4 30.82, 12...
-3         hainansheng            LINESTRING (121.5 31.64, 12...
-4          tiaohuijie            LINESTRING (124.4 40.08, 12...
-5          tiaohuijie            LINESTRING (124.5 40.13, 12...
-6  台湾岛      daoyu6            LINESTRING (121.4 22.46, 12...
-7  海南岛      daoyu5            LINESTRING (111.5 19, 112.4...
-8  钓鱼岛      daoyu6            LINESTRING (122.8 26.07, 12...
-9  赤尾屿      daoyu6            LINESTRING (125.2 25.86, 12...
-10 黄岩岛      daoyu6            LINESTRING (117.2 14.61, 11...
-```
-```r
-plot(china_map)
-```
-
-![(\#fig:china-linestring) 静态地图数据](/img/maps-in-r/china-linestring.png){.full}
-
-
-另一份地图数据是全国各地的行政区域，只有省一级。
-
-```{r,eval=FALSE}
-china_map = st_read(dsn = "http://xzqh.mca.gov.cn/data/quanguo.json", stringsAsFactors = FALSE)
-# 原数据集没有坐标系信息，因此设置一下
-st_crs(china_map) = 4326
-plot(china_map["QUHUADAIMA"])
-```
-
-![(\#fig:china-province) 静态地图数据](/img/maps-in-r/china-province.png){.full}
 
 
 # 案例：美国北卡婴儿猝死综合征数据
