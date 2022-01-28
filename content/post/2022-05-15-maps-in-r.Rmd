@@ -907,12 +907,12 @@ quakes |>
 
 ![(\#fig:quakes-echarts4r) **echarts4r** 使用内置矢量地图数据](/img/maps-in-r/quakes-echarts4r.png){.full}
 
-**echarts4r** 提供地理图层 `e_geo()` 专门用来加载地图数据，在这个例子中，只需要展示局部地图，因此基于数据集 quakes 提取经纬度范围，获取了边界信息，设置了参数 `boundingCoords`，即矩形的左上顶点和右下顶点的两个坐标，关于其它参数更加详尽的介绍，见 Apache Echarts 官方文档里 [地理图层](https://echarts.apache.org/en/option.html#geo.boundingCoords)。下面做一些更加细致的调整，最终效果如图\@ref(fig:quakes-dark)。
+**echarts4r** 提供地理图层 `e_geo()` 专门用来加载地图数据，在这个例子中，只需要展示局部地图，因此基于数据集 quakes 提取经纬度范围，获取了边界信息，设置了参数 `boundingCoords`，即矩形的左上顶点和右下顶点的两个坐标，关于其它参数更加详尽的介绍，见 Apache Echarts 官方文档里 [地理图层](https://echarts.apache.org/en/option.html#geo.boundingCoords)。下面做一些更加细致的调整，最终效果如图\@ref(fig:quakes-chalk)。
 
 - `e_effect_scatter()` 替换 `e_scatter()` 实现一些动态特效，和地震的震波建立一些视觉联系，不过会增加渲染压力；设置 `scale = NULL` 去掉默认对 size 变量的尺度变换；
 - `e_title()` 添加一些文字介绍斐济地震带背后的数据背景；
 - `e_tooltip()` 参考 Apache Echarts 官方文档[tooltip](https://echarts.apache.org/zh/option.html#geo.tooltip.formatter)在气泡上定制悬浮提示，补充震点位置和震级信息，定性和定量结合；
-- `e_visual_map()` 设置透明度缓解数据点覆盖，设置颜色和气泡大小的变化范围；
+- `e_visual_map()` 设置透明度缓解数据点覆盖，设置颜色和气泡大小的变化范围，设置组件两端的文本，设置组件的位置为右下角，更多设置详见[视觉映射组件](https://echarts.apache.org/zh/option.html#visualMap)；
 - `e_legend()` 隐藏图例，已用 `e_visual_map()` 替代；
 - `e_theme()` 参考[主题配置页面](https://echarts.apache.org/zh/theme-builder.html)挑选黑色背景主题。
 
@@ -946,6 +946,8 @@ quakes |>
   ) |>
   e_visual_map(
     serie = mag, # 震级图例
+    right = 0, bottom = 0, # 图例的位置，离容器右侧和下侧的距离
+    text  = c("高", "低"), # 定义两端的文本
     textStyle = list(color = "white"),
     inRange = list(
       color = hcl.colors(10), # 填充颜色
@@ -978,7 +980,7 @@ quakes |>
 ```
 
 
-![(\#fig:quakes-dark) **echarts4r** 使用内置矢量地图数据](/img/maps-in-r/quakes-dark2.png){.full}
+![(\#fig:quakes-chalk) **echarts4r** 使用内置矢量地图数据](/img/maps-in-r/quakes-chalk.png){.full}
 
 
 下面介绍在瓦片地图数据的基础上展示 quakes 数据，如图\@ref(fig:quakes-osm) 所示，这里采用地理图层 `e_leaflet()` 调用开放的 OpenStreetMap 瓦片服务。
@@ -1062,7 +1064,7 @@ quakes |>
 
 ## leaflet
 
-**leaflet** [@leaflet] 包借助 htmlwidgets 封装了鼎鼎大名的 leaflet 库，
+**leaflet** [@leaflet] 包借助 [htmlwidgets](https://github.com/ramnathv/htmlwidgets) 封装了鼎鼎大名的开源交互式地图库 [leaflet](https://leafletjs.com/)。
 
 
 在可视化的过程中，配色是非常重要的一个环节，准确地表达地图上各个区域或位置的数据信息，负责体现分类、层次、大小等信息。常见的操作是将一组数据映射成一组颜色值，还是以 quakes 数据集为例，下面将连续型的地震震级数据映射成一组颜色值。这方面的工作已经有非常成熟的 R 包来做了，比如[**scales**](https://github.com/r-lib/scales)包和[**colourvalues**](https://github.com/SymbolixAU/colourvalues) 包。如图 \@ref(fig:quakes-viridis)，默认情况下 `viridis` 调色板，颜色越黄值越大。
@@ -1181,66 +1183,11 @@ plotly::plot_mapbox(
 library(sp)
 ```
 
-meuse 数据集为例
 
-```{r}
-data(meuse)
-summary(meuse)
-```
-
-Ruud van Rijn 和 Mathieu Rikken 最初收集了 Stein 村 Meuse 河洪泛区地表土壤重金属浓度数据，Edzer Pebesma 将数据整理打包后做成 **sp** 内置的数据集 meuse。除了几种重金属浓度，还包含土壤、周围环境相关的变量，共 155 个采样点，14 个观测变量，具体情况：
-
-- x 东西方向坐标，单位米，坐标参照系为 RDH（Rijksdriehoek） 荷兰地形。 
-- y 南北方向坐标，单位米。
-- cadmium 表土**镉**浓度，每千克土壤中镉含量（按毫克计），因此，浓度单位为 ppm，若原始数据中镉浓度为 0，则漂移至 0.2，即最小的镉浓度的一半。
-- copper 表土**铜**浓度，单位 ppm。
-- lead 表土**铅**浓度，单位 ppm。
-- zinc 表土**锌**浓度，单位 ppm。
-- elev 以当地河床为水平面，相对高度，单位米。
-- dist 采样点至 Meuse 河的距离，距离归一化到 0-1 区间。
-- om 每100千克土壤中有机质的占比，百分数。
-- ffreq 洪水等级，1 表示两年一次，2 表示十年一次，3 表示 五十年一次。
-- soil 土壤类型，按照荷兰 1:50000 的土壤图划分，1 表示 Rd10A （钙质弱发育草甸土，轻质砂质粘土），2 表示 Rd90C/VII （非钙质弱发育草甸土，重砂质粘土至轻质粘土），3 表示 Bkd26/VII
-（红砖土、细砂质、粉质轻质粘土）。
-- landuse 土地利用类别：Aa 农业/未指定 = ，Ab = Agr/糖用甜菜，Ag = Agr/小谷物，Ah = Agr/??，Am = Agr/玉米，B = 树林，Bw = 牧场中的树木，DEN = ?? , Fh = 高果树，Fl = 矮果树； Fw = 牧场果树，Ga = 家庭花园，SPO = 运动场，STA = 马厩，Tv = ?? , W = 牧场。
-- dist.m 采样点到 Meuse 河的距离，单位以米计，数据来自实地调查。
-
-最后，数据集 meuse 中的行名 `row.names` 表示原始的采样点的编号。
-
-meuse 是 SpatialPointsDataFrame 类型
-
-meuse 指定坐标系
-
-```{r}
-coordinates(meuse) <- ~x+y
-proj4string(meuse) <- CRS("+proj=lcc +lat_1=49 +lat_2=77 +lat_0=0 +lon_0=-95 +x_0=0 +y_0=0 +ellps=GRS80 +datum=WGS84 +units=m +no_defs")
-class(meuse)
-```
-
-将普通的数据框 data.frame 转化为空间点数据框 SpatialPointsDataFrame， sp 包不仅提供了数据类型的转化方法，而且对这种新的数据类型提供相应的绘图方法，使用方法和普通的 `plot()` 函数一样，这也是 S3 泛型函数的特色。
-
-```{r,eval=FALSE}
-plot(meuse)
-```
-
-![(\#fig:sp-meuse) **sp** 包绘图空间点数据](/img/maps-in-r/sp-meuse.png){.full}
-
-```{r,eval=FALSE}
-data(meuse.grid)
-coordinates(meuse.grid) = ~x+y
-proj4string(meuse.grid) <- CRS("+init=epsg:28992")
-gridded(meuse.grid) = TRUE
-spplot(meuse.grid)
-```
-
-meuse.grid 是 SpatialPixelsDataFrame 类型
 
 实际上，截止目前 `plot()` 函数已经汇集很多方法了，它已经是一个绘图对象，对于不同类型的数据对象，它会调用相应的绘图方法。记住，一切都是对象，一切的操作都是函数调用。
 
 ```{r methods-plot, echo=FALSE}
-# library(raster)
-# library(lattice)
-# library(nlme)
 knitr::kable(matrix(c(methods(plot), ""), ncol = 4),
   caption = "plot 绘图方法"
 )
@@ -1248,6 +1195,7 @@ knitr::kable(matrix(c(methods(plot), ""), ncol = 4),
 
 
 ```{r,eval=FALSE}
+library(lattice)
 library(loa)
 OpenStreetMapPlot(lead * 2 + zinc ~ latitude * longitude,
   col.regions = c("grey", "darkred"), 
@@ -1261,6 +1209,9 @@ OpenStreetMapPlot(lead * 2 + zinc ~ latitude * longitude,
 栅格数据是空间数据的另一种类型，比如遥感卫星拍摄的照片，**raster** [@raster] 可以处理这类数据的分析和可视化。raster 包正在过渡到 terra 包，后者速度更快，接口函数是相似的。
 
 [layer](https://github.com/marcosci/layer) 层次性
+
+![(\#fig:layer) **layer** 包空间数据](/img/maps-in-r/layer.jpg){.full}
+
 
 
 iPhone 12 Pro 拍摄的照片默认采用 HEIC (High Efficiency Image Container) 格式保存，这是一张层次很丰富的乌云照片，原始尺寸为 $4032 \times 3024$，这里先用 [ImageMagick](https://imagemagick.org/) 将 HEIC 格式转化为 Tiff 格式，长宽尺寸均缩小为原来的十分之一，方便后续处理。
