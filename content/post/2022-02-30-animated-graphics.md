@@ -152,7 +152,7 @@ LaTeX 宏包 [animate](https://ctan.org/pkg/animate)，常用于 [beamer](https:
 | [**plotly**](https://github.com/plotly/plotly.R)([Sievert et al. 2021](#ref-plotly))                                                 | Create Interactive Web Graphics via plotly.js                            | Carson Sievert      | MIT + file LICENSE      |
 | [**rgl**](https://github.com/dmurdoch/rgl)([Adler and Murdoch 2021](#ref-rgl))                                                       | 3D Visualization Using OpenGL                                            | Duncan Murdoch      | GPL                     |
 | [**magick**](https://docs.ropensci.org/magick/%20(website)%20https://github.com/ropensci/magick%20(devel))([Ooms 2021](#ref-magick)) | Advanced Graphics and Image-Processing in R                              | Jeroen Ooms         | MIT + file LICENSE      |
-| [**echarts4r**](https://github.com/JohnCoene/echarts4r)([Coene 2021](#ref-echarts4r))                                                | Create Interactive Graphs with Echarts JavaScript Version 5              | John Coene          | Apache License (>= 2.0) |
+| [**echarts4r**](https://github.com/JohnCoene/echarts4r)([Coene 2022](#ref-echarts4r))                                                | Create Interactive Graphs with Echarts JavaScript Version 5              | John Coene          | Apache License (>= 2.0) |
 | [**gganimate**](https://github.com/thomasp85/gganimate)([Pedersen and Robinson 2020](#ref-gganimate))                                | A Grammar of Animated Graphics                                           | Thomas Lin Pedersen | MIT + file LICENSE      |
 | [**rayrender**](https://github.com/tylermorganwall/rayrender)([Morgan-Wall 2021](#ref-rayrender))                                    | Build and Raytrace 3D Scenes                                             | Tyler Morgan-Wall   | GPL-3                   |
 | [**animation**](https://yihui.org/animation/)([Xie 2021](#ref-animation))                                                            | A Gallery of Animations in Statistics and Utilities to Create Animations | Yihui Xie           | GPL                     |
@@ -535,6 +535,35 @@ gapminder |>
 
 </div>
 
+``` r
+library(echarts4r)
+library(gapminder)
+
+gapminder |>
+  group_by(year) |>
+  e_charts(x = country, timeline = TRUE) |>
+  e_map(serie = gdpPercap) |>
+  e_visual_map(serie = gdpPercap) |>
+  e_tooltip(
+    # 数据项图形触发，用于散点图等，设置 'axis' 表示坐标轴触发，主要在柱状图/条形图
+    trigger = "item",
+    # 鼠标移动或点击时触发
+    triggerOn = "mousemove|click",
+    # 定制悬浮内容 params.name 取自 bind 变量
+    formatter = htmlwidgets::JS("
+      function(params){
+        return('国家: <strong>' + params.name + '</strong>' +
+               '<br />人均 GDP: ' + Math.round(params.value) + '美元')
+      }
+    ")
+  )
+```
+
+<!--
+World Bank 来自世界银行的数据，分国家，长周期的数据，指数也就是归一化了，更方便在地图上做动画展示
+[WDI](https://github.com/vincentarelbundock/WDI) 
+-->
+
 ## plotly （R 语言版）
 
 下面采用 Carson Sievert 开发的 [plotly](https://github.com/plotly/plotly.R) 包([Sievert 2020](#ref-Sievert2020))制作网页动画，仍是以 gapminder 数据集为例，示例修改自 plotly 官网的 [动画示例](https://plotly.com/r/animations/)。关于 plotly 以及绘制散点图的介绍，见前文[交互式网页图形与 R 语言](/2021/11/interactive-web-graphics/)，此处不再赘述[^2]。
@@ -694,6 +723,42 @@ px.scatter(
 <figure>
 <video src="https://user-images.githubusercontent.com/12031874/145701692-d2847ae6-6646-4fc7-bf9d-031a4e262555.mov" class="full" controls=""><a href="https://user-images.githubusercontent.com/12031874/145701692-d2847ae6-6646-4fc7-bf9d-031a4e262555.mov">Figure 5: Python 版 plotly 制作动画</a></video><figcaption aria-hidden="true">Figure 5: Python 版 plotly 制作动画</figcaption>
 </figure>
+
+### 时空动画
+
+参考 plotly 官网 [choropleth map](https://plotly.com/python/choropleth-maps/)
+
+``` python
+import plotly.express as px
+df = px.data.gapminder()
+df.head(6)
+```
+
+           country continent  year  lifeExp       pop   gdpPercap iso_alpha  iso_num
+    0  Afghanistan      Asia  1952   28.801   8425333  779.445314       AFG        4
+    1  Afghanistan      Asia  1957   30.332   9240934  820.853030       AFG        4
+    2  Afghanistan      Asia  1962   31.997  10267083  853.100710       AFG        4
+    3  Afghanistan      Asia  1967   34.020  11537966  836.197138       AFG        4
+    4  Afghanistan      Asia  1972   36.088  13079460  739.981106       AFG        4
+    5  Afghanistan      Asia  1977   38.438  14880372  786.113360       AFG        4
+
+相比于 R 语言 gapminder 数据集，添加了新的一列 `iso_alpha`
+
+``` python
+fig = px.choropleth(
+    df,
+    locations="iso_alpha",
+    color="lifeExp"
+    # 动画帧
+    animation_frame="year",
+    # 动画分组
+    animation_group="country",
+    # 悬浮提示
+    hover_name="country", 
+    color_continuous_scale=px.colors.sequential.Viridis,
+)
+fig.show()
+```
 
 ### 调色板
 
@@ -861,10 +926,9 @@ library(rayrender)
 
 # WebGL 动画
 
-[WebGL](https://www.khronos.org/webgl/)是一种 JavaScript API，可以使用计算机的 GPU 硬件资源加速 2D 和 3D 图形渲染，2011 年发布 1.0 规范，2017 年完成 2.0 规范，目前，主流浏览器 Safari、Chrome、Edge 和 Firefox 等均已支持。
+[WebGL](https://www.khronos.org/webgl/)是一种 JavaScript API，可以使用计算机的 GPU 硬件资源加速 2D 和 3D 图形渲染，2011 年发布 1.0 规范，2017 年完成 2.0 规范，目前，主流浏览器 Safari、Chrome、Edge 和 Firefox 等均已支持。Google 搜索在 2012 年应用了这一技术，只要在搜索框内输入一个函数曲线，比如 `arcsin(x*y)/(x*y)`，那么结果页会展示这个图像。
 
-本节利用 **ggplot2** 包内置的钻石数据集 diamonds，它有 53940 条记录，
-WebGL 技术可以极大地加速大规模数据集渲染展示，虽说在这个数据集用 WebGL，有点杀鸡用牛刀，但是足以展示用和不用之间的差异，而在更大规模的数据集上，比如百万、千万级别，性能差异将会更加凸显 WebGL 的相对优势。
+本节利用 **ggplot2** 包内置的钻石数据集 diamonds，它有 53940 条记录，WebGL 技术可以极大地加速大规模数据集渲染展示，虽说在这个数据集用 WebGL，有点杀鸡用牛刀，但是足以展示用和不用之间的差异，而在更大规模的数据集上，比如百万、千万级别，性能差异将会更加凸显 WebGL 的相对优势。
 
 [plotly.js](https://github.com/plotly/plotly.js) 提供很多图层用于绘制各类图形，见[plotly.js 源码库](https://github.com/plotly/plotly.js/tree/master/src/traces)，其中支持 WebGL 的有热力图 `heatmapgl`、 散点图 `scattergl` 和极坐标系下的散点图 `scatterpolargl`。
 
@@ -894,6 +958,8 @@ example("plot3d", "rgl")
 ```
 
 ## echarts4r
+
+[3D 地球数据可视化](https://github.com/z3tt/ports_globe/blob/main/echarts_globe.R)
 
 ## plotly
 
@@ -967,15 +1033,15 @@ xfun::session_info(packages = c(
 # Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
 # 
 # Package version:
-#   blogdown_1.6     echarts4r_0.4.2  gapminder_0.3.0 
+#   blogdown_1.7     echarts4r_0.4.3  gapminder_0.3.0 
 #   gganimate_1.0.7  ggplot2_3.3.5    ggrepel_0.9.1   
-#   knitr_1.37       MASS_7.3.54      plotly_4.10.0   
+#   knitr_1.37       MASS_7.3.55      plotly_4.10.0   
 #   rayrender_0.23.6 rgl_0.108.3      rmarkdown_2.11  
 #   showtext_0.9.4  
 # 
 # Pandoc version: 2.16.2
 # 
-# Hugo version: 0.90.1
+# Hugo version: 0.91.2
 ```
 
 # 参考文献
@@ -990,7 +1056,7 @@ Adler, Daniel, and Duncan Murdoch. 2021. *Rgl: 3d Visualization Using OpenGL*. <
 
 <div id="ref-echarts4r" class="csl-entry">
 
-Coene, John. 2021. *Echarts4r: Create Interactive Graphs with Echarts JavaScript Version 5*. <https://CRAN.R-project.org/package=echarts4r>.
+Coene, John. 2022. *Echarts4r: Create Interactive Graphs with Echarts JavaScript Version 5*. <https://CRAN.R-project.org/package=echarts4r>.
 
 </div>
 

@@ -162,6 +162,8 @@ Thomas Lin Pedersen 从 David Robinson 接手维护后，大刀阔斧地开发 *
 
 <!-- 
 动画使用不当真的会弄巧成拙！
+bokeh 复现 gapminder 动画
+https://demo.bokeh.org/gapminder
 -->
 
 mikefc 戏称自己造了好看不中用的 [ggrgl](https://github.com/coolbutuseless/ggrgl) 包，其 Github ID 正是 coolbutuseless，按字面意思拆开来就是「cool but useless」[^mikefc]。这让我一下想到贾宝玉在假山下和林黛玉一起偷看《西厢记》的场景，贾宝玉问：银样蜡枪头是什么意思？林黛玉回答说：中看不中用。有些图形实在没有必要升维做成立体的，比如条形图或柱形图，一些反面例子可以在[漫谈条形图](https://cosx.org/2017/10/discussion-about-bar-graph)和[你问我答](https://msg2020.pzhao.org/qa/)两篇文章中找到。
@@ -620,6 +622,35 @@ gapminder |>
 :::
 
 
+```{r,eval=FALSE}
+library(echarts4r)
+library(gapminder)
+
+gapminder |>
+  group_by(year) |>
+  e_charts(x = country, timeline = TRUE) |>
+  e_map(serie = gdpPercap) |>
+  e_visual_map(serie = gdpPercap) |>
+  e_tooltip(
+    # 数据项图形触发，用于散点图等，设置 'axis' 表示坐标轴触发，主要在柱状图/条形图
+    trigger = "item",
+    # 鼠标移动或点击时触发
+    triggerOn = "mousemove|click",
+    # 定制悬浮内容 params.name 取自 bind 变量
+    formatter = htmlwidgets::JS("
+      function(params){
+        return('国家: <strong>' + params.name + '</strong>' +
+               '<br />人均 GDP: ' + Math.round(params.value) + '美元')
+      }
+    ")
+  )
+```
+
+
+<!--
+World Bank 来自世界银行的数据，分国家，长周期的数据，指数也就是归一化了，更方便在地图上做动画展示
+[WDI](https://github.com/vincentarelbundock/WDI) 
+-->
 
 ## plotly （R 语言版）
 
@@ -803,6 +834,43 @@ px.scatter(
 
 ![(\#fig:gapminder-plotly-python) Python 版 plotly 制作动画](https://user-images.githubusercontent.com/12031874/145701692-d2847ae6-6646-4fc7-bf9d-031a4e262555.mov){.full}
 
+### 时空动画
+
+参考 plotly 官网 [choropleth map](https://plotly.com/python/choropleth-maps/)
+
+```python
+import plotly.express as px
+df = px.data.gapminder()
+df.head(6)
+```
+```
+       country continent  year  lifeExp       pop   gdpPercap iso_alpha  iso_num
+0  Afghanistan      Asia  1952   28.801   8425333  779.445314       AFG        4
+1  Afghanistan      Asia  1957   30.332   9240934  820.853030       AFG        4
+2  Afghanistan      Asia  1962   31.997  10267083  853.100710       AFG        4
+3  Afghanistan      Asia  1967   34.020  11537966  836.197138       AFG        4
+4  Afghanistan      Asia  1972   36.088  13079460  739.981106       AFG        4
+5  Afghanistan      Asia  1977   38.438  14880372  786.113360       AFG        4
+```
+
+相比于 R 语言 gapminder 数据集，添加了新的一列 `iso_alpha`
+
+```python
+fig = px.choropleth(
+    df,
+    locations="iso_alpha",
+    color="lifeExp"
+    # 动画帧
+    animation_frame="year",
+    # 动画分组
+    animation_group="country",
+    # 悬浮提示
+    hover_name="country", 
+    color_continuous_scale=px.colors.sequential.Viridis,
+)
+fig.show()
+```
+
 ### 调色板
 
 值得一提的是，支持丰富的调色板，涵盖常用的三大类型：无序的分类调色板、有序的分类调色板、连续型的调色板。调用其中一个调色板，只需 `px.colors.qualitative.Set2` 或者其逆序版本 `px.colors.qualitative.Set2_r`。也只需两行代码即可预览任意一组调色板， colorbrewer 调色板见图\@ref(fig:plotly-colorbrewer)。
@@ -940,10 +1008,9 @@ library(rayrender)
 
 # WebGL 动画
 
-[WebGL](https://www.khronos.org/webgl/)是一种 JavaScript API，可以使用计算机的 GPU 硬件资源加速 2D 和 3D 图形渲染，2011 年发布 1.0 规范，2017 年完成 2.0 规范，目前，主流浏览器 Safari、Chrome、Edge 和 Firefox 等均已支持。
+[WebGL](https://www.khronos.org/webgl/)是一种 JavaScript API，可以使用计算机的 GPU 硬件资源加速 2D 和 3D 图形渲染，2011 年发布 1.0 规范，2017 年完成 2.0 规范，目前，主流浏览器 Safari、Chrome、Edge 和 Firefox 等均已支持。Google 搜索在 2012 年应用了这一技术，只要在搜索框内输入一个函数曲线，比如 `arcsin(x*y)/(x*y)`，那么结果页会展示这个图像。
 
-本节利用 **ggplot2** 包内置的钻石数据集 diamonds，它有 53940 条记录，
-WebGL 技术可以极大地加速大规模数据集渲染展示，虽说在这个数据集用 WebGL，有点杀鸡用牛刀，但是足以展示用和不用之间的差异，而在更大规模的数据集上，比如百万、千万级别，性能差异将会更加凸显 WebGL 的相对优势。
+本节利用 **ggplot2** 包内置的钻石数据集 diamonds，它有 53940 条记录，WebGL 技术可以极大地加速大规模数据集渲染展示，虽说在这个数据集用 WebGL，有点杀鸡用牛刀，但是足以展示用和不用之间的差异，而在更大规模的数据集上，比如百万、千万级别，性能差异将会更加凸显 WebGL 的相对优势。
 
 [plotly.js](https://github.com/plotly/plotly.js) 提供很多图层用于绘制各类图形，见[plotly.js 源码库](https://github.com/plotly/plotly.js/tree/master/src/traces)，其中支持 WebGL 的有热力图 `heatmapgl`、 散点图 `scattergl` 和极坐标系下的散点图 `scatterpolargl`。
 
@@ -975,6 +1042,8 @@ example("plot3d", "rgl")
 
 
 ## echarts4r
+
+[3D 地球数据可视化](https://github.com/z3tt/ports_globe/blob/main/echarts_globe.R)
 
 
 
