@@ -98,7 +98,7 @@ div.img {
 
 <div class="rmdtip">
 
-时隔四年，Gephi 发布了 0.9.3 版，写一篇文章庆祝一下。
+时隔四年，Gephi 发布了 1.0.0 版，写一篇文章庆祝一下。
 
 </div>
 
@@ -112,7 +112,13 @@ div.img {
 [**rsparse**](https://github.com/rexyai/rsparse) 包提供很多基于稀疏矩阵的统计学习算法，支持基于 OpenMP 的并行计算。[RSpectra](https://github.com/yixuan/RSpectra) 包是 C++ 库 [Spectra](https://spectralib.org/) 的 R 接口，仅有两个函数 `eigs()` 和 `svds()` 分别用来计算 `\(N\)` 阶矩阵（稀疏或稠密都行） Top K 个最大的特征值/特征向量，适合大规模特征值和奇异值分解问题，在 k 远远小于 N 时，特别能体现优越性。后面从 CRAN 网络数据中获取 Top K 个主要的组织、个人和 R 包。
 
 <!--
+
 [**RcppSparse**](https://github.com/zdebruine/RcppSparse)  RcppArmadillo 和 RcppEigen 深拷贝deep copy 操作，而 RcppSparse zero-copy 零拷贝，无缝衔接，而计算结果是一致的，详细描述见 [Constructing a Sparse Matrix Class in Rcpp](https://gallery.rcpp.org/articles/sparse-matrix-class/)
+
+1. Roger Bivand 分析源码提交记录 <https://github.com/rsbivand/eRum18>
+1. 基本数据操作到两大阵营的对话 <https://d.cosx.org/d/420697>
+1. 分析 CRAN 上 R 包元数据，挖掘 R 社区中隐藏的信息 <https://r-graphics.netlify.com/cs-cran-network.html>
+
 -->
 
 # 软件概览
@@ -129,7 +135,7 @@ div.img {
 [text2map](https://gitlab.com/culturalcartography/text2map) ([Stoltz and Taylor 2021](#ref-text2map2021)) 文本分析，词嵌入，文本网络
 [mlpack](https://github.com/mlpack/mlpack) ([Curtin et al. 2018](#ref-mlpack2018)) 是前沿机器学习算法合集。
 
-[visNetwork](https://github.com/datastorm-open/visNetwork) 包 可以制作交互式网络图形，Richard Iannone 而开发的[DiagrammeR](https://github.com/rich-iannone/DiagrammeR) 包可以制作静态的矢量网页图形。
+[visNetwork](https://github.com/datastorm-open/visNetwork) 包 可以制作交互式网络图形，它是 JS 库 [vis-network](https://github.com/visjs/vis-network) 的 R 语言接口。Richard Iannone 而开发的[DiagrammeR](https://github.com/rich-iannone/DiagrammeR) 包可以制作静态的矢量网页图形。
 
 <div class="rmdnote">
 
@@ -143,75 +149,6 @@ div.img {
 <img src="https://user-images.githubusercontent.com/12031874/120408326-6190a900-c381-11eb-9dcf-9881d33fa2b6.png" class="full" alt="Figure 1: 开发 R Shiny 应用的技术栈" /><figcaption aria-hidden="true">Figure 1: 开发 R Shiny 应用的技术栈</figcaption>
 </figure>
 
-``` r
-# 获取 R 包元数据
-Sys.setenv(R_CRAN_WEB = "https://mirrors.tuna.tsinghua.edu.cn/CRAN")
-# 返回 data.frame
-pdb <- tools::CRAN_package_db()
-
-# CRAN 上的 R 包
-pkgs <- c(
-  "igraph", "graphlayouts", "ggraph", "tidygraph",
-  "DiagrammeR", "visNetwork", "statnet", "sand",
-  "geomnet", "ggnet", "ggnetwork", "qgraph", 
-  "GGally", "sna", "network", "networkD3", 
-  "Rgraphviz", "graph", "node2vec"
-)
-
-# Github 上的 R 包
-remote_pkgs = c('geomnet' = 'sctyner', 'ggnet' = 'briatte')
-
-bioc_pkgs = c("Rgraphviz", "graph")
-
-if (length(bioc_pkgs)) {
-  if (!"BiocManager" %in% .packages(T)) install.packages("BiocManager")
-}
-# 安装依赖
-invisible(lapply(pkgs, function(pkg) {
-  if (system.file(package = pkg) != "") {
-    return()
-  }
-  if(pkg %in% bioc_pkgs){
-    BiocManager::install(pkg)
-  }
-  repo <- remote_pkgs[pkg]
-  if (is.na(repo)) { # 不在 Github 上
-    install.packages(pkg, quiet = TRUE)
-  } else {
-    remotes::install_github(paste(repo, pkg, sep = "/"))
-  }
-}))
-
-# 处理掉丑陋的成对单引号
-rmd_lib <- c(
-  "ggplot2", "vis.js"
-)
-rmd_regexp <- paste("'(", paste(rmd_lib, collapse = "|"), ")'", sep = "")
-
-# 提取 R Shiny 应用使用的 R 包及其基本描述
-sub_pdb <- subset(
-  x = pdb,
-  select = c("Package", "Title", "Maintainer", "URL", "License", "BugReports"),
-  subset = Package %in% pkgs
-) |>
-  transform(Title = gsub("(\\\n)", " ", Title)) |>
-  transform(Title = gsub(rmd_regexp, "\\1", Title)) |> 
-  transform(Maintainer = gsub("<([^<>]*)>", "", Maintainer)) |> 
-  # transform(URL = gsub("(\\\n)", " ", URL)) |> 
-  # transform(URL = gsub(",", "", URL)) |> 
-  # transform(URL = ifelse(is.na(URL), BugReports, URL)) |> 
-  # transform(URL = ifelse(is.na(URL), sprintf("https://CRAN.R-project.org/package=%s", Package), URL)) |> 
-  transform(Package = paste0("**", Package, "**", " ", "[@", Package, "]"))
-
-# 展示表格
-knitr::kable(sub_pdb[order(sub_pdb$Maintainer), 
-                     setdiff(colnames(sub_pdb), c("URL", "BugReports"))],
-  row.names = FALSE,
-  caption = "网络分析的 R 包（排名不分先后）",
-  col.names = c("R 包", "简介", "维护者", "协议")
-)
-```
-
 | R 包                                                                                          | 简介                                                                                   | 维护者              | 协议                 |
 |:----------------------------------------------------------------------------------------------|:---------------------------------------------------------------------------------------|:--------------------|:---------------------|
 | **GGally** ([Schloerke et al. 2021](#ref-GGally))                                             | Extension to ggplot2                                                                   | Barret Schloerke    | GPL (>= 2.0)         |
@@ -219,13 +156,13 @@ knitr::kable(sub_pdb[order(sub_pdb$Maintainer),
 | **network** ([Butts 2021](#ref-network))                                                      | Classes for Relational Data                                                            | Carter T. Butts     | GPL (>= 2)           |
 | **sna** ([Butts 2020](#ref-sna))                                                              | Tools for Social Network Analysis                                                      | Carter T. Butts     | GPL (>= 2)           |
 | **networkD3** ([Allaire et al. 2017](#ref-networkD3))                                         | D3 JavaScript Network Graphs from R                                                    | Christopher Gandrud | GPL (>= 3)           |
-| **graphlayouts** ([Schoch 2021](#ref-graphlayouts))                                           | Additional Layout Algorithms for Network Visualizations                                | David Schoch        | MIT + file LICENSE   |
+| **graphlayouts** ([Schoch 2022](#ref-graphlayouts))                                           | Additional Layout Algorithms for Network Visualizations                                | David Schoch        | MIT + file LICENSE   |
 | **sand** ([E. Kolaczyk and Csárdi 2020](#ref-sand))                                           | Statistical Analysis of Network Data with R, 2nd Edition                               | Eric Kolaczyk       | GPL-3                |
 | **ggnetwork** ([Briatte 2021](#ref-ggnetwork))                                                | Geometries to Plot Networks with ggplot2                                               | François Briatte    | GPL-3                |
 | **statnet** ([Handcock et al. 2019](#ref-statnet))                                            | Software Tools for the Statistical Analysis of Network Data                            | Martina Morris      | GPL-3 + file LICENSE |
-| **DiagrammeR** ([Iannone 2020](#ref-DiagrammeR))                                              | Graph/Network Visualization                                                            | Richard Iannone     | MIT + file LICENSE   |
+| **DiagrammeR** ([Iannone 2022](#ref-DiagrammeR))                                              | Graph/Network Visualization                                                            | Richard Iannone     | MIT + file LICENSE   |
 | **qgraph** ([Epskamp et al. 2021](#ref-qgraph))                                               | Graph Plotting Methods, Psychometric Data Visualization and Graphical Model Estimation | Sacha Epskamp       | GPL-2                |
-| **igraph** ([file. 2021](#ref-igraph))                                                        | Network Analysis and Visualization                                                     | Tamás Nepusz        | GPL (>= 2)           |
+| **igraph** ([file. 2022](#ref-igraph))                                                        | Network Analysis and Visualization                                                     | Tamás Nepusz        | GPL (>= 2)           |
 | **ggraph** ([Pedersen 2021](#ref-ggraph))                                                     | An Implementation of Grammar of Graphics for Graphs and Networks                       | Thomas Lin Pedersen | MIT + file LICENSE   |
 | **tidygraph** ([Pedersen 2020](#ref-tidygraph))                                               | A Tidy API for Graph Manipulation                                                      | Thomas Lin Pedersen | MIT + file LICENSE   |
 | **node2vec** ([Tian, Li, and Ren 2021](#ref-node2vec))                                        | Algorithmic Framework for Representational Learning on Graphs                          | Yang Tian           | GPL (>= 3)           |
@@ -494,21 +431,21 @@ knitr::kable(head(license_pdb_aggr, 15),
 
 | R 包协议                     | R 包数量 |
 |:-----------------------------|---------:|
-| GPL (>= 2)                   |     4392 |
-| GPL-3                        |     4177 |
-| MIT + file LICENSE           |     3123 |
-| GPL-2                        |     2626 |
-| GPL (>= 3)                   |     1013 |
-| GPL                          |      524 |
-| GPL-2 \| GPL-3               |      342 |
-| CC0                          |      190 |
-| GPL-3 \| file LICENSE        |      166 |
-| LGPL-3                       |      155 |
+| GPL (>= 2)                   |     4430 |
+| GPL-3                        |     4236 |
+| MIT + file LICENSE           |     3195 |
+| GPL-2                        |     2635 |
+| GPL (>= 3)                   |     1048 |
+| GPL                          |      521 |
+| GPL-2 \| GPL-3               |      345 |
+| CC0                          |      198 |
+| GPL-3 \| file LICENSE        |      163 |
+| LGPL-3                       |      156 |
 | BSD_3\_clause + file LICENSE |      132 |
-| AGPL-3                       |      116 |
+| AGPL-3                       |      118 |
 | BSD_2\_clause + file LICENSE |      111 |
-| Artistic-2.0                 |      109 |
-| GPL (>= 2.0)                 |      107 |
+| Artistic-2.0                 |      110 |
+| GPL (>= 2.0)                 |      108 |
 
 Table 2: CRAN 上受开发者欢迎的 R 包发布协议（Top 15）
 
@@ -532,7 +469,7 @@ db[grepl(x = db, pattern = "^Name:")]
 subset(pdb, subset = Published == min(Published), 
        select = c("Package", "Title", "Published"))
 #        Package                          Title  Published
-# 2839 coxrobust Robust Estimation in Cox Model 2006-03-15
+# 2878 coxrobust Robust Estimation in Cox Model 2006-03-15
 ```
 
 18000 多个 R 包，距离上次更新的时间间隔分布
@@ -545,7 +482,7 @@ diff_date_pdb <- subset(pdb, select = c("Package", "Published")) |>
 ``` r
 quantile(diff_date_pdb$diff_date)
 #   0%  25%  50%  75% 100% 
-#    1  187  539 1296 5744
+#    0  194  561 1327 5792
 ```
 
 半年时间更新 25% 的 R 包，一年半时间更新 50% 的 R 包，三年半时间也只更新 75% 的 R 包。
@@ -653,7 +590,7 @@ maintainer_db <- subset(
   transform(Maintainer = tolower(Maintainer))
 
 length(unique(maintainer_db$Maintainer))
-# [1] 10002
+# [1] 10117
 ```
 
 ### Top 组织
@@ -701,21 +638,21 @@ Table 3: 最受欢迎的邮箱（Top 30）
 
 | 邮箱后缀       | R 包数量 |
 |:---------------|---------:|
-| gmail.com      |     6600 |
-| rstudio.com    |      202 |
-| hotmail.com    |      170 |
-| outlook.com    |      136 |
+| gmail.com      |     6694 |
+| rstudio.com    |      203 |
+| hotmail.com    |      172 |
+| outlook.com    |      138 |
 | R-project.org  |      105 |
-| uw.edu         |       85 |
-| umich.edu      |       84 |
-| berkeley.edu   |       82 |
-| 163.com        |       76 |
-| umn.edu        |       75 |
-| yahoo.com      |       74 |
-| debian.org     |       65 |
+| umich.edu      |       86 |
+| uw.edu         |       84 |
+| 163.com        |       82 |
+| berkeley.edu   |       81 |
+| umn.edu        |       78 |
+| yahoo.com      |       75 |
+| debian.org     |       66 |
+| stanford.edu   |       60 |
 | gmx.de         |       59 |
-| stanford.edu   |       59 |
-| protonmail.com |       58 |
+| protonmail.com |       59 |
 
 </td>
 <td>
@@ -723,20 +660,20 @@ Table 3: 最受欢迎的邮箱（Top 30）
 | 邮箱后缀          | R 包数量 |
 |:------------------|---------:|
 | ncsu.edu          |       57 |
-| stat.math.ethz.ch |       56 |
+| stat.math.ethz.ch |       57 |
+| wisc.edu          |       55 |
 | auckland.ac.nz    |       54 |
-| wisc.edu          |       53 |
 | googlemail.com    |       51 |
-| r-project.org     |       48 |
+| r-project.org     |       49 |
 | duke.edu          |       47 |
+| uwaterloo.ca      |       45 |
+| mailbox.org       |       44 |
 | ucl.ac.uk         |       44 |
-| uwaterloo.ca      |       44 |
-| mailbox.org       |       43 |
-| columbia.edu      |       41 |
-| yale.edu          |       39 |
+| columbia.edu      |       42 |
+| yale.edu          |       40 |
 | inrae.fr          |       38 |
+| outlook.fr        |       37 |
 | uiowa.edu         |       37 |
-| outlook.fr        |       36 |
 
 </td>
 </tr>
@@ -773,16 +710,16 @@ Table 4: 贡献 R 包最多的大学（Top 30）
 
 | 邮箱后缀          | R 包数量 |
 |:------------------|---------:|
-| uw.edu            |       85 |
-| umich.edu         |       84 |
-| berkeley.edu      |       82 |
-| umn.edu           |       75 |
-| stanford.edu      |       59 |
+| umich.edu         |       86 |
+| uw.edu            |       84 |
+| berkeley.edu      |       81 |
+| umn.edu           |       78 |
+| stanford.edu      |       60 |
 | ncsu.edu          |       57 |
-| wisc.edu          |       53 |
+| wisc.edu          |       55 |
 | duke.edu          |       47 |
-| columbia.edu      |       41 |
-| yale.edu          |       39 |
+| columbia.edu      |       42 |
+| yale.edu          |       40 |
 | uiowa.edu         |       37 |
 | ucdavis.edu       |       34 |
 | illinois.edu      |       33 |
@@ -794,17 +731,17 @@ Table 4: 贡献 R 包最多的大学（Top 30）
 
 | 邮箱后缀        | R 包数量 |
 |:----------------|---------:|
-| monash.edu      |       29 |
+| fas.harvard.edu |       30 |
+| monash.edu      |       30 |
 | nd.edu          |       29 |
-| fas.harvard.edu |       28 |
 | mayo.edu        |       28 |
 | psu.edu         |       26 |
 | unc.edu         |       26 |
 | usc.edu         |       25 |
-| jhu.edu         |       23 |
+| vt.edu          |       23 |
+| jhu.edu         |       22 |
 | msu.edu         |       22 |
-| vt.edu          |       22 |
-| ucla.edu        |       21 |
+| ucla.edu        |       22 |
 | vanderbilt.edu  |       21 |
 | case.edu        |       19 |
 | osu.edu         |       19 |
@@ -821,7 +758,7 @@ Table 4: 贡献 R 包最多的大学（Top 30）
 
 ``` r
 sum(edu_email$Package)
-# [1] 2788
+# [1] 2830
 ```
 
 一般人我都不告诉他，勾搭 NB 院校老师的机会来了，我们先来看看斯坦佛大学（stanford.edu）的哪些老师贡献了哪些 R 包。
@@ -891,17 +828,18 @@ Table 5: 斯坦福大学开发者（部分）
 | BHMSMAfMRI         | Nilotpal Sanyal     |
 | EValue             | Maya B. Mathur      |
 | MetaUtility        | Maya B. Mathur      |
+| NRejections        | Maya B. Mathur      |
 
 </td>
 <td>
 
 | R 包            | 开发者                     |
 |:----------------|:---------------------------|
-| NRejections     | Maya B. Mathur             |
 | PublicationBias | Maya B. Mathur             |
 | Replicate       | Maya B. Mathur             |
 | SimTimeVar      | Maya B. Mathur             |
 | SNPknock        | Matteo Sesia               |
+| Counternull     | Mabene Yasmine             |
 | pcdpca          | Lukasz Kidzinski           |
 | CVcalibration   | Lu Tian                    |
 | exactmeta       | Lu Tian                    |
@@ -966,41 +904,41 @@ Table 6: 开发 R 包数量最多的人（Top 30）
 
 | 开发者             | R 包数量 |
 |:-------------------|---------:|
-| Dirk Eddelbuettel  |       65 |
+| Dirk Eddelbuettel  |       66 |
 | Gábor Csárdi       |       57 |
 | Scott Chamberlain  |       52 |
 | Hadley Wickham     |       47 |
 | Jeroen Ooms        |       46 |
-| Stéphane Laurent   |       34 |
+| Stéphane Laurent   |       35 |
+| Robin K. S. Hankin |       32 |
 | Henrik Bengtsson   |       31 |
 | Kartikeya Bolar    |       31 |
-| Robin K. S. Hankin |       31 |
 | Kurt Hornik        |       28 |
 | Jan Wijffels       |       27 |
 | John Muschelli     |       27 |
 | Bob Rudis          |       26 |
-| Torsten Hothorn    |       26 |
-| Kirill Müller      |       25 |
+| Kirill Müller      |       26 |
+| Martin Maechler    |       26 |
 
 </td>
 <td>
 
 | 开发者               | R 包数量 |
 |:---------------------|---------:|
-| Martin Maechler      |       25 |
+| Torsten Hothorn      |       26 |
 | Muhammad Yaseen      |       25 |
 | Richard Cotton       |       24 |
-| Yihui Xie            |       24 |
 | Achim Zeileis        |       23 |
+| Yihui Xie            |       23 |
+| Max Kuhn             |       22 |
 | Florian Schwendinger |       21 |
+| Guangchuang Yu       |       21 |
 | Kevin R. Coombes     |       21 |
-| Max Kuhn             |       21 |
 | Michael D. Sumner    |       21 |
-| Guangchuang Yu       |       20 |
+| Carl Boettiger       |       20 |
 | Joe Thorley          |       20 |
 | Paul Gilbert         |       20 |
 | Thomas Lin Pedersen  |       20 |
-| Carl Boettiger       |       19 |
 | Hana Sevcikova       |       19 |
 
 </td>
@@ -1125,11 +1063,11 @@ Table 7: CRAN 团队开发维护 R 包数量情况
 |:-------------------|---------:|
 | Kurt Hornik        |       28 |
 | Simon Urbanek      |       27 |
+| Martin Maechler    |       26 |
 | Torsten Hothorn    |       26 |
-| Martin Maechler    |       25 |
 | Achim Zeileis      |       23 |
 | Paul Murrell       |       19 |
-| Toby Dylan Hocking |       13 |
+| Toby Dylan Hocking |       14 |
 | Brian Ripley       |       12 |
 | Thomas Lumley      |       12 |
 | Uwe Ligges         |        9 |
@@ -1347,39 +1285,41 @@ Table 8: RStudio 团队开发维护 R 包数量情况（部分）
 | 团队成员            | R 包数量 |
 |:--------------------|---------:|
 | Hadley Wickham      |       47 |
-| Max Kuhn            |       21 |
+| Max Kuhn            |       22 |
 | Lionel Henry        |       15 |
 | Davis Vaughan       |       14 |
 | Jennifer Bryan      |       14 |
 | Winston Chang       |       14 |
 | Daniel Falbel       |       11 |
 | Carson Sievert      |        8 |
-| Yitao Li            |        7 |
 | Barret Schloerke    |        6 |
 | Thomas Lin Pedersen |        6 |
+| Tomasz Kalinowski   |        5 |
 | JJ Allaire          |        4 |
 | Joe Cheng           |        4 |
 | Kevin Ushey         |        4 |
+| Richard Iannone     |        4 |
 
 </td>
 <td>
 
-| 团队成员          | R 包数量 |
-|:------------------|---------:|
-| Richard Iannone   |        4 |
-| Tomasz Kalinowski |        4 |
-| Julia Silge       |        3 |
-| Kevin Kuo         |        3 |
-| Aron Atkins       |        2 |
-| Cole Arendt       |        2 |
-| Romain François   |        2 |
-| Brian Smith       |        1 |
-| Hannah Frick      |        1 |
-| James Blair       |        1 |
-| Jim Hester        |        1 |
-| Nathan Stephens   |        1 |
-| Nick Strayer      |        1 |
-| Sigrid Keydana    |        1 |
+| 团队成员            | R 包数量 |
+|:--------------------|---------:|
+| Edgar Ruiz          |        3 |
+| Julia Silge         |        3 |
+| Kevin Kuo           |        3 |
+| Aron Atkins         |        2 |
+| Cole Arendt         |        2 |
+| Romain François     |        2 |
+| Yitao Li            |        2 |
+| Brian Smith         |        1 |
+| Christophe Dervieux |        1 |
+| Hannah Frick        |        1 |
+| James Blair         |        1 |
+| Jim Hester          |        1 |
+| Nathan Stephens     |        1 |
+| Nick Strayer        |        1 |
+| Sigrid Keydana      |        1 |
 
 </td>
 </tr>
@@ -1469,12 +1409,12 @@ pdb[pdb$Package == "data.table", "Maintainer"]
 ``` r
 # 强依赖 data.table 包的 R 包
 tools::dependsOnPkgs('data.table', installed = pdb, dependencies = "strong", recursive = FALSE)
-#   [1] "Ac3net"                        "actel"                        
-#   [3] "ActivePathways"                "ActivityIndex"                
-#   [5] "AdhereR"                       "AdhereRViz"                   
-#   [7] "AeRobiology"                   "AF"                           
-#   [9] "AFM"                           "AggregateR"                   
-#  [11] "AGread"                        "akc"                          
+#    [1] "Ac3net"                       
+#    [2] "actel"                        
+#    [3] "ActivePathways"               
+#    [4] "ActivityIndex"                
+#    [5] "AdhereR"                      
+#    [6] "AdhereRViz"                   
 ....
 ```
 
@@ -1520,32 +1460,32 @@ xfun::session_info(packages = c(
 # Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
 # 
 # Package version:
-#   base64enc_0.1.3    blogdown_1.6       bookdown_0.24     
+#   base64enc_0.1.3    blogdown_1.7       bookdown_0.24     
 #   cli_3.1.0          cluster_2.1.2      crayon_1.4.2      
 #   data.table_1.14.2  digest_0.6.29      dplyr_1.0.7       
-#   ellipsis_0.3.2     evaluate_0.14      fansi_0.5.0       
-#   fastmap_1.1.0      generics_0.1.1     glue_1.5.1        
+#   ellipsis_0.3.2     evaluate_0.14      fansi_1.0.2       
+#   fastmap_1.1.0      generics_0.1.1     glue_1.6.0        
 #   graphics_4.1.2     grDevices_4.1.2    grid_4.1.2        
-#   highr_0.9          htmltools_0.5.2    httpuv_1.6.3      
-#   igraph_1.2.9       jquerylib_0.1.4    jsonlite_1.7.2    
-#   knitr_1.36         later_1.3.0        lattice_0.20.45   
-#   lifecycle_1.0.1    magrittr_2.0.1     MASS_7.3.54       
-#   Matrix_1.3.4       methods_4.1.2      mgcv_1.8.38       
-#   mime_0.12          nlme_3.1.153       node2vec_0.1.0    
+#   highr_0.9          htmltools_0.5.2    httpuv_1.6.5      
+#   igraph_1.2.11      jquerylib_0.1.4    jsonlite_1.7.2    
+#   knitr_1.37         later_1.3.0        lattice_0.20.45   
+#   lifecycle_1.0.1    magrittr_2.0.1     MASS_7.3.55       
+#   Matrix_1.4.0       methods_4.1.2      mgcv_1.8.38       
+#   mime_0.12          nlme_3.1.155       node2vec_0.1.0    
 #   permute_0.9.5      pillar_1.6.4       pkgconfig_2.0.3   
 #   promises_1.2.0.1   purrr_0.3.4        R6_2.5.1          
-#   Rcpp_1.0.7         RcppProgress_0.4.2 rlang_0.4.12      
+#   Rcpp_1.0.8         RcppProgress_0.4.2 rlang_0.4.12      
 #   rlist_0.4.6.2      rmarkdown_2.11     servr_0.24        
 #   splines_4.1.2      stats_4.1.2        stringi_1.7.6     
 #   stringr_1.4.0      tibble_3.1.6       tidyselect_1.1.1  
-#   tinytex_0.35       tools_4.1.2        utf8_1.2.2        
+#   tinytex_0.36       tools_4.1.2        utf8_1.2.2        
 #   utils_4.1.2        vctrs_0.3.8        vegan_2.5.7       
-#   word2vec_0.3.4     xfun_0.28          XML_3.99.0.8      
+#   word2vec_0.3.4     xfun_0.29          XML_3.99.0.8      
 #   yaml_2.2.1        
 # 
 # Pandoc version: 2.16.2
 # 
-# Hugo version: 0.89.4
+# Hugo version: 0.91.2
 ```
 
 # 参考文献
@@ -1626,7 +1566,7 @@ Epskamp, Sacha, Angélique O. J. Cramer, Lourens J. Waldorp, Verena D. Schmittma
 
 <div id="ref-igraph" class="csl-entry">
 
-file., See AUTHORS. 2021. *Igraph: Network Analysis and Visualization*. <https://igraph.org>.
+file., See AUTHORS. 2022. *Igraph: Network Analysis and Visualization*. <https://igraph.org>.
 
 </div>
 
@@ -1644,7 +1584,7 @@ Handcock, Mark S., David R. Hunter, Carter T. Butts, Steven M. Goodreau, Pavel N
 
 <div id="ref-DiagrammeR" class="csl-entry">
 
-Iannone, Richard. 2020. *DiagrammeR: Graph/Network Visualization*. <https://github.com/rich-iannone/DiagrammeR>.
+Iannone, Richard. 2022. *DiagrammeR: Graph/Network Visualization*. <https://github.com/rich-iannone/DiagrammeR>.
 
 </div>
 
@@ -1728,7 +1668,7 @@ Schloerke, Barret, Di Cook, Joseph Larmarange, Francois Briatte, Moritz Marbach,
 
 <div id="ref-graphlayouts" class="csl-entry">
 
-Schoch, David. 2021. *Graphlayouts: Additional Layout Algorithms for Network Visualizations*. <https://CRAN.R-project.org/package=graphlayouts>.
+Schoch, David. 2022. *Graphlayouts: Additional Layout Algorithms for Network Visualizations*. <https://CRAN.R-project.org/package=graphlayouts>.
 
 </div>
 

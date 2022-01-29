@@ -127,7 +127,7 @@ div.img {
 ```
 
 ::: rmdtip
-时隔四年，Gephi 发布了 0.9.3 版，写一篇文章庆祝一下。
+时隔四年，Gephi 发布了 1.0.0 版，写一篇文章庆祝一下。
 :::
 
 本文首先概览 R 语言在网络数据分析和可视化方面的情况；然后介绍图的表示（矩阵），图的计算（矩阵计算），图的展示（点、线等），图的工具（R 和其它软件）；最后以 CRAN 上 R 包的元数据为基础，介绍网络分析和可视化的过程，也发现了 R 语言社区中一些非常有意思的现象。
@@ -142,7 +142,13 @@ div.img {
 
 
 <!--
+
 [**RcppSparse**](https://github.com/zdebruine/RcppSparse)  RcppArmadillo 和 RcppEigen 深拷贝deep copy 操作，而 RcppSparse zero-copy 零拷贝，无缝衔接，而计算结果是一致的，详细描述见 [Constructing a Sparse Matrix Class in Rcpp](https://gallery.rcpp.org/articles/sparse-matrix-class/)
+
+1. Roger Bivand 分析源码提交记录 <https://github.com/rsbivand/eRum18>
+1. 基本数据操作到两大阵营的对话 <https://d.cosx.org/d/420697>
+1. 分析 CRAN 上 R 包元数据，挖掘 R 社区中隐藏的信息 <https://r-graphics.netlify.com/cs-cran-network.html>
+
 -->
 
 
@@ -163,7 +169,7 @@ div.img {
 
 
 
-[visNetwork](https://github.com/datastorm-open/visNetwork) 包 可以制作交互式网络图形，Richard Iannone 而开发的[DiagrammeR](https://github.com/rich-iannone/DiagrammeR) 包可以制作静态的矢量网页图形。
+[visNetwork](https://github.com/datastorm-open/visNetwork) 包 可以制作交互式网络图形，它是 JS 库 [vis-network](https://github.com/visjs/vis-network) 的 R 语言接口。Richard Iannone 而开发的[DiagrammeR](https://github.com/rich-iannone/DiagrammeR) 包可以制作静态的矢量网页图形。
 
 ::: rmdnote
 [networkD3](https://github.com/christophergandrud/networkD3) CRAN 上次更新还在 2017 年，[Sam Tyner](https://sctyner.me/) 开发的 [geomnet](https://github.com/sctyner/geomnet) 包给 ggplot2 添加了网络图层 `geom_net`，目前未在 CRAN 上发布。François Briatte 开发的 [ggnet](https://github.com/briatte/ggnet) 目前也未在 CRAN 上发布，但是其帮助文档值得一看，[]( https://briatte.github.io/ggnet/)。
@@ -175,7 +181,7 @@ div.img {
 
 
 
-```{r network-deps, message=FALSE}
+```{r network-deps, message=FALSE, echo=FALSE}
 # 获取 R 包元数据
 Sys.setenv(R_CRAN_WEB = "https://mirrors.tuna.tsinghua.edu.cn/CRAN")
 # 返回 data.frame
