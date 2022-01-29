@@ -120,7 +120,7 @@ brew install --cask font-xkcd
 # 表情字体
 brew install --cask font-noto-emoji font-noto-color-emoji 
 # Windows 系统字体
-brew install --cask font-arial font-andale-mono
+brew install --cask font-arial font-andale-mono font-times-new-roman
 ```
 
 
@@ -160,11 +160,74 @@ brew install --cask adobe-acrobat-reader
 brew install --cask notion
 brew install --cask microsoft-office
 brew install --cask adobe-creative-cloud
+brew install --cask zotero
+
+# 视频编辑器 https://www.openshot.org/zh-hans/
+# [openshot-video-editor](https://github.com/OpenShot/openshot-qt)
+brew install --cask openshot-video-editor
+
+# https://github.com/mltframework/shotcut
+brew install --cask shotcut
+
+# https://github.com/blender/blender
+# https://www.blender.org/
+brew install --cask blender
+# https://www.blackmagicdesign.com/products/davinciresolve/
+
+
+# GIF 制作
+brew install gifski
 
 # Github CLI 命令行工具
 brew install tig tree
 brew install gh gnupg
+
+# LaTeX 代码块样式
+# https://www.ctan.org/pkg/codebox
+
+# 矢量图形编程语言 [asymptote](https://asymptote.sourceforge.io/)
+# https://asymptote.sourceforge.io/asymptote.pdf
+# https://ctan.org/pkg/asymptote
+brew install asymptote
+
+# UML 统一建模语言 [plantuml](https://plantuml.com/)
+brew install plantuml
+
+brew install --cask visual-paradigm-ce
+
+# Data science platform
+brew install --cask rapidminer-studio data-science-studio
+# orange 数据挖掘 https://orangedatamining.com/
+# 每一个操作都是一个组件，将组件连接起来就是工作流，可视化数据编程
+# 是开源的 https://github.com/biolab/orange3
+brew install --cask orange
+
+# Data visualization software 或 BI 工具 如 Qlik
+brew install --cask tableau 
 ```
+
+# 绘图软件 
+
+## gnuplot
+
+[gnuplot](http://www.gnuplot.info/) 是开源的绘图软件，不像 gimp，它是命令行驱动。
+
+```bash
+brew install gnuplot
+```
+
+将下面的命令放入文件 `~/.gnuplot` 自定义字体
+
+```
+set term qt font "Noto Sans"
+```
+
+查看本机安装的字体
+
+```bash
+fc-list : family | sort
+```
+
 
 
 # R 和 RStudio 软件
