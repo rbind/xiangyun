@@ -1,14 +1,13 @@
 ---
-date: "2021-11-20"
+date: "2022-01-20"
 author: "黄湘云"
 slug: intro-datatable-cn
 title: data.table 导论（翻译）
 toc: true
 categories:
-  - 统计软件
+  - R 语言
 tags:
   - data.table
-  - R 语言
   - 数据处理
 bibliography: 
   - refer.bib
@@ -1091,19 +1090,19 @@ xfun::session_info(packages = c(
 # 
 # Package version:
 #   base64enc_0.1.3   blogdown_1.6      bookdown_0.24    
-#   data.table_1.14.2 digest_0.6.28     evaluate_0.14    
-#   fastmap_1.1.0     glue_1.5.0        graphics_4.1.2   
+#   data.table_1.14.2 digest_0.6.29     evaluate_0.14    
+#   fastmap_1.1.0     glue_1.5.1        graphics_4.1.2   
 #   grDevices_4.1.2   highr_0.9         htmltools_0.5.2  
 #   httpuv_1.6.3      jquerylib_0.1.4   jsonlite_1.7.2   
 #   knitr_1.36        later_1.3.0       magrittr_2.0.1   
 #   methods_4.1.2     mime_0.12         promises_1.2.0.1 
 #   R6_2.5.1          Rcpp_1.0.7        rlang_0.4.12     
 #   rmarkdown_2.11    servr_0.24        stats_4.1.2      
-#   stringi_1.7.5     stringr_1.4.0     tinytex_0.35     
+#   stringi_1.7.6     stringr_1.4.0     tinytex_0.35     
 #   tools_4.1.2       utils_4.1.2       xfun_0.28        
 #   yaml_2.2.1       
 # 
-# Pandoc version: 2.16.1
+# Pandoc version: 2.16.2
 # 
-# Hugo version: 0.89.2
+# Hugo version: 0.89.4
 ```

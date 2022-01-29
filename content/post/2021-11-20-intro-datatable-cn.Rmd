@@ -1,14 +1,13 @@
 ---
-date: "2021-11-20"
+date: "2022-01-20"
 author: "黄湘云"
 slug: intro-datatable-cn
 title: data.table 导论（翻译）
 toc: true
 categories:
-  - 统计软件
+  - R 语言
 tags:
   - data.table
-  - R 语言
   - 数据处理
 bibliography: 
   - refer.bib
