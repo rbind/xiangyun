@@ -147,7 +147,6 @@ div.img {
 介绍地理可视化常用的展示形式，如瓦片图、围栏图、气泡图等，以及绘制过程中需要注意的制图规范问题，地理信息是比较敏感的数据，从大的层面上来说，涉及国家主权和领土完整。
 
 
-Python 语言社区关于空间数据操作的流行模块有[shapely](https://github.com/shapely/shapely)和[geopandas](https://github.com/geopandas/geopandas)，后者还包含基于[matplotlib](https://github.com/matplotlib/matplotlib)的地理可视化，而做空间数据可视化的有[bokeh](https://github.com/bokeh/bokeh)、[pyecharts](https://github.com/pyecharts/pyecharts)和[plotly](https://github.com/plotly/plotly.py)等。[basemap](https://github.com/matplotlib/basemap) 基于 matplotlib 提供地图坐标映射，作用类似 R 包 **mapproj**。[geoplot](https://github.com/ResidentMario/geoplot) 提供高级易用的使用接口，扩展 [cartopy](https://github.com/SciTools/cartopy) 和 matplotlib 在地理可视化方面的能力。[rasterio](https://github.com/rasterio/rasterio) 读写栅格数据，以及[地理资源列表](https://github.com/sacridini/Awesome-Geospatial)。
 
 
 
@@ -258,7 +257,7 @@ PlotOnStaticMap(map_cumtb)
 
 杜亚磊开发的[baidumap](https://github.com/badbye/baidumap)包可以调用百度地图服务 <https://map.baidu.com/> 提供地理可视化的背景地图。百度是国内比较早的互联网公司，之前介绍的 Apache Echarts 最早也是百度可视化团队开发的，百度地理信息可视化平台使用的地理可视化组件来自开源的[mapv](https://github.com/huiyan-fe/mapv)。
 
-在百度地图上，根据地理名称获得经纬度信息，获得经纬度后，可以将位置标记在地图上，下面以「中国矿业大学（北京）」为例
+在百度地图上，根据地理名称获得经纬度信息，获得经纬度后，可以将位置标记在地图上，下面以「中国矿业大学（北京）」为例。
 
 ```{r,eval=FALSE}
 remotes::install_github('badbye/baidumap')
@@ -314,7 +313,7 @@ cumtb_map1
 ![(\#fig:leaflet-cumtb) OpenStreetMap 地图-中国矿业大学（北京）](/img/maps-in-r/leaflet-cumtb.png){.full}
 
 
-不难看出，百度地图和 leaflet 地图的坐标系不是同一个，获取的经纬度不同，这里将矿大（北京）定位到农大了
+不难看出，百度地图和 leaflet 地图的坐标系不是同一个，获取的经纬度不同，这里将矿大（北京）定位到农大了。
 
 ```{r,eval=FALSE}
 cumtb_map2 = leaflet() %>% 
@@ -324,7 +323,7 @@ cumtb_map2 = leaflet() %>%
 cumtb_map2
 ```
 
-注意：GeoIP 只能给定一个粗略的经纬度信息，根据IP解析出来的经纬度 `c(116,39.9)` ，相比百度地图API根据地理名称获取的经纬度`c(116.35688,40.00314 )`就更加模糊了
+注意：GeoIP 只能给定一个粗略的经纬度信息，根据IP解析出来的经纬度 `c(116,39.9)` ，相比百度地图API根据地理名称获取的经纬度`c(116.35688,40.00314 )`就更加模糊了。
 
 
 ## 高德地图
@@ -705,34 +704,11 @@ terra::plot(elevation, asp = NA)
 
 ## 示例：中国地图数据
 
-R 语言社区有不少 R 包涉及中国地图数据，但是质量不一，下面简单说下几个主要的数据源。
+R 语言社区有不少 R 包涉及中国地图数据，但是质量不一，比如 **maps** 和 **mapdata** 包内置的中国地图，精度不够也不完整，下面再简单说下几个主要的数据源。
 
-### 地图数据源
+### 矢量数据
 
-[**rnaturalearth**](https://github.com/ropenscilabs/rnaturalearth) 和 [**rnaturalearthdata**](https://github.com/ropenscilabs/rnaturalearthdata) 提供 [美国国家地理](https://www.naturalearthdata.com/)网站的 R 语言接口，可以免费下载矢量和栅格地图数据。
-
-```{r}
-library(rnaturalearth)
-library(rnaturalearthdata)
-library(rnaturalearthhires)
-```
-
-下载和绘制中国地图数据，如图\@ref(fig:china-map)
-
-```{r china-map, eval=FALSE}
-sp::plot(rnaturalearth::ne_countries(
-  country = "China",
-  continent = "Asia",
-  type = "countries",
-  scale = 10, returnclass = "sp"
-))
-```
-
-![(\#fig:china-map) 美国国家地理网站提供的中国地图数据](/img/maps-in-r/china-map.png){.full}
-
-
-::: rmdnote
-**rnaturalearthhires** 有 20 多 M，不在 CRAN 上，安装命令如下：
+[**rnaturalearth**](https://github.com/ropenscilabs/rnaturalearth) 和 [**rnaturalearthdata**](https://github.com/ropenscilabs/rnaturalearthdata) 提供 [美国国家地理](https://www.naturalearthdata.com/) 网站的 R 语言接口，可以免费下载矢量和栅格地图数据。精度稍高一点的地图数据需要下载**rnaturalearthhires** 包，它有 20 多 M，不在 CRAN 上，安装命令如下：
 
 ```{r,eval=FALSE}
 install.packages(
@@ -741,14 +717,47 @@ install.packages(
   type = "source"
 )
 ```
-:::
+```{r,eval=FALSE}
+## 加载 R 包
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(rnaturalearthhires)
+```
 
+下载数据，调用 **sp** 包绘制中国地图数据，如图\@ref(fig:china-map)。
+
+```{r china-map, eval=FALSE}
+chn_map <- rnaturalearth::ne_countries(
+  country = "China",
+  continent = "Asia",
+  type = "countries",
+  scale = 10, returnclass = "sp"
+)
+
+twn_map <- rnaturalearth::ne_countries(
+  country = "Taiwan",
+  continent = "Asia",
+  type = "countries",
+  scale = 10, returnclass = "sp"
+)
+# 绘图
+sp::plot(chn_map)
+sp::plot(twn_map, add = TRUE)
+```
+
+![(\#fig:china-map) 美国国家地理网站提供的中国地图数据](/img/maps-in-r/china-map.png){.full}
+
+这个地图数据有些明显的问题，将台湾地区的数据和中国分离开，南海诸岛的数据缺失很多，关于地图，这是一点都不能少的！笔者在美国国家地理网站的[声明](https://www.naturalearthdata.com/downloads/50m-cultural-vectors/50m-admin-0-countries-2/)里了解到，地区边界是根据实际控制划分的。
+
+### 栅格数据
+
+下面再看看网站提供的栅格数据，以海拔数据为例。
 
 ```{r,eval=FALSE}
-# 创建目录存储临时地形文件
+# 创建目录存储地形文件
 xfun::dir_create("~/data/") 
 # 从 raster::getData('ISO3') 可以知道各个国家或地区的 ISO3 代码
-# 下载 Raster 数据 
+# 下载数据 
 # 中国大陆地区
 chn_map <- raster::getData(name = "alt", country = "CHN", mask = TRUE, path = "~/data/")
 # 台湾地区
@@ -811,6 +820,26 @@ geojsonMap(dat, mapName = "china", palette = "RdBu", colorMethod = "bin")
 ```
 
 ![(\#fig:china-leafletcn) 交互地图数据可视化](/img/maps-in-r/china-leafletcn.png){.full}
+
+绘制某个省份、直辖市、地级市的数据，图\@ref(fig:china-beijing)和图\@ref(fig:china-shaoyang)分别展示北京市、邵阳市下各个区县的数据。不难发现，**leafletCN** 包内置的地图边界和名称等数据尚未更新，下图\@ref(fig:china-beijing)还是崇文、宣武区，实际它们已经合并至东、西城区，图\@ref(fig:china-shaoyang)还是邵东县，实际已经升级为邵东市，是由邵阳市代管的县级市。
+
+```{r,eval=FALSE}
+dat <- data.frame(name = regionNames("北京"), value = runif(18))
+geojsonMap(dat, mapName = "北京", palette = "RdBu", colorMethod = "bin")
+```
+
+![(\#fig:china-beijing) 北京地区](/img/maps-in-r/china-beijing.png){.full}
+
+```{r,eval=FALSE}
+dat <- data.frame(name = regionNames("邵阳"), value = runif(12))
+geojsonMap(dat, mapName = "邵阳", palette = "RdBu", colorMethod = "bin")
+```
+
+![(\#fig:china-shaoyang) 邵阳地区](/img/maps-in-r/china-shaoyang.png){.full}
+
+可见，市和区县级地图边界数据是存在问题的，省级边界地图数据配合高德提供的背景地图数据是基本可用。一个更可靠的方式是不要使用此边界数据，只使用高德地图，以气泡图代替，类似图\@ref(fig:bubble-map)，要点是需要准备各个区县级以上城市的经纬度坐标，并且和高德地图采用的坐标系是一致的，这样气泡的位置和地图上显示的城市名称是基本重合的。
+
+![(\#fig:bubble-map) 部分区县级城市的气泡散点图](/img/maps-in-r/bubble-map.png){.full}
 
 
 ### 静态地图
@@ -1132,8 +1161,11 @@ leaflet(quakes, options = leafletOptions(attributionControl = FALSE)) |>
 
 ## plotly
 
-**plotly** [@plotly] 包调用 Mapbox 地图服务做地理可视化
+<!-- 
+整个设计框架
+-->
 
+**plotly** [@plotly] 包在地理可视化方面提供散点图 [scattergeo](https://plotly.com/r/reference/scattergeo/) 和等值图 [choropleth](https://plotly.com/r/reference/choropleth/) 两种基础类型。**plotly** 还为 [mapbox](https://mapbox.com/) 地图服务添加三个专门的绘图函数，分别是散点图[scattermapbox](https://plotly.com/r/reference/scattermapbox/)、等值图[choroplethmapbox](https://plotly.com/r/reference/choroplethmapbox/)和热力图[densitymapbox](https://plotly.com/r/reference/densitymapbox/)。
 
 ```{r,eval=FALSE}
 plotly::plot_mapbox(
@@ -1144,12 +1176,14 @@ plotly::plot_mapbox(
 ) |>
   plotly::layout(
     title = "斐济地震带",
+    # mapbox 地图设置 https://plotly.com/r/reference/layout/mapbox/
     mapbox = list(
       # style = 'dark', # 暗黑主题
       zoom = 4, # 缩放级别
       center = list(lat = -20, lon = 175)
     )
   ) |>
+  plotly::colorbar(title = "震级") |>
   plotly::config(
     mapboxAccessToken = Sys.getenv("MAPBOX_TOKEN"),
     displayModeBar = FALSE
@@ -1158,13 +1192,106 @@ plotly::plot_mapbox(
 
 ![(\#fig:quakes-plotly) **plotly** 包使用 Mapbox 地图](/img/maps-in-r/quakes-plotly.png){.full}
 
-布局设置以 `layout(mapbox = ...)` 内的 style 参数为例， 它是用来设置地图风格样式的，除了默认的参数值 `basic`，还可以设置为夜晚暗黑 `dark`，卫星地图 `satellite` 等，其他见[文档](https://plotly.com/r/reference/layout/mapbox/)。
+接下来介绍布局设置，以 `layout(mapbox = ...)` 内的 style 参数为例， 它是用来设置地图风格样式的，除了默认的参数值 `basic`，还可以设置为夜晚暗黑 `dark`，卫星地图 `satellite` 等。若设置`open-street-map`，调 OpenStreetMap 服务，则无需 `MAPBOX_TOKEN`，具体哪些用到 `MAPBOX_TOKEN` 哪些不需要用到 `MAPBOX_TOKEN`，读者可以根据需要选择，详见[](https://plotly.com/r/mapbox-layers/)，其他参数设置见[文档](https://plotly.com/r/reference/layout/mapbox/)。
 
 
 ![(\#fig:quakes-satellite) **plotly** 包使用 Mapbox 卫星地图](/img/maps-in-r/quakes-satellite.png){.full}
 
 
+```{r,eval=FALSE}
+plotly::plot_ly(
+  data = quakes,
+  type = "densitymapbox",
+  lat = ~lat,
+  lon = ~long,
+  coloraxis = "coloraxis",
+  radius = 10
+) %>%
+  plotly::layout(
+    mapbox = list(
+      style = "stamen-terrain",
+      zoom = 4,
+      center = list(lat = -25, lon = 178)
+    ), coloraxis = list(colorscale = "Viridis")
+  ) %>%
+  plotly::config(displayModeBar = FALSE)
+```
 
+![(\#fig:mapbox-density) **plotly** 包使用 Mapbox 绘制热力图](/img/maps-in-r/mapbox-density.png){.full}
+
+**plotly** 包内置了两个地图数据集，一个是美国州级多边形数据`"USA-states"`，另一个是国家级多边形数据，来自 Natural Earth，需要3个字母的国家代码传给参数 `locations`。
+
+```{r,eval=FALSE}
+dat <- data.frame(state.x77,
+  stats_abbr = state.abb
+)
+# 地理单元名称和 stats_abbr 一致
+plotly::plot_ly(
+  data = dat,
+  type = "choropleth",
+  locations = ~stats_abbr, # 两个字母的州名缩写
+  locationmode = "USA-states", # 地理几何地图数据
+  colorscale = "Viridis", # 其它调色板如 "RdBu"
+  z = ~Population
+) |>
+  plotly::colorbar(title = "人口") %>%
+  plotly::layout(
+    geo = list(scope = "usa"),
+    title = "1974年美国各州的人口"
+  ) |>
+  plotly::config(displayModeBar = FALSE)
+```
+
+
+![(\#fig:mapbox-choropleth) **plotly** 包使用 Mapbox 绘制面量图](/img/maps-in-r/mapbox-choropleth.png){.full}
+多边形矢量地图数据，多边形的边界常常是行政区域，choropleth 地图是填充颜色的多边形，颜色深浅表示数据指标，地图的作用在于展示指标的空间变化，在美国，郡县一级的行政区大致相当于咱们市一级行政单位，比如图\@ref(fig:mapbox-choropleth-counties) 展示美国各个县的失业率，大城市失业率相对较高。顺便一提，数据量较大的时候，**plotly** 渲染速度相对较慢。
+
+```{r,eval=FALSE}
+# 示例修改自 https://plotly.com/r/choropleth-maps/
+library(plotly)
+# 数据集来自 https://github.com/plotly/datasets
+# 下载至本地目录
+data_dir <- "/Users/xiangyun/Documents/Github/plotly-datasets"
+# 准备数据
+map_url <- paste(data_dir, "geojson-counties-fips.json", sep = "/")
+# 读取 GeoJSON 格式地图数据
+counties <- rjson::fromJSON(file = map_url)
+data_url <- paste(data_dir, "fips-unemp-16.csv", sep = "/")
+# 行政编码 和 失业率数据
+df <- read.csv(data_url, colClasses = c(fips = "character"))
+# 绘图
+plotly::plot_ly(
+  data = df,
+  type = "choropleth", # 图形种类
+  geojson = counties,  # GeoJSON 地图数据
+  locations = ~fips,   # 类似行政编码
+  z = ~unemp,  # 失业率
+  colorscale = "Viridis", # 调色板
+  zmin = 0,  # 有颜色映射的失业率下限
+  zmax = 12,
+  marker = list(line = list(
+    width = 0 # 去掉每个县的边界线
+  ))
+) %>%
+  plotly::colorbar(title = "失业率 (%)") %>%
+  plotly::layout(
+    title = "2016 年美国各个县的失业率",
+    # 参数设置详见 https://plotly.com/r/reference/layout/geo/
+    geo = list(
+      scope = "usa", 
+      # 地图聚焦到 USA，其它取值有 "africa" 和 "asia" 等
+      projection = list(type = "albers usa"), 
+      # 投影方式，常用的还有 "mercator" 等
+      showlakes = TRUE, # 显示湖
+      lakecolor = plotly::toRGB("white") # 湖以白色填充
+    )
+  ) %>%
+  plotly::config(displayModeBar = FALSE)
+```
+
+![(\#fig:mapbox-choropleth-counties) **plotly** 包使用 Mapbox 绘制面量图](/img/maps-in-r/mapbox-choropleth-counties.png){.full}
+
+函数 `plot_ly(locations = ~fips,...)` 传进去的参数值 fips 类似我国的行政编码，美国地图上每一块区域都有唯一的一个代码对应，详见[FIPS 代码](https://en.wikipedia.org/wiki/FIPS_county_code)，需要和地图数据 GeoJSON 里每个 feature（代表一个地理单元）的 id 或 properties （地理单元的各个属性值）下的一个属性值映射，读者可参考[choropleth-maps](https://plotly.com/r/choropleth-maps/)文档中的示例。
 
 
 # 数据结构
@@ -1328,6 +1455,8 @@ plot(world["gdpPercap"])
 
 ## 栅格数据 terra
 
+
+## 时空数据 stars
 
 
 
@@ -1553,7 +1682,9 @@ remotes::install_github("tradingeconomics/tradingeconomics/R/tradingeconomics")
 
 # 总结归纳
 
-分两块，其一提供基础的空间数据类型，以及相应的数据操作方法，包括导入各种各样格式的空间数据，其二是空间数据分析和可视化方法，支持接入各种各样的地图服务，渲染静态和交互图形。表\@ref(tab:spatial-deps)列出了基础的空间数据处理、分析和可视化的 R 包，更多详情见 CRAN 上空间数据的[任务视图](https://cran.r-project.org/view=Spatial)。
+本文意在提供一个基于 R 语言的空间数据结构、可视化的简单概览，帮助读者了解空间数据可视化的轮廓，提供 R 语言在此领域的探索和实践。
+
+本文创作过程中使用了大量的 R 包，感谢 R 语言社区的各个维护者，是他们开源共享的精神建立了如今繁荣的局面。总的来说，分两块，其一提供基础的空间数据类型，以及相应的数据操作方法，包括导入各种各样格式的空间数据，其二是空间数据分析和可视化方法，支持接入各种各样的地图服务，渲染静态和交互图形。空间数据方面，特别是 **sp** [@sp] 和 **sf**[@sf] 包的开发者 [Edzer Pebesma](https://www.r-spatial.org/)，**raster** [@raster]和 **terra** 包[@terra]的开发者 [Robert J. Hijmans](https://github.com/rhijmans)，数据可视化方面，特别是 **lattice** 包 [@lattice] 的开发者 [Deepayan Sarkar](https://deepayan.github.io/)，**ggplot2** 包[@Wickham2022]的开发者 [Hadley Wickham](https://hadley.nz/) 和 [Thomas Lin Pedersen](https://www.data-imaginist.com/)，**RgoogleMaps** 包的开发者 [@Loecher2015] [Markus Loecher](https://blog.hwr-berlin.de/codeandstats/)，**ggmap** 包[@Kahle2013]的开发者 [David Kahle](https://www.kahle.io/)，**leaflet** 包[@leaflet]的开发者 [Joe Cheng](https://github.com/jcheng5)，**echarts4r** 包[@echarts4r]的开发者 [John Coene](https://john-coene.com/)，**plotly** 包[@Sievert2020]的开发者 [Carson Sievert](https://cpsievert.me/)。这些开发者只是 R 语言社区的冰山一角，截止写作时间，CRAN 上的开发者已经超过**10000**人。表\@ref(tab:spatial-deps)列出了基础的空间数据处理、分析和可视化的 R 包，也是本文直接或间接使用的一些 R 包，更多详情见 CRAN 上空间数据的[任务视图](https://cran.r-project.org/view=Spatial)。
 
 ```{r spatial-deps, message=FALSE, echo=FALSE}
 # 获取 R 包元数据
@@ -1590,19 +1721,12 @@ knitr::kable(sub_pdb[order(sub_pdb$Maintainer), ],
 )
 ```
 
+从 **sp** 到 **sf**，从 **raster** 到 **terra**，是 R 语言在空间数据领域前进的一大步，在使用的直观感受上，数据读写、操作的性能得到极大的提升，R 包依赖也大为减少。
 
-## sp vs sf
-
-性能提升是非常显著的
-
-## raster vs terra
-
-性能提升是非常显著的
+顺便一提，Python 语言社区关于空间数据操作的流行模块有[shapely](https://github.com/shapely/shapely)和[geopandas](https://github.com/geopandas/geopandas)，后者还包含基于[matplotlib](https://github.com/matplotlib/matplotlib)的地理可视化，而做空间数据可视化的有[bokeh](https://github.com/bokeh/bokeh)、[pyecharts](https://github.com/pyecharts/pyecharts)和[plotly](https://github.com/plotly/plotly.py)等。[basemap](https://github.com/matplotlib/basemap) 基于 matplotlib 提供地图坐标映射，作用类似 R 包 **mapproj**。[geoplot](https://github.com/ResidentMario/geoplot) 提供高级易用的使用接口，扩展 [cartopy](https://github.com/SciTools/cartopy) 和 matplotlib 在地理可视化方面的能力。[rasterio](https://github.com/rasterio/rasterio) 读写栅格数据，以及[地理资源列表](https://github.com/sacridini/Awesome-Geospatial)。
 
 
-## lattice vs ggplot2
-
-事实上，**lattice** 在绘图能力上丝毫不逊色于 **ggplot2**，甚至还有超越，本篇主要介绍空间数据，下面以 R 软件内置的地形数据 volcano 为例。
+**ggplot2** 及其生态是很好的，可能大家不知道的是，**lattice** 在绘图能力上丝毫不逊色于 **ggplot2**，甚至还有超越。本篇主要介绍空间数据，下面以 R 软件内置的地形数据 volcano 为例。
 
 ```{r}
 #| volcano-shade, 
@@ -1712,16 +1836,28 @@ wireframe(volcano,
 ![(\#fig:lattice-volcano-contour) Auckland Maunga Whau 火山带等值线的三维地形图 $10m\times 10m$](/img/maps-in-r/lattice-volcano-contour.png){.full}
 
 
+# 未来展望
 
 
 
+本文也只涉及空间数据领域的皮毛，说白了就是导入几种格式的空间数据画点小地图，也未涉及百万乃至百亿级的大规模空间数据的可视化，以及支持可视分析需要的空间数据存储、检索、操作、分析、建模和应用的知识和技术。此外，对于不同类型的空间数据有不同的分析方法和统计模型，比如点数据的模式分析，面数据的层次分析，栅格数据的图像分析等，本文亦未涉及。再有，面向具体业务问题，从问题发现到数据模型的转化、界定、拆解、优化和应用所需要的领域知识，本文也未涉及。笔者所知所学有限，空间数据领域是如此广阔，需要大家一起发力。
+
+
+技术层面，在大规模空间数据可视化和计算方面，[Kepler.gl](https://github.com/keplergl/kepler.gl) 是一款开源的大规模地理数据分析工具。[deck.gl](https://github.com/visgl/deck.gl) WebGL2 加持的高性能大规模空间数据可视化框架，支持灵活的自定义。Uber 开发的[h3](https://github.com/uber/h3) 提供六边形分层时空索引，[GeoMesa](https://github.com/locationtech/geomesa) 提供点、线、多边形的时空索引，支持分布式时空数据查询分析，结合 kafka 提供近实时的时空数据流处理能力，支持自定义 [Apache Spark](https://github.com/apache/spark) 作为分布式地理分析计算引擎，要知道 Spark 本身是不提供针对空间数据操作的 SQL 函数，因此，使用成本是很高的。更进一步，[Apache Sedona](https://github.com/apache/incubator-sedona)专门应用于大规模空间数据处理的集群计算系统，扩展了 Apache Spark / SparkSQL 的能力，提供一组开箱即用的套件 SpatialSQL，支持 Python 和 R 等多种编程接口。
+[Presto](https://github.com/prestodb/presto) 作为一款分布式 SQL 查询引擎，内置了常用空间数据操作的函数，和 R 包 **sf** 提供的函数名基本是一致的，迁移学习成本低。更加专业的传统 GIS 数据库当属站在[PostgreSQL](https://www.postgresql.org/)肩膀上的[PostGIS](http://postgis.net/)。
+
+
+企业层面，根据2021年[中国地理信息产业发展报告](http://www.cagis.org.cn/Lists/content/id/3440.html)，截止2020年末，具有测绘资质的单位约**2.2**万家，甲级资质的企事业单位的空间数据价值非常巨大。国内以百度、高德、腾讯和华为为代表的地图服务供应商，在本地生活、智慧交通、无人车、无人机等领域提供电子导航等基础服务。
+
+
+国家层面，电视剧《雍正王朝》里有一个镜头，胤禛办完江南筹款赈灾向康熙汇报民情，各省上报的土地逐年减少，税收也逐年减少，仅此一弊，国家不堪其忧。国家依靠层层上报的数据可能存在虚假成分，不利于国家及时掌握真实情况。2021年中华人民共和国自然资源部发布[2020年卫星遥感应用报告](http://gi.mnr.gov.cn/202108/P020210901375952588128.pdf)，目前数据规模达到 **1.6 PB**，相比于一些互联网公司每天产生的数据量，未来发展空间还十分巨大。2021年中华人民共和国自然资源部发布[第三次全国国土调查主要数据公报](http://www.mnr.gov.cn/dt/ywbb/202108/t20210826_2678340.html)，基于高分辨率的卫星遥感影像数据，广泛应用移动互联网、云计算、无人机等新技术，全面查清了全国国土利用状况。要提升整体的社会系统建设，科学技术就是一个抓手。比起历朝历代，通过现代化技术可以极大地降低调查成本，提高数据准确性和可靠性，以科学的方法推进国家治理体系和治理能力现代化。
 
 
 
 
 # 环境信息
 
-在 RStudio IDE 内编辑本文的 R Markdown 源文件，用 **blogdown** [@Xie2017] 构建网站，[Hugo](https://github.com/gohugoio/hugo) 渲染 **knitr** 之后的 Markdown 文件，得益于 **blogdown** 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：
+本文的 R Markdown 源文件是在 RStudio IDE 内编辑的，用 **blogdown** [@Xie2017] 构建网站，[Hugo](https://github.com/gohugoio/hugo) 渲染 **knitr** 之后的 Markdown 文件，得益于 **blogdown** 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：
 
 ```{r}
 xfun::session_info(packages = c(
