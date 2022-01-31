@@ -394,7 +394,7 @@ ip_info('111.203.130.69')
 
 地球上每一块区域都对应有一个唯一的 GeoHash 值，比起区、县、乡、镇行政单元，它是用来刻画规则的更小的网格单元，广泛用于本地生活服务场景，比如外卖、打车、配送等。
 
-[geohashTools](https://github.com/MichaelChirico/geohashTools) 包[@geohashTools]可以非常高效地将 GeoHash 编码的地理区域转为经纬度坐标。
+[**geohashTools**](https://github.com/MichaelChirico/geohashTools) 包[@geohashTools]可以非常高效地将 GeoHash 编码的地理区域转为经纬度坐标。
 
 ```{r,eval=FALSE}
 # 随意造几个位置
@@ -404,11 +404,10 @@ geohash_df <- data.frame(geohash = c(
 ))
 # 转码为经纬度
 dat <- geohashTools::gh_decode(geohashes = geohash_df$geohash)
-dat2 <- data.frame(latitude = dat$latitude, longitude = dat$longitude)
 # 将位置绘制在地图上
-leaflet::leaflet(data = dat2) |> 
+leaflet::leaflet() |> 
   leafletCN::amap() |> 
-  leaflet::addCircles(lng = ~longitude, lat = ~latitude, radius = 3)
+  leaflet::addCircles(lng = dat$longitude, lat = dat$latitude, radius = 3)
 ```
 
 ![(\#fig:sf-geohash) GeoHash 地理区域编码](/img/maps-in-r/sf-geohash.png){.full}
@@ -727,13 +726,14 @@ library(rnaturalearthhires)
 下载数据，调用 **sp** 包绘制中国地图数据，如图\@ref(fig:china-map)。
 
 ```{r china-map, eval=FALSE}
+# 中国大陆地区
 chn_map <- rnaturalearth::ne_countries(
   country = "China",
   continent = "Asia",
   type = "countries",
   scale = 10, returnclass = "sp"
 )
-
+# 台湾地区
 twn_map <- rnaturalearth::ne_countries(
   country = "Taiwan",
   continent = "Asia",
@@ -742,6 +742,7 @@ twn_map <- rnaturalearth::ne_countries(
 )
 # 绘图
 sp::plot(chn_map)
+# 追加
 sp::plot(twn_map, add = TRUE)
 ```
 
@@ -903,9 +904,9 @@ plot(china_map["QUHUADAIMA"])
 
 # 可视化包
 
-本节主要介绍几个 R 语言社区提供的地理可视化 R 包，分别是绘制交互式地图的 **echarts4r** 包 [@echarts4r]、**leaflet** 包和 **plotly** 包。
+本节主要介绍几个 R 语言社区提供的地理可视化 R 包，分别是绘制交互式地图的 **echarts4r** 包 [@echarts4r]、**leaflet** 包和 **plotly** 包。它们各有千秋， **echarts4r** 背靠 [Apache Echarts](https://github.com/apache/echarts) 功能覆盖面比较广，但是还不够精纯，在易用性和性能上还有较大提升空间，此外，在统计方面有些弱，比如分组线性回归很难实现。**leaflet** 专注于交互式地理可视化，支持常见的矢量和栅格数据对象。**plotly** 背后的支持来自商业公司，上游依赖是开源的JavaScript 库[plotly](https://github.com/plotly)，深耕多年，功能全面，使用的体感是性能比较差。
 
-地理可视化的展示形式有多种，散点图、气泡图、峰窝图和热度图等，还可以有更加复合的专题地图，如在地图上省、市、区、县一级别，显示各个年龄段的人口比例，类似将饼图贴在地图上。为简单起见，以散点图为例介绍入门级别的内容。
+地理可视化的展示形式有多种，散点图、气泡图、峰窝图和热度图等，还可以有更加复合的专题地图，如在地图上省、市、区、县一级别，显示各个年龄段的人口比例，类似将饼图贴在地图上。为简单起见，主要以散点图为例介绍入门级别的内容。
 
 
 ## echarts4r
@@ -1083,9 +1084,9 @@ quakes |>
 ![(\#fig:quakes-ggmap) **echarts4r** 使用谷歌地图](/img/maps-in-r/quakes-ggmap.png){.full}
 
 
+另外，袁凡整理的材料 --- [**echarts4r**: 从入门到应用](https://cosx.org/2021/12/introduction-to-echarts4r/)，详细介绍了如何用 **echarts4r** 绘制各种各样的常用图形，如何引入外部地图数据制图，文章完全基于用 R Markdown 编译，图文并茂，内容可重复。苏玮制作的 [日本新冠疫情看板](https://github.com/swsoyee/2019-ncov-japan) 也大量使用 **echarts4r**，可见 **echarts4r** 能力之强，此看板适合比较高阶的 R 语言读者学习，地理可视化的定制化程度比较高。
 
-
-百度、阿里、腾讯等公司都提供大量面向不同场景的地图服务，一些软件也内置了地图，如[tableau](https://www.tableau.com/products/desktop) 和[QGIS](https://www.qgis.org/)等，下图\@ref(fig:qgis) 展示 QGIS 软件使用在线的 OpenStreetMap 地图。
+百度、阿里、腾讯等公司都提供大量面向不同场景的地图服务，一些软件也内置了地图，如[tableau](https://www.tableau.com/products/desktop)、[GRASS GIS](https://grass.osgeo.org/) 和[QGIS](https://www.qgis.org/)等，下图\@ref(fig:qgis) 展示 QGIS 软件使用在线的 OpenStreetMap 地图。
 
 ![(\#fig:qgis) QGIS 软件内的 OpenStreetMap 地图](/img/maps-in-r/qgis.png){.full}
 
@@ -1093,7 +1094,14 @@ quakes |>
 
 ## leaflet
 
-**leaflet** [@leaflet] 包借助 [htmlwidgets](https://github.com/ramnathv/htmlwidgets) 封装了鼎鼎大名的开源交互式地图库 [leaflet](https://leafletjs.com/)。
+
+<!-- 
+WebGIS
+leaflet 设计框架
+-->
+
+**leaflet** [@leaflet] 包借助 [**htmlwidgets**](https://github.com/ramnathv/htmlwidgets) 封装了鼎鼎大名的开源交互式可视化地图库 [leaflet](https://leafletjs.com/)。注意，leaflet 只是一个渲染 GIS 数据的可视化库，并不提供 GIS 数据服务。类似的可视化库还有[OpenLayers](https://github.com/openlayers/openlayers)，及其 R 接口[openlayers](https://github.com/crazycapivara/openlayers)，另一个紧密相关的空间数据处理工具是[GeoServer](https://github.com/geoserver/geoserver)，它遵循 Open Geospatial Consortium (OGC) Web Feature Service (WFS) 和 Web Coverage Service (WCS) 标准，支持各种 GIS 数据源。
+
 
 
 在可视化的过程中，配色是非常重要的一个环节，准确地表达地图上各个区域或位置的数据信息，负责体现分类、层次、大小等信息。常见的操作是将一组数据映射成一组颜色值，还是以 quakes 数据集为例，下面将连续型的地震震级数据映射成一组颜色值。这方面的工作已经有非常成熟的 R 包来做了，比如[**scales**](https://github.com/r-lib/scales)包和[**colourvalues**](https://github.com/SymbolixAU/colourvalues) 包。如图 \@ref(fig:quakes-viridis)，默认情况下 `viridis` 调色板，颜色越黄值越大。
@@ -1111,7 +1119,7 @@ plot(data = quakes, lat ~ long, col = color, pch = 19)
 
 ![(\#fig:quakes-viridis) 地震震级映射连续的颜色值](/img/maps-in-r/quakes-viridis.png){.full}
 
-另一种情况是将分类型的变量映射上颜色，这通常采用分类型的调色板，比如 `Set2`。所有常用的调色板可见 **RColorBrewer** 包，在命令行中直接运行 `RColorBrewer::display.brewer.all()` 即可预览。稍微值得注意的是当分类太多，超出了调色板的数量，需要自己构造一下，比如 `Set2` 只有8种颜色，但是需要10种，可通过如下方法差值构造：
+另一种情况是将分类型的变量映射上颜色，这通常采用分类型的调色板，比如 `Set2`。所有常用的调色板可见 **RColorBrewer** 包，在命令行中直接运行 `RColorBrewer::display.brewer.all()` 即可预览。稍微值得注意的是当分类太多，超出了调色板的数量，需要自己构造一下，比如 `Set2` 只有8种颜色，但是需要10种，可通过如下方法插值构造：
 
 ```{r}
 colorRampPalette(colors = RColorBrewer::brewer.pal(n = 8, name = "Set2"))(10)
@@ -1156,7 +1164,30 @@ leaflet(quakes, options = leafletOptions(attributionControl = FALSE)) |>
   addScaleBar(position = c("bottomleft"))
 ```
 
-![(\#fig:quakes-leaflet) **leaflet** 包使用 OpenStreetMap 地图](/img/maps-in-r/quakes-leaflet.png){.full}
+![(\#fig:quakes-leaflet)散点图](/img/maps-in-r/quakes-leaflet.png){.full}
+
+
+[**leaflet.extras**](https://github.com/bhaskarvk/leaflet.extras) 提供绘制热力图的扩展，另一个与之类似的包是[**leaflet.extras2**](https://github.com/trafficonese/leaflet.extras2) 包，前者虽已停止开发了，但是目前看来还可以用。
+
+```{r,eval=FALSE}
+#  提供 addHeatmap 函数绘制热力图 
+library(leaflet.extras) 
+
+leaflet(quakes) %>%
+  addProviderTiles(providers$CartoDB.Positron) %>%
+  addCircles(lng = ~long, lat = ~lat, color = ~ pal(mag), label = ~popup_text) %>%
+  setView(178, -25, 5) %>%
+  addHeatmap(
+    lng = ~long, lat = ~lat, intensity = ~mag,
+    blur = 20, max = 0.05, radius = 15
+  ) %>% 
+  addLegend("bottomright", pal = pal, values = ~mag, title = "地震震级") %>%
+  addScaleBar(position = "bottomleft")
+```
+
+绘制热力图就这么简单，如图 \@ref(fig:quakes-heatmap) 所示，在图\@ref(fig:quakes-leaflet)的基础上添加了热力图，实际上就是根据点的密度添加色彩，密度值根据核密度估计算法统计出来。
+
+![(\#fig:quakes-heatmap)热力图](/img/maps-in-r/quakes-heatmap.png){.full}
 
 
 ## plotly
@@ -1252,12 +1283,13 @@ library(plotly)
 # 数据集来自 https://github.com/plotly/datasets
 # 下载至本地目录
 data_dir <- "/Users/xiangyun/Documents/Github/plotly-datasets"
-# 准备数据
+# 准备地图数据
 map_url <- paste(data_dir, "geojson-counties-fips.json", sep = "/")
 # 读取 GeoJSON 格式地图数据
 counties <- rjson::fromJSON(file = map_url)
+# 准备观测数据
 data_url <- paste(data_dir, "fips-unemp-16.csv", sep = "/")
-# 行政编码 和 失业率数据
+# 导入行政编码和失业率数据
 df <- read.csv(data_url, colClasses = c(fips = "character"))
 # 绘图
 plotly::plot_ly(
@@ -1292,6 +1324,140 @@ plotly::plot_ly(
 ![(\#fig:mapbox-choropleth-counties) **plotly** 包使用 Mapbox 绘制面量图](/img/maps-in-r/mapbox-choropleth-counties.png){.full}
 
 函数 `plot_ly(locations = ~fips,...)` 传进去的参数值 fips 类似我国的行政编码，美国地图上每一块区域都有唯一的一个代码对应，详见[FIPS 代码](https://en.wikipedia.org/wiki/FIPS_county_code)，需要和地图数据 GeoJSON 里每个 feature（代表一个地理单元）的 id 或 properties （地理单元的各个属性值）下的一个属性值映射，读者可参考[choropleth-maps](https://plotly.com/r/choropleth-maps/)文档中的示例。
+
+## lattice
+
+
+lattice 自内置于 R 软件，但是启动 R 软件时，不自动加载。
+
+```{r,eval=FALSE}
+library(lattice)
+# 散点图
+xyplot(lat ~ long, data = quakes)
+
+library(loa)
+# 气泡图
+loaPlot(mag ~ long * lat,
+  data = quakes,
+  col.regions = "Spectral",
+  scales = list(
+    draw = T,
+    # 去掉图形上边、右边多余的刻度线
+    x = list(alternating = 1, tck = c(1, 0)),
+    y = list(alternating = 1, tck = c(1, 0))
+  )
+)
+```
+
+
+```{r,eval=FALSE}
+# 蜂窝图
+loaPlot(mag ~ long * lat,
+  data = quakes,
+  panel = panel.binPlot, 
+  breaks = 30, 
+  statistic = max,
+  col.regions = "Spectral",
+  scales = list(
+    draw = T,
+    # 去掉图形上边、右边多余的刻度线
+    x = list(alternating = 1, tck = c(1, 0)),
+    y = list(alternating = 1, tck = c(1, 0))
+  )
+)
+```
+
+
+```{r,eval=FALSE}
+# 热力图
+loaPlot(mag ~ long * lat,
+  data = quakes,
+  panel = panel.surfaceSmooth, 
+  too.far = 0.1,
+  col.regions = "Spectral",
+  scales = list(
+    draw = T,
+    # 去掉图形上边、右边多余的刻度线
+    x = list(alternating = 1, tck = c(1, 0)),
+    y = list(alternating = 1, tck = c(1, 0))
+  )
+)
+```
+
+就地震数据集 quakes 来说，它还有地震深度变量，实际上，完整地描述一个地震的位置，当然需要震深，想要立体化地呈现出来必须借助三维图形。**lattice** 包就具备绘制三维图形的能力，如图\@ref(fig:quakes-cloud)所示，此外，[**rgl**](https://github.com/dmurdoch/rgl) 包[@rgl]可以绘制交互式的**真三维**图形，如图\@ref(fig:quakes-rgl)。
+
+```{r,eval=FALSE}
+quakes <- transform(quakes, cex = mag - 4)
+# 三维气泡图
+cloud(-depth ~ long * lat,
+  data = quakes, pch = 19,
+  col = quakes$color, # 气泡颜色映射震级
+  cex = quakes$cex, # 气泡大小映射震级
+  # z 轴标签旋转 90 度
+  scales = list(
+    arrows = FALSE, col = "black",
+    z = list(rot = 90)
+  ),
+  # 减少三维图形的边空
+  lattice.options = list(
+    layout.widths = list(
+      left.padding = list(x = -.6, units = "inches"),
+      right.padding = list(x = -1.0, units = "inches")
+    ),
+    layout.heights = list(
+      bottom.padding = list(x = -.8, units = "inches"),
+      top.padding = list(x = -1.0, units = "inches")
+    )
+  ),
+  # 设置坐标轴字体大小
+  par.settings = list(
+    axis.line = list(col = "transparent"),
+    fontsize = list(text = 15, points = 10)
+  ),
+  # 设置三维图的观察方位
+  screen = list(z = 30, x = -65, y = 0)
+)
+```
+
+
+![(\#fig:quakes-cloud) **lattice** 包绘制三维气泡图](/img/maps-in-r/quakes-cloud.png){.full}
+
+
+```{r,eval=FALSE,echo=FALSE}
+library(scatterplot3d)
+scatterplot3d(
+  x = quakes$long, y = quakes$lat, z = -quakes$depth,
+  highlight.3d = F, color = quakes$color,
+  pch = 20, cex.symbols = quakes$mag - 4
+)
+```
+
+```{r,eval=FALSE}
+# 设置 WebGL 渲染
+options(rgl.useNULL = TRUE)
+options(rgl.printRglwidget = TRUE)
+library(rgl)
+with(quakes, {
+  plot3d(
+    x = long, y = lat, z = -depth,
+    col = color, size = mag - 4, type = "s"
+  )
+})
+```
+
+![(\#fig:quakes-rgl) **rgl** 包绘制三维气泡图](/img/maps-in-r/quakes-rgl.png){.full}
+
+
+## mapsf
+
+[**mapsf**](https://github.com/riatelab/mapsf) [@mapsf]
+
+
+## satellite
+
+[**satellite**](https://github.com/environmentalinformatics-marburg/satellite) [@satellite] 卫星遥感数据
+
+[**rasterbc**](https://github.com/deankoch/rasterbc) [@rasterbc] 内置 2001-2018 年加拿大英属哥伦比亚省 raster 格式的栅格数据，森林生态学
 
 
 # 数据结构
@@ -1411,7 +1577,11 @@ plot(wheat["yield"])
 
 ## 矢量数据 sf
 
-[Proj](https://proj.org/)
+[proj](https://proj.org/) Cartographic Projections Library
+
+[geos](https://trac.osgeo.org/geos) Geometry Engine
+
+[gdal](https://www.gdal.org/) Geospatial Data Abstraction Library
 
 **sf** [@sf] 可以看作是继 sp 后的第二代空间数据处理和分析的框架，上一代的 maptools rgdal 和 rgeos 包退役。 历史遗留的部分陆续迁移至 sp 新的开发阵地已经迁移到 sf 上。哪些遗留的部分会迁移到 sp 而新的阵地又是什么？
 
@@ -1455,9 +1625,123 @@ plot(world["gdpPercap"])
 
 ## 栅格数据 terra
 
+```{r,eval=FALSE}
+library(terra)
+x <- rast(ncol = 5, nrow = 5, vals = 1:25)
+x
+plot(x, axes = F, legend = F, mar = rep(0, 4))
+```
+
 
 ## 时空数据 stars
 
+
+# 数据操作
+
+先简要介绍基础的数据操作，然后介绍 **sf** 包和一般的空间数据操作。
+
+
+## 一般数据操作
+
+Base R vs data.table vs dplyr
+
+```{r eval=base::getRversion()>='4.1.0'}
+data("mtcars")
+head(mtcars)
+# 拆分
+mtcars_cyl <- split(x = mtcars, f = ~cyl) # 从 R >= 4.1.0 开始 split 支持公式语法
+# 计算
+mtcars_fit <- lapply(mtcars_cyl, lm, formula = mpg ~ disp) # 求解回归模型
+mtcars_coef <- lapply(mtcars_fit, coef) # 提取回归系数
+# 合并
+dat <- do.call("rbind", mtcars_coef)
+dat
+```
+
+
+```{r}
+library(data.table)
+```
+
+
+
+## 空间数据操作
+
+**sf** 内置了一些基础的空间数据操作函数，在此基础上，绝大多复杂的空间数据操作都可以拆解为这些基础动作，更多详情见**sf**包[帮助文档](https://r-spatial.github.io/sf/articles/sf1.html)。
+
+```{r}
+library(sf)
+methods(class = "sf")
+```
+```{r,echo=FALSE}
+options(digits = 10)
+```
+
+下面举个简单的例子，计算两点之间的距离，首先构造几何对象「点」，然后计算两点之间的距离。
+
+```{r}
+st_distance(st_point(c(-71.0882, 42.3607)), st_point(c(-74.1197, 40.6976)))
+```
+
+默认采用的是笛卡尔坐标系，二维、三维、四维都可以，两个点的情况下，相当于计算平面上两个点的距离，平面上两个点之间直线最短，即欧式距离：
+
+$$
+d = \sqrt{(x_1 - x_2)^2 + (y_1-y_2)^2}
+$$
+
+就这个例子而言，`st_distance()` 函数的作用相当于：
+
+```{r}
+sqrt((-71.0882 - (-74.1197))^2 + (42.3607 - 40.6976)^2)
+```
+
+假设这个点是球面上的一个点，球面的参照系为[世界大地测量系统](https://en.wikipedia.org/wiki/World_Geodetic_System)（World Geodetic System），1984 年由美国国家地理空间情报局（National Geospatial-Intelligence Agency）建立和维护，简称 WGS 84，被全球定位系统采用。WGS 84 另一个响亮的名字是 EPSG:4326，EPSG 是欧洲石油调查组织（European Petroleum Survey Group）的简称。在 Web 电子地图上，常将 WGS 84 下的经纬度映射为平面上的点，即将坐标系映射到 EPSG:3857，相应地，坐标单位从经纬度转为米。
+
+```{r}
+# 设置点所处的参照系 WGS 84
+# 此时 -71.0882 表示经度 42.3607 表示纬度
+st_sfc(st_point(c(-71.0882, 42.3607)), crs = 4326)
+```
+
+**sf** 包提供的函数 `st_crs()` 可以非常方便地检索坐标系的信息，以 WGS 84 为例。
+
+```{r}
+st_crs("EPSG:4326")
+```
+
+可知 WGS 84 坐标系采用的基准面是椭球面，椭球的赤道半径为 6378137米，扁率为 1/298.257223563。
+
+```{r}
+st_distance(
+  st_sfc(st_point(c(-71.0882, 42.3607)), crs = 4326),
+  st_sfc(st_point(c(-74.1197, 40.6976)), crs = 4326)
+)
+```
+```{r,echo=FALSE}
+options(digits = 4)
+```
+
+无论是 [PostGIS](http://postgis.net/) 还是 [Presto](https://prestodb.io/docs/current/functions/geospatial.html)查询引擎都提供了一系列空间地理计算函数，且和[**sf**](https://github.com/r-spatial/sf) 包提供的操作函数是十分相似的，下面以 Presto 为例，分别计算欧式平面和椭球面上两点之间的距离。
+
+平面几何，两点之间直线最短，距离就是欧氏距离。
+
+```sql
+ST_Distance(ST_Point(-71.0882, 42.3607), ST_Point(-74.1197, 40.6976))
+```
+```
+3.457729581676387
+```
+
+球面几何，两点之间最短距离是大圆的弧长，点的坐标视为经纬度参与计算。
+
+```sql
+ST_Distance(to_spherical_geography(ST_Point(-71.0882, 42.3607)), to_spherical_geography(ST_Point(-74.1197, 40.6976)))
+```
+```
+312822.1793690028
+```
+
+可见，Presto 采用的空间坐标参考系也是 WGS 84，事实上，WGS 84 广泛应用于各类 GIS 系统或服务，**sf** 包和 Presto 计算的结果是完全一致的。
 
 
 # 案例：美国北卡婴儿猝死综合征数据
@@ -1513,7 +1797,7 @@ class(nc3)
 ## ggplot2
 
 **ggplot2** 提供的几何图层 `geom_sf()` 是专门为 sf 数据对象准备的，`facet_wrap()` 和 `facet_grid()` 都可以用来实现分面，布局样式稍有不同，更多绘图细节介绍见《ggplot2: Elegant Graphics for Data Analysis》[@Wickham2022]
-第三版的地图章节，如图 \@ref(fig:sf-nc)。在地图上绘制栅格图形，有个专业的制图术语 --- Choropleth maps，翻译过来，大致叫填充地图、等值域图、瓦片图、围栏图、面量图、断层图等，可以非常直观地展示观测变量在地理区域内的变化情况。
+第三版的地图章节，如图 \@ref(fig:sf-nc)。在地图上绘制栅格图形，有个专业的制图术语 --- [Choropleth Map](https://en.wikipedia.org/wiki/Choropleth_map)，翻译过来，大致叫填充地图、等值域图、瓦片图、围栏图、面量图、断层图等，可以非常直观地展示观测变量在地理区域内的变化情况。
 
 ```{r,eval=FALSE}
 library(ggplot2)
@@ -1662,22 +1946,6 @@ mapplot(NAME ~ SID79 + SID74,
 ```
 
 ![(\#fig:latticeExtra-nc) **latticeExtra** 数据可视化](/img/maps-in-r/latticeExtra-nc.png){.full}
-
-
-# 案例：中国改革开放40年人均GDP数据
-
-世界经济状况，历史至今，GDP 增速和失业率
-
-https://tradingeconomics.com/matrix
-
-贸易经济，GDP 速度，数据源都是官方发布
-[Trading Economics](https://github.com/tradingeconomics/tradingeconomics)
-
-https://github.com/tradingeconomics/tradingeconomics/tree/master/R/tradingeconomics
-
-```{r,eval=FALSE}
-remotes::install_github("tradingeconomics/tradingeconomics/R/tradingeconomics")
-```
 
 
 # 总结归纳
@@ -1843,8 +2111,7 @@ wireframe(volcano,
 本文也只涉及空间数据领域的皮毛，说白了就是导入几种格式的空间数据画点小地图，也未涉及百万乃至百亿级的大规模空间数据的可视化，以及支持可视分析需要的空间数据存储、检索、操作、分析、建模和应用的知识和技术。此外，对于不同类型的空间数据有不同的分析方法和统计模型，比如点数据的模式分析，面数据的层次分析，栅格数据的图像分析等，本文亦未涉及。再有，面向具体业务问题，从问题发现到数据模型的转化、界定、拆解、优化和应用所需要的领域知识，本文也未涉及。笔者所知所学有限，空间数据领域是如此广阔，需要大家一起发力。
 
 
-技术层面，在大规模空间数据可视化和计算方面，[Kepler.gl](https://github.com/keplergl/kepler.gl) 是一款开源的大规模地理数据分析工具。[deck.gl](https://github.com/visgl/deck.gl) WebGL2 加持的高性能大规模空间数据可视化框架，支持灵活的自定义。Uber 开发的[h3](https://github.com/uber/h3) 提供六边形分层时空索引，[GeoMesa](https://github.com/locationtech/geomesa) 提供点、线、多边形的时空索引，支持分布式时空数据查询分析，结合 kafka 提供近实时的时空数据流处理能力，支持自定义 [Apache Spark](https://github.com/apache/spark) 作为分布式地理分析计算引擎，要知道 Spark 本身是不提供针对空间数据操作的 SQL 函数，因此，使用成本是很高的。更进一步，[Apache Sedona](https://github.com/apache/incubator-sedona)专门应用于大规模空间数据处理的集群计算系统，扩展了 Apache Spark / SparkSQL 的能力，提供一组开箱即用的套件 SpatialSQL，支持 Python 和 R 等多种编程接口。
-[Presto](https://github.com/prestodb/presto) 作为一款分布式 SQL 查询引擎，内置了常用空间数据操作的函数，和 R 包 **sf** 提供的函数名基本是一致的，迁移学习成本低。更加专业的传统 GIS 数据库当属站在[PostgreSQL](https://www.postgresql.org/)肩膀上的[PostGIS](http://postgis.net/)。
+技术层面，在大规模空间数据可视化和计算方面，[Kepler.gl](https://github.com/keplergl/kepler.gl) 是一款开源的大规模地理数据分析工具。[deck.gl](https://github.com/visgl/deck.gl) WebGL2 加持的高性能大规模空间数据可视化框架，支持灵活的自定义。Uber 开发的[h3](https://github.com/uber/h3) 提供六边形分层时空索引，[GeoMesa](https://github.com/locationtech/geomesa) 提供点、线、多边形的时空索引，支持分布式时空数据查询分析，结合 kafka 提供近实时的时空数据流处理能力，支持自定义 [Apache Spark](https://github.com/apache/spark) 作为分布式地理分析计算引擎，要知道 Spark 本身是不提供针对空间数据操作的 SQL 函数，因此，使用成本是很高的。更进一步，[Apache Sedona](https://github.com/apache/incubator-sedona)专门应用于大规模空间数据处理的集群计算系统，扩展了 Apache Spark / SparkSQL 的能力，提供一组开箱即用的套件 SpatialSQL，支持 Python 和 R 等多种编程接口。[Presto](https://github.com/prestodb/presto) 作为一款分布式 SQL 查询引擎，内置了常用空间数据操作的函数，和 R 包 **sf** 提供的函数名基本是一致的，迁移学习成本低。更加专业的传统 GIS 数据库当属站在[PostgreSQL](https://www.postgresql.org/)肩膀上的[PostGIS](http://postgis.net/)，PostgreSQL提供基础的空间数据类型，作为存储设施，PostGIS 提供空间数据特有的系列操作。
 
 
 企业层面，根据2021年[中国地理信息产业发展报告](http://www.cagis.org.cn/Lists/content/id/3440.html)，截止2020年末，具有测绘资质的单位约**2.2**万家，甲级资质的企事业单位的空间数据价值非常巨大。国内以百度、高德、腾讯和华为为代表的地图服务供应商，在本地生活、智慧交通、无人车、无人机等领域提供电子导航等基础服务。
@@ -1882,6 +2149,7 @@ pkgs <- c(
   "geohashTools", "lwgeom", "rgeolocate",
   "terra", "sf", "sp", "stars",
   "maps", "mapdata", "mapproj",
+  "rgl", "satellite", "rasterbc",
   "raster", "rgeos", "rgdal", "maptools"
 )
 bib <- knitr::write_bib(
