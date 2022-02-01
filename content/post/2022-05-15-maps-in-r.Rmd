@@ -175,7 +175,11 @@ David Kahle 开发的[**ggmap**](https://github.com/dkahle/ggmap) [@Kahle2013] �
 
 Google 提供一种瓦片地图，即由一张张小图片拼凑起来形成一张完整的地图，就好像盖房用的瓦片，精度由瓦片的分辨率决定，如图 \@ref(fig:ggmap-tile) 所示。
 
-![(\#fig:ggmap-tile) ggmap 地形图](http://tile.stamen.com/terrain-background/5/4/10.png){.full}
+<!-- 
+http://tile.stamen.com/terrain-background/5/4/10.png 
+-->
+
+![(\#fig:ggmap-tile) ggmap 地形图](/img/maps-in-r/google-tile.png){.full}
 
 **ggmap** 可以调用多种样式的地图，地形图、水彩图等，如图\@ref(fig:ggmap-tiles) 所示。
 
