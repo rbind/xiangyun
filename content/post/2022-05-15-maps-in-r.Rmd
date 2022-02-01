@@ -1,35 +1,33 @@
 ---
-title: 空间数据可视化与 R 语言（上篇）
+title: 空间数据可视化与 R 语言
 author: 黄湘云
-date: '2022-05-25'
+date: '2022-02-01'
 slug: maps-in-r
 categories:
   - 统计图形
 tags:
-  - 地理可视化
+  - 数据可视化
+  - 空间数据
   - ggplot2
   - ggmap
   - echarts4r
   - plotly
-  - maps
   - leaflet
   - leafletCN
   - baidumap
   - RgoogleMaps
-  - choroplethr
   - lattice
   - sf
   - terra
   - sp
   - raster
 toc: true
-draft: true
 link-citations: true
 bibliography: 
   - refer.bib
   - packages.bib
 description: "介绍用于地理可视化的几种常用数据结构，比如 **sp** 包、**sf** 包和 **raster** 包提供的三种空间数据存储、操作的类和方法。
-介绍地理可视化常用的展示形式，如瓦片图、围栏图、气泡图等，以及绘制过程中需要注意的制图规范问题，地理信息是比较敏感的数据，从大的层面上来说，涉及国家主权和领土完整。笔者合著的书籍《现代统计图形》曾因此将所有地图相关的介绍全部摘除，本文也意图去梳理和填补这方面的坑点。"
+介绍地理可视化常用的展示形式，如瓦片图、围栏图、气泡图等，以及绘制过程中需要注意的制图规范问题。地理信息是比较敏感的数据，从大的层面上来说，涉及国家主权和领土完整。笔者合著的书籍《现代统计图形》曾因此将所有地图相关的介绍全部摘除，本文也意图去梳理和填补这方面的坑点。"
 ---
 
 
@@ -143,11 +141,7 @@ div.img {
 
 # 概览
 
-介绍用于地理可视化的几种常用数据结构，比如 **sp** 包、**raster** 包、**sf** 包和 **terra** 包 提供的三种空间数据存储、操作的类和方法。
-介绍地理可视化常用的展示形式，如瓦片图、围栏图、气泡图等，以及绘制过程中需要注意的制图规范问题，地理信息是比较敏感的数据，从大的层面上来说，涉及国家主权和领土完整。
-
-
-
+本文首先告诉读者如何在 R 语言中调用常见的谷歌、必应、百度和高德等地图服务，接着介绍一些做网址地位、地理编码和坐标系统转化的 R 包，然后以实际案例介绍三类典型的空间数据，对于各类地理空间数据的可视化方法及 R 包实现，之后再介绍 R 语言中的空间数据类型及其基本操作，再基于一个真实数据用不同的 R 包实现类似的可视化效果，最后是一些总结和展望。
 
 
 # 地图服务
@@ -179,11 +173,11 @@ David Kahle 开发的[**ggmap**](https://github.com/dkahle/ggmap) [@Kahle2013] �
 可将申请到的 `GGMAP_GOOGLE_API_KEY` 保存到本地文件 `~/.Renviron`，以供 **ggmap** 后续使用。
 
 
-Google 提供的是一种瓦片地图，即由一张张小图片拼凑起来形成一张完整的地图，就好像盖房用的瓦片。精度由瓦片的分辨率决定，且是栅格 raster 地图，而非矢量地图，如图 \@ref(fig:ggmap-tile) 所示。
+Google 提供一种瓦片地图，即由一张张小图片拼凑起来形成一张完整的地图，就好像盖房用的瓦片，精度由瓦片的分辨率决定，如图 \@ref(fig:ggmap-tile) 所示。
 
 ![(\#fig:ggmap-tile) ggmap 地形图](http://tile.stamen.com/terrain-background/5/4/10.png){.full}
 
-ggmap 可以调用多种样式的地图，地形图、水彩图等，如图\@ref(fig:ggmap-tiles) 所示。
+**ggmap** 可以调用多种样式的地图，地形图、水彩图等，如图\@ref(fig:ggmap-tiles) 所示。
 
 ```{r,eval=FALSE,echo=FALSE}
 library(ggplot2)
@@ -219,8 +213,8 @@ p1 / p2 | p3 / p4
 
 ## 必应地图
 
-与 **ggmap** 相比，[**RgoogleMaps**](https://github.com/markusloecher/rgooglemaps) [@Loecher2015] 支持更多的地图服务，除了 Google 地图外，还支持必应地图，以及基于 lattice 的可视化，借助 [**loa**](https://r-forge.r-project.org/scm/?group_id=1400) 和 [**latticeExtra**](https://r-forge.r-project.org/projects/latticeextra/) 还可以支持高级的自定义，如何使用见[ggmap 使用案例](https://github.com/vertica/Vertica-Geospatial) 
-、[loa 文档](https://loa.r-forge.r-project.org/loa.intro.html)和[latticeExtra 文档](https://latticeextra.r-forge.r-project.org/)。
+与 **ggmap** 相比，[**RgoogleMaps**](https://github.com/markusloecher/rgooglemaps) [@Loecher2015] 支持更多的地图服务，除了 Google 地图外，还支持必应地图，以及基于 **lattice** 的可视化，借助 [**loa**](https://r-forge.r-project.org/scm/?group_id=1400) [@loa]和 [**latticeExtra**](https://r-forge.r-project.org/projects/latticeextra/) [@latticeExtra]还可以支持高级的自定义，如何使用见[**ggmap** 使用案例](https://github.com/vertica/Vertica-Geospatial) 
+、[**loa** 文档](https://loa.r-forge.r-project.org/loa.intro.html)和[**latticeExtra** 文档](https://latticeextra.r-forge.r-project.org/)。
 
 
 ```{r,eval=FALSE}
@@ -242,14 +236,6 @@ PlotOnStaticMap(map_cumtb)
 如图 \@ref(fig:bing-cumtb) 所示，坐标（40.0, 116.4）定位在中国矿业大学（北京）学院路校区。
 
 ![(\#fig:bing-cumtb) 微软必应地图](/img/maps-in-r/bing-cumtb.png){.full}
-
-
-
-
-
-
-
-
 
 
 ## 百度地图
@@ -290,22 +276,17 @@ ggmap::ggmap(cumtb_map) +
 
 ## 开放地图
 
-OpenStreetMap 虽是开放数据，来自世界各地的贡献者，不提供免费的地图 API，使用此地图服务，不会将自己的数据上传至 OpenStreetMap 的服务器上。而 Leaflet 是开源的交互式地理可视化 JS 库。
+OpenStreetMap 虽是开放数据，来自世界各地的贡献者，不提供免费的地图 API，使用此地图服务，不会将自己的数据上传至 OpenStreetMap 的服务器上。而 Leaflet 是开源的交互式地理可视化 JS 库。Joe Cheng 开发维护的 [**leaflet**](https://github.com/rstudio/leaflet) 包[@leaflet]是 JavaScript 库 [Leaflet](https://github.com/Leaflet/Leaflet) 的 R 语言接口。
 
 ![(\#fig:leaflet) 开源交互式 JavaScript 库 Leaflet](/img/leaflet.svg){.full}
-
-Joe Cheng 开发维护的 [leaflet](https://github.com/rstudio/leaflet) 包是 JavaScript 库 [Leaflet](https://github.com/Leaflet/Leaflet) 的 R 语言接口。
-
-
 
 在 leaflet 地图上实际经纬度为 `c(116.34394, 39.99665)`
 
 ```{r,eval=FALSE}
-library(magrittr)
 library(leaflet)
-cumtb_map1 = leaflet() %>% 
-  setView(lng = 116.34394, lat = 39.99665, zoom = 17) %>%
-  addTiles() %>% 
+cumtb_map1 = leaflet() |> 
+  setView(lng = 116.34394, lat = 39.99665, zoom = 17) |> 
+  addTiles() |> 
   addPopups(116.34394, 39.99665, '这里是 <b>学院路校区</b>, 中国矿业大学（北京）')
 cumtb_map1
 ```
@@ -328,21 +309,17 @@ cumtb_map2
 
 ## 高德地图
 
-<!-- 
-补充此测绘资质意味着什么？
--->
-
-高德和百度都是有甲级测绘资质的单位
+高德和百度都是有甲级测绘资质的单位，意味着地图数据符合国家要求，来源权威可用。郎大为开发的 [**leafletCN**](https://github.com/Lchiffon/leafletCN) 包[@leafletCN]用函数 `amap()`封装了高德提供瓦片服务的 URL 模版。
 
 ```{r,eval=FALSE}
 library(leaflet)
 library(leafletCN)
-
+# 绘图
 leaflet(options = leafletOptions(
   minZoom = 4, maxZoom = 18,
   zoomControl = FALSE
-)) %>%
-  amap() %>%
+)) |> 
+  amap() |> 
   addCircles(
     data = data.frame(lon = 116.35688, lat = 40.00314, size = 50),
     lng = ~lon, lat = ~lat, radius = ~size, color = "red",
@@ -352,7 +329,7 @@ leaflet(options = leafletOptions(
 ```
 
 
-高德地图采用的是火星坐标系和 leaflet 采用的 GPS 坐标系不同，导致矿大定位到了农大，如图\@ref(fig:leaflet-amap-cumtb)
+高德地图采用的是火星坐标系和 leaflet 采用的坐标系不同，导致矿大定位到了农大，如图\@ref(fig:leaflet-amap-cumtb)
 
 ![(\#fig:leaflet-amap-cumtb)高德地图-中国矿业大学（北京）](/img/maps-in-r/leaflet-amap-cumtb.png){.full}
 
@@ -424,7 +401,7 @@ st_geohash(st_sfc(st_point(c(116.35688, 40.00314)), st_point(c(0, 90))), 9)
 
 ## 坐标系统
 
-地球既不是圆球的也不是标准的椭球，将三维的球面投影到二维的平面有不同的方法，每一种方法都对应一种坐标转化，选定坐标原点后即构成坐标参考系统（Coordinate Reference System，简称 CRS）。**maps** 包内置了一份世界地图数据，下面以此为例介绍，本节空间数据的操作都用 **sf** 包来完成。
+地球既不是圆球的也不是标准的椭球，将三维的球面投影到二维的平面有不同的方法，每一种方法都对应一种坐标转化，选定坐标原点后即构成坐标参考系统（Coordinate Reference System，简称 CRS）。**maps** 包[@maps]内置了一份世界地图数据，下面以此为例介绍，本节空间数据的操作都用 **sf**包[@sf]来完成。
 
 
 ```{r}
@@ -438,7 +415,7 @@ st_crs(world1)
 st_crs("EPSG:4326")
 ```
 
-**sf** 包提供 `st_as_sf()` 函数将 map 类转化为 sf 类，`st_crs()` 函数检索地图数据中附带的坐标参考系信息。接下来，用 `st_transform()` 函数转化坐标，参数 `crs` 指定新的坐标系统，示例里 `+proj=laea` 表示目标映射关系 Lambert Azimuthal Equal Area，而 `+ellps=WGS84` 即 [WGS 1984](https://en.wikipedia.org/wiki/World_Geodetic_System) 或称 [EPSG:4326](https://en.wikipedia.org/wiki/EPSG_Geodetic_Parameter_Dataset)，坐标系 WGS84 被全球定位系统采用，也简称 GPS 坐标系。`+lon_0=155` 和 `+lat_0=-90` 分别是经纬度，东经 155 度，南纬 90 度，也就是观测视角到南极去了。
+**sf** 包提供 `st_as_sf()` 函数将 map 类转化为 sf 类，`st_crs()` 函数检索地图数据中附带的坐标参考系信息。接下来，用 `st_transform()` 函数转化坐标，参数 `crs` 指定新的坐标系统，示例里 `+proj=laea` 表示目标映射关系 Lambert Azimuthal Equal Area，而 `+ellps=WGS84` 即 [WGS 1984](https://en.wikipedia.org/wiki/World_Geodetic_System) 或称 [EPSG:4326](https://en.wikipedia.org/wiki/EPSG_Geodetic_Parameter_Dataset)，坐标系 WGS84 被全球定位系统采用。`+lon_0=155` 和 `+lat_0=-90` 分别是经纬度，东经 155 度，南纬 90 度，也就是观测视角到南极去了。
 
 
 ```{r}
@@ -472,9 +449,7 @@ p1 + p2
 
 # 空间数据
 
-地理可视化的展示形式有气泡图、热力图、瓦片图、地形图等，下面陆续使用 **lattice** 、**ggplot2** 和 **leaflet** 来绘制静态和交互图形。
-
-[choroplethr](https://github.com/trulia/choroplethr) 和[choroplethrMaps](https://github.com/trulia/choroplethrMaps) 主要用来制作地区分布图，需要的区域数据，**choroplethrMaps** 包提供三份地图数据，分别是美国州、县地图和世界地图， 相关介绍材料见[这里](https://arilamstein.com/open-source/)。[tmap](https://github.com/r-tmap/tmap) 制作交互地图，[mapsf](https://github.com/riatelab/mapsf) 制作符号地图、等值地图、拓扑地图，关于各类地图的可视化示例见[AntV 官网](https://antv.vision/zh)。[mapsapi](https://github.com/michaeldorman/mapsapi) 可以连接 4 种 Google 提供的 Web 地图服务。
+空间数据基本类型有点、线、面（或称多边形）等，还分矢量数据和栅格数据，地理可视化的展示形式有气泡图、热力图、瓦片图、地形图等。下面通过几个实际的空间数据，以图形的展示方式以期帮助读者建立数据直觉，陆续使用 **lattice** [@lattice]、**ggplot2** [@ggplot2]和 **leaflet** [@leaflet] 来绘制静态和交互图形。
 
 ## 示例：美国旧金山犯罪数据
 
@@ -701,212 +676,20 @@ terra::plot(elevation, asp = NA)
 
 ![(\#fig:raster-elevation) **terra** 包绘制锡安国家公园地形](/img/maps-in-r/raster-elevation.png){.full}
 
-## 示例：中国地图数据
-
-R 语言社区有不少 R 包涉及中国地图数据，但是质量不一，比如 **maps** 和 **mapdata** 包内置的中国地图，精度不够也不完整，下面再简单说下几个主要的数据源。
-
-### 矢量数据
-
-[**rnaturalearth**](https://github.com/ropenscilabs/rnaturalearth) 和 [**rnaturalearthdata**](https://github.com/ropenscilabs/rnaturalearthdata) 提供 [美国国家地理](https://www.naturalearthdata.com/) 网站的 R 语言接口，可以免费下载矢量和栅格地图数据。精度稍高一点的地图数据需要下载**rnaturalearthhires** 包，它有 20 多 M，不在 CRAN 上，安装命令如下：
-
-```{r,eval=FALSE}
-install.packages(
-  pkgs = "rnaturalearthhires",
-  repos = "http://packages.ropensci.org",
-  type = "source"
-)
-```
-```{r,eval=FALSE}
-## 加载 R 包
-library(rnaturalearth)
-library(rnaturalearthdata)
-library(rnaturalearthhires)
-```
-
-下载数据，调用 **sp** 包绘制中国地图数据，如图\@ref(fig:china-map)。
-
-```{r china-map, eval=FALSE}
-# 中国大陆地区
-chn_map <- rnaturalearth::ne_countries(
-  country = "China",
-  continent = "Asia",
-  type = "countries",
-  scale = 10, returnclass = "sp"
-)
-# 台湾地区
-twn_map <- rnaturalearth::ne_countries(
-  country = "Taiwan",
-  continent = "Asia",
-  type = "countries",
-  scale = 10, returnclass = "sp"
-)
-# 绘图
-sp::plot(chn_map)
-# 追加
-sp::plot(twn_map, add = TRUE)
-```
-
-![(\#fig:china-map) 美国国家地理网站提供的中国地图数据](/img/maps-in-r/china-map.png){.full}
-
-这个地图数据有些明显的问题，将台湾地区的数据和中国分离开，南海诸岛的数据缺失很多，关于地图，这是一点都不能少的！笔者在美国国家地理网站的[声明](https://www.naturalearthdata.com/downloads/50m-cultural-vectors/50m-admin-0-countries-2/)里了解到，地区边界是根据实际控制划分的。
-
-### 栅格数据
-
-下面再看看网站提供的栅格数据，以海拔数据为例。
-
-```{r,eval=FALSE}
-# 创建目录存储地形文件
-xfun::dir_create("~/data/") 
-# 从 raster::getData('ISO3') 可以知道各个国家或地区的 ISO3 代码
-# 下载数据 
-# 中国大陆地区
-chn_map <- raster::getData(name = "alt", country = "CHN", mask = TRUE, path = "~/data/")
-# 台湾地区
-twn_map <- raster::getData(name = "alt", country = "TWN", mask = TRUE, path = "~/data/")
-# 香港地区
-hkg_map <- raster::getData(name = "alt", country = "HKG", mask = TRUE, path = "~/data/")
-# 澳门地区
-mac_map <- raster::getData(name = "alt", country = "MAC", mask = TRUE, path = "~/data/")
-
-# 若已经下载到本地，可直接读取
-chn_map <- raster::raster(x = "~/data/CHN_msk_alt.grd")
-twn_map <- raster::raster(x = "~/data/TWN_msk_alt.grd")
-hkg_map <- raster::raster(x = "~/data/HKG_msk_alt.grd")
-mac_map <- raster::raster(x = "~/data/MAC_msk_alt.grd")
-# 合并 Raster 数据
-china_map = terra::merge(chn_map, twn_map, hkg_map, mac_map)
-# 查看数据类型
-class(china_map)
-# 调 terra 包绘图速度快
-terra::plot(china_map, col = terrain.colors(20, rev = F))
-```
-
-![(\#fig:china-elevation) 中国地图海拔数据](/img/maps-in-r/china-elevation.png){.full}
-
-
-另一个提供地图数据的是商业软件 [Highcharts Maps](https://www.highcharts.com/)，国内外有不少商业公司是它的客户，它也有一个 R 包[**highcharter**](https://github.com/jbkunst/highcharter)，
-有一个以美国地图数据为背景的博客详细介绍了使用过程，详见 [Highcharts 官方博客](https://www.highcharts.com/blog/tutorials/using-highcharter-in-tidytuesday-internet-access/)。[简数科技](https://www.highcharts.com.cn/) 定制了一份 GeoJSON 格式的中国地图数据，还提供了地图预览和下载的服务，因为涉及商业版权和地图数据合规性，使用需要注意，读者可前往[网站](https://www.highcharts.com.cn/mapdata)了解。另一个 R 包[**hchinamap**](https://github.com/czxa/hchinamap) 也是使用这份中国地图数据和 JavaScript 库 [Highcharts JS](https://github.com/highcharts/highcharts)。
-
-```{r,eval=FALSE}
-library(hchinamap)
-# name 是地图数据中的各个区域单元的名称
-hchinamap(
-  name = c("北京", "天津", "上海", "湖南", "台湾", "海南"),
-  value = c(120, 200, 126, 300, 150, 225),
-  width = "100%",
-  height = "650px",
-  title = "分省地图",
-  region = "China",
-  minColor = "#f1eef6",
-  maxColor = "#980043",
-  itermName = "指标",
-  hoverColor = "#f6acf5"
-)
-```
-
-![(\#fig:china-hchinamap) 中国地图数据](/img/maps-in-r/china-hchinamap.png){.full}
-
-
-
-### 交互地图
-
-交互地图采用 **leaflet** 包绘制，采用 **leafletCN** 包汉化，并且提供合规的中国地图，核心函数是 `geojsonMap()`，它封装了 GeoJSON 格式的地图数据和绘图函数，更多定制参考`leaflet::leaflet()`，只要数据包含的一列区域名称和地图数据能映射上，就可以绘制出图\@ref(fig:china-leafletcn)，图中数据是随机生成的，调色板采用 `RdBu`，将连续的数据分段，每段对应一个色块。 
-
-```{r,eval=FALSE}
-library(leaflet)
-library(leafletCN) # 提供 geojsonMap 函数
-dat <- data.frame(name = regionNames("china"), value = runif(34))
-# 还有很多其他参数设置，类似 leaflet::leaflet
-geojsonMap(dat, mapName = "china", palette = "RdBu", colorMethod = "bin")
-```
-
-![(\#fig:china-leafletcn) 交互地图数据可视化](/img/maps-in-r/china-leafletcn.png){.full}
-
-绘制某个省份、直辖市、地级市的数据，图\@ref(fig:china-beijing)和图\@ref(fig:china-shaoyang)分别展示北京市、邵阳市下各个区县的数据。不难发现，**leafletCN** 包内置的地图边界和名称等数据尚未更新，下图\@ref(fig:china-beijing)还是崇文、宣武区，实际它们已经合并至东、西城区，图\@ref(fig:china-shaoyang)还是邵东县，实际已经升级为邵东市，是由邵阳市代管的县级市。
-
-```{r,eval=FALSE}
-dat <- data.frame(name = regionNames("北京"), value = runif(18))
-geojsonMap(dat, mapName = "北京", palette = "RdBu", colorMethod = "bin")
-```
-
-![(\#fig:china-beijing) 北京地区](/img/maps-in-r/china-beijing.png){.full}
-
-```{r,eval=FALSE}
-dat <- data.frame(name = regionNames("邵阳"), value = runif(12))
-geojsonMap(dat, mapName = "邵阳", palette = "RdBu", colorMethod = "bin")
-```
-
-![(\#fig:china-shaoyang) 邵阳地区](/img/maps-in-r/china-shaoyang.png){.full}
-
-可见，市和区县级地图边界数据是存在问题的，省级边界地图数据配合高德提供的背景地图数据是基本可用。一个更可靠的方式是不要使用此边界数据，只使用高德地图，以气泡图代替，类似图\@ref(fig:bubble-map)，要点是需要准备各个区县级以上城市的经纬度坐标，并且和高德地图采用的坐标系是一致的，这样气泡的位置和地图上显示的城市名称是基本重合的。
-
-![(\#fig:bubble-map) 部分区县级城市的气泡散点图](/img/maps-in-r/bubble-map.png){.full}
-
-
-### 静态地图
-
-[中华人民共和国民政部](http://xzqh.mca.gov.cn)提供了中国地图数据，是 GeoJSON 格式的，属于权威数据源，推荐使用。
-
-```{r,eval=FALSE}
-library(sf)
-china_map = st_read(dsn = "http://xzqh.mca.gov.cn/data/quanguo_Line.geojson", stringsAsFactors = FALSE)
-```
-```
-Reading layer `线' from data source 
-  `http://xzqh.mca.gov.cn/data/quanguo_Line.geojson' using driver `GeoJSON'
-Simple feature collection with 104 features and 3 fields
-Geometry type: LINESTRING
-Dimension:     XY
-Bounding box:  xmin: 73.68 ymin: 3.554 xmax: 135.2 ymax: 53.65
-Geodetic CRS:  WGS 84
-```
-```r
-china_map
-```
-```
-Simple feature collection with 104 features and 3 fields
-Geometry type: LINESTRING
-Dimension:     XY
-Bounding box:  xmin: 73.68 ymin: 3.554 xmax: 135.2 ymax: 53.65
-Geodetic CRS:  WGS 84
-First 10 features:
-     NAME  QUHUADAIMA strZTValue                       geometry
-1         hainansheng            LINESTRING (121.9 30.84, 12...
-2         hainansheng            LINESTRING (121.4 30.82, 12...
-3         hainansheng            LINESTRING (121.5 31.64, 12...
-4          tiaohuijie            LINESTRING (124.4 40.08, 12...
-5          tiaohuijie            LINESTRING (124.5 40.13, 12...
-6  台湾岛      daoyu6            LINESTRING (121.4 22.46, 12...
-7  海南岛      daoyu5            LINESTRING (111.5 19, 112.4...
-8  钓鱼岛      daoyu6            LINESTRING (122.8 26.07, 12...
-9  赤尾屿      daoyu6            LINESTRING (125.2 25.86, 12...
-10 黄岩岛      daoyu6            LINESTRING (117.2 14.61, 11...
-```
-```r
-plot(china_map)
-```
-
-![(\#fig:china-linestring) 静态地图数据](/img/maps-in-r/china-linestring.png){.full}
-
-
-另一份地图数据是全国各地的行政区域，只有省一级。
-
-```{r,eval=FALSE}
-china_map = st_read(dsn = "http://xzqh.mca.gov.cn/data/quanguo.json", stringsAsFactors = FALSE)
-# 原数据集没有坐标系信息，因此设置一下
-st_crs(china_map) = 4326
-plot(china_map["QUHUADAIMA"])
-```
-
-![(\#fig:china-province) 静态地图数据](/img/maps-in-r/china-province.png){.full}
-
-
+::: rmdtip
+R 软件内置的调色板 `terrain.colors()` 专用于地形图配色，从翠绿色、土黄色、沙白色，无不暗示海拔变化，读者不妨想象一下，山上的树呈翠绿色，山腰的砂石土块呈土黄色，山脚的河床小路呈沙白色，十分符合我国南方的丘陵山地印象。
+:::
 
 # 可视化包
 
 本节主要介绍几个 R 语言社区提供的地理可视化 R 包，分别是绘制交互式地图的 **echarts4r** 包 [@echarts4r]、**leaflet** 包和 **plotly** 包。它们各有千秋， **echarts4r** 背靠 [Apache Echarts](https://github.com/apache/echarts) 功能覆盖面比较广，但是还不够精纯，在易用性和性能上还有较大提升空间，此外，在统计方面有些弱，比如分组线性回归很难实现。**leaflet** 专注于交互式地理可视化，支持常见的矢量和栅格数据对象。**plotly** 背后的支持来自商业公司，上游依赖是开源的JavaScript 库[plotly](https://github.com/plotly)，深耕多年，功能全面，使用的体感是性能比较差。
 
+
+地理可视化的 R 包是有很多的，本文无法穷尽。[choroplethr](https://github.com/trulia/choroplethr) 和[choroplethrMaps](https://github.com/trulia/choroplethrMaps) 主要用来制作地区分布图，需要的区域数据，**choroplethrMaps** 包提供三份地图数据，分别是美国州、县地图和世界地图，相关介绍材料见[这里](https://arilamstein.com/open-source/)。[tmap](https://github.com/r-tmap/tmap) 制作交互地图，[mapsf](https://github.com/riatelab/mapsf) 制作符号地图、等值地图、拓扑地图，关于各类地图的可视化示例见[AntV 官网](https://antv.vision/zh)。[mapsapi](https://github.com/michaeldorman/mapsapi) 可以连接 4 种 Google 提供的 Web 地图服务。
+
+
 地理可视化的展示形式有多种，散点图、气泡图、峰窝图和热度图等，还可以有更加复合的专题地图，如在地图上省、市、区、县一级别，显示各个年龄段的人口比例，类似将饼图贴在地图上。为简单起见，主要以散点图为例介绍入门级别的内容。
+
 
 
 ## echarts4r
@@ -1275,7 +1058,8 @@ plotly::plot_ly(
 
 
 ![(\#fig:mapbox-choropleth) **plotly** 包使用 Mapbox 绘制面量图](/img/maps-in-r/mapbox-choropleth.png){.full}
-多边形矢量地图数据，多边形的边界常常是行政区域，choropleth 地图是填充颜色的多边形，颜色深浅表示数据指标，地图的作用在于展示指标的空间变化，在美国，郡县一级的行政区大致相当于咱们市一级行政单位，比如图\@ref(fig:mapbox-choropleth-counties) 展示美国各个县的失业率，大城市失业率相对较高。顺便一提，数据量较大的时候，**plotly** 渲染速度相对较慢。
+
+多边形矢量地图数据，多边形的边界常常是行政区域，choropleth 地图是填充颜色的多边形，颜色深浅表示数据指标，地图的作用在于展示指标的空间变化，在美国，郡县一级的行政区大致相当于咱们市一级行政单位，比如图\@ref(fig:mapbox-choropleth-counties) 展示美国各个县的失业率，大城市失业率相对较高。值得注意，数据量较大的时**plotly**渲染速度较慢。
 
 ```{r,eval=FALSE}
 # 示例修改自 https://plotly.com/r/choropleth-maps/
@@ -1327,19 +1111,55 @@ plotly::plot_ly(
 
 ## lattice
 
-
-lattice 自内置于 R 软件，但是启动 R 软件时，不自动加载。
+2001 年 **lattice** 包就发布到 CRAN 了，已经过去20多年了，功能相当全面成熟稳定，内置于 R 软件，但是启动 R 软件时，不自动加载。
 
 ```{r,eval=FALSE}
 library(lattice)
 # 散点图
-xyplot(lat ~ long, data = quakes)
+xyplot(lat ~ long,
+  data = quakes,
+  scales = list(
+    draw = T,
+    # 去掉图形上边、右边多余的刻度线
+    x = list(alternating = 1, tck = c(1, 0)),
+    y = list(alternating = 1, tck = c(1, 0))
+  ),
+  pch = 19, alpha = 0.3, 
+  cex = 1.5, col = "darkgreen",
+  grid = TRUE
+)
+```
 
+![(\#fig:quakes-xyplot)散点图](/img/maps-in-r/quakes-xyplot.png){.full}
+
+
+```{r,eval=FALSE}
+# 仅保留低密度区域上的散点
+xyplot(lat ~ long,
+  data = quakes,
+  scales = list(
+    draw = T,
+    # 去掉图形上边、右边多余的刻度线
+    x = list(alternating = 1, tck = c(1, 0)),
+    y = list(alternating = 1, tck = c(1, 0))
+  ),
+  panel = function(x, y, ...) {
+    panel.smoothScatter(x, y, ...,
+      colramp = hcl.colors, pch = 19
+    )
+  }
+)
+```
+
+![(\#fig:quakes-smooth)热力图](/img/maps-in-r/quakes-smooth.png){.full}
+
+```{r,eval=FALSE}
 library(loa)
 # 气泡图
 loaPlot(mag ~ long * lat,
   data = quakes,
   col.regions = "Spectral",
+  alpha = 0.6, 
   scales = list(
     draw = T,
     # 去掉图形上边、右边多余的刻度线
@@ -1349,6 +1169,7 @@ loaPlot(mag ~ long * lat,
 )
 ```
 
+![(\#fig:quakes-bubble)气泡图](/img/maps-in-r/quakes-bubble.png){.full}
 
 ```{r,eval=FALSE}
 # 蜂窝图
@@ -1367,9 +1188,11 @@ loaPlot(mag ~ long * lat,
 )
 ```
 
+![(\#fig:quakes-binplot)蜂窝图](/img/maps-in-r/quakes-binplot.png){.full}
+
 
 ```{r,eval=FALSE}
-# 热力图
+# 等高图
 loaPlot(mag ~ long * lat,
   data = quakes,
   panel = panel.surfaceSmooth, 
@@ -1383,6 +1206,8 @@ loaPlot(mag ~ long * lat,
   )
 )
 ```
+
+![(\#fig:quakes-contour)等高图](/img/maps-in-r/quakes-contour.png){.full}
 
 就地震数据集 quakes 来说，它还有地震深度变量，实际上，完整地描述一个地震的位置，当然需要震深，想要立体化地呈现出来必须借助三维图形。**lattice** 包就具备绘制三维图形的能力，如图\@ref(fig:quakes-cloud)所示，此外，[**rgl**](https://github.com/dmurdoch/rgl) 包[@rgl]可以绘制交互式的**真三维**图形，如图\@ref(fig:quakes-rgl)。
 
@@ -1424,6 +1249,7 @@ cloud(-depth ~ long * lat,
 
 
 ```{r,eval=FALSE,echo=FALSE}
+# 三维散点云图，基于 Base R 图形
 library(scatterplot3d)
 scatterplot3d(
   x = quakes$long, y = quakes$lat, z = -quakes$depth,
@@ -1447,25 +1273,32 @@ with(quakes, {
 
 ![(\#fig:quakes-rgl) **rgl** 包绘制三维气泡图](/img/maps-in-r/quakes-rgl.png){.full}
 
+结合三维气泡图，也许读者已经发现震级和震深有一些关系，不妨再看看仔细它们之间关系，如图\@ref(fig:quakes-mag)。
 
-## mapsf
+```{r,eval=FALSE}
+# 数据抖动和透明度是为了减轻数据点的覆盖情况
+stripplot(depth ~ factor(mag),
+  data = quakes,
+  jitter.data = TRUE, alpha = 0.6,
+  main = "Depth of earthquake epicenters by magnitude",
+  xlab = "Magnitude (Richter)",
+  ylab = "Depth (km)",
+  col = "black",
+  grid = TRUE
+)
+```
 
-[**mapsf**](https://github.com/riatelab/mapsf) [@mapsf]
+![(\#fig:quakes-mag)抖动图](/img/maps-in-r/quakes-mag.png){.full}
+
+无论震级如何，地震似乎集中发生在表层或深层的位置，中间带反而比较稀疏，可见震级和地震的位置关系不大，地不地震、震级如何主要是由地质条件决定的。
 
 
-## satellite
-
-[**satellite**](https://github.com/environmentalinformatics-marburg/satellite) [@satellite] 卫星遥感数据
-
-[**rasterbc**](https://github.com/deankoch/rasterbc) [@rasterbc] 内置 2001-2018 年加拿大英属哥伦比亚省 raster 格式的栅格数据，森林生态学
 
 
 # 数据结构
 
 本节开始介绍一些空间数据相关的基础知识，R 语言有一些扩展包是专门处理空间数据的，提供基础数据结构和类型，了解这些是为空间数据操作、分析、建模打基础。空间数据操作（Spatial Data Manipulation），如计算空间区域的面积、空间点的路径、区域叠加、基于空间关系的数据查询等。空间数据分析（Spatial Data Analysis），空间数据的描述性分析和探索性分析，帮助发现数据中的模式规律。空间统计分析（Spatial Statistical Analysis），传统的统计模型认为观测值之间常常是独立的，而空间数据自带空间相关性，需要专门的统计分析方法。空间数据建模（Spatial Data Modeling），面对不同的空间数据类型需要不同的建模方法，比如空间点模式分析（Spatial Point Pattern Analysis）、格网/面状数据分析（Area Data/Grid Data/lattice Data Analysis）、地统计分析（Geostatistics）等。
 
-
-**rgeos** [@rgeos]、**rgdal** [@rgdal] 和 **maptools** [@maptools] 都将于 2023 年底移出 CRAN，不再维护，它们主要用来读取和操作空间数据，相比于 **sf** [@sf] 加 **terra** [@terra] 的新方案，它们都落后了。部分功能会迁移到 **sp** 包[@sp]，而 **raster** 包[@raster]也不推荐使用，大迁移背景介绍见[这里](https://github.com/r-spatial/evolution)，几十年过去了，维护者退休了，代码的历史包袱很重，很难维护，功能和性能也没新的好。2019 年出版的开源书籍[《Geocomputation with R》](https://geocompr.robinlovelace.net/) 已经在紧锣密鼓地升级了，感兴趣的读者不妨看看新旧[详细比较](https://keen-swartz-3146c4.netlify.app/older.html)。
 
 
 ## 矢量数据 sp
@@ -1487,24 +1320,12 @@ knitr::kable(matrix(c(methods(plot), ""), ncol = 4),
 ```
 
 
-```{r,eval=FALSE}
-library(lattice)
-library(loa)
-OpenStreetMapPlot(lead * 2 + zinc ~ latitude * longitude,
-  col.regions = c("grey", "darkred"), 
-  key.z.main="Concentrations", panel.zcases = TRUE,
-  data = lat.lon.meuse, map = roadmap.meuse
-)
-```
 
 ## 栅格数据 raster
 
-栅格数据是空间数据的另一种类型，比如遥感卫星拍摄的照片，**raster** [@raster] 可以处理这类数据的分析和可视化。raster 包正在过渡到 terra 包，后者速度更快，接口函数是相似的。
-
-[layer](https://github.com/marcosci/layer) 层次性
+栅格数据是空间数据的另一种类型，比如遥感卫星拍摄的照片，**raster** [@raster] 可以处理这类数据的分析和可视化。**raster** 包正在过渡到 **terra** 包，后者速度更快，接口函数是相似的。图\@ref(fig:layer)来自[layer](https://github.com/marcosci/layer) 包，栅格数据包含丰富的层次性。
 
 ![(\#fig:layer) **layer** 包空间数据](/img/maps-in-r/layer.jpg){.full}
-
 
 
 iPhone 12 Pro 拍摄的照片默认采用 HEIC (High Efficiency Image Container) 格式保存，这是一张层次很丰富的乌云照片，原始尺寸为 $4032 \times 3024$，这里先用 [ImageMagick](https://imagemagick.org/) 将 HEIC 格式转化为 Tiff 格式，长宽尺寸均缩小为原来的十分之一，方便后续处理。
@@ -1531,17 +1352,11 @@ ggplot() +
 
 ![(\#fig:cloud-stars) **stars** 包读取 raster 数据](/img/maps-in-r/cloud-stars.png){.full}
 
-颜色越深，乌云越厚，RGB 三颜色加 alpha 通道
-
-
-笔者用 iPhone 12 Pro 拍摄的天空照片和银杏树照片，层次，通道， 
-TIFF 照片卫星拍摄的照片与此大致相仿，所使用的镜头不同而已。下面介绍一下如何处理这类图像数据。图像处理，检测 detection，分割 segmentation，识别 recognition，如何识别出来图片中是乌云还是银杏叶，乌云和银杏叶的轮廓，如何将一朵朵乌云分割开来，一片片银杏叶呢？
-
+颜色越深，乌云越厚，真正的 GeoTIFF 图片一般包含 RGB 三颜色和 alpha 通道，笔者用 iPhone 12 Pro 拍摄的天空照片，与之相似但是缺少了 alpha 通道。卫星拍摄的 TIFF 照片与此大致相仿，所使用的镜头不同而已。剩下的就是图像处理，这一块内容很多，如检测 detection，分割 segmentation，识别 recognition 等等，鉴于笔者对这一领域全然不了解，就不班门弄斧了。
 
 ```{r,eval=FALSE}
 library(terra)
 ```
-
 ```{r raster-grain, eval=FALSE}
 data(grain, package = 'spData')
 terra::plot(grain, asp = NA)
@@ -1549,20 +1364,12 @@ terra::plot(grain, asp = NA)
 
 ![(\#fig:raster-grain) **terra** 包绘制栅格数据](/img/maps-in-r/raster-grain.png){.full}
 
-::: rmdtip
-R 软件内置的调色板 `terrain.colors()` 专用于地形图配色，从翠绿色、土黄色、沙白色，无不暗示海拔变化，读者不妨想象一下，山上的树呈翠绿色，山腰的砂石土块呈土黄色，山脚的河床小路呈沙白色，十分符合我国南方的丘陵山地印象。
-:::
 
+[**spData**](https://github.com/Nowosad/spData/) 包内的 wheat 数据集来自非常经典的空间统计书籍《Statistics for Spatial Data》[@Cressie1993]。
 
-
-[**spData**](https://github.com/Nowosad/spData/)
-
-
-**spData** 内的 wheat 数据集来自非常经典的空间统计书籍《Statistics for Spatial Data》[@Cressie1993]。
-
-sf 读取 shp 文件
 
 ```{r}
+# sf 读取 shp 文件
 library(sf)
 wheat <- st_read(system.file("shapes/wheat.shp", package = "spData"))
 wheat
@@ -1577,26 +1384,18 @@ plot(wheat["yield"])
 
 ## 矢量数据 sf
 
-[proj](https://proj.org/) Cartographic Projections Library
-
-[geos](https://trac.osgeo.org/geos) Geometry Engine
-
-[gdal](https://www.gdal.org/) Geospatial Data Abstraction Library
-
-**sf** [@sf] 可以看作是继 sp 后的第二代空间数据处理和分析的框架，上一代的 maptools rgdal 和 rgeos 包退役。 历史遗留的部分陆续迁移至 sp 新的开发阵地已经迁移到 sf 上。哪些遗留的部分会迁移到 sp 而新的阵地又是什么？
+**sf** 包依赖三个基础的地理空间数据处理库，分别是制图投影库 [proj](https://proj.org/)（Cartographic **Proj**ections Library，简称 proj），几何计算引擎 [geos](https://trac.osgeo.org/geos)（ **G**eometry **E**ngine, **O**pen **S**ource，简称 geos），地理空间数据抽象库 [gdal](https://www.gdal.org/) （**G**eospatial **D**ata **A**bstraction **L**ibrary，简称 gdal）。**sf** [@sf] 可以看作是继 **sp** 后的第二代空间数据处理和分析的框架。
 
 
 ```{r}
 library(sf)
 ```
-
-
 ```{r}
 data(alaska, package = 'spData')
 alaska
 ```
 
-数据集 alaska 使用的坐标参考系是 Alaska Albers (EPSG:3467)。各个变量分别是 GEOID 地理标识符（geographic identifiers），NAME 州的名称，REGION 区域的名称，AREA 面积（平方千米），total_pop_10 2010 年人口，total_pop_15 2015 年人口，geometry 表示 sf 多边形类的集合属性。
+数据集 alaska 只有1行6列，使用的坐标参考系是 Alaska Albers (EPSG:3467)。各个变量分别是 GEOID 地理标识符（geographic identifiers），NAME 州的名称，REGION 区域的名称，AREA 面积（平方千米），total_pop_10 2010 年人口，total_pop_15 2015 年人口，geometry 表示 sf 多边形类 MULTIPOLYGON 的集合属性，阿拉斯加地区是由多个多边形组成的，通过图\@ref(fig:sf-alaska)可以直观地看出来。
 
 ```{r,eval=FALSE}
 plot(alaska["total_pop_15"])
@@ -1609,9 +1408,7 @@ data(world, package = 'spData')
 world
 ```
 
-world 包含 177 个国家和地区的人口数据，area_km2 面积、pop 人口（2014 年）、lifeExp 人均寿命（2014 年）和 gdpPercap 人均 GDP （2014 年）。地理信息相关的数据有 iso_a2 国标 ISO 的国家编码，name_long 国家名字，continent 大洲名字，region_un 区域名称，subregion 子区域名称和 type 类型。数据收集自国家地理 [Natural Earth](https://www.naturalearthdata.com/) 和世界银行 [World Bank](https://data.worldbank.org/)，Jakub Nowosad 整理在 **spData** 包里。
-
-[rnaturalearth](https://github.com/ropenscilabs/rnaturalearth)
+world 包含 177 个国家和地区的人口数据，area_km2 面积、pop 人口（2014 年）、lifeExp 人均寿命（2014 年）和 gdpPercap 人均 GDP （2014 年）。地理信息相关的数据有 iso_a2 国标 ISO 的国家编码，name_long 国家名字，continent 大洲名字，region_un 区域名称，subregion 子区域名称和 type 类型。数据收集自美国国家地理网站[Natural Earth](https://www.naturalearthdata.com/) 和世界银行 [World Bank](https://data.worldbank.org/)，Jakub Nowosad 整理在 **spData** 包里。
 
 ```{r,eval=FALSE}
 plot(world["gdpPercap"])
@@ -1623,6 +1420,8 @@ plot(world["gdpPercap"])
 **spData** 包内置的 world 数据集将台湾和中国大陆的地区用不同的颜色标记，严格来讲，这是不符合国家地图规范的，不能出现在期刊、书籍等正式的出版物里。
 :::
 
+
+<!-- 
 ## 栅格数据 terra
 
 ```{r,eval=FALSE}
@@ -1632,8 +1431,209 @@ x
 plot(x, axes = F, legend = F, mar = rep(0, 4))
 ```
 
+## 时空数据 stars 
+-->
 
-## 时空数据 stars
+
+# 示例：中国地图数据
+
+R 语言社区有不少 R 包涉及中国地图数据，但是质量不一，比如 **maps** 和 **mapdata** 包内置的中国地图，精度不够也不完整，下面再简单说下几个主要的数据源。
+
+## 矢量数据
+
+[**rnaturalearth**](https://github.com/ropenscilabs/rnaturalearth) 和 [**rnaturalearthdata**](https://github.com/ropenscilabs/rnaturalearthdata) 提供 [美国国家地理](https://www.naturalearthdata.com/) 网站的 R 语言接口，可以免费下载矢量和栅格地图数据。精度稍高一点的地图数据需要下载**rnaturalearthhires** 包，它有 20 多 M，不在 CRAN 上，安装命令如下：
+
+```{r,eval=FALSE}
+install.packages(
+  pkgs = "rnaturalearthhires",
+  repos = "http://packages.ropensci.org",
+  type = "source"
+)
+```
+```{r,eval=FALSE}
+## 加载 R 包
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(rnaturalearthhires)
+```
+
+下载数据，调用 **sp** 包绘制中国地图数据，如图\@ref(fig:china-map)。
+
+```{r china-map, eval=FALSE}
+# 中国大陆地区
+chn_map <- rnaturalearth::ne_countries(
+  country = "China",
+  continent = "Asia",
+  type = "countries",
+  scale = 10, returnclass = "sp"
+)
+# 台湾地区
+twn_map <- rnaturalearth::ne_countries(
+  country = "Taiwan",
+  continent = "Asia",
+  type = "countries",
+  scale = 10, returnclass = "sp"
+)
+# 绘图
+sp::plot(chn_map)
+# 追加
+sp::plot(twn_map, add = TRUE)
+```
+
+![(\#fig:china-map) 美国国家地理网站提供的中国地图数据](/img/maps-in-r/china-map.png){.full}
+
+这个地图数据有些明显的问题，将台湾地区的数据和中国分离开，南海诸岛的数据缺失很多，关于地图，这是一点都不能少的！笔者在美国国家地理网站的[声明](https://www.naturalearthdata.com/downloads/50m-cultural-vectors/50m-admin-0-countries-2/)里了解到，地区边界是根据实际控制划分的。
+
+## 栅格数据
+
+下面再看看网站提供的栅格数据，以海拔数据为例。
+
+```{r,eval=FALSE}
+# 创建目录存储地形文件
+xfun::dir_create("~/data/") 
+# 从 raster::getData('ISO3') 可以知道各个国家或地区的 ISO3 代码
+# 下载数据 
+# 中国大陆地区
+chn_map <- raster::getData(name = "alt", country = "CHN", mask = TRUE, path = "~/data/")
+# 台湾地区
+twn_map <- raster::getData(name = "alt", country = "TWN", mask = TRUE, path = "~/data/")
+# 香港地区
+hkg_map <- raster::getData(name = "alt", country = "HKG", mask = TRUE, path = "~/data/")
+# 澳门地区
+mac_map <- raster::getData(name = "alt", country = "MAC", mask = TRUE, path = "~/data/")
+
+# 若已经下载到本地，可直接读取
+chn_map <- raster::raster(x = "~/data/CHN_msk_alt.grd")
+twn_map <- raster::raster(x = "~/data/TWN_msk_alt.grd")
+hkg_map <- raster::raster(x = "~/data/HKG_msk_alt.grd")
+mac_map <- raster::raster(x = "~/data/MAC_msk_alt.grd")
+# 合并 Raster 数据
+china_map = terra::merge(chn_map, twn_map, hkg_map, mac_map)
+# 查看数据类型
+class(china_map)
+# 调 terra 包绘图速度快
+terra::plot(china_map, col = terrain.colors(20, rev = F))
+```
+
+![(\#fig:china-elevation) 中国地图海拔数据](/img/maps-in-r/china-elevation.png){.full}
+
+
+另一个提供地图数据的是商业软件 [Highcharts Maps](https://www.highcharts.com/)，国内外有不少商业公司是它的客户，它也有一个 R 包[**highcharter**](https://github.com/jbkunst/highcharter)，
+有一个以美国地图数据为背景的博客详细介绍了使用过程，详见 [Highcharts 官方博客](https://www.highcharts.com/blog/tutorials/using-highcharter-in-tidytuesday-internet-access/)。[简数科技](https://www.highcharts.com.cn/) 定制了一份 GeoJSON 格式的中国地图数据，还提供了地图预览和下载的服务，因为涉及商业版权和地图数据合规性，使用需要注意，读者可前往[网站](https://www.highcharts.com.cn/mapdata)了解。另一个 R 包[**hchinamap**](https://github.com/czxa/hchinamap) 也是使用这份中国地图数据和 JavaScript 库 [Highcharts JS](https://github.com/highcharts/highcharts)。
+
+```{r,eval=FALSE}
+library(hchinamap)
+# name 是地图数据中的各个区域单元的名称
+hchinamap(
+  name = c("北京", "天津", "上海", "湖南", "台湾", "海南"),
+  value = c(120, 200, 126, 300, 150, 225),
+  width = "100%",
+  height = "650px",
+  title = "分省地图",
+  region = "China",
+  minColor = "#f1eef6",
+  maxColor = "#980043",
+  itermName = "指标",
+  hoverColor = "#f6acf5"
+)
+```
+
+![(\#fig:china-hchinamap) 中国地图数据](/img/maps-in-r/china-hchinamap.png){.full}
+
+
+
+## 交互地图
+
+交互地图采用 **leaflet** 包绘制，采用 **leafletCN** 包汉化，并且提供合规的中国地图，核心函数是 `geojsonMap()`，它封装了 GeoJSON 格式的地图数据和绘图函数，更多定制参考`leaflet::leaflet()`，只要数据包含的一列区域名称和地图数据能映射上，就可以绘制出图\@ref(fig:china-leafletcn)，图中数据是随机生成的，调色板采用 `RdBu`，将连续的数据分段，每段对应一个色块。 
+
+```{r,eval=FALSE}
+library(leaflet)
+library(leafletCN) # 提供 geojsonMap 函数
+dat <- data.frame(name = regionNames("china"), value = runif(34))
+# 还有很多其他参数设置，类似 leaflet::leaflet
+geojsonMap(dat, mapName = "china", palette = "RdBu", colorMethod = "bin")
+```
+
+![(\#fig:china-leafletcn) 交互地图数据可视化](/img/maps-in-r/china-leafletcn.png){.full}
+
+绘制某个省份、直辖市、地级市的数据，图\@ref(fig:china-beijing)和图\@ref(fig:china-shaoyang)分别展示北京市、邵阳市下各个区县的数据。不难发现，**leafletCN** 包内置的地图边界和名称等数据尚未更新，下图\@ref(fig:china-beijing)还是崇文、宣武区，实际它们已经合并至东、西城区，图\@ref(fig:china-shaoyang)还是邵东县，实际已经升级为邵东市，是由邵阳市代管的县级市。
+
+```{r,eval=FALSE}
+dat <- data.frame(name = regionNames("北京"), value = runif(18))
+geojsonMap(dat, mapName = "北京", palette = "RdBu", colorMethod = "bin")
+```
+
+![(\#fig:china-beijing) 北京地区](/img/maps-in-r/china-beijing.png){.full}
+
+```{r,eval=FALSE}
+dat <- data.frame(name = regionNames("邵阳"), value = runif(12))
+geojsonMap(dat, mapName = "邵阳", palette = "RdBu", colorMethod = "bin")
+```
+
+![(\#fig:china-shaoyang) 邵阳地区](/img/maps-in-r/china-shaoyang.png){.full}
+
+可见，市和区县级地图边界数据是存在问题的，省级边界地图数据配合高德提供的背景地图数据是基本可用。一个更可靠的方式是不要使用此边界数据，只使用高德地图，以气泡图代替，类似图\@ref(fig:bubble-map)，要点是需要准备各个区县级以上城市的经纬度坐标，并且和高德地图采用的坐标系是一致的，这样气泡的位置和地图上显示的城市名称是基本重合的。
+
+![(\#fig:bubble-map) 部分区县级城市的气泡散点图](/img/maps-in-r/bubble-map.png){.full}
+
+
+## 静态地图
+
+[中华人民共和国民政部](http://xzqh.mca.gov.cn)提供了中国地图数据，是 GeoJSON 格式的，属于权威数据源，推荐使用。
+
+```{r,eval=FALSE}
+library(sf)
+china_map = st_read(dsn = "http://xzqh.mca.gov.cn/data/quanguo_Line.geojson", stringsAsFactors = FALSE)
+```
+```
+Reading layer `线' from data source 
+  `http://xzqh.mca.gov.cn/data/quanguo_Line.geojson' using driver `GeoJSON'
+Simple feature collection with 104 features and 3 fields
+Geometry type: LINESTRING
+Dimension:     XY
+Bounding box:  xmin: 73.68 ymin: 3.554 xmax: 135.2 ymax: 53.65
+Geodetic CRS:  WGS 84
+```
+```r
+china_map
+```
+```
+Simple feature collection with 104 features and 3 fields
+Geometry type: LINESTRING
+Dimension:     XY
+Bounding box:  xmin: 73.68 ymin: 3.554 xmax: 135.2 ymax: 53.65
+Geodetic CRS:  WGS 84
+First 10 features:
+     NAME  QUHUADAIMA strZTValue                       geometry
+1         hainansheng            LINESTRING (121.9 30.84, 12...
+2         hainansheng            LINESTRING (121.4 30.82, 12...
+3         hainansheng            LINESTRING (121.5 31.64, 12...
+4          tiaohuijie            LINESTRING (124.4 40.08, 12...
+5          tiaohuijie            LINESTRING (124.5 40.13, 12...
+6  台湾岛      daoyu6            LINESTRING (121.4 22.46, 12...
+7  海南岛      daoyu5            LINESTRING (111.5 19, 112.4...
+8  钓鱼岛      daoyu6            LINESTRING (122.8 26.07, 12...
+9  赤尾屿      daoyu6            LINESTRING (125.2 25.86, 12...
+10 黄岩岛      daoyu6            LINESTRING (117.2 14.61, 11...
+```
+```r
+plot(china_map)
+```
+
+![(\#fig:china-linestring) 静态地图数据](/img/maps-in-r/china-linestring.png){.full}
+
+
+另一份地图数据是全国各地的行政区域，只有省一级。
+
+```{r,eval=FALSE}
+china_map = st_read(dsn = "http://xzqh.mca.gov.cn/data/quanguo.json", stringsAsFactors = FALSE)
+# 原数据集没有坐标系信息，因此设置一下
+st_crs(china_map) = 4326
+plot(china_map["QUHUADAIMA"])
+```
+
+![(\#fig:china-province) 静态地图数据](/img/maps-in-r/china-province.png){.full}
+
 
 
 # 数据操作
@@ -1643,11 +1643,34 @@ plot(x, axes = F, legend = F, mar = rep(0, 4))
 
 ## 一般数据操作
 
-Base R vs data.table vs dplyr
+R 软件内置的一些基础数据操作函数通过排列组合能够满足大部分使用场景，都来自 **base** 包和 **stats** 包，约**10**来个函数：
 
-```{r eval=base::getRversion()>='4.1.0'}
+1. 函数 `subset()` 提取数据框中的某些列和行，也可以用 `$` 或 `[` 实现。
+
+1. 函数 `transform()` 可以在原来的数据框上添加新的一列，这个新的列通常是根据已有的列加减乘除等计算而来。
+
+1. 函数 `order()` 按照数据框的某个（些）列排序，如先按照第一列从小到大排序，再按照第二列从小到大排序。
+
+1. 函数 `aggregate()` 分组聚合函数，也是很常用的。
+
+1. 函数 `reshape()` 将长格式的数据框变形为宽格式的数据框，反之亦可。
+
+1. 函数 `merge()` 合并两个数据框，有内关联、左关联、右关联等合并方式，合并操作可以和 SQL 中的关联操作对应。
+
+1. 函数 `split()` 将数据框按照某个分类变量拆分为列表，后续常常可以接 `lapply()` 实现分组计算，最后调用 `do.call()` / `Reduce()` 等合并计算结果。
+
+1. 函数 `duplicated()` 查出是否有**重复**的记录，后续可以决定是否去掉。
+
+1. 函数 `complete.cases()` 查出是否有**不完整**的记录，后续考虑是否要去掉。
+
+下面以 R 软件内置的数据集 mtcars 为例，介绍数据操作的一个典型过程，拆分、计算、合并，早年Hadley Wickham 创建 **plyr** 包 [@plyr] 就是干这个事情，后来，陆续出现很多 R 包，如 **reshape** 包（已退休）、**reshape2**（已退休）、**dplyr**（活跃）、**purrr**（活跃）、**tidyr**（活跃），一直处于不太稳定的状态，此处不再细说。
+
+```{r}
 data("mtcars")
 head(mtcars)
+```
+
+```{r eval=base::getRversion()>='4.1.0'}
 # 拆分
 mtcars_cyl <- split(x = mtcars, f = ~cyl) # 从 R >= 4.1.0 开始 split 支持公式语法
 # 计算
@@ -1658,16 +1681,25 @@ dat <- do.call("rbind", mtcars_coef)
 dat
 ```
 
+如果读者对**data.table**语法比较熟悉，这个过程将是一气呵成。
 
 ```{r}
 library(data.table)
+# data.frame 转化为 data.table 类型
+mtcars <- as.data.table(mtcars)
+# 分组线性回归
+mtcars[, as.list(coef(lm(mpg ~ disp))), by = .(cyl)]
 ```
 
+如果想要自己的代码稳定、高效、简洁、易维护，那就先学习一下 Base R 的基本数据操作吧！熟悉之后，可以再深入学习一下 **data.table** 提供的高级数据操作，熟练掌握之后，配合 SQL，可以成为真正的生产力工具，从 Base R 到 **data.table** 可以加深理解 R 语言的精要，从而真正地提升编码水平。最后总结一点，新手都在做高难度动作[^hard]，高手都在练基本动作[^easy]。为了让自己的编码更加有效率，更加符合语言本身的特点，先从数据操作开始，一点一点从头练习。
 
+[^hard]: 各种花里胡哨引入一堆 R 包和函数，直接告诉你答案，又不告诉你为什么，三天不学习就跟不少变化。
+
+[^easy]: 基本动作就是内功心法，无论面对的数据操作如何复杂，最终都能一一化解，以不变应万变。
 
 ## 空间数据操作
 
-**sf** 内置了一些基础的空间数据操作函数，在此基础上，绝大多复杂的空间数据操作都可以拆解为这些基础动作，更多详情见**sf**包[帮助文档](https://r-spatial.github.io/sf/articles/sf1.html)。
+**sf** 内置了一些基础的空间数据操作函数，在此基础上，绝大多数复杂的空间数据操作都可以拆解为这些基础动作，更多详情见**sf**包[帮助文档](https://r-spatial.github.io/sf/articles/sf1.html)。
 
 ```{r}
 library(sf)
@@ -1991,6 +2023,9 @@ knitr::kable(sub_pdb[order(sub_pdb$Maintainer), ],
 
 从 **sp** 到 **sf**，从 **raster** 到 **terra**，是 R 语言在空间数据领域前进的一大步，在使用的直观感受上，数据读写、操作的性能得到极大的提升，R 包依赖也大为减少。
 
+**rgeos** [@rgeos]、**rgdal** [@rgdal] 和 **maptools** [@maptools] 都将于 2023 年底移出 CRAN，不再维护，它们主要用来读取和操作空间数据，相比于 **sf** [@sf] 加 **terra** [@terra] 的新方案，它们都落后了。部分功能会迁移到 **sp** 包[@sp]，而 **raster** 包[@raster]也不推荐使用，大迁移背景介绍见[这里](https://github.com/r-spatial/evolution)，几十年过去了，维护者退休了，代码的历史包袱很重，很难维护，功能和性能也没新的好。2019 年出版的开源书籍[《Geocomputation with R》](https://geocompr.robinlovelace.net/) 已经在紧锣密鼓地升级了，感兴趣的读者不妨看看新旧[详细比较](https://keen-swartz-3146c4.netlify.app/older.html)。
+
+
 顺便一提，Python 语言社区关于空间数据操作的流行模块有[shapely](https://github.com/shapely/shapely)和[geopandas](https://github.com/geopandas/geopandas)，后者还包含基于[matplotlib](https://github.com/matplotlib/matplotlib)的地理可视化，而做空间数据可视化的有[bokeh](https://github.com/bokeh/bokeh)、[pyecharts](https://github.com/pyecharts/pyecharts)和[plotly](https://github.com/plotly/plotly.py)等。[basemap](https://github.com/matplotlib/basemap) 基于 matplotlib 提供地图坐标映射，作用类似 R 包 **mapproj**。[geoplot](https://github.com/ResidentMario/geoplot) 提供高级易用的使用接口，扩展 [cartopy](https://github.com/SciTools/cartopy) 和 matplotlib 在地理可视化方面的能力。[rasterio](https://github.com/rasterio/rasterio) 读写栅格数据，以及[地理资源列表](https://github.com/sacridini/Awesome-Geospatial)。
 
 
@@ -2107,8 +2142,7 @@ wireframe(volcano,
 # 未来展望
 
 
-
-本文也只涉及空间数据领域的皮毛，说白了就是导入几种格式的空间数据画点小地图，也未涉及百万乃至百亿级的大规模空间数据的可视化，以及支持可视分析需要的空间数据存储、检索、操作、分析、建模和应用的知识和技术。此外，对于不同类型的空间数据有不同的分析方法和统计模型，比如点数据的模式分析，面数据的层次分析，栅格数据的图像分析等，本文亦未涉及。再有，面向具体业务问题，从问题发现到数据模型的转化、界定、拆解、优化和应用所需要的领域知识，本文也未涉及。笔者所知所学有限，空间数据领域是如此广阔，需要大家一起发力。
+本文只涉及空间数据领域的皮毛，说白了就是导入几种格式的空间数据画点小地图，也未涉及百万乃至百亿级的大规模空间数据的可视化，以及支持可视分析需要的空间数据存储、检索、操作、分析、建模和应用的知识和技术。此外，对于不同类型的空间数据有不同的分析方法和统计模型，比如点数据的模式分析，面数据的层次分析，栅格数据的图像分析等，本文亦未涉及。再有，面向具体业务问题，从问题发现到数据模型的转化、界定、拆解、优化和应用所需要的领域知识，本文也未涉及。笔者所知所学有限，空间数据领域是如此广阔，需要大家一起发力。
 
 
 技术层面，在大规模空间数据可视化和计算方面，[Kepler.gl](https://github.com/keplergl/kepler.gl) 是一款开源的大规模地理数据分析工具。[deck.gl](https://github.com/visgl/deck.gl) WebGL2 加持的高性能大规模空间数据可视化框架，支持灵活的自定义。Uber 开发的[h3](https://github.com/uber/h3) 提供六边形分层时空索引，[GeoMesa](https://github.com/locationtech/geomesa) 提供点、线、多边形的时空索引，支持分布式时空数据查询分析，结合 kafka 提供近实时的时空数据流处理能力，支持自定义 [Apache Spark](https://github.com/apache/spark) 作为分布式地理分析计算引擎，要知道 Spark 本身是不提供针对空间数据操作的 SQL 函数，因此，使用成本是很高的。更进一步，[Apache Sedona](https://github.com/apache/incubator-sedona)专门应用于大规模空间数据处理的集群计算系统，扩展了 Apache Spark / SparkSQL 的能力，提供一组开箱即用的套件 SpatialSQL，支持 Python 和 R 等多种编程接口。[Presto](https://github.com/prestodb/presto) 作为一款分布式 SQL 查询引擎，内置了常用空间数据操作的函数，和 R 包 **sf** 提供的函数名基本是一致的，迁移学习成本低。更加专业的传统 GIS 数据库当属站在[PostgreSQL](https://www.postgresql.org/)肩膀上的[PostGIS](http://postgis.net/)，PostgreSQL提供基础的空间数据类型，作为存储设施，PostGIS 提供空间数据特有的系列操作。
@@ -2140,17 +2174,17 @@ xfun::session_info(packages = c(
 ```{r write-bib, include=FALSE}
 pkgs <- c(
   "knitr", "rmarkdown", "blogdown",
-  "ggmap", "ggplot2", 
+  "ggmap", "ggplot2", "plyr",
   "leaflet", "leafletCN", 
   "echarts4r", "plotly",
   "baidumap", "RgoogleMaps", 
-  "mapview", "mapedit", "mapsf",
+  "mapview", "mapedit", 
   "lattice", "loa", "latticeExtra", "rasterVis",
   "geohashTools", "lwgeom", "rgeolocate",
   "terra", "sf", "sp", "stars",
   "maps", "mapdata", "mapproj",
-  "rgl", "satellite", "rasterbc",
-  "raster", "rgeos", "rgdal", "maptools"
+  "rgl", "raster", "mapsf",
+  "rgeos", "rgdal", "maptools"
 )
 bib <- knitr::write_bib(
   x = pkgs, file = NULL, prefix = ""
