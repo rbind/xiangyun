@@ -154,7 +154,7 @@ div.img {
 
 # 地图服务
 
-比较常见的地图服务，国外有谷歌、微软，国内有百度、高德，凡是提供本地生活服务的公司都或多或少地依赖高精地图，如美团外卖，阿里飞猪等。本节主要带领读者了解地图服务，以及使用 R 语言来做地理可视化，为增加代入感，笔者就以「中国矿业大学（北京）学院路校区」这个地标的 IP 定位开始。首先用 [curl](https://curl.se/) 工具请求网站 <https://ipinfo.io/>[^ipinfo]，它会自动获取用户上网使用的 IP 以及 IP 所处的地理位置，如下：
+比较常见的地图服务，国外有谷歌、微软，国内有百度、高德，凡是提供本地生活服务的公司都或多或少地依赖高精地图，如美团外卖，阿里飞猪等。本节主要带领读者了解地图服务，以及使用 R 语言来做调地图服务，为增加代入感，笔者就以「中国矿业大学（北京）学院路校区」这个地标的 IP 定位开始。首先用 [curl](https://curl.se/) 工具请求网站 <https://ipinfo.io/>[^ipinfo]，它会自动获取用户上网使用的 IP 以及 IP 所处的地理位置，如下：
 
 ```bash
 curl ipinfo.io
@@ -170,7 +170,12 @@ curl ipinfo.io
 }
 ```
 
-可知学校所处位置：纬度 39.9288 经度 116.3890，当然这离高精地图还有十万八千里，也正因定位的粗糙性，笔者才敢把它放在博客里，毕竟高精地理信息是涉及国家安全的内容。另外，值得注意的是对同一目标不同公司提供的定位可能是不同的，因为所选的地理参考系不同，常用的三种坐标系见文档[坐标系](https://lbsyun.baidu.com/index.php?title=coordinate)。大家熟知的GPS全球卫星定位系统采用 WGS84，而 GCJ02 由WGS84加密后的坐标系，是由中国国家测绘局制定的地理坐标系统，又称火星坐标系。BD09为百度坐标系，在GCJ02坐标系基础上再次加密。注意，加密过程不可逆，是一种非线性加密方式，反向解密后的坐标在部分区域的定位差别很大。
+可知学校所处位置：纬度 39.9288 经度 116.3890，当然这离高精地图还有十万八千里，也正因定位的粗糙性，笔者才敢把它放在博客里，毕竟高精地理信息是涉及国家安全的内容。
+
+
+另外，值得注意的是对同一目标不同公司提供的定位可能是不同的，因为所选的地理参考系不同，常用的三种坐标系见文档[坐标系](https://lbsyun.baidu.com/index.php?title=coordinate)。
+
+大家熟知的全球定位系统（GPS）采用 WGS 84，而 GCJ 02 由 WGS 84 加密后的坐标系，是由中国国家测绘局制定的地理坐标系统，又称火星坐标系。BD09 为百度坐标系，在GCJ 02坐标系基础上再次加密。注意，加密过程不可逆，是一种非线性加密方式，反向解密后的坐标在部分区域的定位差别很大。
 
 [^ipinfo]: [ipinfo](https://github.com/ipinfo) 工具是开源可商用的，由前 Facebook 工程师 Ben Dowling 于 2013 年创建，后来发展成 IPinfo 公司，专门提供 IP 定位服务，服务的公司包括腾讯、戴尔、耐克等。
 
@@ -189,7 +194,7 @@ http://tile.stamen.com/terrain-background/5/4/10.png
 
 ![(\#fig:ggmap-tile) ggmap 地形图](/img/maps-in-r/google-tile.png){.full}
 
-**ggmap** 可以调用多种样式的地图，地形图、水彩图等，如图\@ref(fig:ggmap-tiles) 所示。
+**ggmap** 也可以调用多种风格样式的地图，地形图、水彩图等，如图\@ref(fig:ggmap-tiles) 所示。
 
 ```{r,eval=FALSE,echo=FALSE}
 library(ggplot2)
@@ -225,7 +230,7 @@ p1 / p2 | p3 / p4
 
 ## 必应地图
 
-与 **ggmap** 相比，[**RgoogleMaps**](https://github.com/markusloecher/rgooglemaps) [@Loecher2015] 支持更多的地图服务，除了 Google 地图外，还支持必应地图，以及基于 **lattice** 的可视化，借助 [**loa**](https://r-forge.r-project.org/scm/?group_id=1400) [@loa]和 [**latticeExtra**](https://r-forge.r-project.org/projects/latticeextra/) [@latticeExtra]还可以支持高级的自定义，如何使用见[**ggmap** 使用案例](https://github.com/vertica/Vertica-Geospatial) 
+与 **ggmap** 相比，[**RgoogleMaps**](https://github.com/markusloecher/rgooglemaps) [@Loecher2015] 支持调用更多的地图服务，除了 Google 地图外，还支持必应地图，以及基于 **lattice** 的可视化，借助 [**loa**](https://r-forge.r-project.org/scm/?group_id=1400) [@loa]和 [**latticeExtra**](https://r-forge.r-project.org/projects/latticeextra/) [@latticeExtra]还可以支持高级的自定义，如何使用见[**ggmap** 使用案例](https://github.com/vertica/Vertica-Geospatial) 
 、[**loa** 文档](https://loa.r-forge.r-project.org/loa.intro.html)和[**latticeExtra** 文档](https://latticeextra.r-forge.r-project.org/)。
 
 
@@ -292,7 +297,7 @@ OpenStreetMap 虽是开放数据，来自世界各地的贡献者，不提供免
 
 ![(\#fig:leaflet) 开源交互式 JavaScript 库 Leaflet](/img/leaflet.svg){.full}
 
-在 leaflet 地图上实际经纬度为 `c(116.34394, 39.99665)`
+在 leaflet 地图上实际经纬度为 `c(116.34394, 39.99665)`。
 
 ```{r,eval=FALSE}
 library(leaflet)
@@ -345,7 +350,7 @@ leaflet(options = leafletOptions(
 ```
 
 
-高德地图采用的是火星坐标系和 leaflet 采用的坐标系不同，导致矿大定位到了农大，如图\@ref(fig:leaflet-amap-cumtb)
+高德地图采用的是火星坐标系和 leaflet 采用的坐标系不同，导致矿大定位到了农大，如图\@ref(fig:leaflet-amap-cumtb)。
 
 ![(\#fig:leaflet-amap-cumtb)高德地图-中国矿业大学（北京）](/img/maps-in-r/leaflet-amap-cumtb.png){.full}
 
@@ -469,7 +474,7 @@ p1 + p2
 
 ## 示例：美国旧金山犯罪数据
 
-下面以 **RgoogleMaps** 包内置的空间数据集 incidents 为例介绍
+下面以 **RgoogleMaps** 包内置的数据集 incidents 为例介绍空间点数据，并作一些简单的分析。
 
 ```{r}
 library(RgoogleMaps)
@@ -1323,11 +1328,10 @@ stripplot(depth ~ factor(mag),
 
 ```{r}
 library(sp)
+getClass("Spatial")
 ```
 
-
-
-实际上，截止目前 `plot()` 函数已经汇集很多方法了，它已经是一个绘图对象，对于不同类型的数据对象，它会调用相应的绘图方法。记住，一切都是对象，一切的操作都是函数调用。
+可以看出 **sp** 打造的一套空间数据基础类型及其衍生类型，知道数据类型才知道后续该怎么对其进行操作，调用合适的方法。比如最常使用的绘图函数 `plot()` 已经汇集很多方法了，它也是一个绘图对象，对于不同类型的数据对象，它会调用相应的绘图方法。在 R 语言内，一切都是对象，一切的操作都是函数调用。
 
 ```{r methods-plot, echo=FALSE}
 knitr::kable(matrix(c(methods(plot), ""), ncol = 4),
@@ -1335,13 +1339,113 @@ knitr::kable(matrix(c(methods(plot), ""), ncol = 4),
 )
 ```
 
+**sp** 提供最基础的空间数据类是 Spatial 类，下面是一个实例。
+
+```{r}
+# 构造最基础的 Spatial 类
+S <- Spatial(
+  bbox = matrix(c(
+    165.67, 188.13, # 经度区间
+    -38.59, -10.72  # 纬度区间
+  ),
+  ncol = 2, byrow = TRUE,
+  dimnames = list(NULL, c("min", "max"))
+  ),
+  proj4string = CRS("+proj=longlat +datum=WGS84")
+)
+# 查看数据 S 类型
+class(S)
+```
+
+空间对象 S 有两个重要的部分，地理边界和坐标参考系，这两个信息可以分别用函数 `bbox()` 和 `slot(, "proj4string")` 单独提取。
+
+```{r}
+bbox(S)
+slot(S, "proj4string")
+```
+
+实际上，除了函数 `bbox()` 和 `slot(, "proj4string")`，Spatial 类还有很多方法。
+
+```{r}
+methods(class = "Spatial")
+```
+
+接下来，介绍如何从 data.frame 类型构造 sp 类型，还是以 R 内置的 quakes 数据集为例，过程很简单，只需三步将 quakes 转化为 SpatialPointsDataFrame 类型。
+
+```{r}
+# 加载数据
+data("quakes")
+# 指定坐标
+coordinates(quakes) <- ~long+lat
+# 指定坐标参考系
+proj4string(quakes) <- CRS("+proj=longlat +datum=WGS84")
+```
+
+查看转化后的数据情况：
+
+```{r}
+# 查看类型
+class(quakes)
+# 查看数据
+head(quakes)
+# 查看边界
+bbox(quakes)
+```
+
+直接调用 plot 方法，获取图\@ref(fig:quakes-sp)。实际上，会调用 SpatialPoints 的 plot 方法，plot 本身也是一个泛型函数，R 语言中的泛型有点类似面向对象编程中的多态。
+
+```{r,eval=FALSE}
+plot(quakes)
+```
+
+![(\#fig:quakes-sp)空间数据绘图](/img/maps-in-r/quakes-sp.png){.full}
+
+调 sp 数据对象特有的方法，获取图\@ref(fig:quakes-spplot)。
+
+```{r,eval=FALSE}
+p1 <- spplot(quakes, "depth", main = "Depth",
+  as.table = TRUE, # 面板自左上开始
+  scales = list(
+    draw = TRUE, # 坐标轴刻度
+    # 去掉图形上边、右边多余的刻度线
+    x = list(alternating = 1, tck = c(1, 0)),
+    y = list(alternating = 1, tck = c(1, 0))
+  ),
+  colorkey = TRUE,
+  alpha = 0.7,
+  key.space = "right"
+)
+p2 <- spplot(quakes, "mag", main = "Mag",
+  as.table = TRUE, # 面板自左上开始
+  scales = list(
+    draw = TRUE, # 坐标轴刻度
+    # 去掉图形上边、右边多余的刻度线
+    x = list(alternating = 1, tck = c(1, 0)),
+    y = list(alternating = 1, tck = c(1, 0))
+  ),
+  colorkey = TRUE, # 添加颜色条
+  alpha = 0.7, # 散点透明度
+  key.space = "right" # 颜色条放图右边
+)
+print(p1, split = c(1, 1, 2, 1), more = TRUE)
+print(p2, split = c(2, 1, 2, 1), more = FALSE)
+```
+
+
+![(\#fig:quakes-spplot)空间数据绘图](/img/maps-in-r/quakes-spplot.png){.full}
+
+地震主要是由于地壳运动产生的，两条地震带由内圈到外圈，地震深度有明显的阶梯变化，暗示着断层的方向和位置。
+
+::: rmdnote
+sp 会逐步退出空间数据领域，推荐读者尽快转移到 sf 上。考虑到一些初学者肯定还会遇到大量 sp 为基础的空间数据处理、分析和可视化的案例代码，毕竟迁移的过程还要一段时间，因而做一些介绍。
+:::
 
 
 ## 栅格数据 raster
 
 栅格数据是空间数据的另一种类型，比如遥感卫星拍摄的照片，**raster** [@raster] 可以处理这类数据的分析和可视化。**raster** 包正在过渡到 **terra** 包，后者速度更快，接口函数是相似的。图\@ref(fig:layer)来自[layer](https://github.com/marcosci/layer) 包，栅格数据包含丰富的层次性。
 
-![(\#fig:layer) **layer** 包空间数据](/img/maps-in-r/layer.jpg){.full}
+![(\#fig:layer) 图片来自**layer** 包](/img/maps-in-r/layer.jpg){.full}
 
 
 iPhone 12 Pro 拍摄的照片默认采用 HEIC (High Efficiency Image Container) 格式保存，这是一张层次很丰富的乌云照片，原始尺寸为 $4032 \times 3024$，这里先用 [ImageMagick](https://imagemagick.org/) 将 HEIC 格式转化为 Tiff 格式，长宽尺寸均缩小为原来的十分之一，方便后续处理。
