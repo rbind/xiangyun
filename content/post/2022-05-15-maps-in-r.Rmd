@@ -1351,7 +1351,8 @@ S <- Spatial(
   ncol = 2, byrow = TRUE,
   dimnames = list(NULL, c("min", "max"))
   ),
-  proj4string = CRS("+proj=longlat +datum=WGS84")
+  # 不推荐 proj4string = CRS("+proj=longlat +datum=WGS84") 
+  proj4string = CRS("EPSG:4326")
 )
 # 查看数据 S 类型
 class(S)
@@ -1378,7 +1379,7 @@ data("quakes")
 # 指定坐标
 coordinates(quakes) <- ~long+lat
 # 指定坐标参考系
-proj4string(quakes) <- CRS("+proj=longlat +datum=WGS84")
+proj4string(quakes) <- CRS("EPSG:4326") # 不推荐 CRS("+proj=longlat +datum=WGS84")
 ```
 
 查看转化后的数据情况：
