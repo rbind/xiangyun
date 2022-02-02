@@ -436,7 +436,7 @@ st_crs(world1)
 st_crs("EPSG:4326")
 ```
 
-**sf** 包提供 `st_as_sf()` 函数将 map 类转化为 sf 类，`st_crs()` 函数检索地图数据中附带的坐标参考系信息。接下来，用 `st_transform()` 函数转化坐标，参数 `crs` 指定新的坐标系统，示例里 `+proj=laea` 表示目标映射关系 Lambert Azimuthal Equal Area，而 `+ellps=WGS84` 即 [WGS 1984](https://en.wikipedia.org/wiki/World_Geodetic_System) 或称 [EPSG:4326](https://en.wikipedia.org/wiki/EPSG_Geodetic_Parameter_Dataset)，坐标系 WGS84 被全球定位系统采用。`+lon_0=155` 和 `+lat_0=-90` 分别是经纬度，东经 155 度，南纬 90 度，也就是观测视角到南极去了。
+**sf** 包提供 `st_as_sf()` 函数将 map 类转化为 sf 类，`st_crs()` 函数检索地图数据中附带的坐标参考系信息。接下来，用 `st_transform()` 函数转化坐标，参数 `crs` 指定新的坐标系统，示例里 `+proj=laea` 表示 Lambert Azimuthal Equal Area，而 `+ellps=WGS84` 即 [WGS 1984](https://en.wikipedia.org/wiki/World_Geodetic_System) 或称 [EPSG:4326](https://en.wikipedia.org/wiki/EPSG_Geodetic_Parameter_Dataset)。`+lon_0=155` 和 `+lat_0=-90` 分别是经纬度，东经 155 度，南纬 90 度，也就是观测视角到南极去了。
 
 
 ```{r}
@@ -467,6 +467,17 @@ p1 + p2
 
 ![(\#fig:sf-crs)坐标系统](/img/maps-in-r/sf-crs.png){.full}
 
+
+::: rmdtip
+也可采用如下的方法转化坐标系统，但是不知道怎么设置观察角度。
+
+```{r,eval=FALSE}
+world2 <- st_transform(
+  x = world1,
+  crs = st_crs(CRS("EPSG:3857"))
+)
+```
+:::
 
 # 空间数据
 
@@ -1971,7 +1982,7 @@ ggplot() +
 library(maptools)
 nc <- readShapePoly(
   fn = system.file("shapes/sids.shp", package = "maptools"),
-  proj4string = CRS("+proj=longlat +datum=NAD27")
+  proj4string = CRS("EPSG:6267") # 不推荐 CRS("+proj=longlat +datum=NAD27")
 )
 ```
 
@@ -2002,7 +2013,7 @@ spplot(nc, c("SID74", "SID79"),
 ```{r,eval=FALSE}
 library(ggmap)
 bgMap = get_map(as.vector(bbox(nc)), source = "google", zoom = 8) 
-spplot(spTransform(nc, CRS("+init=epsg:3857")),
+spplot(spTransform(nc, CRSobj = CRS("EPSG:3857")),
   c("SID74", "SID79"),
   as.table = TRUE,
   scales = list(
@@ -2025,7 +2036,7 @@ spplot(spTransform(nc, CRS("+init=epsg:3857")),
 ```{r,eval=FALSE}
 # https://stackoverflow.com/questions/57223853/
 # 转化坐标和 leaflet 的坐标系保持一致
-nc2 <- sf::st_transform(nc2, crs = "+proj=longlat +datum=WGS84")
+nc2 <- sf::st_transform(nc2, crs = CRS("EPSG:4326"))
 library(leaflet)
 # 调色板
 pal <- colorNumeric("plasma", domain = NULL)
