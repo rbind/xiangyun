@@ -2010,6 +2010,8 @@ spplot(nc, c("SID74", "SID79"),
 
 ![(\#fig:lattice-nc) **lattice** 数据可视化](/img/maps-in-r/lattice-nc.png){.full}
 
+**ggmap** 包获取的 Google 瓦片地图和 **leaflet** 包 使用的 OpenStreetMap 地图在坐标参考系上是一样的，都是 EPSG:3857，想把数据绘制到地图上，需要先将数据的坐标参考系转换到 EPSG:3857，坐标单位从经纬度随之变为米。
+
 ```{r,eval=FALSE}
 library(ggmap)
 bgMap = get_map(as.vector(bbox(nc)), source = "google", zoom = 8) 
@@ -2031,7 +2033,7 @@ spplot(spTransform(nc, CRSobj = CRS("EPSG:3857")),
 
 ## leaflet
 
-而 leaflet 支持绘制交互式的图形，如图 \@ref(fig:leaflet-nc) 所示。
+而 **leaflet** 支持绘制交互式的图形，如图 \@ref(fig:leaflet-nc) 所示。稍微注意的是，需要先将数据映射到坐标参考系 EPSG:4326 上，而后 **leaflet** 会负责将数据转化映射到 EPSG:3857，详见[文档](https://rstudio.github.io/leaflet/projections.html)。
 
 ```{r,eval=FALSE}
 # https://stackoverflow.com/questions/57223853/
@@ -2054,7 +2056,7 @@ leaflet(nc2) %>%
 
 ## latticeExtra::mapplot
 
-**latticeExtra** 在 **lattice** 的基础上，封装了一些高级函数，围绕本篇主题，下面介绍一下 `mapplot()` 函数，读者不妨类比 `spplot()` 函数，可知它是专门为 map 数据类型提供绘图服务。 map 数据类型在 R 语言中存在很多年了，算得上是古老了，以前绘图的 R 包主要是基础地图 **maps**， 更多地图 **mapdata**， 地图投影 **mapproj** 和读写操作 **maptools**。
+**latticeExtra** [@latticeExtra] 在 **lattice** 的基础上，封装了一些高级函数，围绕本篇主题，下面介绍一下 `mapplot()` 函数，读者不妨类比 `spplot()` 函数，可知它是专门为 map 数据类型提供绘图服务。 map 数据类型在 R 语言中存在很多年了，算得上是古老了，很久以前绘制地图的 R 包主要有：提供基础地图数据的 **maps**包， 提供更多常用地图数据的 **mapdata** 包， 实现坐标投影转化的 **mapproj** 包 和数据读写、操作 **maptools** 包。
 
 ```{r,eval=FALSE}
 mapplot(x, data, map,
