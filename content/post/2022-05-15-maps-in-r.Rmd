@@ -1650,28 +1650,6 @@ terra::plot(china_map, col = terrain.colors(20, rev = F))
 ![(\#fig:china-elevation) 中国地图海拔数据](/img/maps-in-r/china-elevation.png){.full}
 
 
-另一个提供地图数据的是商业软件 [Highcharts Maps](https://www.highcharts.com/)，国内外有不少商业公司是它的客户，它也有一个 R 包[**highcharter**](https://github.com/jbkunst/highcharter)，
-有一个以美国地图数据为背景的博客详细介绍了使用过程，详见 [Highcharts 官方博客](https://www.highcharts.com/blog/tutorials/using-highcharter-in-tidytuesday-internet-access/)。[简数科技](https://www.highcharts.com.cn/) 定制了一份 GeoJSON 格式的中国地图数据，还提供了地图预览和下载的服务，因为涉及商业版权和地图数据合规性，使用需要注意，读者可前往[网站](https://www.highcharts.com.cn/mapdata)了解。另一个 R 包[**hchinamap**](https://github.com/czxa/hchinamap) 也是使用这份中国地图数据和 JavaScript 库 [Highcharts JS](https://github.com/highcharts/highcharts)。
-
-```{r,eval=FALSE}
-library(hchinamap)
-# name 是地图数据中的各个区域单元的名称
-hchinamap(
-  name = c("北京", "天津", "上海", "湖南", "台湾", "海南"),
-  value = c(120, 200, 126, 300, 150, 225),
-  width = "100%",
-  height = "650px",
-  title = "分省地图",
-  region = "China",
-  minColor = "#f1eef6",
-  maxColor = "#980043",
-  itermName = "指标",
-  hoverColor = "#f6acf5"
-)
-```
-
-![(\#fig:china-hchinamap) 中国地图数据](/img/maps-in-r/china-hchinamap.png){.full}
-
 
 
 ## 交互地图
@@ -1707,6 +1685,30 @@ geojsonMap(dat, mapName = "邵阳", palette = "RdBu", colorMethod = "bin")
 可见，市和区县级地图边界数据是存在问题的，省级边界地图数据配合高德提供的背景地图数据是基本可用。一个更可靠的方式是不要使用此边界数据，只使用高德地图，以气泡图代替，类似图\@ref(fig:bubble-map)，要点是需要准备各个区县级以上城市的经纬度坐标，并且和高德地图采用的坐标系是一致的，这样气泡的位置和地图上显示的城市名称是基本重合的。
 
 ![(\#fig:bubble-map) 部分区县级城市的气泡散点图](/img/maps-in-r/bubble-map.png){.full}
+
+
+另一个提供地图数据的是商业软件 [Highcharts Maps](https://www.highcharts.com/)，国内外有不少商业公司是它的客户，它也有一个 R 包[**highcharter**](https://github.com/jbkunst/highcharter)，
+有一个以美国地图数据为背景的博客详细介绍了使用过程，详见 [Highcharts 官方博客](https://www.highcharts.com/blog/tutorials/using-highcharter-in-tidytuesday-internet-access/)。[简数科技](https://www.highcharts.com.cn/) 定制了一份 GeoJSON 格式的中国地图数据，还提供了地图预览和下载的服务，因为涉及商业版权和地图数据合规性，使用需要注意，读者可前往[网站](https://www.highcharts.com.cn/mapdata)了解。另一个 R 包[**hchinamap**](https://github.com/czxa/hchinamap) 也是使用这份中国地图数据和 JavaScript 库 [Highcharts JS](https://github.com/highcharts/highcharts)。
+
+```{r,eval=FALSE}
+library(hchinamap)
+# name 是地图数据中的各个区域单元的名称
+hchinamap(
+  name = c("北京", "天津", "上海", "湖南", "台湾", "海南"),
+  value = c(120, 200, 126, 300, 150, 225),
+  width = "100%",
+  height = "650px",
+  title = "分省地图",
+  region = "China",
+  minColor = "#f1eef6",
+  maxColor = "#980043",
+  itermName = "指标",
+  hoverColor = "#f6acf5"
+)
+```
+
+![(\#fig:china-hchinamap) 中国地图数据](/img/maps-in-r/china-hchinamap.png){.full}
+
 
 
 ## 静态地图
