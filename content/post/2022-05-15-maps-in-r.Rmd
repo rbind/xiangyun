@@ -57,7 +57,7 @@ knitr::knit_hooks$set(output = local({
   }
 }))
 # 控制输出的宽度
-options(width = 69)
+options(width = 89)
 ```
 
 ```{css, echo=FALSE}
@@ -229,7 +229,7 @@ ggplot(data = dat, aes(x = PdDistrict, y = cnt, fill = violent)) +
 
 ![(\#fig:incidents-pddistrict) 事件发生次数随警区的分布](/img/maps-in-r/incidents-pddistrict.png){.full}
 
-进一步，可将图\@ref(fig:incidents-pddistrict)所示分布绘制在地图上，如图\@ref(fig:incidents)事件发生次数随警区的空间分布。
+进一步，可将图\@ref(fig:incidents-pddistrict)所示分布绘制在地图上，如图\@ref(fig:incidents)展示事件发生次数随警区的空间分布。
 
 ```{r,eval=FALSE}
 dat <- incidents[, .(cnt = length(IncidntNum), lat = mean(lat), lon = mean(lon)), by = c("violent", "PdDistrict")]
@@ -248,7 +248,7 @@ RgoogleMapsPlot(cnt ~ lat * lon | violent,
 
 ![(\#fig:incidents) 事件发生次数随警区的**空间**分布：左图**非暴力**事件，右图**暴力**事件](/img/maps-in-r/incidents.png){.full}
 
-全年来看，事件发生的时间分布，即犯罪的高峰时段在下午 5-6 点，一直持续到午夜 12 点。
+再从全年来看，事件发生的时间分布，发现犯罪的高峰时段从下午 5-6 点一直持续到午夜 12 点。
 
 ```{r,eval=FALSE}
 dat <- incidents[, .(cnt = length(IncidntNum)), by = c("HrOfDay", "violent")]
@@ -258,7 +258,7 @@ ggplot(data = dat, aes(x = HrOfDay, y = cnt, fill = violent)) +
 
 ![(\#fig:incidents-hour) 事件发生次数随时段的分布](/img/maps-in-r/incidents-hour.png){.full}
 
-每次接报出警，警方会根据具体情况快速对事件定级分类，然后派出相应的警力以及处置方式。可以见事件性质 Category、是否发生暴力 violent 和警方处置方式 Resolution 应当有很强的关联。既然 Category， violent 和 Resolution 有很强的关联，展示关联关系非常重要，有的分类 Category 应该给予足够的处置力度，特别对于暴力事件，警方的措施是否有不当或处置不力的？以此，还可以推测旧金山的治安状况。
+每次接报出警，警方会根据具体情况快速对事件定级分类，然后派出相应的警力以及处置方式。可以见事件性质 Category、是否发生暴力 violent 和警方处置方式 Resolution 应当有很强的关联。既然 Category， violent 和 Resolution 有很强的关联，展示关联关系非常重要，有的分类 Category 就应该给予足够的处置力度，特别对于暴力事件，关注警方的措施是否有不当或处置不力的？以此，还可以推测旧金山的治安状况。
 
 ```{r,eval=FALSE}
 dat <- incidents[, .(cnt = length(IncidntNum)), by = c("Category", "violent", "Resolution")]
@@ -273,7 +273,7 @@ ggplot(data = dat, aes(x = reorder(Category, cnt), y = cnt, fill = Resolution)) 
 
 ![(\#fig:incidents-resolution) 事件性质和警方处置情况](/img/maps-in-r/incidents-resolution.png){.full}
 
-对于不同的事件 Category 有不同的执行措施 Resolution，执行措施和是否属于暴力有关系，一般来讲，暴力事件都应该有处置，发生暴力事件只有 5 类，打架斗殴、抢劫、性骚扰、绑架、盗窃。
+从图\@ref(fig:incidents-resolution)看出，对于不同的事件 Category 有不同的执行措施 Resolution，执行措施和是否属于暴力有关系。一般来讲，暴力事件都应该有处置，发生暴力事件只有 5 类，按发生次数依次是打架斗殴、抢劫、性骚扰、绑架、盗窃，从图中也可看出盗窃是最多的犯罪事件。下表 \@ref(tab:incidents-category) 是对图中分类的中文翻译，笔者英文水平一般，翻译仅供参考。
 
 
 ```{r incidents-category,echo=FALSE}
@@ -401,7 +401,7 @@ R 软件内置的调色板 `terrain.colors()` 专用于地形图配色，从翠�
 
 ## echarts4r
 
-**echarts4r** 支持使用多种地图服务，包括 OSM（OpenStreetMap）、Mapbox、谷歌、高德 等，只要提供引用瓦片服务数据模版即可。**echarts4r** 默认使用了一份矢量地图数据，如图\@ref(fig:quakes-echarts4r)所示。简单起见，这里使用了 R 内置的数据集 quakes，它描述了太平洋岛国斐济及周边自 1964 年以来的四级以上的地震活动。从图中不难看出有两个非常清晰的地震带。结合背景材料，一个在主要板块交界处，另一个是新西兰附近的汤加海沟。2022年1月14日，汤加海底火山爆发，引发海啸等一系列自然灾害，中国地震局也发布新闻资讯---[汤加火山喷发，会造成哪些影响？](https://www.cea.gov.cn/cea/xwzx/fzjzyw/5647231/index.html)详细介绍了这一事件。
+**echarts4r** 支持使用多种地图服务，包括 OSM（OpenStreetMap）、Mapbox、谷歌、高德等，只要提供引用瓦片服务数据模版即可。**echarts4r** 内置了一份矢量地图数据，如图\@ref(fig:quakes-echarts4r)所示。简单起见，这里使用了 R 内置的数据集 quakes，它描述了太平洋岛国斐济及周边自 1964 年以来的四级以上的地震活动。从图中不难看出有两个非常清晰的地震带。结合背景材料，一个在主要板块交界处，另一个是新西兰附近的汤加海沟。火山爆发和地震不是一回事，但紧密相连。2022年1月14日，汤加海底火山爆发，引发海啸等一系列自然灾害，中国地震局也发布新闻资讯---[汤加火山喷发，会造成哪些影响？](https://www.cea.gov.cn/cea/xwzx/fzjzyw/5647231/index.html)详细介绍了这一事件。
 
 
 
@@ -441,7 +441,6 @@ quakes |>
 annotation_point <- c(-21.0744, 183.7499, 0, 7, 0)
 quakes <- rbind(quakes, annotation_point) # 把这个点加到数据集里面
 # 新加一列专用于文本注释
-# 火山爆发和地震不是一回事
 quakes$annotation <- ' '
 quakes[which(quakes$lat == -21.0744 & quakes$long == 183.7499), ]$annotation <- '汤加火山'
 
@@ -518,6 +517,22 @@ quakes |>
 
 ![(\#fig:quakes-osm) **echarts4r** 使用 OpenStreetMap 地图](/img/maps-in-r/quakes-osm.png){.full}
 
+只要提供瓦片地图服务的模版，就可以切换地图底图数据，图\@ref(fig:quakes-ggmap)使用了谷歌的地图服务。
+
+```{r,eval=FALSE}
+# 谷歌地图
+quakes |>
+  e_charts(long) |>
+  e_leaflet(center = c(175, -20), zoom = 4) |>
+  e_leaflet_tile(
+    template = "http://mt2.google.cn/vt/lyrs=m@167000000&hl=zh-CN&gl=cn&x={x}&y={y}&z={z}&s=Galil",
+    options = list(tileSize = 256, minZoom = 3, maxZoom = 17)
+  ) |>
+  e_scatter(lat, size = mag, coord_system = "leaflet")
+```
+
+![(\#fig:quakes-ggmap) **echarts4r** 使用谷歌地图](/img/maps-in-r/quakes-ggmap.png){.full}
+
 类似谷歌的要求，使用 Mapbox 地图服务也需要先申请个人访问令牌，申请下来后，也把它设置到 R 语言环境变量里 `MAPBOX_TOKEN`，以便后续使用。
 
 ```{r,eval=FALSE}
@@ -558,20 +573,6 @@ quakes |>
 
 
 ![(\#fig:quakes-amap) **echarts4r** 使用高德地图](/img/maps-in-r/quakes-amap.png){.full}
-
-```{r,eval=FALSE}
-# 谷歌地图
-quakes |>
-  e_charts(long) |>
-  e_leaflet(center = c(175, -20), zoom = 4) |>
-  e_leaflet_tile(
-    template = "http://mt2.google.cn/vt/lyrs=m@167000000&hl=zh-CN&gl=cn&x={x}&y={y}&z={z}&s=Galil",
-    options = list(tileSize = 256, minZoom = 3, maxZoom = 17)
-  ) |>
-  e_scatter(lat, size = mag, coord_system = "leaflet")
-```
-
-![(\#fig:quakes-ggmap) **echarts4r** 使用谷歌地图](/img/maps-in-r/quakes-ggmap.png){.full}
 
 
 另外，袁凡整理的材料 --- [**echarts4r**: 从入门到应用](https://cosx.org/2021/12/introduction-to-echarts4r/)，详细介绍了如何用 **echarts4r** 绘制各种各样的常用图形，如何引入外部地图数据制图，文章完全基于用 R Markdown 编译，图文并茂，内容可重复。苏玮制作的 [日本新冠疫情看板](https://github.com/swsoyee/2019-ncov-japan) 也大量使用 **echarts4r**，可见 **echarts4r** 能力之强，此看板适合比较高阶的 R 语言读者学习，地理可视化的定制化程度比较高。
@@ -713,7 +714,7 @@ plotly::plot_mapbox(
 
 ![(\#fig:quakes-plotly) **plotly** 包使用 Mapbox 地图](/img/maps-in-r/quakes-plotly.png){.full}
 
-接下来介绍布局设置，以 `layout(mapbox = ...)` 内的 style 参数为例， 它是用来设置地图风格样式的，除了默认的参数值 `basic`，还可以设置为夜晚暗黑 `dark`，卫星地图 `satellite` 等。若设置`open-street-map`，调 OpenStreetMap 服务，则无需 `MAPBOX_TOKEN`，具体哪些用到 `MAPBOX_TOKEN` 哪些不需要用到 `MAPBOX_TOKEN`，读者可以根据需要选择，详见[](https://plotly.com/r/mapbox-layers/)，其他参数设置见[文档](https://plotly.com/r/reference/layout/mapbox/)。
+接下来介绍布局设置，以 `layout(mapbox = ...)` 内的 style 参数为例， 它是用来设置地图风格样式的，除了默认的参数值 `basic`，还可以设置为夜晚暗黑 `dark`，卫星地图 `satellite` 等。若设置`open-street-map`，调 OpenStreetMap 服务，则无需 `MAPBOX_TOKEN`，具体哪些用到 `MAPBOX_TOKEN` 哪些不需要用到 `MAPBOX_TOKEN`，读者可以根据需要选择，详见[mapbox-layers 文档](https://plotly.com/r/mapbox-layers/)，其他参数设置见[mapbox 文档](https://plotly.com/r/reference/layout/mapbox/)。
 
 
 ![(\#fig:quakes-satellite) **plotly** 包使用 Mapbox 卫星地图](/img/maps-in-r/quakes-satellite.png){.full}
@@ -746,7 +747,7 @@ plotly::plot_ly(
 dat <- data.frame(state.x77,
   stats_abbr = state.abb
 )
-# 地理单元名称和 stats_abbr 一致
+# 地理单元名称要和 stats_abbr 保持一致
 plotly::plot_ly(
   data = dat,
   type = "choropleth",
@@ -818,7 +819,7 @@ plotly::plot_ly(
 
 ## lattice
 
-2001 年 **lattice** 包就发布到 CRAN 了，已经过去20多年了，功能相当全面成熟稳定，内置于 R 软件，但是启动 R 软件时，不自动加载。
+2001 年 **lattice** 包就发布到 CRAN 了，已经过去20多年了，功能相当全面成熟稳定，内置于 R 软件。下面介绍 **lattice** 包的数据可视化能力，继续以 quakes 数据集为例展开介绍。
 
 ```{r,eval=FALSE}
 library(lattice)
@@ -833,7 +834,7 @@ xyplot(lat ~ long,
   ),
   pch = 19, alpha = 0.3, 
   cex = 1.5, col = "darkgreen",
-  grid = TRUE
+  grid = TRUE # 添加背景网格线
 )
 ```
 
@@ -1016,7 +1017,7 @@ library(sp)
 getClass("Spatial")
 ```
 
-可以看出 **sp** 打造的一套空间数据基础类型及其衍生类型，知道数据类型才知道后续该怎么对其进行操作，调用合适的方法。比如最常使用的绘图函数 `plot()` 已经汇集很多方法了，它也是一个绘图对象，对于不同类型的数据对象，它会调用相应的绘图方法。在 R 语言内，一切都是对象，一切的操作都是函数调用。
+可以看出 **sp** 打造的一套空间数据基础类型及其衍生类型，知道数据类型才知道后续该怎么对其进行操作，调用合适的方法。比如最常使用的绘图函数 `plot()` 已经汇集很多方法了，它也是一个绘图对象，对于不同类型的数据对象，它会调用相应的绘图方法。在 R 语言内，一切都是对象，一切操作都是函数调用。
 
 ```{r methods-plot, echo=FALSE}
 knitr::kable(matrix(methods(plot), ncol = 2),
@@ -1078,7 +1079,7 @@ head(quakes)
 bbox(quakes)
 ```
 
-直接调用 plot 方法，获取图\@ref(fig:quakes-sp)。实际上，会调用 SpatialPoints 的 plot 方法，plot 本身也是一个泛型函数，R 语言中的泛型有点类似面向对象编程中的多态。
+直接调用 `plot()` 方法，获取图\@ref(fig:quakes-sp)。实际上，会调用 SpatialPoints 类的 `plot()` 方法，`plot()` 本身也是一个泛型函数，R 语言中的泛型有点类似面向对象编程中的多态。
 
 ```{r,eval=FALSE}
 plot(quakes)
@@ -1123,13 +1124,13 @@ print(p2, split = c(2, 1, 2, 1), more = FALSE)
 地震主要是由于地壳运动产生的，两条地震带由内圈到外圈，地震深度有明显的阶梯变化，暗示着断层的方向和位置。
 
 ::: rmdnote
-**sp** 会逐步退出空间数据领域，推荐读者尽快转移到 **sf** 上。考虑到一些初学者肯定还会遇到大量 **sp** 为基础的空间数据处理、分析和可视化的案例代码，毕竟迁移的过程还要一段时间，因而做一些介绍。
+**sp** 会逐步退出空间数据领域，Roger Bivand 已经在为他的著作《Applied Spatial Data Analysis with R》迁移升级[代码](https://github.com/rsbivand/sf_asdar2ed)，推荐读者尽快转移到 **sf** 上。考虑到一些初学者肯定还会遇到大量 **sp** 为基础的空间数据处理、分析和可视化的案例代码，毕竟生态的迁移过程还要一段时间，因而做一些介绍。
 :::
 
 
 ## 矢量数据 sf
 
-**sf** 包依赖三个基础的地理空间数据处理库，分别是制图投影库 [proj](https://proj.org/)（Cartographic **Proj**ections Library，简称 proj），几何计算引擎 [geos](https://trac.osgeo.org/geos)（ **G**eometry **E**ngine, **O**pen **S**ource，简称 geos），地理空间数据抽象库 [gdal](https://www.gdal.org/) （**G**eospatial **D**ata **A**bstraction **L**ibrary，简称 gdal）。**sf** [@sf] 可以看作是继 **sp** 后的第二代空间数据处理和分析的框架。
+**sf** 包依赖三个基础的地理空间数据处理库，分别是制图投影库 [proj](https://proj.org/)（Cartographic **Proj**ections Library，简称 proj），开源几何计算引擎 [geos](https://trac.osgeo.org/geos)（ **G**eometry **E**ngine, **O**pen **S**ource，简称 geos），地理空间数据抽象库 [gdal](https://www.gdal.org/) （**G**eospatial **D**ata **A**bstraction **L**ibrary，简称 gdal）。**sf** [@sf] 可以看作是继 **sp** 后的第二代空间数据处理和分析的框架。
 
 
 ```{r}
@@ -1267,7 +1268,7 @@ terra::plot(china_map, col = terrain.colors(20, rev = F))
 
 ## 交互地图
 
-交互地图采用 **leaflet** 包绘制，采用 **leafletCN** 包汉化，并且提供合规的中国地图，核心函数是 `geojsonMap()`，它封装了 GeoJSON 格式的地图数据和绘图函数，更多定制参考`leaflet::leaflet()`，只要数据包含的一列区域名称和地图数据能映射上，就可以绘制出图\@ref(fig:china-leafletcn)，图中数据是随机生成的，调色板采用 `RdBu`，将连续的数据分段，每段对应一个色块。 
+本节主要采用 **leaflet** 包绘制交互地图，**leafletCN** 包内置一部分中国省、市边界地图数据，支持调用高德瓦片地图服务，提供部分合规的中国地图，核心函数是 `geojsonMap()`，它封装了 GeoJSON 格式的地图数据和绘图功能，更多定制参考`leaflet::leaflet()`。只要数据包含的一列区域名称和地图数据能映射上，就可以绘制出图\@ref(fig:china-leafletcn)，图中数据是随机生成的，调色板采用 `RdBu`，将连续的数据分段，每段对应一个色块。 
 
 ```{r,eval=FALSE}
 library(leaflet)
@@ -1385,12 +1386,12 @@ plot(china_map["QUHUADAIMA"])
 
 # 数据操作
 
-先简要介绍基础的数据操作，然后介绍 **sf** 包和一般的空间数据操作。
+先简要介绍一般数据操作，也是最常遇见的，然后介绍 **sf** 包和空间数据操作。
 
 
 ## 一般数据操作
 
-R 软件内置的一些基础数据操作函数通过排列组合能够满足大部分使用场景，都来自 **base** 包和 **stats** 包，约**10**来个函数：
+通过排列组合 R 软件内置的一些基础数据操作函数能够满足大部分使用场景，这些基础函数都来自 **base** 包和 **stats** 包，由 R 语言 核心团队维护，约**10**来个函数：
 
 1. 函数 `subset()` 提取数据框中的某些列和行，也可以用 `$` 或 `[` 实现。
 
@@ -1428,7 +1429,7 @@ dat <- do.call("rbind", mtcars_coef)
 dat
 ```
 
-如果读者对**data.table**语法比较熟悉，这个过程将是一气呵成。
+如果读者对**data.table**语法比较熟悉，这个过程将是一气呵成！
 
 ```{r}
 library(data.table)
@@ -1450,6 +1451,7 @@ mtcars[, as.list(coef(lm(mpg ~ disp))), by = .(cyl)]
 
 ```{r}
 library(sf)
+# 基础数据操作函数
 methods(class = "sf")
 ```
 ```{r,echo=FALSE}
@@ -1671,7 +1673,7 @@ leaflet(nc2) %>%
 
 ## latticeExtra::mapplot
 
-**latticeExtra** [@latticeExtra] 在 **lattice** 的基础上，封装了一些高级函数，围绕本篇主题，下面介绍一下 `mapplot()` 函数，读者不妨类比 `spplot()` 函数，可知它是专门为 map 数据类型提供绘图服务。 map 数据类型在 R 语言中存在很多年了，算得上是古老了，很久以前绘制地图的 R 包主要有：提供基础地图数据的 **maps**包， 提供更多常用地图数据的 **mapdata** 包， 实现坐标投影转化的 **mapproj** 包 和数据读写、操作 **maptools** 包。
+**latticeExtra** [@latticeExtra] 在 **lattice** 的基础上，封装了一些高级函数，围绕本篇主题，下面介绍一下 `mapplot()` 函数，读者不妨类比 `spplot()` 函数，可知它是专门为 map 数据类型提供绘图服务。 map 数据类型在 R 语言中存在很多年了，算得上是古老了，很久以前绘制地图的 R 包主要有：提供基础地图数据的 **maps**包， 提供更多常用地图数据的 **mapdata** 包， 实现坐标投影转化的 **mapproj** 包 和数据读写、操作的 **maptools** 包。
 
 ```{r,eval=FALSE}
 mapplot(x, data, map,
@@ -1894,7 +1896,7 @@ wireframe(volcano,
 本文只涉及空间数据领域的皮毛，说白了就是导入几种格式的空间数据画点小地图，也未涉及百万乃至百亿级的大规模空间数据的可视化，以及支持可视分析需要的空间数据存储、检索、操作、分析、建模和应用的知识和技术。此外，对于不同类型的空间数据有不同的分析方法和统计模型，比如点数据的模式分析，面数据的层次分析，栅格数据的图像分析等，本文亦未涉及。再有，面向具体业务问题，从问题发现到数据模型的转化、界定、拆解、优化和应用所需要的领域知识，本文也未涉及。笔者所知所学有限，空间数据领域是如此广阔，需要大家一起发力。
 
 
-在大规模空间数据可视化和计算方面，[Kepler.gl](https://github.com/keplergl/kepler.gl) 是一款开源的大规模地理数据分析工具。[deck.gl](https://github.com/visgl/deck.gl) WebGL2 加持的高性能大规模空间数据可视化框架，支持灵活的自定义。Uber 开发的[h3](https://github.com/uber/h3) 提供六边形分层时空索引，[GeoMesa](https://github.com/locationtech/geomesa) 提供点、线、多边形的时空索引，支持分布式时空数据查询分析，结合 kafka 提供近实时的时空数据流处理能力，支持自定义 [Apache Spark](https://github.com/apache/spark) 作为分布式地理分析计算引擎，要知道 Spark 本身是不提供针对空间数据操作的 SQL 函数，因此，使用成本是很高的。更进一步，[Apache Sedona](https://github.com/apache/incubator-sedona)专门应用于大规模空间数据处理的集群计算系统，扩展了 Apache Spark / SparkSQL 的能力，提供一组开箱即用的套件 SpatialSQL，支持 Python 和 R 等多种编程接口。[Presto](https://github.com/prestodb/presto) 作为一款分布式 SQL 查询引擎，内置了常用空间数据操作的函数，和 R 包 **sf** 提供的函数名基本是一致的，迁移学习成本低。更加专业的传统 GIS 数据库当属站在[PostgreSQL](https://www.postgresql.org/)肩膀上的[PostGIS](http://postgis.net/)，PostgreSQL提供基础的空间数据类型，作为存储设施，PostGIS 提供空间数据特有的系列操作。
+在大规模空间数据可视化和计算方面，[Kepler.gl](https://github.com/keplergl/kepler.gl) 是一款开源的大规模地理数据分析工具。[deck.gl](https://github.com/visgl/deck.gl) WebGL2 加持的高性能大规模空间数据可视化框架，支持灵活的自定义。Uber 开发的[h3](https://github.com/uber/h3) 提供六边形分层时空索引，[GeoMesa](https://github.com/locationtech/geomesa) 提供点、线、多边形的时空索引，支持分布式时空数据查询分析，结合 kafka 提供近实时的时空数据流处理能力，支持自定义 [Apache Spark](https://github.com/apache/spark) 作为分布式地理分析计算引擎，要知道 Spark 本身是不提供针对空间数据操作的 SQL 函数，因此，使用成本是很高的。更进一步，[Apache Sedona](https://github.com/apache/incubator-sedona)专门应用于大规模空间数据处理的集群计算系统，扩展了 Apache Spark / SparkSQL 的能力，提供一组开箱即用的套件 SpatialSQL，支持 Python 和 R 等多种编程接口。[Presto](https://github.com/prestodb/presto) 作为一款分布式 SQL 查询引擎，内置了常用空间数据操作的函数，和 R 包 **sf** 提供的函数名基本是一致的，迁移学习成本低。更加老牌的 GIS 数据库当属站在[PostgreSQL](https://www.postgresql.org/)肩膀上的[PostGIS](http://postgis.net/)，PostgreSQL提供基础的空间数据类型，作为存储设施，PostGIS 提供空间数据特有的系列操作。
 
 
 # 环境信息
