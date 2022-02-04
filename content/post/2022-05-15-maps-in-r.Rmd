@@ -1019,7 +1019,7 @@ getClass("Spatial")
 可以看出 **sp** 打造的一套空间数据基础类型及其衍生类型，知道数据类型才知道后续该怎么对其进行操作，调用合适的方法。比如最常使用的绘图函数 `plot()` 已经汇集很多方法了，它也是一个绘图对象，对于不同类型的数据对象，它会调用相应的绘图方法。在 R 语言内，一切都是对象，一切的操作都是函数调用。
 
 ```{r methods-plot, echo=FALSE}
-knitr::kable(matrix(c(methods(plot), ""), ncol = 4),
+knitr::kable(matrix(methods(plot), ncol = 2),
   caption = "plot 绘图方法"
 )
 ```
@@ -1086,7 +1086,7 @@ plot(quakes)
 
 ![(\#fig:quakes-sp)空间数据绘图](/img/maps-in-r/quakes-sp.png){.full}
 
-调 sp 数据对象特有的方法，获取图\@ref(fig:quakes-spplot)。
+调 sp 数据对象特有的方法 `spplot()`，获取图\@ref(fig:quakes-spplot)。
 
 ```{r,eval=FALSE}
 p1 <- spplot(quakes, "depth", main = "Depth",
@@ -1123,7 +1123,7 @@ print(p2, split = c(2, 1, 2, 1), more = FALSE)
 地震主要是由于地壳运动产生的，两条地震带由内圈到外圈，地震深度有明显的阶梯变化，暗示着断层的方向和位置。
 
 ::: rmdnote
-sp 会逐步退出空间数据领域，推荐读者尽快转移到 sf 上。考虑到一些初学者肯定还会遇到大量 sp 为基础的空间数据处理、分析和可视化的案例代码，毕竟迁移的过程还要一段时间，因而做一些介绍。
+**sp** 会逐步退出空间数据领域，推荐读者尽快转移到 **sf** 上。考虑到一些初学者肯定还会遇到大量 **sp** 为基础的空间数据处理、分析和可视化的案例代码，毕竟迁移的过程还要一段时间，因而做一些介绍。
 :::
 
 
