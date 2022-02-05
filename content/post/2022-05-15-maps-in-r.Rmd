@@ -1300,6 +1300,80 @@ geojsonMap(dat, mapName = "邵阳", palette = "RdBu", colorMethod = "bin")
 
 ![(\#fig:bubble-map) 部分区县级城市的气泡散点图](/img/maps-in-r/bubble-map.png){.full}
 
+另一个解决办法的使用[阿里 DataV 数据可视化平台](https://datav.aliyun.com/portal/school/atlas/area_selector)开放出来的地图数据，它来自[高德开放平台](https://lbs.amap.com/api/webservice/guide/api/district)。下载到本地保存为文件`邵阳市.json`，检查后，发现地图数据的参考系是 WGS 84，这和 OpenStreetMap 所要求的坐标系正好一致，下面就采用 **leaflet** 包来绘制。以邵阳市地区的数据为例，从[邵阳市统计局](https://www.shaoyang.gov.cn/sytjj/tjsj/rlist.shtml)发布的统计年鉴获取2010年、2015年和2020年邵阳市各个区县的人口数（单位：万人）。邵阳市各个区县近5年和近10年的人口增长率，如图\@ref(fig:shaoyang-pop)所示，邵东市近5年的人口呈**负增长**，笔者在图上还补充了很多数据信息，供读者参考。如果能够收集到全国所有区县级城市的人口数据，类似图\@ref(fig:mapbox-choropleth-counties)还可以发现中国各个经济带的地域差异，沿海内陆差异，南北差异等一系列有用的信息，进一步洞悉人口流动的方向。
+
+```{r,eval=FALSE}
+library(leaflet)
+library(sf)
+# 读取 GeoJSON 格式的多边形矢量地图数据
+shaoyang_map <- sf::read_sf("data/邵阳市.json") 
+# 添加 2020年、2015年和2010年邵阳市各个区县的人口数（单位：万人）
+shaoyang_data <- tibble::tribble(
+  ~adcode, ~name2, ~pop20, ~pop10, ~pop15,
+  430502, "双清区", 26.76, 27.97, 27.82,
+  430503, "大祥区", 32.05, 32.16, 32.52,
+  430511, "北塔区", 10.21, 9.06, 9.72,
+  430522, "新邵县", 82.04, 80.4, 82.81,
+  430523, "邵阳县", 105.82, 103.62, 104.82,
+  430524, "隆回县", 129.41, 120.31, 126.29,
+  430525, "洞口县", 89.53, 84.66,88.1,
+  430527, "绥宁县", 38.29, 37.55, 38.39,
+  430528, "新宁县", 64.52, 61.67, 64.97,
+  430529, "城步苗族自治县", 27.95, 27.32, 27.6,
+  430581, "武冈市", 82.69, 81.12, 84.13,
+  430582, "邵东市", 133.06, 128.13, 133.59
+)
+# 近 5 年人口增长率
+shaoyang_data <- transform(shaoyang_data, pop = (pop20 - pop15) / pop15)
+# sf 转化为数据框
+shaoyang_map <- as.data.frame(shaoyang_map)
+# 观测数据和地图数据按行政区划编码合并
+shaoyang <- merge(shaoyang_map, shaoyang_data, by = "adcode")
+# 数据框转化为 sf 
+shaoyang <- sf::st_as_sf(shaoyang, sf_column_name = "geometry")
+# 可以设置分段离散的调色板
+# pal <- colorBin("Spectral", bins = pretty(shaoyang$pop), reverse = TRUE)
+pal <- colorNumeric("Spectral", domain = NULL)
+# 将数据绘制到地图上
+leaflet(shaoyang) |>
+  addTiles(
+    urlTemplate = "http://webrd02.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}", # 来自 leafletCN::amap()
+    options = tileOptions(tileSize = 256, minZoom = 3, maxZoom = 17),
+    attribution = "&copy; <a href=\"http://amap.com\">amp.com</a >"
+  ) |>
+  addPolygons(
+    stroke = F, # 不显示各个区县的边界线
+    weight = 1, # 设置边界线宽度
+    fillOpacity = 0.7, # 填充多边形的透明度
+    fillColor = ~ pal(pop),
+    label = lapply(paste0(
+      "城市：", "<b>", shaoyang$name, "</b>", "<br/>",
+      "5年人口增长率：", sprintf("%.3f%%", 100 * (shaoyang$pop20 - shaoyang$pop15) / shaoyang$pop15), "<br/>",
+      "10年人口增长率：", sprintf("%.3f%%", 100 * (shaoyang$pop20 - shaoyang$pop10) / shaoyang$pop10)
+    ), htmltools::HTML),
+    popup = ~ paste0(
+      "城市：", name, "<br/>",
+      "<hr/>",
+      "2020年人口：", pop20, "（万）", "<br/>",
+      "2015年人口：", pop15, "（万）", "<br/>",
+      "2010年人口：", pop10, "（万）", "<br/>",
+      "10年人口增长率：", sprintf("%.2f%%", 100 * (pop20 - pop10) / pop10), "<br/>",
+      "10年间平均每年增加人口：", format((pop20 - pop10) / 10, digit = 4), "（万）", "<br/>"
+    )
+  ) |>
+  addLegend(
+    position = "bottomright", title = "5年人口增长率",
+    pal = pal, values = ~pop, opacity = 1.0,
+    labFormat = labelFormat(
+      suffix = "%",
+      transform = function(x) round(100 * x, digits = 2)
+    )
+  ) |>
+  addScaleBar(position = "bottomleft")
+```
+
+![(\#fig:shaoyang-pop) 邵阳市各个区县人口增长率](/img/maps-in-r/shaoyang-pop.png){.full}
+
 
 另一个提供地图数据的是商业软件 [Highcharts Maps](https://www.highcharts.com/)，国内外有不少商业公司是它的客户，它也有一个 R 包[**highcharter**](https://github.com/jbkunst/highcharter)，
 有一个以美国地图数据为背景的博客详细介绍了使用过程，详见 [Highcharts 官方博客](https://www.highcharts.com/blog/tutorials/using-highcharter-in-tidytuesday-internet-access/)。[简数科技](https://www.highcharts.com.cn/) 定制了一份 GeoJSON 格式的中国地图数据，还提供了地图预览和下载的服务，因为涉及商业版权和地图数据合规性，使用需要注意，读者可前往[网站](https://www.highcharts.com.cn/mapdata)了解。另一个 R 包[**hchinamap**](https://github.com/czxa/hchinamap) 也是使用这份中国地图数据和 JavaScript 库 [Highcharts JS](https://github.com/highcharts/highcharts)。
