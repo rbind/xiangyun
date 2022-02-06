@@ -664,15 +664,15 @@ leaflet(quakes, options = leafletOptions(attributionControl = FALSE)) |>
 #  提供 addHeatmap 函数绘制热力图 
 library(leaflet.extras) 
 
-leaflet(quakes) %>%
-  addProviderTiles(providers$CartoDB.Positron) %>%
-  addCircles(lng = ~long, lat = ~lat, color = ~ pal(mag), label = ~popup_text) %>%
-  setView(178, -25, 5) %>%
+leaflet(quakes) |> 
+  addProviderTiles(providers$CartoDB.Positron) |> 
+  addCircles(lng = ~long, lat = ~lat, color = ~ pal(mag), label = ~popup_text) |> 
+  setView(178, -25, 5) |> 
   addHeatmap(
     lng = ~long, lat = ~lat, intensity = ~mag,
     blur = 20, max = 0.05, radius = 15
-  ) %>% 
-  addLegend("bottomright", pal = pal, values = ~mag, title = "地震震级") %>%
+  ) |>  
+  addLegend("bottomright", pal = pal, values = ~mag, title = "地震震级") |> 
   addScaleBar(position = "bottomleft")
 ```
 
@@ -728,14 +728,14 @@ plotly::plot_ly(
   lon = ~long,
   coloraxis = "coloraxis",
   radius = 10
-) %>%
+) |> 
   plotly::layout(
     mapbox = list(
       style = "stamen-terrain",
       zoom = 4,
       center = list(lat = -25, lon = 178)
     ), coloraxis = list(colorscale = "Viridis")
-  ) %>%
+  ) |> 
   plotly::config(displayModeBar = FALSE)
 ```
 
@@ -756,7 +756,7 @@ plotly::plot_ly(
   colorscale = "Viridis", # 其它调色板如 "RdBu"
   z = ~Population
 ) |>
-  plotly::colorbar(title = "人口") %>%
+  plotly::colorbar(title = "人口") |> 
   plotly::layout(
     geo = list(scope = "usa"),
     title = "1974年美国各州的人口"
@@ -796,8 +796,8 @@ plotly::plot_ly(
   marker = list(line = list(
     width = 0 # 去掉每个县的边界线
   ))
-) %>%
-  plotly::colorbar(title = "失业率 (%)") %>%
+) |> 
+  plotly::colorbar(title = "失业率 (%)") |> 
   plotly::layout(
     title = "2016 年美国各个县的失业率",
     # 参数设置详见 https://plotly.com/r/reference/layout/geo/
@@ -809,7 +809,7 @@ plotly::plot_ly(
       showlakes = TRUE, # 显示湖
       lakecolor = plotly::toRGB("white") # 湖以白色填充
     )
-  ) %>%
+  ) |> 
   plotly::config(displayModeBar = FALSE)
 ```
 
@@ -1612,9 +1612,8 @@ nc2 <- subset(x = nc, select = c("SID74", "SID79"))
 # 查看数据
 nc2
 ```
-```{r,echo=FALSE}
-# Base R 方式的变形操作
-# https://gis.stackexchange.com/questions/381112/
+```{r,echo=FALSE,eval=FALSE}
+# Base R 方式的变形操作 https://gis.stackexchange.com/questions/381112/
 # 如下变形操作亦可用 tidyr::pivot_longer 实现
 # nc2 <- tidyr::pivot_longer(
 #   data = nc2, c("SID74", "SID79"),
@@ -1666,6 +1665,29 @@ ggplot() +
 ```
 
 ![(\#fig:sf-nc) sf 数据可视化](/img/maps-in-r/sf-nc.png){.full}
+
+## leaflet
+
+而 **leaflet** 支持绘制交互式的图形，如图 \@ref(fig:leaflet-nc) 所示。稍微注意的是，需要先将数据映射到坐标参考系 EPSG:4326 上，而后 **leaflet** 会负责将数据转化映射到 EPSG:3857，详见[文档](https://rstudio.github.io/leaflet/projections.html)。
+
+```{r,eval=FALSE}
+# https://stackoverflow.com/questions/57223853/
+# 转化坐标和 leaflet 的坐标系保持一致
+nc2 <- sf::st_transform(nc2, crs = CRS("EPSG:4326"))
+library(leaflet)
+# 调色板
+pal <- colorNumeric("plasma", domain = NULL)
+# 绘图
+leaflet(nc2) |>  
+  addTiles() |> 
+  addPolygons(
+    stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1.0,
+    fillColor = ~ pal(SID74)
+  ) |> 
+  addLegend(pal = pal, values = ~SID74, opacity = 1.0)
+```
+
+![(\#fig:leaflet-nc) **leaflet** 数据可视化](/img/maps-in-r/leaflet-nc.png){.full}
 
 ## sp::spplot
 
@@ -1722,28 +1744,6 @@ spplot(spTransform(nc, CRSobj = CRS("EPSG:3857")),
 ![(\#fig:sp-nc) **sp** 数据可视化](/img/maps-in-r/sp-nc.png){.full}
 
 
-## leaflet
-
-而 **leaflet** 支持绘制交互式的图形，如图 \@ref(fig:leaflet-nc) 所示。稍微注意的是，需要先将数据映射到坐标参考系 EPSG:4326 上，而后 **leaflet** 会负责将数据转化映射到 EPSG:3857，详见[文档](https://rstudio.github.io/leaflet/projections.html)。
-
-```{r,eval=FALSE}
-# https://stackoverflow.com/questions/57223853/
-# 转化坐标和 leaflet 的坐标系保持一致
-nc2 <- sf::st_transform(nc2, crs = CRS("EPSG:4326"))
-library(leaflet)
-# 调色板
-pal <- colorNumeric("plasma", domain = NULL)
-# 绘图
-leaflet(nc2) %>%
-  addTiles() %>%
-  addPolygons(
-    stroke = FALSE, smoothFactor = 0.3, fillOpacity = 1.0,
-    fillColor = ~ pal(SID74)
-  ) %>%
-  addLegend(pal = pal, values = ~SID74, opacity = 1.0)
-```
-
-![(\#fig:leaflet-nc) **leaflet** 数据可视化](/img/maps-in-r/leaflet-nc.png){.full}
 
 ## latticeExtra::mapplot
 
