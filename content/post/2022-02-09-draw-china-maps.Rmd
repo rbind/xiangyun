@@ -133,7 +133,7 @@ div.img {
 :::
 
 
-# 中国地图数据
+# 中国地图
 
 R 语言社区有不少 R 包涉及中国地图数据，但是质量不一，比如 **maps** [@maps]和 **mapdata** 包[@mapdata]内置的中国地图，精度不够也不完整，下面再简单说下几个主要的数据源。
 
@@ -215,6 +215,7 @@ terra::plot(china_map, col = terrain.colors(20, rev = F))
 
 ![(\#fig:china-elevation) 中国地图海拔数据](/img/maps-in-r/china-elevation.png){.full}
 
+# 专题地图
 
 ## 交互地图
 

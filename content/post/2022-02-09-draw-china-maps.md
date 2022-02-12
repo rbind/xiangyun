@@ -104,7 +104,7 @@ div.img {
 
 </div>
 
-# 中国地图数据
+# 中国地图
 
 R 语言社区有不少 R 包涉及中国地图数据，但是质量不一，比如 **maps** ([Brownrigg 2021](#ref-maps))和 **mapdata** 包([Richard A. Becker and Ray Brownrigg. 2018](#ref-mapdata))内置的中国地图，精度不够也不完整，下面再简单说下几个主要的数据源。
 
@@ -190,6 +190,8 @@ terra::plot(china_map, col = terrain.colors(20, rev = F))
 <figure>
 <img src="/img/maps-in-r/china-elevation.png" class="full" alt="Figure 2: 中国地图海拔数据" /><figcaption aria-hidden="true">Figure 2: 中国地图海拔数据</figcaption>
 </figure>
+
+# 专题地图
 
 ## 交互地图
 
@@ -403,7 +405,7 @@ xfun::session_info(packages = c(
   "ggplot2", "leaflet", "lattice",
   "sp", "raster", "sf", "terra"
 ), dependencies = FALSE)
-# R version 4.1.1 (2021-08-10)
+# R version 4.1.2 (2021-11-01)
 # Platform: x86_64-apple-darwin17.0 (64-bit)
 # Running under: macOS Big Sur 10.16
 # 
