@@ -27,7 +27,7 @@ thumbnail: /img/maps-in-r/usmap-statex77.png
 bibliography: 
   - refer.bib
   - packages.bib
-description: "介绍用于地理可视化的几种常用数据结构，比如 **sp** 包和**sf** 包提供的空间数据类型、数据操作和绘图方法。介绍地理可视化常用的展示形式，如瓦片图、围栏图、气泡图等，以及绘制过程中需要注意的制图规范问题。"
+description: "介绍用于地理可视化的几种常用数据结构，比如 **sp** 包和**sf** 包提供的空间数据类型、数据操作和绘图方法。介绍地理可视化常用的展示形式，如瓦片图、围栏图、气泡图、热力图、等高图等，以及绘制过程中需要注意的制图规范问题。介绍 **ggplot2**、**lattice**、**leaflet**、**plotly** 和 **echarts4r** 等诸多 R 包，分别调用谷歌、高德等多个地图服务实现静态或交互式地理可视化。"
 ---
 
 
@@ -362,7 +362,7 @@ usmap::plot_usmap(data = state_x77, values = "Population", labels = TRUE) +
 
 ## 示例：美国锡安公园地形数据
 
-美国西南部犹他州锡安国家公园的高程珊格数据 elevation，该数据集由 [Jakub Nowosad](https://nowosad.github.io/) 收集于 [spDataLarge](https://github.com/Nowosad/spDataLarge) 包内，由于该 R 包收集的地理信息数据很多又很大，超出了 CRAN 对 R 包的大小限制，因此，需要从作者制作的 drat 站点下载。
+美国西南部犹他州锡安国家公园的高程珊格数据 elevation，该数据集由 [Jakub Nowosad](https://nowosad.github.io/) 收集于 [spDataLarge](https://github.com/Nowosad/spDataLarge) 包内，由于该 R 包收集的地理信息数据很多又很大，超出了 [CRAN](https://cran.r-project.org/) 对 R 包的大小限制，因此，需要从作者制作的 drat 站点下载。
 
 ```{r check-spDataLarge, eval=FALSE}
 install.packages("spDataLarge", repos = "https://nowosad.github.io/drat/")
@@ -773,8 +773,8 @@ plotly::plot_ly(
 # 示例修改自 https://plotly.com/r/choropleth-maps/
 library(plotly)
 # 数据集来自 https://github.com/plotly/datasets
-# 下载至本地目录
-data_dir <- "/Users/xiangyun/Documents/Github/plotly-datasets"
+# 下载保存至本地目录
+data_dir <- "~/Documents/Github/plotly-datasets"
 # 准备地图数据
 map_url <- paste(data_dir, "geojson-counties-fips.json", sep = "/")
 # 读取 GeoJSON 格式地图数据
@@ -853,7 +853,8 @@ xyplot(lat ~ long,
   ),
   panel = function(x, y, ...) {
     panel.smoothScatter(x, y, ...,
-      colramp = hcl.colors, pch = 19
+      colramp = hcl.colors, # 可用其它调色板，比如 terrain.colors
+      pch = 19
     )
   }
 )
@@ -1070,11 +1071,11 @@ proj4string(quakes) <- CRS("EPSG:4326") # 不推荐 CRS("+proj=longlat +datum=WG
 
 查看转化后的数据情况：
 
-```{r}
+```{r out.lines=6}
 # 查看类型
 class(quakes)
 # 查看数据
-head(quakes)
+quakes
 # 查看边界
 bbox(quakes)
 ```
@@ -1212,9 +1213,9 @@ plot(x, axes = F, legend = F, mar = rep(0, 4))
 
 下面以 R 软件内置的数据集 mtcars 为例，介绍数据操作的一个典型过程，拆分、计算、合并，早年Hadley Wickham 创建 **plyr** 包 [@plyr] 就是干这个事情，后来，陆续出现很多 R 包，如 **reshape** 包（已退休）、**reshape2**（已退休）、**dplyr**（活跃）、**purrr**（活跃）、**tidyr**（活跃），一直处于不太稳定的状态，此处不再细说。
 
-```{r}
+```{r out.lines=6}
 data("mtcars")
-head(mtcars)
+mtcars
 ```
 
 ```{r eval=base::getRversion()>='4.1.0'}
@@ -1418,6 +1419,8 @@ leaflet(nc2) |>
 
 ## sp::spplot
 
+在 **sf** 包出来前，**maptools** 曾经是空间数据操作的主力，是读取 `*.shp` 文件的主要方式。配合 **sp** 包，是实现空间数据分析和可视化的主要帮手。
+
 ```{r,eval=FALSE}
 library(maptools)
 nc <- readShapePoly(
@@ -1427,7 +1430,14 @@ nc <- readShapePoly(
 ```
 
 ::: rmdwarn
-**maptools** 包提供的 `readShapePoly()` 函数去读取 shp 文件的方式已经过时，将在 2023 年底不可用，推荐使用 `sf::st_read()` 方式读取。
+用 **maptools** 包提供的 `readShapePoly()` 函数读取 shp 文件的方式已经过时，将在 2023 年底不可用，推荐使用 `sf::st_read()` 方式读取，部分功能会迁移到 **sp** 包。**sf** 包内置的 nc.shp 数据文件和 **maptools** 包内置的 sids.shp 数据文件是一样的。下面是替代方案：
+
+```{r,eval=FALSE}
+# 读取数据
+nc <- sf::st_read(system.file("shape/nc.shp", package = "sf"))
+# 将数据对象从 sf 类型转化为 sp 类型
+nc <- sf::as(nc, "Spatial")
+```
 :::
 
 **sp** 包提供的函数 `spplot()` 方法绘制类似的分面图，这其中借助了 **lattice** 包的绘图能力，效果如\@ref(fig:lattice-nc)所示。
@@ -1707,12 +1717,14 @@ wireframe(volcano,
 ```{r}
 xfun::session_info(packages = c(
   "knitr", "rmarkdown", "blogdown",
-  "ggmap", "ggplot2", "sp", 
-  "leaflet", "echarts4r", "layer",
+  "ggmap", "ggplot2", "data.table",
+  "lattice", "loa", "latticeExtra",
   "baidumap", "RgoogleMaps",
-  "lattice", "loa",
-  "terra", "raster", "stars",
-  "sf", "plotly"
+  "maps", "mapproj", "usmap",
+  "mapdata", "maptools", "spData",
+  "leaflet.extras", "rjson", "rgl",
+  "raster", "terra", "sp", "sf",
+  "leaflet", "echarts4r", "plotly"
 ), dependencies = FALSE)
 ```
 ```{r write-bib, include=FALSE}
