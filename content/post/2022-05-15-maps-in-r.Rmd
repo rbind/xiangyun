@@ -23,6 +23,7 @@ tags:
   - raster
 toc: true
 link-citations: true
+thumbnail: /img/maps-in-r/usmap-statex77.png
 bibliography: 
   - refer.bib
   - packages.bib
@@ -338,7 +339,7 @@ ggplot(states_map, aes(x = long, y = lat, group = group)) +
 ![(\#fig:ggplot2-statex77) 1975年美国各个州的人口](/img/maps-in-r/ggplot2-statex77.png){.full}
 
 
-[**usmap**](https://github.com/pdil/usmap/) 提供 `plot_usmap()` 函数可谓专门用来绘制美国各州县的地图，包含夏威夷和阿拉斯加州，参数 `data` 需要传入一个数据框，且必须有一列可以和地图提供的区域名称映射上，即需要有一列的列名是 state 或 fips。实际上，**usmap** 包 还内置有区县级地图数据，也支持抽取特定的州县，更多介绍见[这里](https://usmap.dev/)。
+[**usmap**](https://github.com/pdil/usmap/) 提供 `plot_usmap()` 函数可谓专门用来绘制美国各州县的地图，包含夏威夷和阿拉斯加州，不包含波多黎各，参数 `data` 需要传入一个数据框，且必须有一列可以和地图提供的区域名称映射上，即需要有一列的列名是 state 或 fips。实际上，**usmap** 包 还内置有区县级地图数据，也支持抽取特定的州县，更多介绍见[这里](https://usmap.dev/)。
 
 ```{r,eval=FALSE}
 library(ggplot2)
@@ -814,7 +815,7 @@ plotly::plot_ly(
 
 ![(\#fig:mapbox-choropleth-counties) **plotly** 包使用 Mapbox 绘制面量图](/img/maps-in-r/mapbox-choropleth-counties.png){.full}
 
-函数 `plot_ly(locations = ~fips,...)` 传进去的参数值 fips 类似我国的行政编码，美国地图上每一块区域都有唯一的一个代码对应，详见[FIPS 代码](https://en.wikipedia.org/wiki/FIPS_county_code)，需要和地图数据 GeoJSON 里每个 feature（代表一个地理单元）的 id 或 properties （地理单元的各个属性值）下的一个属性值映射，读者可参考[choropleth-maps](https://plotly.com/r/choropleth-maps/)文档中的示例。
+函数 `plot_ly(locations = ~fips,...)` 传进去的参数值 fips（Federal Information Processing Standards，即联邦信息处理标准，简称 FIPS）。FIPS 类似我国的行政区划编码，美国地图上每一块区域都有唯一的一个代码对应，详见[FIPS 代码](https://en.wikipedia.org/wiki/FIPS_county_code)。观测数据需要和地图数据 GeoJSON 里每个 feature（代表一个地理单元）的 id 或 properties （地理单元的各个属性值）下的主键性质的属性值映射。进一步，读者可参考[choropleth-maps](https://plotly.com/r/choropleth-maps/)文档中的示例。
 
 ## lattice
 
@@ -1123,7 +1124,7 @@ print(p2, split = c(2, 1, 2, 1), more = FALSE)
 地震主要是由于地壳运动产生的，两条地震带由内圈到外圈，地震深度有明显的阶梯变化，暗示着断层的方向和位置。
 
 ::: rmdnote
-**sp** 会逐步退出空间数据领域，Roger Bivand 已经在为他的著作《Applied Spatial Data Analysis with R》迁移升级[代码](https://github.com/rsbivand/sf_asdar2ed)，推荐读者尽快转移到 **sf** 上。考虑到一些初学者肯定还会遇到大量 **sp** 为基础的空间数据处理、分析和可视化的案例代码，毕竟生态的迁移过程还要一段时间，因而做一些介绍。
+**sp** 会逐步退出空间数据领域，Roger Bivand 已经在为他的著作《Applied Spatial Data Analysis with R》迁移升级[代码](https://github.com/rsbivand/sf_asdar2ed)，推荐读者尽快转移到 **sf** 上。考虑到一些读者大概率还会遇到基于 **sp** 的空间数据处理、分析和可视化的案例代码，因而做一些介绍，毕竟生态的迁移过程还要一段时间。
 :::
 
 
@@ -1184,7 +1185,7 @@ plot(x, axes = F, legend = F, mar = rep(0, 4))
 
 # 数据操作
 
-先简要介绍一般数据操作，也是最常遇见的，然后介绍 **sf** 包和空间数据操作。
+先简要介绍 Base R 内置的一般数据操作，也是最常见的，然后介绍 **sf** 包和空间数据操作。**sf** 包对 Base R 内置的一些函数做了扩展以支持空间数据的合并、聚合等。
 
 
 ## 一般数据操作
@@ -1300,7 +1301,9 @@ st_distance(
 options(digits = 4)
 ```
 
-无论是 [PostGIS](http://postgis.net/) 还是 [Presto](https://prestodb.io/docs/current/functions/geospatial.html)查询引擎都提供了一系列空间地理计算函数，且和[**sf**](https://github.com/r-spatial/sf) 包提供的操作函数是十分相似的，下面以 Presto 为例，分别计算欧式平面和椭球面上两点之间的距离。
+空间数据对象常常围绕点、线、多边形或多维数组（用来表示卫星图像、时空数据）等展开，可以把这些几何对象看作是主键一样的东西，在同一坐标参考系下，一个地理位置或一块区域是不会有两个相同的地理标记的，其它观测变量是维度或指标，也可以看作这块区域的属性，比如说邵东市地区（一个多边形区域），地区拥有的人口数量、土地面积、人均 GDP等。
+
+对于大规模的空间数据，需要借助专门的数据库处理，无论是构建在[PostgreSQL](https://postgresql.org/)之上的[PostGIS](http://postgis.net/) 还是构建在 Hadoop 之上[Presto](https://prestodb.io/docs/current/functions/geospatial.html)，SQL 查询引擎都提供了一系列空间数据操作函数，且和[**sf**](https://github.com/r-spatial/sf) 包提供的操作函数是十分相似的。下面以 Presto 为例，分别计算欧式平面和椭球面上两点之间的距离。
 
 平面几何，两点之间直线最短，距离就是欧氏距离。
 
@@ -1320,7 +1323,7 @@ ST_Distance(to_spherical_geography(ST_Point(-71.0882, 42.3607)), to_spherical_ge
 312822.1793690028
 ```
 
-可见，Presto 采用的空间坐标参考系也是 WGS 84，事实上，WGS 84 广泛应用于各类 GIS 系统或服务，**sf** 包和 Presto 计算的结果是完全一致的。
+可见，R 包 **sf** 和 Presto 计算的结果完全一致，Presto 采用的空间坐标参考系也是 WGS 84。
 
 
 # 案例：美国北卡婴儿猝死综合征数据
@@ -1424,7 +1427,7 @@ nc <- readShapePoly(
 ```
 
 ::: rmdwarn
-**maptools** 包提供的 `readShapePoly` 函数去读取 shp 文件的方式已经过时，将在 2023 年底不可用，推荐使用 `rgdal::readOGR` 或者 `sf::st_read` 方式读取。
+**maptools** 包提供的 `readShapePoly()` 函数去读取 shp 文件的方式已经过时，将在 2023 年底不可用，推荐使用 `sf::st_read()` 方式读取。
 :::
 
 **sp** 包提供的函数 `spplot()` 方法绘制类似的分面图，这其中借助了 **lattice** 包的绘图能力，效果如\@ref(fig:lattice-nc)所示。
