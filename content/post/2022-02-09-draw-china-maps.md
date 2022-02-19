@@ -108,7 +108,7 @@ R 语言社区有不少 R 包涉及中国地图数据，但是质量不一，比
 
 # 矢量数据
 
-早年统计之都有篇文章介绍[用 R 软件绘制中国分省市地图](https://cosx.org/2009/07/drawing-china-map-using-r)，现将几种方法简单回顾下：
+早年统计之都有篇文章介绍[用 R 软件绘制中国分省市地图](https://cosx.org/2009/07/drawing-china-map-using-r)，现将几种方法简单回顾下，部分代码有现代化改造。
 
 1.  利用 **maps** 包内置的世界地图，获取中国的边界，缺少台湾和南海岛屿。
 
@@ -128,6 +128,21 @@ R 语言社区有不少 R 包涉及中国地图数据，但是质量不一，比
       database = "china",
       col = "red4", xlim = c(72, 137), panel.first = grid()
     )
+    ```
+
+    用 ggplot2 绘制地图也不难，几行代码：
+
+    ``` r
+    library(ggplot2)
+    # 在每个省的中心位置，放置气泡，气泡大小表示数据指标。
+    china_map <- map(database = "china", plot = F)
+
+    ggplot() +
+      geom_path(
+        data = china_map, aes(long, lat, group = group),
+        color = "#FD9FA4", show.legend = F
+      ) +
+      coord_map(projection = "mercator")
     ```
 
 3.  从国家基础地理信息中心的网站 <http://nfgis.nsdi.gov.cn/> 下载 GIS 数据，目前此网站**已经不可用**，统计之都提供了数据[下载地址](https://uploads.cosx.org/2009/07/chinaprovinceborderdata_tar_gz.zip)。下载保存到本地解压后，可采用 **sf** 包([Pebesma 2018](#ref-Pebesma2018))绘制地图。历史原因数据比较久远了，**不推荐使用**。
@@ -464,6 +479,61 @@ leaflet(shaoyang) |>
 <figcaption aria-hidden="true">Figure 9: 邵阳市各个区县人口增长率</figcaption>
 </figure>
 
+收集全国各个区县的数据指标后，需要先将每个市的区县级地图数据合并，然后以各个区县的国家行政编码作为唯一主键，将数据指标和地图数据合并，再映射到地图上，一张信息量更为丰富的专题地图就画出来了。首先下载各省各地级市区县级地图数据，为方便管理和使用，仍然按省组织，文件存储目录如下：
+
+    data
+    └── 中国地图
+        ├── 江西省
+        │   └── 南昌市.json
+        └── 湖南省
+            ├── 娄底市.json
+            ├── 邵阳市.json
+            └── 长沙市.json
+
+接下来是批量地将数据导入 R 环境，并组合成全国区县级地图数据，下面仍以两省四市的数据为例。
+
+``` r
+library(sf)
+# 批量读取数据
+map_list <- lapply(
+  X = list.files("data/中国地图", recursive = T, full.names = T),
+  FUN = sf::read_sf
+)
+# 合并各个市的数据
+china_map <- Reduce("rbind", map_list)
+# 使用 Base R 绘图
+plot(china_map["name"])
+# 使用 ggplot2 绘图
+library(ggplot2)
+ggplot(data = china_map)+
+  geom_sf()
+```
+
+<figure>
+<img src="/img/maps-in-r/city-antv-ggplot2.png" class="full" alt="Figure 10: 两省四市区县级地图数据" />
+<figcaption aria-hidden="true">Figure 10: 两省四市区县级地图数据</figcaption>
+</figure>
+
+``` r
+# 使用 leaflet 绘图
+library(leaflet)
+leaflet(china_map) |>
+  addTiles() |>
+  addPolygons(
+    stroke = T,          # 显示多边形边界
+    weight = 1,          # 设置边界线宽度
+    fillColor = "blue",  # 填充颜色
+    fillOpacity = 0.3    # 多边形填充透明度
+  )
+```
+
+<figure>
+<img src="/img/maps-in-r/city-antv-leaflet.png" class="full" alt="Figure 11: 两省四市区县级地图数据" />
+<figcaption aria-hidden="true">Figure 11: 两省四市区县级地图数据</figcaption>
+</figure>
+
+------------------------------------------------------------------------
+
 另一个提供地图数据的是商业软件 [Highcharts Maps](https://www.highcharts.com/)，国内外有不少商业公司是它的客户，它也有一个 R 包[**highcharter**](https://github.com/jbkunst/highcharter)，有一个以美国地图数据为背景的博客详细介绍了使用过程，详见 [Highcharts 官方博客](https://www.highcharts.com/blog/tutorials/using-highcharter-in-tidytuesday-internet-access/)。[简数科技](https://www.highcharts.com.cn/) 定制了一份 GeoJSON 格式的中国地图数据，还提供了地图预览和下载的服务，因为涉及商业版权和地图数据合规性，使用需要注意，读者可前往[网站](https://www.highcharts.com.cn/mapdata)了解。另一个 R 包[**hchinamap**](https://github.com/czxa/hchinamap) 也是使用这份中国地图数据和 JavaScript 库 [Highcharts JS](https://github.com/highcharts/highcharts)。
 
 ``` r
@@ -484,8 +554,8 @@ hchinamap(
 ```
 
 <figure>
-<img src="/img/maps-in-r/china-hchinamap.png" class="full" alt="Figure 10: 中国地图数据" />
-<figcaption aria-hidden="true">Figure 10: 中国地图数据</figcaption>
+<img src="/img/maps-in-r/china-hchinamap.png" class="full" alt="Figure 12: 中国地图数据" />
+<figcaption aria-hidden="true">Figure 12: 中国地图数据</figcaption>
 </figure>
 
 # 环境信息
