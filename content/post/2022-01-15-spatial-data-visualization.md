@@ -1,7 +1,7 @@
 ---
 title: 空间数据可视化与 R 语言（下篇）
 author: 黄湘云
-date: '2022-02-26'
+date: '2022-02-22'
 slug: spatial-data-visualization
 categories:
   - 统计图形
