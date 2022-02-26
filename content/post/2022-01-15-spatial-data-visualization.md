@@ -7,20 +7,15 @@ categories:
   - 统计图形
 tags:
   - 空间数据
-  - GeoHash
-  - raster
-  - terra
-  - stars
+  - 专题地图
+  - 地图服务
+  - 坐标系统
+  - ggplot2
+  - mapdeck
   - sf
-  - lwgeom
-  - geohashTools
-  - RgoogleMaps
   - leaflet
-  - ggmap
   - httr
-  - rgeolocate
 toc: true
-draft: true
 thumbnail: /img/maps-in-r/beijing-sf.png
 link-citations: true
 bibliography: 
