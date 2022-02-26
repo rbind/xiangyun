@@ -1,5 +1,5 @@
 ---
-title: 空间数据可视化与 R 语言
+title: 空间数据可视化与 R 语言（上篇）
 author: 黄湘云
 date: '2022-02-01'
 slug: maps-in-r
@@ -32,7 +32,6 @@ description: "介绍用于地理可视化的几种常用数据结构，比如 **
 
 
 ```{r setup, echo=FALSE}
-# library(data.table)
 knitr::opts_chunk$set(
   comment = "#",
     error = FALSE,
