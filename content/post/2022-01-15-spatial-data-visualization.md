@@ -106,13 +106,13 @@ div.img {
 
 # 本文概览
 
-数据可视化在数据探索分析中扮演了及其重要的角色，帮助了解数据的质量、分布和潜在规律，为建模和分析提供思路和假设。同时，又有助于阐述分析结果，交流分享。但要注意使用场景，切记过于花哨，引入一些不必要的炫酷手段，比如各种 3D 图，蜂窝图等。
+数据可视化在数据探索分析中扮演了极其重要的角色，帮助了解数据的质量、分布和潜在规律，为建模和分析提供思路和假设。同时，有助于阐述分析结果，交流分享。但要注意使用场景，切记过于花哨，引入一些不必要的炫酷手段，比如各种 3D 图，蜂窝图等。
 
-本文告诉读者如何在 R 语言中调用生活中常见的谷歌、必应、百度和高德等地图服务。介绍一些做网址地位、地理编码和坐标系统转化的 R 包，作为空间数据操作、可视化的基础。然后，介绍展示空间数据分布的常用图形及其R包实现，再重点介绍了专题地图，并以不同 R 包的不同风格的实现。最后，以两个实例简要阐述空间数据操作、分析、可视化的过程。
+本文告诉读者如何在 R 语言中调用生活中常见的谷歌、必应、百度和高德等地图服务。介绍一些网址地位、地理编码和坐标转化的 R 包，为空间数据操作、可视化奠定基础。然后，介绍展示空间数据分布的常用图形及其R包实现，再重点介绍专题地图，并以不同 R 包的不同风格实现。最后，以两个实例简要阐述空间数据操作、分析、可视化的过程。
 
 # 地图服务
 
-比较常见的地图服务，国外有谷歌、微软，国内有百度、高德，凡是提供本地生活服务的公司都或多或少地依赖高精地图，如美团外卖，阿里飞猪等。本节主要带领读者了解地图服务，以及使用 R 语言来做调地图服务，为增加代入感，笔者就以「中国矿业大学（北京）学院路校区」这个地标的 IP 定位开始。首先用 [curl](https://curl.se/) 工具请求网站 <https://ipinfo.io/>[^1]，它会自动获取用户上网使用的 IP 以及 IP 所处的地理位置，如下：
+比较常见的地图服务，国外有谷歌、微软，国内有百度、高德，凡是提供本地生活服务的公司都或多或少地依赖高精地图，如美团外卖，阿里飞猪等。本节主要带领读者了解地图服务，以及使用 R 语言来调地图服务，为增加代入感，笔者就从「中国矿业大学（北京）学院路校区」这个地标的 IP 定位开始。首先用 [curl](https://curl.se/) 工具请求网站 <https://ipinfo.io/>[^1]，它会自动获取用户上网使用的 IP 以及 IP 所处的地理位置，如下：
 
 ``` bash
 curl ipinfo.io
@@ -131,7 +131,7 @@ curl ipinfo.io
 
 ## 百度地图
 
-杜亚磊开发的[baidumap](https://github.com/badbye/baidumap)包可以调用百度地图服务 <https://map.baidu.com/> 提供地理可视化的背景地图。百度是国内比较早的互联网公司，之前介绍的 Apache Echarts 最早也是百度可视化团队开发的，百度地理信息可视化平台使用的地理可视化组件来自开源的[mapv](https://github.com/huiyan-fe/mapv)。
+杜亚磊开发的[baidumap](https://github.com/badbye/baidumap)包可以调用[百度地图服务](https://map.baidu.com/)获取地理可视化的背景底图。百度是国内比较早的互联网公司，之前介绍的 Apache Echarts 也是百度可视化团队领头开发的，百度地理信息可视化平台使用的地理可视化组件来自开源的[mapv](https://github.com/huiyan-fe/mapv)。
 
 在百度地图上，根据地理名称获得经纬度信息，获得经纬度后，可以将位置标记在地图上，下面以「中国矿业大学（北京）」为例。
 
@@ -171,7 +171,7 @@ ggmap::ggmap(cumtb_map) +
 
 高德和百度都是有甲级测绘资质的单位，意味着地图数据符合国家要求，来源权威可用。大家熟知的全球定位系统（GPS）采用 WGS 84，而 GCJ 02 由 WGS 84 加密后的坐标系，是由中国国家测绘局制定的地理坐标系统，又称火星坐标系。高德地图采用火星坐标系 GCJ 02（国测局 **G**uo **C**e **J**u，即国家测绘局），百度地图的坐标系 BD 09 在 GCJ 02 坐标系基础上再次加密，加密过程不可逆，是一种非线性加密方式，反向解密后的坐标在部分区域的定位差别很大。另外，值得注意的是对同一目标不同公司提供的定位可能是不同的，因为所选的地理参考系不同，常用的三种坐标系见文档[坐标系](https://lbsyun.baidu.com/index.php?title=coordinate)。
 
-高德提供调用地图服务的 API 接口，如将其它坐标转化为高德坐标的[坐标转化服务](https://lbs.amap.com/api/webservice/guide/api/convert)，前提是先在[高德开放平台](https://lbs.amap.com/)上申请Web服务API类型KEY。继续以地标「中国矿业大学（北京）学院路校区」为例，下面在 R 语言环境中，使用 **httr** 包([Wickham 2020](#ref-httr))调用高德地图服务将百度坐标转化为高德坐标。
+高德提供很多调用地图服务的 API 接口，如将其它坐标转化为高德坐标的[坐标转化服务](https://lbs.amap.com/api/webservice/guide/api/convert)，前提是先在[高德开放平台](https://lbs.amap.com/)上申请Web服务API类型KEY。继续以地标「中国矿业大学（北京）学院路校区」为例，下面在 R 语言环境中，使用 **httr** 包([Wickham 2020](#ref-httr))调用高德地图服务将百度坐标转化为高德坐标。
 
 ``` r
 library(httr)
@@ -245,7 +245,7 @@ leaflet(options = leafletOptions(
 
 ## 必应地图
 
-与 **ggmap** 相比，[**RgoogleMaps**](https://github.com/markusloecher/rgooglemaps) ([Loecher and Ropkins 2015](#ref-Loecher2015)) 支持调用更多的地图服务，除了 Google 地图外，还支持必应地图，以及基于 **lattice** 的可视化，借助 [**loa**](https://r-forge.r-project.org/scm/?group_id=1400) ([Ropkins 2021](#ref-loa))和 [**latticeExtra**](https://r-forge.r-project.org/projects/latticeextra/) ([Sarkar and Andrews 2019](#ref-latticeExtra))还可以支持高级的自定义，如何使用见[**ggmap** 使用案例](https://github.com/vertica/Vertica-Geospatial)、[**loa** 文档](https://loa.r-forge.r-project.org/loa.intro.html)和[**latticeExtra** 文档](https://latticeextra.r-forge.r-project.org/)。
+与 **ggmap** 包相比，[**RgoogleMaps**](https://github.com/markusloecher/rgooglemaps)包 ([Loecher and Ropkins 2015](#ref-Loecher2015)) 支持调用更多的地图服务，除了 Google 地图外，还支持必应地图，以及基于 **lattice** 包的可视化，借助 [**loa**](https://r-forge.r-project.org/scm/?group_id=1400) ([Ropkins 2021](#ref-loa))和 [**latticeExtra**](https://r-forge.r-project.org/projects/latticeextra/) ([Sarkar and Andrews 2019](#ref-latticeExtra))还可以支持高级的自定义，如何使用见[**ggmap** 使用案例](https://github.com/vertica/Vertica-Geospatial)、[**loa** 文档](https://loa.r-forge.r-project.org/loa.intro.html)和[**latticeExtra** 文档](https://latticeextra.r-forge.r-project.org/)。
 
 ``` r
 library(RgoogleMaps) # 同时需要 RCurl
@@ -362,7 +362,7 @@ maxmind(
 # 1     <NA>        NA       NA
 ```
 
-依次是洲、国家编码简称、国家名称、区域（省级）名称、城市名称、城市代码（不确定编码体系，此外国家行政区划编码）、时区、经度和纬度。内置的数据库定位精度有限，可以去[MaxMind 官网](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data)下载免费的可以定位到城市的数据库。**rgeolocate** 包还提供连接其它 IP 定位服务的接口，比如前面提及的 <https://ipinfo.io/>。
+依次是洲、国家编码简称、国家名称、区域（省级）名称、城市名称、城市代码（不确定编码体系，类似国家行政区划编码）、时区、经度和纬度。内置的数据库定位精度有限，可以去[MaxMind 官网](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data)下载免费的可以定位到城市的数据库。**rgeolocate** 包还提供连接其它 IP 定位服务的接口，比如前面提及的 <https://ipinfo.io/>。
 
 ``` r
 ip_info('111.203.130.69')
@@ -372,12 +372,13 @@ ip_info('111.203.130.69')
 # 1 Asia/Shanghai       NA     NA    NA
 ```
 
-依次将城市、省份、国家、经纬度、网络服务提供商和时区都提供了。除了 **rgeolocate** 包，还可以使用 httr 包向 **ipinfo.io** 发 GET 请求，获取定位信息。
+依次将城市、省份、国家、经纬度、网络服务提供商和时区都提供了。除了 **rgeolocate** 包，还可以使用 **httr** 包向 **ipinfo.io** 发 GET 请求，获取定位信息。
 
 ``` r
 library(httr)
 ip_geocode <- GET(url = "ipinfo.io")
 content(ip_geocode)$loc
+# [1] "39.9040,116.6618"
 ```
 
 或者调用高德地图 IP 定位服务，定位到省、市，并返回一个两个坐标表示的矩形区域。
@@ -390,11 +391,13 @@ tmp <- GET(
     path = "v3/ip",
     query = list(
       ip = "111.203.130.69", # IP 地址
-      output = "json",     # 返回数据格式
+      output = "json",       # 返回数据格式
       # 高德地图 WEB 服务 API 访问令牌
       key = Sys.getenv("AMAP_KEY")
     )
   )
+# 查看全部返回信息
+# content(tmp)
 # 抽取位置区域
 content(tmp)$rectangle
 # [1] "116.0119343,39.66127144;116.7829835,40.2164962"
@@ -441,9 +444,7 @@ GET(
 
 ## 地理编码
 
-地球上每一块区域都对应有一个唯一的 GeoHash 值，八位 GeoHash 码的定位精度可达19米，更多详细的介绍可见维基百科[Geohash](https://en.wikipedia.org/wiki/Geohash)，比起区、县、乡、镇行政单元，它是用来刻画规则的更小的网格单元，广泛用于本地生活服务场景，比如外卖、打车、配送等。
-
-[**geohashTools**](https://github.com/MichaelChirico/geohashTools) 包([Chirico 2020](#ref-geohashTools))可以非常高效地将 GeoHash 编码的地理区域转为经纬度坐标。
+地球上每一块区域都对应有一个唯一的 GeoHash 值，八位 GeoHash 码的定位精度可达400平米，更多详细的介绍可见维基百科[Geohash](https://en.wikipedia.org/wiki/Geohash)，比起区、县、乡、镇行政单元，它是用来刻画规则的更小的网格单元，广泛用于本地生活服务场景，比如外卖、打车、配送等。[**geohashTools**](https://github.com/MichaelChirico/geohashTools) 包([Chirico 2020](#ref-geohashTools))可以非常高效地将 GeoHash 编码的地理区域转为经纬度坐标。
 
 ``` r
 # 随意造几个位置
@@ -464,7 +465,7 @@ leaflet::leaflet() |>
 <figcaption aria-hidden="true">图 8: GeoHash 地理区域编码</figcaption>
 </figure>
 
-**lwgeom** 包([E. Pebesma 2021](#ref-lwgeom))提供函数 `st_geohash()` 可将经纬度坐标转为 GeoHash 码。
+而 **lwgeom** 包([E. Pebesma 2021](#ref-lwgeom))提供函数 `st_geohash()` 可将经纬度坐标转为 GeoHash 码。在数据规模很大的情况下，这编码解码的过程方便聚合 GeoHash 粒度的数据，并呈现在地图上去观察数据中的空间规律，比如一些局部热点效应。
 
 ``` r
 library(sf)
@@ -771,7 +772,7 @@ spplot(beijing_sp, "den",
 
 ## 热力图
 
-OpenStreetMap 是开放街道地图数据，来自世界各地的贡献者，不提供免费的地图 API，使用此地图服务，不会将自己的数据上传至 OpenStreetMap 的服务器上。而 Leaflet 是开源的交互式地理可视化 JS 库。Joe Cheng 开发维护的 [**leaflet**](https://github.com/rstudio/leaflet) 包([Cheng, Karambelkar, and Xie 2022](#ref-leaflet))是 JavaScript 库 [Leaflet](https://github.com/Leaflet/Leaflet) 的 R 语言接口。
+OpenStreetMap 是开放街道地图数据，由来自世界各地的贡献者维护，但不提供免费的地图 API。使用此地图服务，不会将自己的数据上传至 OpenStreetMap 的服务器上。而 Leaflet 是开源的交互式地理可视化 JS 库。Joe Cheng 开发维护的 [**leaflet**](https://github.com/rstudio/leaflet) 包([Cheng, Karambelkar, and Xie 2022](#ref-leaflet))是 JavaScript 库 [Leaflet](https://github.com/Leaflet/Leaflet) 的 R 语言接口。一个提供基础地图服务，一个提供数据渲染可视化，一个提供封装好的 R 语言接口。
 
 <figure>
 <img src="/img/leaflet.svg" class="full" alt="图 14: 开源交互式 JavaScript 库 Leaflet" />
@@ -815,7 +816,7 @@ mapdeck(style = mapdeck_style("dark"), pitch = 45) |>
 
 ## 蜂窝图
 
-除了，热力图，**mapdeck** 调用 `add_hexagon()` 和 `add_screengrid()` 还可以绘制蜂窝图，如图<a href="#fig:beijing-hexagons">17</a>
+除了热力图，**mapdeck** 调用 `add_hexagon()` 和 `add_screengrid()` 还可以绘制蜂窝图，如图<a href="#fig:beijing-hexagons">17</a>。
 
 ``` r
 mapdeck(style = mapdeck_style("dark"), pitch = 45) |> 
@@ -859,7 +860,7 @@ mapdeck(style = mapdeck_style("dark"), pitch = 45) |>
 
 ## 飞线图
 
-**nycflights13** ([Wickham 2021](#ref-nycflights13)) 包提供航班数据，做空间数据可视化和分析，数据由 Hadley Wickham 收集自[OpenFlights Airports Database](https://openflights.org/data.html)，从纽约三大机场 JFK, LGA 或 EWR 的准点起飞数据。
+以 **nycflights13** ([Wickham 2021](#ref-nycflights13)) 包提供航班数据做飞线图，数据由 Hadley Wickham 收集自[OpenFlights Airports Database](https://openflights.org/data.html)，从纽约三大机场 JFK, LGA 或 EWR 的准点起飞数据。
 
 ``` r
 library(nycflights13)
@@ -926,30 +927,23 @@ mapdeck(style = "mapbox://styles/mapbox/dark-v9") |>
 <figcaption aria-hidden="true">图 19: 2013年1月1日纽约机场出发的航班</figcaption>
 </figure>
 
-<!--
-读者也可参考 Nico Hahn 的笔记[Making Maps with R](https://github.com/nicoFhahn/making_maps_with_r)，介绍 *tmap*、*ggplot2*、*mapview*、*mapdeck* 和 *leaflet* 共 5 个 R 包绘制地图的方法。
-
-Analyzing US Census Data: Methods, Maps, and Models in R
-https://walker-data.com/census-r/mapping-census-data-with-r.html
--->
-
 # 专题地图
 
-Thematic Maps (or Statistical Maps) 专题地图或统计地图，重点在于呈现一个或多个地理属性（变量）的空间模式，属于制图学 Cartography 范畴。一种常见的 Thematic Maps 是 Choropleth map, 地图上每个单元（或数据收集的单元，比如州、郡、县）用色彩填充表示属性的大小。专题地图具体形式可以有比例符号图（气泡图），散点图，迁徙/流向图，Choropleth Map 等。据 Michael Friendly 等[考证](https://www.datavis.ca/milestones/)，最早的 Choropleth Map 可追溯到 1819 年，一位叫 Baron Pierre Charles Dupin 的法国人，统计法国各个地区的文盲分布和比例，从黑到白的颜色渐变表示文盲的比例。
+Thematic Maps (or Statistical Maps) 专题地图或统计地图，重点在于呈现一个或多个地理属性（变量）的空间模式，属于制图学 Cartography 范畴。一种常见的 Thematic Maps 是 Choropleth map, 地图上每个单元（或数据收集的单元，比如州、郡、县）用色彩填充表示属性的大小。专题地图具体形式可以有比例符号图（气泡图），散点图，迁徙/流向图等。据 Michael Friendly 等[考证](https://www.datavis.ca/milestones/)，最早的 Choropleth Map 可追溯到 1819 年，一位叫 Baron Pierre Charles Dupin 的法国人，统计法国各个地区的文盲分布和比例，用从黑到白的颜色表示文盲比例大小。
 
-一个现代化的示例图<a href="#fig:us-census-2020">20</a>来自[美国人口普查局](https://www.census.gov/)官网，展示2020年美国各个县的人口密度及相关信息，采用 Tableau 制作而成。
+一个现代化的示例图<a href="#fig:us-census-2020">20</a>来自[美国人口普查局](https://www.census.gov/)官网，展示2020年美国各个城镇的人口密度及相关信息，采用 Tableau 制作而成。
 
 <figure>
 <img src="/img/maps-in-r/us-census-2020.png" class="full" alt="图 20: 2020年美国各个县的人口密度" />
 <figcaption aria-hidden="true">图 20: 2020年美国各个县的人口密度</figcaption>
 </figure>
 
-下面引用 **leaflet** 包[官方文档](https://rstudio.github.io/leaflet/choropleths.html)中的示例—2011 年美国各个州的人口密度。[GeoJSON 格式](https://leafletjs.com/examples/geojson/)的数据集 `us-states.geojson` 是矢量多边形数据，坐标参考系是 WGS 84，包含美国各个州的边界 geometry，各州人口密度数据 density（每平方英里的人口数）。[us-states.geojson](https://rstudio.github.io/leaflet/json/us-states.geojson) 数据源头是 2011 年美国人口普查局。顺便一说，2020年的最新数据可从[维基百科文章](https://en.wikipedia.org/wiki/List_of_states_and_territories_of_the_United_States_by_population_density)获取。
+下面引用 **leaflet** 包[官方文档](https://rstudio.github.io/leaflet/choropleths.html)中的示例—2011 年美国各个州的人口密度。数据存储以[GeoJSON 格式](https://leafletjs.com/examples/geojson/)存储在文件 `us-states.geojson`里，它是矢量多边形数据，坐标参考系是 WGS 84，包含美国各个州的边界 geometry，各州人口密度数据 density（每平方英里的人口数）。[us-states.geojson](https://rstudio.github.io/leaflet/json/us-states.geojson)的数据源头是 2011 年美国人口普查局。顺便一说，2020年的最新数据可从[维基百科文章](https://en.wikipedia.org/wiki/List_of_states_and_territories_of_the_United_States_by_population_density)获取。
 
 笔者在此示例的基础上有几个改进点：
 
-1.  示例中调用 Mapbox 地图的方法不可用，改用 **leaflet** 自带的 OSM 瓦片地图，还提供函数 `addTiles()` 自定义地图瓦片的方式调用 Mapbox 地图；
-2.  [**geojsonio**](https://github.com/ropensci/geojsonio) 读取 GeoJSON 格式的地图数据文件性能差，且上游过时的依赖很多，改用 **sf** 包读取，性能高、速度快；
+1.  示例中调用 Mapbox 地图的方法不可用，可用 **leaflet** 自带的 OpenStreetMap 瓦片地图替换，用函数 `addTiles()` 自定义地图瓦片的方式调用 Mapbox 地图；
+2.  示例中使用[**geojsonio**](https://github.com/ropensci/geojsonio)包读取 GeoJSON 格式的地图数据文件性能差，且上游过时的依赖很多，改用 **sf** 包读取，性能高、速度快；
 3.  添加一些数据集和代码的中文描述，补充一些细节说明；
 4.  空间数据处理从 **sp** 升级到 **sf**，使得整个数据可视化过程仅依赖 **sf** 和 **leaflet** 包，达到了稳定、高效和可靠。
 
@@ -1002,7 +996,7 @@ st_bbox(states)
 
 <div class="rmdtip">
 
-本初子午线定义为 0 度经线，是经过英国格林尼治天文台的一条经线，向东、向西分别定义为东经、西经。东经 180 度 和西经 180 度是同一条经线，穿越新西兰罗斯属地，也穿越美国阿拉斯加州。美国国土跨越了东（西）经 180 度。
+本初子午线定义为 0 度经线，是经过英国格林尼治天文台的一条经线，向东、向西分别定义为东经、西经。东经 180 度 和西经 180 度是同一条经线，穿越新西兰罗斯属地，也穿越美国阿拉斯加州。美国国土东西跨度很大，跨越了东（西）经 180 度。
 
 </div>
 
@@ -1047,7 +1041,7 @@ leaflet(states) |>
 <figcaption aria-hidden="true">图 21: <strong>leaflet</strong> 包专题地图</figcaption>
 </figure>
 
-LeafLet JS 在专题地图[choropleth](https://leafletjs.com/examples/choropleth/)示例里调用了 Mapbox 瓦片服务和[地图风格](https://docs.mapbox.com/api/maps/styles/)。只需在函数 `addTiles()` 里替换瓦片服务 URL 模版路径，**leaflet** 也可用上。
+LeafLet JS 在专题地图[choropleth](https://leafletjs.com/examples/choropleth/)示例里调用了 Mapbox 瓦片服务和[地图风格](https://docs.mapbox.com/api/maps/styles/)。下面在函数 `addTiles()` 里替换瓦片服务 URL 模版路径，**leaflet** 也可用上 Mapbox 瓦片地图。
 
 ``` r
 leaflet(states) |> 
@@ -1089,7 +1083,7 @@ leaflet(states) |>
 <figcaption aria-hidden="true">图 22: <strong>leaflet</strong> 包专题地图</figcaption>
 </figure>
 
-借助[leaflet-providers](https://github.com/leaflet-extras/leaflet-providers)，Leaflet 已经支持很多[瓦片服务](https://leaflet-extras.github.io/leaflet-providers/preview/)，除了以上两种，比如图<a href="#fig:cumtb-nasa">23</a>。
+借助[leaflet-providers](https://github.com/leaflet-extras/leaflet-providers)，Leaflet 已经支持很多[瓦片服务](https://leaflet-extras.github.io/leaflet-providers/preview/)，除了以上两种，比如夜景图<a href="#fig:cumtb-nasa">23</a>。
 
 ``` r
 library(leaflet)
@@ -1321,7 +1315,7 @@ dat2
 ....
 ```
 
-读取地表土壤各种重金属浓度的数据，它在另一个工作区里。
+读取地表土壤各种重金属浓度的数据，它在同一个Excel文件的另一个工作区里。
 
 ``` r
 # 土壤重金属浓度
@@ -1376,7 +1370,7 @@ dat5
 # 8 Zn (μg/g)   69       14   41~97
 ```
 
-既然提供了各重金属浓度的背景参考值，可以先将原浓度数据归一化
+既然提供了各重金属浓度的背景参考值，可以先将原浓度数据标准化。
 
 ``` r
 # 相比于 transform 函数 within 更友好一些，特别是在列名处理上
@@ -1402,7 +1396,7 @@ dat6
 ....
 ```
 
-为了方便后续数据处理和分析，重命名各个列。
+为了方便后续数据处理和分析，重命名数据框各个列名。
 
 ``` r
 # 查看各个列名
@@ -1438,7 +1432,7 @@ dat6
 ....
 ```
 
-查看各个功能区采样点的数量，以及给各个功能区采样点的颜色。
+查看各个功能区采样点的数量，以及各个功能区的配色。
 
 ``` r
 aggregate(`编号` ~ color + `功能区名称`, data = dat6, FUN = function(x) length(unique(x)))
@@ -1498,7 +1492,7 @@ cloud(`海拔` ~ x * y,
 <figcaption aria-hidden="true">图 28: 采样点在城市各个功能区的空间分布</figcaption>
 </figure>
 
-接下来，根据此数据框 data.frame 类型构造空间数据类型 **sf** （对应 **S**imple *F*eatures 类）和 **sp** （对应 **Sp**atial 类），以便后续调用空间数据分析方法。
+接下来，根据此数据框 data.frame 类型构造空间数据类型 **sp** （对应 **Sp**atial 类），以便后续调用空间数据分析方法。
 
 ``` r
 library(sp)
@@ -1581,7 +1575,11 @@ print(Pb, split = c(4, 1, 4, 2), more = TRUE)
 print(Zn, split = c(4, 2, 4, 2), more = FALSE)
 ```
 
+<figure>
 <img src="/img/spatial-data-analysis/heavy-metal-concentrations.png" class="full" alt="图 30: 地表土壤重金属浓度分布" />
+<figcaption aria-hidden="true">图 30: 地表土壤重金属浓度分布</figcaption>
+</figure>
+
 图中，绿色气泡表示重金属浓度低于背景值，红色气泡反之，气泡大小对应不同区间的浓度值，根据浓度值数据的五个分位点划分区间，以砷 As 为例，浓度的分位点如下：
 
 ``` r
@@ -1633,7 +1631,7 @@ xfun::session_info(packages = c(
 #   lattice_0.20-45      leaflet_2.1.0        leaflet.extras_1.0.0 leafletCN_0.2.1     
 #   lwgeom_0.2-8         mapdeck_0.3.4        maps_3.4.0           nycflights13_1.0.2  
 #   patchwork_1.1.1      raster_3.5.15        rasterly_0.2.0       rgeolocate_1.4.2    
-#   RgoogleMaps_1.4.5.3  rmarkdown_2.11       sf_1.0-6             sp_1.4-6            
+#   RgoogleMaps_1.4.5.3  rmarkdown_2.12       sf_1.0-6             sp_1.4-6            
 #   spData_2.0.1         stars_0.5.5          terra_1.5.21        
 # 
 # Pandoc version: 2.17.1.1
