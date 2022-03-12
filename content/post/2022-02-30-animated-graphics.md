@@ -135,6 +135,8 @@ Thomas Lin Pedersen 从 David Robinson 接手维护后，大刀阔斧地开发 *
 
 <!-- 
 动画使用不当真的会弄巧成拙！
+bokeh 复现 gapminder 动画
+https://demo.bokeh.org/gapminder
 -->
 
 mikefc 戏称自己造了好看不中用的 [ggrgl](https://github.com/coolbutuseless/ggrgl) 包，其 Github ID 正是 coolbutuseless，按字面意思拆开来就是「cool but useless」[^1]。这让我一下想到贾宝玉在假山下和林黛玉一起偷看《西厢记》的场景，贾宝玉问：银样蜡枪头是什么意思？林黛玉回答说：中看不中用。有些图形实在没有必要升维做成立体的，比如条形图或柱形图，一些反面例子可以在[漫谈条形图](https://cosx.org/2017/10/discussion-about-bar-graph)和[你问我答](https://msg2020.pzhao.org/qa/)两篇文章中找到。
@@ -147,17 +149,17 @@ mikefc 戏称自己造了好看不中用的 [ggrgl](https://github.com/coolbutus
 
 LaTeX 宏包 [animate](https://ctan.org/pkg/animate)，常用于 [beamer](https://ctan.org/pkg/beamer) 幻灯片或 PDF 文档中，将一系列 PNG/PDF 图片合成动画，就是将一幅幅图片以快速地方式播放，形成动画效果，需要使用 Adobe 阅读器播放才可见效果。
 
-| R 包                                                                                                                                 | 简介                                                                     | 维护者              | 协议                    |
-|:-------------------------------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------------------------|:--------------------|:------------------------|
-| [**plotly**](https://github.com/plotly/plotly.R)([Sievert et al. 2021](#ref-plotly))                                                 | Create Interactive Web Graphics via plotly.js                            | Carson Sievert      | MIT + file LICENSE      |
-| [**rgl**](https://github.com/dmurdoch/rgl)([Adler and Murdoch 2021](#ref-rgl))                                                       | 3D Visualization Using OpenGL                                            | Duncan Murdoch      | GPL                     |
-| [**magick**](https://docs.ropensci.org/magick/%20(website)%20https://github.com/ropensci/magick%20(devel))([Ooms 2021](#ref-magick)) | Advanced Graphics and Image-Processing in R                              | Jeroen Ooms         | MIT + file LICENSE      |
-| [**echarts4r**](https://github.com/JohnCoene/echarts4r)([Coene 2022](#ref-echarts4r))                                                | Create Interactive Graphs with Echarts JavaScript Version 5              | John Coene          | Apache License (>= 2.0) |
-| [**gganimate**](https://github.com/thomasp85/gganimate)([Pedersen and Robinson 2020](#ref-gganimate))                                | A Grammar of Animated Graphics                                           | Thomas Lin Pedersen | MIT + file LICENSE      |
-| [**rayrender**](https://github.com/tylermorganwall/rayrender)([Morgan-Wall 2021](#ref-rayrender))                                    | Build and Raytrace 3D Scenes                                             | Tyler Morgan-Wall   | GPL-3                   |
-| [**animation**](https://yihui.org/animation/)([Xie 2021](#ref-animation))                                                            | A Gallery of Animations in Statistics and Utilities to Create Animations | Yihui Xie           | GPL                     |
+| R 包                                                                                                                                 | 简介                                                                     | 维护者              | 协议                     |
+|:-------------------------------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------------------------|:--------------------|:-------------------------|
+| [**plotly**](https://github.com/plotly/plotly.R)([Sievert et al. 2021](#ref-plotly))                                                 | Create Interactive Web Graphics via plotly.js                            | Carson Sievert      | MIT + file LICENSE       |
+| [**rgl**](https://github.com/dmurdoch/rgl)([Adler and Murdoch 2021](#ref-rgl))                                                       | 3D Visualization Using OpenGL                                            | Duncan Murdoch      | GPL                      |
+| [**magick**](https://docs.ropensci.org/magick/%20(website)%20https://github.com/ropensci/magick%20(devel))([Ooms 2021](#ref-magick)) | Advanced Graphics and Image-Processing in R                              | Jeroen Ooms         | MIT + file LICENSE       |
+| [**echarts4r**](https://github.com/JohnCoene/echarts4r)([Coene 2022](#ref-echarts4r))                                                | Create Interactive Graphs with Echarts JavaScript Version 5              | John Coene          | Apache License (\>= 2.0) |
+| [**gganimate**](https://github.com/thomasp85/gganimate)([Pedersen and Robinson 2020](#ref-gganimate))                                | A Grammar of Animated Graphics                                           | Thomas Lin Pedersen | MIT + file LICENSE       |
+| [**rayrender**](https://github.com/tylermorganwall/rayrender)([Morgan-Wall 2021](#ref-rayrender))                                    | Build and Raytrace 3D Scenes                                             | Tyler Morgan-Wall   | GPL-3                    |
+| [**animation**](https://yihui.org/animation/)([Xie 2021](#ref-animation))                                                            | A Gallery of Animations in Statistics and Utilities to Create Animations | Yihui Xie           | GPL                      |
 
-Table 1: 制作动画的 R 包（排名不分先后）
+表 1: 制作动画的 R 包（排名不分先后）
 
 # 软件准备
 
@@ -302,7 +304,8 @@ ggplot(
 gapminder 数据集中 2002 年数据为例，绘图气泡图 <a href="#fig:gapminder-ggplot2">1</a>
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/145673108-e6c143a9-3010-4a5d-8a91-59c1e5c13b6c.png" class="full" alt="Figure 1: ggplot2 制作静态气泡图" /><figcaption aria-hidden="true">Figure 1: ggplot2 制作静态气泡图</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/145673108-e6c143a9-3010-4a5d-8a91-59c1e5c13b6c.png" class="full" alt="图 1: ggplot2 制作静态气泡图" />
+<figcaption aria-hidden="true">图 1: ggplot2 制作静态气泡图</figcaption>
 </figure>
 
 ## gganimate
@@ -361,7 +364,8 @@ dev.off()
 如图<a href="#fig:gapminder-ggplot">2</a> 所示，各个洲的收入分布图
 
 <figure>
-<img src="/img/gapminder-ggplot.svg" class="full" alt="Figure 2: ggplot2 制作累积分布图" /><figcaption aria-hidden="true">Figure 2: ggplot2 制作累积分布图</figcaption>
+<img src="/img/gapminder-ggplot.svg" class="full" alt="图 2: ggplot2 制作累积分布图" />
+<figcaption aria-hidden="true">图 2: ggplot2 制作累积分布图</figcaption>
 </figure>
 
 抓住最具代表性的指标，找最能引起观众共鸣和达成共识的点，比如先入为主的偏见，发达国家收入高寿命长，发展中国家收入中等寿命较长，不发达国家收入低寿命短，以及婴儿死亡率高、家庭成员多等主观印象出发。收集尽可能准确的数据，包括来自开放组织的数据和亲自设计实验收集数据，从一些看似简单实则富含统计和因果推理理论的实验中发现一系列反事实（先入为主的偏见）的结论。比如成对的两个国家的婴儿死亡率之间至少有两倍的差距，以确保数据之间的差距远大于数据本身的误差（组间误差和组内误差，系统误差和随机误差，干预效应和随机效应），再将问卷对象从学生扩展到教授，再拿大猩猩做对照，整个实验既有生动性又有戏剧性，强烈的反差给观众留下深刻的印象，真是一个精彩的数据故事。
@@ -520,7 +524,8 @@ gapminder |>
 ```
 
 <figure>
-<video src="https://user-images.githubusercontent.com/12031874/145657748-0db6c4ee-47e9-4b1b-941d-1022937dcf4a.mov" class="full" controls=""><a href="https://user-images.githubusercontent.com/12031874/145657748-0db6c4ee-47e9-4b1b-941d-1022937dcf4a.mov">Figure 3: echarts4r 制作网页动画</a></video><figcaption aria-hidden="true">Figure 3: echarts4r 制作网页动画</figcaption>
+<video src="https://user-images.githubusercontent.com/12031874/145657748-0db6c4ee-47e9-4b1b-941d-1022937dcf4a.mov" class="full" controls=""><a href="https://user-images.githubusercontent.com/12031874/145657748-0db6c4ee-47e9-4b1b-941d-1022937dcf4a.mov">图 3: echarts4r 制作网页动画</a></video>
+<figcaption aria-hidden="true">图 3: echarts4r 制作网页动画</figcaption>
 </figure>
 
 <div class="rmdnote">
@@ -563,6 +568,55 @@ gapminder |>
 World Bank 来自世界银行的数据，分国家，长周期的数据，指数也就是归一化了，更方便在地图上做动画展示
 [WDI](https://github.com/vincentarelbundock/WDI) 
 -->
+
+## leaflet
+
+leaflet.extras 内置了一份数据集
+
+2016年伦敦犯罪数据
+
+``` r
+library(leaflet)
+library(leaflet.extras)
+
+london_crimes_files <- Sys.glob(
+  paste0(
+    system.file("examples/data/London-Crimes", package = "leaflet.extras"),
+    "/*/*-city-of-london-street.csv.zip"
+  )
+)
+
+london_crimes <- suppressMessages(
+  purrr::map(
+    london_crimes_files,
+    ~readr::read_csv(.) %>%
+      dplyr::select(Latitude, Longitude) %>%
+      dplyr::filter(!is.na(Latitude))) %>%
+  magrittr::set_names(basename(Sys.glob(
+    paste0(system.file("examples/data/London-Crimes", package = "leaflet.extras"),
+           "/2016*")))))
+
+leaf <- leaflet() %>%
+  addProviderTiles(providers$CartoDB.Positron)
+
+purrr::walk(
+  names(london_crimes),
+  function(month) {
+    leaf <<- leaf %>%
+      addHeatmap(
+        data = london_crimes[[month]],
+        layerId = month, group = month,
+        lng = ~Longitude, lat = ~Latitude,
+        blur = 20, max = 0.05, radius = 15)
+  })
+
+leaf %>%
+  setView(-0.094106, 51.515, 14) %>%
+  addLayersControl(
+    baseGroups = names(london_crimes),
+    options = layersControlOptions(collapsed = FALSE)
+  )
+```
 
 ## plotly （R 语言版）
 
@@ -642,7 +696,8 @@ plot_ly(
 ```
 
 <figure>
-<video src="https://user-images.githubusercontent.com/12031874/145713395-5f692a24-e4b7-4900-94f2-bc0a4911ac28.mov" class="full" controls=""><a href="https://user-images.githubusercontent.com/12031874/145713395-5f692a24-e4b7-4900-94f2-bc0a4911ac28.mov">Figure 4: plotly 制作网页动画</a></video><figcaption aria-hidden="true">Figure 4: plotly 制作网页动画</figcaption>
+<video src="https://user-images.githubusercontent.com/12031874/145713395-5f692a24-e4b7-4900-94f2-bc0a4911ac28.mov" class="full" controls=""><a href="https://user-images.githubusercontent.com/12031874/145713395-5f692a24-e4b7-4900-94f2-bc0a4911ac28.mov">图 4: plotly 制作网页动画</a></video>
+<figcaption aria-hidden="true">图 4: plotly 制作网页动画</figcaption>
 </figure>
 
 如图 <a href="#fig:gapminder-plotly">4</a> 所示，相比于 **echarts4r**， 气泡即使有重叠和覆盖，只要鼠标悬浮其上，就能显示被覆盖的 tooltip。
@@ -658,7 +713,7 @@ plot_ly(
 | elastic-out | back-out   | bounce-out    | linear-in-out  | quad-in-out | cubic-in-out  |
 | sin-in-out  | exp-in-out | circle-in-out | elastic-in-out | back-in-out | bounce-in-out |
 
-Table 2: 动画转场特效
+表 2: 动画转场特效
 
 `animation_opts()` 的其它默认参数设置见 `plotly:::animation_opts_defaults()`。
 
@@ -721,7 +776,8 @@ px.scatter(
 ```
 
 <figure>
-<video src="https://user-images.githubusercontent.com/12031874/145701692-d2847ae6-6646-4fc7-bf9d-031a4e262555.mov" class="full" controls=""><a href="https://user-images.githubusercontent.com/12031874/145701692-d2847ae6-6646-4fc7-bf9d-031a4e262555.mov">Figure 5: Python 版 plotly 制作动画</a></video><figcaption aria-hidden="true">Figure 5: Python 版 plotly 制作动画</figcaption>
+<video src="https://user-images.githubusercontent.com/12031874/145701692-d2847ae6-6646-4fc7-bf9d-031a4e262555.mov" class="full" controls=""><a href="https://user-images.githubusercontent.com/12031874/145701692-d2847ae6-6646-4fc7-bf9d-031a4e262555.mov">图 5: Python 版 plotly 制作动画</a></video>
+<figcaption aria-hidden="true">图 5: Python 版 plotly 制作动画</figcaption>
 </figure>
 
 ### 时空动画
@@ -783,7 +839,8 @@ fig.show()
 ```
 
 <figure>
-<img src="/img/plotly-colorbrewer.png" class="full" alt="Figure 6: plotly 的 colorbrewer 调色板" /><figcaption aria-hidden="true">Figure 6: plotly 的 colorbrewer 调色板</figcaption>
+<img src="/img/plotly-colorbrewer.png" class="full" alt="图 6: plotly 的 colorbrewer 调色板" />
+<figcaption aria-hidden="true">图 6: plotly 的 colorbrewer 调色板</figcaption>
 </figure>
 
 ``` python
@@ -834,7 +891,8 @@ pio.templates
 只需将 `template="none"` 换为以上任意一种即可获得不一样的效果。
 
 <figure>
-<video src="https://user-images.githubusercontent.com/12031874/145711359-1fc543bd-d371-408b-abc0-929ae8fba4e4.mov" class="full" controls=""><a href="https://user-images.githubusercontent.com/12031874/145711359-1fc543bd-d371-408b-abc0-929ae8fba4e4.mov">Figure 7: plotly 的暗黑主题</a></video><figcaption aria-hidden="true">Figure 7: plotly 的暗黑主题</figcaption>
+<video src="https://user-images.githubusercontent.com/12031874/145711359-1fc543bd-d371-408b-abc0-929ae8fba4e4.mov" class="full" controls=""><a href="https://user-images.githubusercontent.com/12031874/145711359-1fc543bd-d371-408b-abc0-929ae8fba4e4.mov">图 7: plotly 的暗黑主题</a></video>
+<figcaption aria-hidden="true">图 7: plotly 的暗黑主题</figcaption>
 </figure>
 
 ## 举一反三
@@ -903,7 +961,8 @@ dev.off()
 ```
 
 <figure>
-<img src="/img/gapminder-qplot.svg" class="full" alt="Figure 8: ggplot2 快速绘图函数qplot()" /><figcaption aria-hidden="true">Figure 8: <strong>ggplot2</strong> 快速绘图函数<code>qplot()</code></figcaption>
+<img src="/img/gapminder-qplot.svg" class="full" alt="图 8: ggplot2 快速绘图函数qplot()" />
+<figcaption aria-hidden="true">图 8: <strong>ggplot2</strong> 快速绘图函数<code>qplot()</code></figcaption>
 </figure>
 
 当然，如果想更加精细地绘制复杂图形，还是要学习 [`ggplot()` 函数](https://ggplot2.tidyverse.org/reference/ggplot.html)，在 Python 里也是一样，你需要放弃调用 **plotly.express** 组件，转向学习低水平绘图的 API [Graph Objects](https://plotly.com/python-api-reference/plotly.graph_objects.html#graph-objects)。
@@ -913,6 +972,18 @@ dev.off()
 [OpenGL](https://www.opengl.org/)
 
 ## rgl
+
+参考 SO 帖子[配置 X11](https://stackoverflow.com/questions/32207012)，先安装 [XQuartz](https://www.xquartz.org/)，再从源码安装 **rgl** 包，需要指定 X11 相关文件的路径，以便编译安装时发现[^4]。
+
+``` r
+install.packages(
+  pkgs = "rgl", type = "source",
+  configure.args = c(
+    "--x-libraries=/opt/X11/lib/",
+    "--x-includes=/opt/X11/include"
+  )
+)
+```
 
 ``` r
 library(rgl)
@@ -984,21 +1055,6 @@ plot_ly(data = diamonds,
   toWebGL()
 ```
 
-[rasterly](https://github.com/plotly/rasterly) 包是受到[datashader](https://github.com/holoviz/datashader/)项目启发，希望借助 plotly.js 和 **plotly** 实现百万、乃至千万级别的空间位置数据的渲染和可视化，探索和分析空间点模式，挖掘空间聚集分布规律。
-
-``` r
-library(rasterly)
-plotly::plot_ly(quakes, x = ~long, y = ~lat) %>%
-  add_rasterly_heatmap()
-
-rasterly(data = quakes, mapping = aes(x = long, y = lat)) %>%
-  rasterly_points()
-
-# 读取原始数据
-# uber 轨迹数据来自 https://github.com/plotly/rasterly
-uber <- readRDS(file = 'data/uber.rds')
-```
-
 # 其它工具
 
 ## Python 的 matplotlib
@@ -1033,13 +1089,13 @@ xfun::session_info(packages = c(
 # Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
 # 
 # Package version:
-#   blogdown_1.7     echarts4r_0.4.3  gapminder_0.3.0 
+#   blogdown_1.8     echarts4r_0.4.3  gapminder_0.3.0 
 #   gganimate_1.0.7  ggplot2_3.3.5    ggrepel_0.9.1   
 #   knitr_1.37       MASS_7.3.55      plotly_4.10.0   
 #   rayrender_0.23.6 rgl_0.108.3      rmarkdown_2.11  
-#   showtext_0.9.4  
+#   showtext_0.9.5  
 # 
-# Pandoc version: 2.16.2
+# Pandoc version: 2.17.1.1
 # 
 # Hugo version: 0.91.2
 ```
@@ -1112,4 +1168,12 @@ Xie, Yihui. 2021. *Animation: A Gallery of Animations in Statistics and Utilitie
     .modebar {
       display: none !important;
     }
+    ```
+
+[^4]: MacOS 从源码安装 R 软件时，配置需要指定 X11 相关库和头文件。
+
+    ``` bash
+    ../source/configure --prefix=/Users/xiangyun/R-devel \
+      --x-libraries=/opt/X11/lib/ --x-includes=/opt/X11/include \
+      --enable-R-shlib --enable-memory-profiling
     ```

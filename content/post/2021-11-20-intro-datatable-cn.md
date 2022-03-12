@@ -93,19 +93,19 @@ div.img {
 
 <div class="rmdtip">
 
-本文档翻译自 [Introduction to data.table](https://rdatatable.gitlab.io/data.table/articles/datatable-intro.html)
+本文翻译自 **data.table** 官网文档 — [Introduction to **data.table**](https://rdatatable.gitlab.io/data.table/articles/datatable-intro.html)。**data.table** 是一个性能强劲、成熟稳定的专注于数据操作的 R 包，实实在在践行了 [Unix 的哲学理念](https://en.wikipedia.org/wiki/Unix_philosophy)：Do one thing, and do it well!
 
 </div>
 
-本文档介绍 `data.table` 的使用语法，它的一般形式，如何做行的筛选，如何做列的选择和计算，如何做分组聚合。对本文来说，熟悉 Base R 提供的数据结构 `data.frame` 是有用的，但不是必须的。
+本文介绍 **data.table** 的基本 语法及其一般形式，如何对行做筛选，如何选择列和对列做计算，如何做分组聚合。对下文来说，熟悉 Base R 提供的数据结构 `data.frame` 是有用的，但不是必须的。
 
 ------------------------------------------------------------------------
 
-# 用 `data.table` 做数据分析
+# 用 **data.table** 做数据分析
 
 数据操作，如选择子集 subset、分组 group、更新 update、合并 join。所有这些操作都是一脉相承的。将这些相关联的操作放在一起的好处有：
 
--   简洁而一致的语法，无论您要执行何种操作来实现最终目标。
+-   紧凑一致的语法，无论您要执行何种操作来实现最终目标。
 
 -   流畅地执行分析，而不必承担执行分析之前必须将每个操作映射到特定功能的认知负担的潜在负担。
 
@@ -1018,7 +1018,7 @@ DT[, print(list(c(a,b))), by = ID]
 # Empty data.table (0 rows and 1 cols): ID
 ```
 
-In (1), for each group, a vector is returned, with length = 6,4,2 here. However (2) returns a list of length 1 for each group, with its first element holding vectors of length 6,4,2. Therefore (1) results in a length of `6+4+2 = 12`, whereas (2) returns `1+1+1=3`.
+In (1), for each group, a vector is returned, with length = 6,4,2 here. However (2) returns a list of length 1 for each group, with its first element holding vectors of length 6,4,2. Therefore (1) results in a length of `6+4+2 =12` , whereas (2) returns `1+1+1=3`.
 
 # 总结
 
@@ -1074,7 +1074,7 @@ DT[i, j, by]
 
 </div>
 
-# 环境信息（笔者加）
+# 环境信息（译者加）
 
 在 RStudio IDE 内编辑本文的 R Markdown 源文件，用 **blogdown** 构建网站，[Hugo](https://github.com/gohugoio/hugo) 渲染 knitr 之后的 Markdown 文件，得益于 **blogdown** 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：
 
@@ -1089,20 +1089,20 @@ xfun::session_info(packages = c(
 # Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
 # 
 # Package version:
-#   base64enc_0.1.3   blogdown_1.6      bookdown_0.24    
-#   data.table_1.14.2 digest_0.6.29     evaluate_0.14    
-#   fastmap_1.1.0     glue_1.5.1        graphics_4.1.2   
+#   base64enc_0.1.3   blogdown_1.8      bookdown_0.24    
+#   data.table_1.14.2 digest_0.6.29     evaluate_0.15    
+#   fastmap_1.1.0     glue_1.6.2        graphics_4.1.2   
 #   grDevices_4.1.2   highr_0.9         htmltools_0.5.2  
-#   httpuv_1.6.3      jquerylib_0.1.4   jsonlite_1.7.2   
-#   knitr_1.36        later_1.3.0       magrittr_2.0.1   
+#   httpuv_1.6.5      jquerylib_0.1.4   jsonlite_1.8.0   
+#   knitr_1.37        later_1.3.0       magrittr_2.0.2   
 #   methods_4.1.2     mime_0.12         promises_1.2.0.1 
-#   R6_2.5.1          Rcpp_1.0.7        rlang_0.4.12     
+#   R6_2.5.1          Rcpp_1.0.8        rlang_1.0.1      
 #   rmarkdown_2.11    servr_0.24        stats_4.1.2      
-#   stringi_1.7.6     stringr_1.4.0     tinytex_0.35     
-#   tools_4.1.2       utils_4.1.2       xfun_0.28        
-#   yaml_2.2.1       
+#   stringi_1.7.6     stringr_1.4.0     tinytex_0.37     
+#   tools_4.1.2       utils_4.1.2       xfun_0.29        
+#   yaml_2.3.5       
 # 
-# Pandoc version: 2.16.2
+# Pandoc version: 2.17.1.1
 # 
-# Hugo version: 0.89.4
+# Hugo version: 0.91.2
 ```

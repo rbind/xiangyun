@@ -422,6 +422,27 @@ echo 'export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig"' >> ~/.zshrc
 
     FLIBS = -L/usr/local/Cellar/gcc/11.2.0/lib/gcc/11 -lgfortran -lquadmath -lm
 
+
+
+# openssl 包和 openssl@1.1
+
+```bash
+brew install openssl@1.1
+```
+
+[openssl](https://github.com/jeroen/openssl)
+
+```r
+install.packages(
+  pkgs = "openssl", type = "source",
+  configure.vars = c(
+    "LIB_DIR=/usr/local/opt/openssl@1.1/lib",
+    "INCLUDE_DIR=/usr/local/opt/openssl@1.1/include"
+  )
+)
+```
+
+
 # Python 虚拟环境
 
 ##  用 miniconda 配置

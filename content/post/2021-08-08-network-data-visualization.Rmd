@@ -148,11 +148,10 @@ div.img {
 1. Roger Bivand 分析源码提交记录 <https://github.com/rsbivand/eRum18>
 1. 基本数据操作到两大阵营的对话 <https://d.cosx.org/d/420697>
 1. 分析 CRAN 上 R 包元数据，挖掘 R 社区中隐藏的信息 <https://r-graphics.netlify.com/cs-cran-network.html>
-
 -->
 
 
-# 软件概览
+# 概览
 
 
 [igraph](https://github.com/igraph/igraph) 是非常流行和核心的网络分析 C 语言库，它提供有多种语言的接口，其 R 语言接口 [igraph](https://github.com/igraph/rigraph) 包也被很多其它做网络分析的 R 包所引用。开源的 [Gephi](https://github.com/gephi/gephi) 软件适合处理中等规模的网络分析和可视化。大规模图计算可以用 Apache Spark 的 [GraphX](https://spark.apache.org/graphx/)。R 语言这层，主要还是对应数据分析和数据产品，用于在内部咨询和商业分析。
@@ -265,7 +264,7 @@ xfun::write_utf8(bib, "packages.bib")
 
 
 
-# 网络基础
+# 网络分析基础
 
 柯尼斯堡七桥问题：在所有桥都只走一遍的情况下，如何才能把这个地方所有的桥都走遍？欧拉将每一座桥抽象为一条线，桥所连接地区抽象为点[^seven-bridges]。此处，用[tikz-network](https://ctan.org/pkg/tikz-network) 绘制网络图，如图\@ref(fig:seven-bridges)所示， $1,2,\cdots,7$ 分别表示七座桥， $A,B,C,D$ 分别表示四块区域。
 
@@ -274,7 +273,7 @@ xfun::write_utf8(bib, "packages.bib")
 
 ![(\#fig:seven-bridges) 欧拉用图抽象的柯尼斯堡七桥](/img/seven-bridges.png){ width=65% }
 
-```{r seven-bridges, engine="tikz", fig.cap="柯尼斯堡七桥问题", cache=TRUE, engine.opts=list(extra.preamble=c("\\usepackage[default]{sourcesanspro}", "\\usepackage{tikz-network}")), eval=FALSE, echo=FALSE}
+```{r seven-bridges, engine="tikz", fig.cap="柯尼斯堡七桥问题", cache=FALSE, engine.opts=list(extra.preamble=c("\\usepackage[default]{sourcesanspro}", "\\usepackage{tikz-network}")), eval=FALSE, echo=FALSE}
 \begin{tikzpicture}
 \Vertex[IdAsLabel, x=5, color=gray, size=1, fontsize=\large]{A}
 \Vertex[IdAsLabel, x=10, color=gray, size=1, fontsize=\large]{B}
@@ -413,7 +412,7 @@ plot(g2, "twopi")
 ![(\#fig:twopi-graph) twopi 布局](https://user-images.githubusercontent.com/12031874/67205321-19d63b80-f442-11e9-88e0-b783d3daa5f7.png){ width=55% }
 
 
-# CRAN 网络
+# 案例：CRAN 网络分析
 
 之前肯定有人分析过，但是我的分析更加全面，更加深刻，涉及 R 包，开发者和组织生态三个层次。
 
@@ -454,8 +453,7 @@ knitr::kable(head(license_pdb_aggr, 15),
 
 GPL 协议占主导地位，MIT 协议次之。
 
-CRAN 会检测 R 包的授权，只有授权协议包含在数据库中的才可以在 CRAN 上发布
-<https://svn.r-project.org/R/trunk/share/licenses/license.db>
+CRAN 会检测 R 包的授权，只有授权协议包含在[数据库](https://svn.r-project.org/R/trunk/share/licenses/license.db)中的才可以在 CRAN 上发布。
 
 ```{r,eval=FALSE}
 # 查看文件，如何以最合适的方式读取呢？
@@ -948,7 +946,7 @@ CRAN 和 RStudio 团队是 R 语言社区最为熟悉的，其它团队需借助
 
 ### 贡献者
 
-以 data.table 包为例，从元数据中抽取贡献者名单
+以 **data.table** 包为例，从元数据中抽取贡献者名单
 
 ```{r}
 author <- pdb[pdb$Package == "data.table", c("Authors@R")]
@@ -993,7 +991,7 @@ tools::package_dependencies(packages = "data.table", db = pdb, reverse = TRUE, w
 ![(\#fig:r-net) R 包依赖关系网络](https://user-images.githubusercontent.com/12031874/138590902-8d631fc8-37d2-4adc-8710-561cefe40697.jpg){ width=55% }
 
 
-# 博客网络
+# 案例：博客网络分析
 
 <!-- 
 2021-11-25 再发10篇文章后，才做此分析 

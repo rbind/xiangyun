@@ -652,6 +652,57 @@ World Bank 来自世界银行的数据，分国家，长周期的数据，指数
 [WDI](https://github.com/vincentarelbundock/WDI) 
 -->
 
+
+## leaflet
+
+leaflet.extras 内置了一份数据集
+
+2016年伦敦犯罪数据
+
+```{r,eval=FALSE}
+library(leaflet)
+library(leaflet.extras)
+
+london_crimes_files <- Sys.glob(
+  paste0(
+    system.file("examples/data/London-Crimes", package = "leaflet.extras"),
+    "/*/*-city-of-london-street.csv.zip"
+  )
+)
+
+london_crimes <- suppressMessages(
+  purrr::map(
+    london_crimes_files,
+    ~readr::read_csv(.) %>%
+      dplyr::select(Latitude, Longitude) %>%
+      dplyr::filter(!is.na(Latitude))) %>%
+  magrittr::set_names(basename(Sys.glob(
+    paste0(system.file("examples/data/London-Crimes", package = "leaflet.extras"),
+           "/2016*")))))
+
+leaf <- leaflet() %>%
+  addProviderTiles(providers$CartoDB.Positron)
+
+purrr::walk(
+  names(london_crimes),
+  function(month) {
+    leaf <<- leaf %>%
+      addHeatmap(
+        data = london_crimes[[month]],
+        layerId = month, group = month,
+        lng = ~Longitude, lat = ~Latitude,
+        blur = 20, max = 0.05, radius = 15)
+  })
+
+leaf %>%
+  setView(-0.094106, 51.515, 14) %>%
+  addLayersControl(
+    baseGroups = names(london_crimes),
+    options = layersControlOptions(collapsed = FALSE)
+  )
+```
+
+
 ## plotly （R 语言版）
 
 下面采用 Carson Sievert 开发的 [plotly](https://github.com/plotly/plotly.R) 包[@Sievert2020]制作网页动画，仍是以 gapminder 数据集为例，示例修改自 plotly 官网的 [动画示例](https://plotly.com/r/animations/)。关于 plotly 以及绘制散点图的介绍，见前文[交互式网页图形与 R 语言](/2021/11/interactive-web-graphics/)，此处不再赘述[^fill-warn]。
@@ -996,7 +1047,28 @@ dev.off()
 
 ## rgl
 
+
+[^x11-setup]: MacOS 从源码安装 R 软件时，配置需要指定 X11 相关库和头文件。
+
+    ```bash
+    ../source/configure --prefix=/Users/xiangyun/R-devel \
+      --x-libraries=/opt/X11/lib/ --x-includes=/opt/X11/include \
+      --enable-R-shlib --enable-memory-profiling
+    ```
+
+参考 SO 帖子[配置 X11](https://stackoverflow.com/questions/32207012)，先安装 [XQuartz](https://www.xquartz.org/)，再从源码安装 **rgl** 包，需要指定 X11 相关文件的路径，以便编译安装时发现[^x11-setup]。
+
 ```{r,eval=FALSE}
+install.packages(
+  pkgs = "rgl", type = "source",
+  configure.args = c(
+    "--x-libraries=/opt/X11/lib/",
+    "--x-includes=/opt/X11/include"
+  )
+)
+```
+
+```{r}
 library(rgl)
 ```
 
@@ -1069,23 +1141,6 @@ plot_ly(data = diamonds,
 ) %>% 
   toWebGL()
 ```
-
-
-[rasterly](https://github.com/plotly/rasterly) 包是受到[datashader](https://github.com/holoviz/datashader/)项目启发，希望借助 plotly.js 和 **plotly** 实现百万、乃至千万级别的空间位置数据的渲染和可视化，探索和分析空间点模式，挖掘空间聚集分布规律。
-
-```{r,eval=FALSE}
-library(rasterly)
-plotly::plot_ly(quakes, x = ~long, y = ~lat) %>%
-  add_rasterly_heatmap()
-
-rasterly(data = quakes, mapping = aes(x = long, y = lat)) %>%
-  rasterly_points()
-
-# 读取原始数据
-# uber 轨迹数据来自 https://github.com/plotly/rasterly
-uber <- readRDS(file = 'data/uber.rds')
-```
-
 
 
 # 其它工具
