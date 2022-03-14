@@ -843,7 +843,7 @@ Thematic Maps (or Statistical Maps) 专题地图或统计地图，重点在于�
 
 一个现代化的示例图\@ref(fig:us-census-2020)来自[美国人口普查局](https://www.census.gov/)官网，展示2020年美国各个城镇的人口密度及相关信息，采用 Tableau 制作而成。
 
-![(\#fig:us-census-2020)2020年美国各个县的人口密度](/img/maps-in-r/us-census-2020.png){.full}
+![(\#fig:us-census-2020)2020年美国各个城镇的人口密度](/img/maps-in-r/us-census-2020.png){.full}
 
 
 下面引用 **leaflet** 包[官方文档](https://rstudio.github.io/leaflet/choropleths.html)中的示例---2011 年美国各个州的人口密度。数据存储以[GeoJSON 格式](https://leafletjs.com/examples/geojson/)存储在文件 `us-states.geojson`里，它是矢量多边形数据，坐标参考系是 WGS 84，包含美国各个州的边界 geometry，各州人口密度数据 density（每平方英里的人口数）。[us-states.geojson](https://rstudio.github.io/leaflet/json/us-states.geojson)的数据源头是 2011 年美国人口普查局。顺便一说，2020年的最新数据可从[维基百科文章](https://en.wikipedia.org/wiki/List_of_states_and_territories_of_the_United_States_by_population_density)获取。
@@ -851,7 +851,7 @@ Thematic Maps (or Statistical Maps) 专题地图或统计地图，重点在于�
 
 笔者在此示例的基础上有几个改进点：
 
-1. 示例中调用 Mapbox 地图的方法不可用，可用 **leaflet** 自带的 OpenStreetMap 瓦片地图替换，用函数 `addTiles()` 自定义地图瓦片的方式调用 Mapbox 地图；
+1. 示例中调用 Mapbox 地图的方法不可用，可用 **leaflet** 自带的 OpenStreetMap 瓦片地图替换，或用函数 `addTiles()` 自定义地图瓦片的方式调用 Mapbox 地图；
 1. 示例中使用[**geojsonio**](https://github.com/ropensci/geojsonio)包读取 GeoJSON 格式的地图数据文件性能差，且上游过时的依赖很多，改用 **sf** 包读取，性能高、速度快；
 1. 添加一些数据集和代码的中文描述，补充一些细节说明；
 1. 空间数据处理从 **sp** 升级到 **sf**，使得整个数据可视化过程仅依赖 **sf** 和 **leaflet** 包，达到了稳定、高效和可靠。
@@ -1171,11 +1171,11 @@ options(digits = 4)
 1. 各个楼盘在城市主干道昭阳大道、绿汀大道两侧排开。
 1. 高铁邵东站、国际商贸城、邦盛凤凰城地理位置价值依次降低，后者短期内发展不起来。
 1. 百富广场、邵东工业品市场、邵东市中医院、邵东一中属于老城区。
-1. 2019年邵东撤县化市，建设新城区，邵东高铁站开通，楼市炒贵族学校、区位优势，县政府推波助澜，房价已翻倍。
+1. 2019年邵东撤县划市，建设新城区，邵东高铁站开通，楼市炒贵族学校、区位优势，县政府推波助澜，房价已翻倍。
 1. 建设新城区，碧桂园等头部房企进场，对房价有推动作用，但整体上供给充足。
 
 
-另外，结合最近几年邵东市发布的统计年鉴数据，笔者了解到，邵东市最近几年人口增长为负，经济增长主要靠固定资产投资，换个说话，就是房地产投资。大城市各个行业，特别是产业互联网下沉战略促使区县级城市消费升级，但是小城人民薪资待遇并没有升级，形成收入消费倒挂。因此，小城房地产价格近年猛增已到极限，没有足够配套建设，特别是没有大城市的高质量劳动力回流，城市发展会很慢。结合笔者对邵东市近年来人才引进政策、人力市场需求和薪资待遇的了解，特别是对公务员、中学教师、工程师等岗位的分析，对大城市高质量劳动力吸引不足，也承接不了。
+另外，结合最近几年邵东市发布的统计年鉴数据，笔者了解到，邵东市最近几年人口增长为负，经济增长主要靠固定资产投资，换个说话，就是房地产投资。大城市各个行业，特别是产业互联网下沉战略促使三、四、五线区县级城市消费升级，但是小城人民薪资待遇并没有升级，形成收入消费倒挂。因此，小城房地产价格近年猛增已到极限，没有足够配套建设，特别是没有大城市的高质量劳动力回流，城市发展会很慢。结合笔者对邵东市近年来人才引进政策、人力市场需求和薪资待遇的了解，特别是对公务员、中学教师、工程师等岗位的分析，对大城市高质量劳动力吸引不足，也承接不了。
 
 
 目前，邵东房价整体在 5000至6000，如果资金充裕，不用选，找最贵的房子买，大家都不傻，地段越好，价格越高。未来城市资源配套都往这集中，等着升值，当下越贵的房子未来升值空间也越高，这就是马太效应！2021年房价基本稳定，国家出台系列政策调控，国家若不出手，房地产就只剩下泡沫了，楼市也将迟早崩盘，这对邵东经济发展是致命的。
@@ -1410,7 +1410,7 @@ quantile(dat6$As)
 空间数据最核心的概念还是几何元素的表示，关系及其应用。
 结合地图服务绘图需要注意坐标参考系统及其转化关系 [@Brown2016]，同时需要验证/注意地图服务提供的数据的准确性。
 
-R 语言社区在时空数据分析、可视化方面有很多工具，继 [**sp**](https://github.com/edzer/sp) [@Pebesma2005] 之后，Edzer Pebesma 开发了 [**sf**](https://github.com/r-spatial/sf) [@Pebesma2018]，提供更加高效的矢量空间数据处理方式。紧接着，Robert J. Hijmans 也将处理栅格数据的 [**raster**](https://github.com/rspatial/raster) [@raster] 升级到 [**terra**](https://github.com/rspatial/terra/) [@terra]，提供性能强劲且先后兼容性极好的函数接口。[**satellite**](https://github.com/environmentalinformatics-marburg/satellite)包 [@satellite] 和 **landsat** 包 [@Goslee2011] 可以处理卫星遥感数据，[**rasterbc**](https://github.com/deankoch/rasterbc) [@rasterbc] 内置 2001-2018 年加拿大英属哥伦比亚省 raster 格式的栅格数据，用于森林生态学研究。
+R 语言社区在时空数据分析、可视化方面有很多工具，继 [**sp**](https://github.com/edzer/sp) [@Pebesma2005] 之后，Edzer Pebesma 开发了 [**sf**](https://github.com/r-spatial/sf) [@Pebesma2018]，提供更加高效的矢量空间数据处理方式。紧接着，Robert J. Hijmans 也将处理栅格数据的 [**raster**](https://github.com/rspatial/raster) [@raster] 升级到 [**terra**](https://github.com/rspatial/terra/) [@terra]，提供性能强劲且向后兼容性极好的函数接口。[**satellite**](https://github.com/environmentalinformatics-marburg/satellite)包 [@satellite] 和 **landsat** 包 [@Goslee2011] 可以处理卫星遥感数据，[**rasterbc**](https://github.com/deankoch/rasterbc) [@rasterbc] 内置 2001-2018 年加拿大英属哥伦比亚省 raster 格式的栅格数据，用于森林生态学研究。
 
 
 相比于 [**ggplot2**](https://github.com/tidyverse/ggplot2) [@Wickham2022]，[**lattice**](https://github.com/deepayan/lattice) [@Sarkar2008] 是被严重低估的数据可视化包，性能不输 **ggplot2**，而且更加稳定，与上一代空间数据处理框架 **sp** 和 **raster** 有很好的集成。[**ggspatial**](https://github.com/paleolimbot/ggspatial) 提供很多针对空间数据可视化的定制，比如指北针、比例尺等。
