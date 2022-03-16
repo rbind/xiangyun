@@ -177,59 +177,7 @@ options(rgl.useNULL = TRUE)
 options(rgl.printRglwidget = TRUE)
 library(rgl)
 ```
-  
 
-
-<!-- 
-
-新的微软电子表格套件 Excel 保存的文件都是 `*.xlsx` 格式，[**openxlsx**](https://github.com/ycphs/openxlsx)包专用于读写 XLSX 格式文件。
-
-```{r,eval=FALSE,echo=FALSE}
-library(openxlsx)
-dat <- readWorkbook(
-  xlsxFile = "static/data/cumcm2011A附件_数据.xls",
-  sheet = 1, cols = 1:5,
-  rows = 3:322,
-  colNames = TRUE
-)
-```
-
-brew install proj geos gdal
-
-geos-config --version
-projinfo EPSG:4326
-
-Universal Transverse Mercator (UTM)
-全球 60 个时区，每个时区横跨 6 经度
-
-介绍 Proj  https://proj.org/
-指定坐标系和时区 北半球
-echo 12 56 | proj +proj=utm +zone=32
-南半球
-echo 174 -44 | proj +proj=utm +zone=59 +south
-
-echo 12 56 | proj +proj=utm +zone=32 +ellps=GRS80
-sf 包
-
-EPSG:3857
-echo 2 49 | proj +proj=webmerc +datum=WGS84 +ellps=GRS80
-
-
-如果空间分析在不同投影下的结果不同，那么应该采用何种投影呢？可以考虑保角映射，原始的数据在投影下不至于膨胀或变形，尽管尺寸会缩小，共形变换保持了角度以及无穷小物体的形状。保角映射是复变函数中非常重要的概念，空间几何计算需要复变函数、微分几何、微分流形、微分拓扑等高等数学知识。
-
-
-
-数据展示
-- plot_sf
-
-GEOS PROJ GDAL 和 sf 的关系
-
-sf_extSoftVersion()
-
-空间数据可视化与 leaflet
-leaflet 依赖的上游 JS 库 Leaflet JS、Leaflet Provider 和插件、生态，它们和 leaflet 的关系
-
--->
 
 # 数据结构
 

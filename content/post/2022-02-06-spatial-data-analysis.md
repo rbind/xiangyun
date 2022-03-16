@@ -135,8 +135,10 @@ library(sf)
 library(gstat)
 library(lattice)
 library(mapsf)
+library(maptiles)
 # 栅格数据处理
 library(raster)
+# Warning: package 'raster' was built under R version 4.1.2
 library(rasterVis)
 library(stars)
 # Loading required package: abind
@@ -144,67 +146,9 @@ library(stars)
 options(rgl.useNULL = TRUE)
 options(rgl.printRglwidget = TRUE)
 library(rgl)
+# This build of rgl does not include OpenGL functions.  Use
+#  rglwidget() to display results, e.g. via options(rgl.printRglwidget = TRUE).
 ```
-
-<!-- 
-
-新的微软电子表格套件 Excel 保存的文件都是 `*.xlsx` 格式，[**openxlsx**](https://github.com/ycphs/openxlsx)包专用于读写 XLSX 格式文件。
-
-
-
-brew install proj geos gdal
-
-geos-config --version
-projinfo EPSG:4326
-
-Universal Transverse Mercator (UTM)
-全球 60 个时区，每个时区横跨 6 经度
-
-介绍 Proj  https://proj.org/
-指定坐标系和时区 北半球
-echo 12 56 | proj +proj=utm +zone=32
-南半球
-echo 174 -44 | proj +proj=utm +zone=59 +south
-
-echo 12 56 | proj +proj=utm +zone=32 +ellps=GRS80
-sf 包
-
-EPSG:3857
-echo 2 49 | proj +proj=webmerc +datum=WGS84 +ellps=GRS80
-
-
-如果空间分析在不同投影下的结果不同，那么应该采用何种投影呢？可以考虑保角映射，原始的数据在投影下不至于膨胀或变形，尽管尺寸会缩小，共形变换保持了角度以及无穷小物体的形状。保角映射是复变函数中非常重要的概念，空间几何计算需要复变函数、微分几何、微分流形、微分拓扑等高等数学知识。
-
-
-空间数据操作与 sf
-
-数据导入导出：read_sf/write_sf
-数据类型：点、线、多边形
-数据操作：
-- 数据类型转化 st_as_sf 
-- 多边形求交/并/补 st_union 关联 st_join 
-- 点操作：st_point
-- 多边形操作：st_polygon
-- 点和多边形关系：
-  -  包含 st_contains 
-  -  接触 st_touches 
-  -  覆盖 st_covers
-  -  过滤 st_filter
-  -  等同 st_equals
-  -  距离 st_distance
-  -  缓冲区 st_buffer
-- 坐标系统检索 st_crs 转化 st_transform
-数据展示
-- plot_sf
-
-GEOS PROJ GDAL 和 sf 的关系
-
-sf_extSoftVersion()
-
-空间数据可视化与 leaflet
-leaflet 依赖的上游 JS 库 Leaflet JS、Leaflet Provider 和插件、生态，它们和 leaflet 的关系
-
--->
 
 # 数据结构
 
@@ -350,293 +294,6 @@ ggplot() +
 
 颜色越深，乌云越厚，真正的 GeoTIFF 图片一般包含 RGB 三颜色和 alpha 通道，笔者用 iPhone 12 Pro 拍摄的天空照片，与之相似但是缺少了 alpha 通道。卫星拍摄的 TIFF 照片与此大致相仿，所使用的镜头不同而已。剩下的就是图像处理，这一块内容很多，如检测 detection，分割 segmentation，识别 recognition 等等，鉴于笔者对这一领域全然不了解，就不班门弄斧了。
 
-# 案例：地表土壤重金属污染分析
-
-## 数据描述
-
-meuse 数据集中，x 和 y 坐标的参考系
-
--   x Easting (m) in Rijksdriehoek (RDH) (Netherlands topographical) map coordinates
--   y Northing (m) in RDH coordinates
-
-meuse 数据集为例
-
-``` r
-library(sp)
-data("meuse")
-summary(meuse)
-#        x                y             cadmium          copper           lead      
-#  Min.   :178605   Min.   :329714   Min.   : 0.20   Min.   : 14.0   Min.   : 37.0  
-#  1st Qu.:179371   1st Qu.:330762   1st Qu.: 0.80   1st Qu.: 23.0   1st Qu.: 72.5  
-#  Median :179991   Median :331633   Median : 2.10   Median : 31.0   Median :123.0  
-#  Mean   :180005   Mean   :331635   Mean   : 3.25   Mean   : 40.3   Mean   :153.4  
-#  3rd Qu.:180630   3rd Qu.:332463   3rd Qu.: 3.85   3rd Qu.: 49.5   3rd Qu.:207.0  
-#  Max.   :181390   Max.   :333611   Max.   :18.10   Max.   :128.0   Max.   :654.0  
-#                                                                                   
-#       zinc           elev            dist              om        ffreq  soil   lime   
-#  Min.   : 113   Min.   : 5.18   Min.   :0.0000   Min.   : 1.00   1:84   1:97   0:111  
-#  1st Qu.: 198   1st Qu.: 7.55   1st Qu.:0.0757   1st Qu.: 5.30   2:48   2:46   1: 44  
-#  Median : 326   Median : 8.18   Median :0.2118   Median : 6.90   3:23   3:12          
-#  Mean   : 470   Mean   : 8.16   Mean   :0.2400   Mean   : 7.48                        
-#  3rd Qu.: 674   3rd Qu.: 8.96   3rd Qu.:0.3641   3rd Qu.: 9.00                        
-#  Max.   :1839   Max.   :10.52   Max.   :0.8804   Max.   :17.00                        
-#                                                  NA's   :2                            
-#     landuse       dist.m    
-#  W      :50   Min.   :  10  
-#  Ah     :39   1st Qu.:  80  
-#  Am     :22   Median : 270  
-#  Fw     :10   Mean   : 290  
-#  Ab     : 8   3rd Qu.: 450  
-#  (Other):25   Max.   :1000  
-#  NA's   : 1
-```
-
-Ruud van Rijn 和 Mathieu Rikken 最初收集了 Stein 村 Meuse 河洪泛区地表土壤重金属浓度数据，Edzer Pebesma 将数据整理打包后做成 **sp** 内置的数据集 meuse。除了几种重金属浓度，还包含土壤、周围环境相关的变量，共 155 个采样点，14 个观测变量，具体情况：
-
--   x 东西方向坐标，单位米，坐标参照系为 RDH（Rijksdriehoek）荷兰地形。
--   y 南北方向坐标，单位米。
--   cadmium 表土**镉**浓度，每千克土壤中镉含量（按毫克计），因此，浓度单位为 ppm，若原始数据中镉浓度为 0，则漂移至 0.2，即最小的镉浓度的一半。
--   copper 表土**铜**浓度，单位 ppm。
--   lead 表土**铅**浓度，单位 ppm。
--   zinc 表土**锌**浓度，单位 ppm。
--   elev 以当地河床为水平面，相对高度，单位米。
--   dist 采样点至 Meuse 河的距离，距离归一化到 0-1 区间。
--   om 每100千克土壤中有机质的占比，百分数。
--   ffreq 洪水等级，1 表示两年一次，2 表示十年一次，3 表示 五十年一次。
--   soil 土壤类型，按照荷兰 1:50000 的土壤图划分，1 表示 Rd10A （钙质弱发育草甸土，轻质砂质粘土），2 表示 Rd90C/VII （非钙质弱发育草甸土，重砂质粘土至轻质粘土），3 表示 Bkd26/VII
-    （红砖土、细砂质、粉质轻质粘土）。
--   landuse 土地利用类别：Aa 农业/未指定 = ，Ab = Agr/糖用甜菜，Ag = Agr/小谷物，Ah = Agr/??，Am = Agr/玉米，B = 树林，Bw = 牧场中的树木，DEN = ?? , Fh = 高果树，Fl = 矮果树； Fw = 牧场果树，Ga = 家庭花园，SPO = 运动场，STA = 马厩，Tv = ?? , W = 牧场。
--   dist.m 采样点到 Meuse 河的距离，单位以米计，数据来自实地调查。
-
-最后，数据集 meuse 中的行名 `row.names` 表示原始的采样点的编号。
-
-## 准备数据
-
-meuse 指定坐标系，meuse 转化为 SpatialPointsDataFrame 类型
-
-``` r
-crs <- CRS("+proj=lcc +lat_1=49 +lat_2=77 +lat_0=0 +lon_0=-95 +x_0=0 +y_0=0 +ellps=GRS80 +datum=WGS84 +units=m +no_defs")
-coordinates(meuse) <- ~ x + y
-proj4string(meuse) <- crs
-```
-
-``` r
-class(meuse)
-# [1] "SpatialPointsDataFrame"
-# attr(,"package")
-# [1] "sp"
-```
-
-将普通的数据框 data.frame 转化为空间点数据框 SpatialPointsDataFrame， sp 包不仅提供了数据类型的转化方法，而且对这种新的数据类型提供相应的绘图方法，使用方法和普通的 `plot()` 函数一样，这也是 S3 泛型函数的特色。
-
-``` r
-plot(meuse)
-```
-
-<figure>
-<img src="/img/maps-in-r/sp-meuse.png" class="full" alt="图 6: sp 包绘图空间点数据" />
-<figcaption aria-hidden="true">图 6: <strong>sp</strong> 包绘图空间点数据</figcaption>
-</figure>
-
-``` r
-data("meuse.grid")
-coordinates(meuse.grid) <- ~ x + y
-proj4string(meuse.grid) <- crs
-class(meuse.grid)
-# [1] "SpatialPointsDataFrame"
-# attr(,"package")
-# [1] "sp"
-```
-
-meuse.grid 是 SpatialPointsDataFrame 类型
-
-``` r
-plot(meuse.grid)
-```
-
-``` r
-# gridded 构造 Pixels
-gridded(meuse.grid) <- TRUE
-class(meuse.grid)
-# [1] "SpatialPixelsDataFrame"
-# attr(,"package")
-# [1] "sp"
-```
-
-meuse.grid 是 SpatialPixelsDataFrame 类型
-
-``` r
-plot(meuse.grid)
-```
-
-查看数据
-
-``` r
-spplot(meuse.grid, "dist")
-```
-
-``` r
-data("meuse.riv")
-meuse.riv <- SpatialPolygons(list(Polygons(list(Polygon(meuse.riv)), "meuse.riv")))
-proj4string(meuse.riv) <- crs
-```
-
-meuse.riv 是 SpatialPolygons 类型，一条河流
-
-``` r
-plot(meuse.riv)
-```
-
-``` r
-library(lattice)
-library(loa)
-OpenStreetMapPlot(lead * 2 + zinc ~ latitude * longitude,
-  col.regions = c("grey", "darkred"), 
-  key.z.main="Concentrations", panel.zcases = TRUE,
-  data = lat.lon.meuse, map = roadmap.meuse
-)
-```
-
-栅格数据
-
-``` r
-meuse.test <- raster::raster(x = system.file("external/test.grd", package="raster"))
-class(meuse.test)
-terra::plot(meuse.test, legend = F)
-```
-
-## 模型计算
-
-zinc 的浓度取对数，然后做普通克里金插值，
-
-``` r
-library(gstat) # 实现克里金插值方法
-# 公式形式 函数 variogram 要求 meuse 是 sp 类型
-v.ok <- gstat::variogram(log(zinc) ~ 1, data = meuse)
-# 变差模型为指数型
-ok.model <- gstat::fit.variogram(v.ok, gstat::vgm(1, "Exp", 500, 1))
-# 绘制
-plot(v.ok, ok.model, main = "ordinary kriging")
-
-zn.ok <- gstat::krige(log(zinc) ~ 1, meuse, meuse.grid,
-  model = ok.model, debug.level = 0
-)
-```
-
-## 模型结果
-
-锌浓度（取对数）预测值及其预测误差的空间分布
-
-``` r
-# 需要弄清楚各个参数的含义
-rv <- list("sp.polygons", meuse.riv, fill = "blue", alpha = 0.1)
-pts <- list("sp.points", meuse, pch = 3, col = "grey", alpha = .5)
-text1 <- list("sp.text", c(180500, 329900), "0", cex = .5, which = 4)
-text2 <- list("sp.text", c(181000, 329900), "500 m", cex = .5, which = 4)
-scale <- list("SpatialPolygonsRescale", layout.scale.bar(),
-  offset = c(180500, 329800), scale = 500,
-  fill = c("transparent", "black"), which = 4
-)
-# 预测值
-p1 <- spplot(zn.ok, c("var1.pred"),
-  names.attr = c("ordinary kriging"),
-  scales = list(
-    draw = TRUE, # 坐标轴刻度
-    # 去掉图形上边、右边多余的刻度线
-    x = list(alternating = 1, tck = c(1, 0)),
-    y = list(alternating = 1, tck = c(1, 0))
-  ),
-  as.table = TRUE, main = "预测值的空间分布",
-  sp.layout = list(rv, scale, text1, text2)
-)
-# 预测误差
-p2 <- spplot(zn.ok, c("var1.var"),
-  names.attr = c("ordinary kriging"),
-  scales = list(
-    draw = TRUE, # 坐标轴刻度
-    # 去掉图形上边、右边多余的刻度线
-    x = list(alternating = 1, tck = c(1, 0)),
-    y = list(alternating = 1, tck = c(1, 0))
-  ),
-  as.table = TRUE, main = "预测误差的空间分布",
-  sp.layout = list(rv, scale, text1, text2)
-)
-
-print(p1, split = c(1, 1, 2, 1), more = TRUE)
-print(p2, split = c(2, 1, 2, 1), more = FALSE)
-```
-
-# 案例：北京市出租车轨迹分析
-
-Edzer Pebesma 将2008年2月4日[北京出租车轨迹数据](https://www.microsoft.com/en-us/research/publication/t-drive-trajectory-data-sample/)打包在**taxidata**包内。
-
-``` r
-install.packages("taxidata",
-  repos = "http://gis-bigdata.uni-muenster.de/pebesma",
-  type = "source", lib = "~/Documents/R-packages"
-)
-```
-
-[**trajectories**](https://github.com/edzer/trajectories) 包处理轨迹，提供的数据类型 Track 衍生自 **sp** 包的 Spatial 类型，下面先介绍基础的轨迹数据类型和轨迹数据概况。
-
-## 准备工作
-
-``` r
-library(trajectories)
-methods(class = "Track")
-#  [1] [             [[            [[<-          $             $<-           addAttrToGeom
-#  [7] aggregate     bbox          c             coerce        compare       coordinates  
-# [13] coordnames    cut           dim           downsample    generalize    geometry     
-# [19] geometry<-    idw           is.projected  krige         over          plot         
-# [25] proj4string   proj4string<- range         show          spTransform   stbox        
-# [31] stcube        stplot        summary       unique       
-# see '?methods' for accessing help and source code
-library(sp)
-methods(class = "Spatial")
-#  [1] [              [[             [[<-           [<-            $             
-#  [6] $<-            aggregate      bbox           buffer         cbind         
-# [11] coerce         coordinates<-  couldBeLonLat  crop           crs<-         
-# [16] df_spatial     dimensions     distance       editFeatures   extent        
-# [21] fullgrid       geometry       geometry<-     gridded        head          
-# [26] idw            is.projected   isLonLat       KML            krige         
-# [31] krige.cv       mask           merge          nlayers        over          
-# [36] plot           polygons       print          proj4string    proj4string<- 
-# [41] raster         rebuild_CRS    select         selectFeatures shapefile     
-# [46] show           spChFIDs<-     spsample       spTransform    st_as_sf      
-# [51] st_as_stars    st_bbox        st_crs         subset         summary       
-# [56] tail           wkt            xmax           xmin           ymax          
-# [61] ymin           zoom          
-# see '?methods' for accessing help and source code
-```
-
-**taxidata** 包就一个作用，打包北京出租车轨迹数据集
-
-``` r
-library(taxidata) # taxidata 数据集
-ls("package:taxidata")
-```
-
-``` r
-summary(taxidata) # Length Class Mode
-
-# 5642 条轨迹
-length(taxidata)
-
-# 取其中一条轨迹
-tmp <- taxidata[[1]]
-proj4string(tmp)
-class(tmp)
-
-plot(tmp)
-
-plot(taxidata[[2]])
-```
-
-<figure>
-<img src="/img/track-data-analysis/track.png" class="full" alt="图 7: 北京某台出租车的出行轨迹" />
-<figcaption aria-hidden="true">图 7: 北京某台出租车的出行轨迹</figcaption>
-</figure>
-
 # 案例：波士顿郊区房价分析
 
 [Arya A. Pourzanjani](https://github.com/pourzanj)采用[贝叶斯神经网络分析方法](https://github.com/pourzanj/Bayesian_Neural_Networks) 预测房价。
@@ -749,14 +406,14 @@ xfun::session_info(packages = c(
   "knitr", "rmarkdown", "blogdown",
   "sp", "gstat", "lattice"
 ), dependencies = FALSE)
-# R version 4.1.2 (2021-11-01)
+# R version 4.1.1 (2021-08-10)
 # Platform: x86_64-apple-darwin17.0 (64-bit)
 # Running under: macOS Big Sur 10.16
 # 
 # Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
 # 
 # Package version:
-#   blogdown_1.8    gstat_2.0-8     knitr_1.37      lattice_0.20-45 rmarkdown_2.12 
+#   blogdown_1.8    gstat_2.0-9     knitr_1.37      lattice_0.20-45 rmarkdown_2.13 
 #   sp_1.4-6       
 # 
 # Pandoc version: 2.17.1.1
