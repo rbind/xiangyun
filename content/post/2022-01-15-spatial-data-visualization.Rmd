@@ -646,7 +646,7 @@ plotly::plot_ly(beijing, x = ~x, y = ~y) |>
 
 最后，补充介绍一下 **sp** 包绘制图形的过程，短期内恐还有必要。先将 data.frame 数据类型转为 sp 空间数据类型，以便调用更加高效且丰富的数据处理和可视化函数。
 
-```{r}
+```{r,warning=FALSE}
 # 调 sp 包转化为 sp 类型
 library(sp)
 beijing_sp <- beijing
@@ -1180,7 +1180,7 @@ options(digits = 4)
 目前，邵东房价整体在 5000至6000，如果资金充裕，不用选，找最贵的房子买，大家都不傻，地段越好，价格越高。未来城市资源配套都往这集中，等着升值，当下越贵的房子未来升值空间也越高，这就是马太效应！2021年房价基本稳定，国家出台系列政策调控，国家若不出手，房地产就只剩下泡沫了，楼市也将迟早崩盘，这对邵东经济发展是致命的。
 
 
-# 某城市地表土壤重金属污染分析
+# 地表土壤重金属污染分析
 
 数据来自 2011 年全国大学生数据[建模竞赛 A 题](http://www.mcm.edu.cn/html_cn/node/a1ffc4c5587c8a6f96eacefb8dbcc34e.html)，下载数据到本地后，首先读取城市地形数据，即采样点的位置及所属功能区。功能区代码 1 对应「生活区」，2 对应「工业区」，3 对应「山区」，4 对应「交通区」和 5 对应「公园绿地区」。
 
@@ -1342,8 +1342,6 @@ library(sp)
 coordinates(dat6) <- ~ x + y
 summary(dat6)
 ```
-
-
 ```{r,eval=FALSE}
 spplot(dat6,
   zcol = c("海拔"),
@@ -1365,8 +1363,6 @@ spplot(dat6,
 
 
 由图\@ref(fig:elevation-spplot)不难看出，采样点的位置是以图中左下角的点为参照，城市整体上的地势是西南低东北高，城市中间间或有两座小山。
-
-
 
 
 ```{r,eval=FALSE}
@@ -1402,7 +1398,6 @@ quantile(dat6$As)
 现在数据准备好了，通过上述探索，也有了基本的了解，接下来的问题是如何找到城市的重金属污染源？
 
 
-
 # 本文小结
 
 
@@ -1433,9 +1428,8 @@ xfun::session_info(packages = c(
   "leaflet", "leafletCN", "leaflet.extras",
   "baidumap", "RgoogleMaps", "mapdeck",
   "geohashTools", "lwgeom", "rgeolocate",
-  "lattice", "sf", "lwgeom",
-  "terra", "stars", "sp", "maps",
-  "raster", "rasterly"
+  "lattice", "sf", "terra", "stars",
+  "sp", "maps", "raster", "rasterly"
 ), dependencies = FALSE)
 ```
 ```{r write-bib, include=FALSE}

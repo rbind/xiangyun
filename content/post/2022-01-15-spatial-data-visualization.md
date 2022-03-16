@@ -378,7 +378,7 @@ ip_info('111.203.130.69')
 library(httr)
 ip_geocode <- GET(url = "ipinfo.io")
 content(ip_geocode)$loc
-# [1] "39.9040,116.6618"
+# [1] "39.9075,116.3972"
 ```
 
 或者调用高德地图 IP 定位服务，定位到省、市，并返回一个两个坐标表示的矩形区域。
@@ -469,7 +469,7 @@ leaflet::leaflet() |>
 
 ``` r
 library(sf)
-# Linking to GEOS 3.10.2, GDAL 3.4.1, PROJ 8.2.1; sf_use_s2() is TRUE
+# Linking to GEOS 3.10.2, GDAL 3.4.2, PROJ 8.2.1; sf_use_s2() is TRUE
 library(lwgeom)
 # Linking to liblwgeom 3.0.0beta1 r16016, GEOS 3.10.2, PROJ 8.2.1
 st_geohash(st_sfc(st_point(c(116.35688, 40.00314)), st_point(c(0, 90))), 9)
@@ -946,8 +946,7 @@ library(sf)
 # 读取数据
 states <- st_read("../../static/data/us-states.geojson")
 # Reading layer `us-states' from data source 
-#   `/Users/xiangyun/Documents/Github/xiangyun/static/data/us-states.geojson' 
-#   using driver `GeoJSON'
+#   `/Users/xiangyun/Documents/xiangyun/static/data/us-states.geojson' using driver `GeoJSON'
 # Simple feature collection with 52 features and 3 fields
 # Geometry type: MULTIPOLYGON
 # Dimension:     XY
@@ -1267,7 +1266,7 @@ leaflet(options = leafletOptions(
 
 目前，邵东房价整体在 5000至6000，如果资金充裕，不用选，找最贵的房子买，大家都不傻，地段越好，价格越高。未来城市资源配套都往这集中，等着升值，当下越贵的房子未来升值空间也越高，这就是马太效应！2021年房价基本稳定，国家出台系列政策调控，国家若不出手，房地产就只剩下泡沫了，楼市也将迟早崩盘，这对邵东经济发展是致命的。
 
-# 某城市地表土壤重金属污染分析
+# 地表土壤重金属污染分析
 
 数据来自 2011 年全国大学生数据[建模竞赛 A 题](http://www.mcm.edu.cn/html_cn/node/a1ffc4c5587c8a6f96eacefb8dbcc34e.html)，下载数据到本地后，首先读取城市地形数据，即采样点的位置及所属功能区。功能区代码 1 对应「生活区」，2 对应「工业区」，3 对应「山区」，4 对应「交通区」和 5 对应「公园绿地区」。
 
@@ -1590,7 +1589,7 @@ quantile(dat6$As)
 空间数据最核心的概念还是几何元素的表示，关系及其应用。
 结合地图服务绘图需要注意坐标参考系统及其转化关系 ([Brown 2016](#ref-Brown2016))，同时需要验证/注意地图服务提供的数据的准确性。
 
-R 语言社区在时空数据分析、可视化方面有很多工具，继 [**sp**](https://github.com/edzer/sp) ([E. J. Pebesma and Bivand 2005](#ref-Pebesma2005)) 之后，Edzer Pebesma 开发了 [**sf**](https://github.com/r-spatial/sf) ([E. J. Pebesma 2018](#ref-Pebesma2018))，提供更加高效的矢量空间数据处理方式。紧接着，Robert J. Hijmans 也将处理栅格数据的 [**raster**](https://github.com/rspatial/raster) ([Hijmans 2022a](#ref-raster)) 升级到 [**terra**](https://github.com/rspatial/terra/) ([Hijmans 2022b](#ref-terra))，提供性能强劲且向后兼容性极好的函数接口。[**satellite**](https://github.com/environmentalinformatics-marburg/satellite)包 ([Nauss et al. 2021](#ref-satellite)) 和 **landsat** 包 ([Goslee 2011](#ref-Goslee2011)) 可以处理卫星遥感数据，[**rasterbc**](https://github.com/deankoch/rasterbc) ([**rasterbc?**](#ref-rasterbc)) 内置 2001-2018 年加拿大英属哥伦比亚省 raster 格式的栅格数据，用于森林生态学研究。
+R 语言社区在时空数据分析、可视化方面有很多工具，继 [**sp**](https://github.com/edzer/sp) ([E. J. Pebesma and Bivand 2005](#ref-Pebesma2005)) 之后，Edzer Pebesma 开发了 [**sf**](https://github.com/r-spatial/sf) ([E. J. Pebesma 2018](#ref-Pebesma2018))，提供更加高效的矢量空间数据处理方式。紧接着，Robert J. Hijmans 也将处理栅格数据的 [**raster**](https://github.com/rspatial/raster) ([Hijmans 2022a](#ref-raster)) 升级到 [**terra**](https://github.com/rspatial/terra/) ([Hijmans 2022b](#ref-terra))，提供性能强劲且向后兼容性极好的函数接口。[**satellite**](https://github.com/environmentalinformatics-marburg/satellite)包 ([Nauss et al. 2021](#ref-satellite)) 和 **landsat** 包 ([Goslee 2011](#ref-Goslee2011)) 可以处理卫星遥感数据，[**rasterbc**](https://github.com/deankoch/rasterbc) ([Koch 2022](#ref-rasterbc)) 内置 2001-2018 年加拿大英属哥伦比亚省 raster 格式的栅格数据，用于森林生态学研究。
 
 相比于 [**ggplot2**](https://github.com/tidyverse/ggplot2) ([Wickham 2022](#ref-Wickham2022))，[**lattice**](https://github.com/deepayan/lattice) ([Sarkar 2008](#ref-Sarkar2008)) 是被严重低估的数据可视化包，性能不输 **ggplot2**，而且更加稳定，与上一代空间数据处理框架 **sp** 和 **raster** 有很好的集成。[**ggspatial**](https://github.com/paleolimbot/ggspatial) 提供很多针对空间数据可视化的定制，比如指北针、比例尺等。
 
@@ -1610,13 +1609,12 @@ xfun::session_info(packages = c(
   "leaflet", "leafletCN", "leaflet.extras",
   "baidumap", "RgoogleMaps", "mapdeck",
   "geohashTools", "lwgeom", "rgeolocate",
-  "lattice", "sf", "lwgeom",
-  "terra", "stars", "sp", "maps",
-  "raster", "rasterly"
+  "lattice", "sf", "terra", "stars",
+  "sp", "maps", "raster", "rasterly"
 ), dependencies = FALSE)
-# R version 4.1.2 (2021-11-01)
+# R version 4.1.3 (2022-03-10)
 # Platform: x86_64-apple-darwin17.0 (64-bit)
-# Running under: macOS Big Sur 10.16
+# Running under: macOS Big Sur/Monterey 10.16
 # 
 # Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
 # 
@@ -1626,7 +1624,7 @@ xfun::session_info(packages = c(
 #   lattice_0.20-45      leaflet_2.1.0        leaflet.extras_1.0.0 leafletCN_0.2.1     
 #   lwgeom_0.2-8         mapdeck_0.3.4        maps_3.4.0           nycflights13_1.0.2  
 #   patchwork_1.1.1      raster_3.5.15        rasterly_0.2.0       rgeolocate_1.4.2    
-#   RgoogleMaps_1.4.5.3  rmarkdown_2.12       sf_1.0-6             sp_1.4-6            
+#   RgoogleMaps_1.4.5.3  rmarkdown_2.13       sf_1.0-7             sp_1.4-6            
 #   spData_2.0.1         stars_0.5.5          terra_1.5.21        
 # 
 # Pandoc version: 2.17.1.1
