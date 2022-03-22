@@ -131,14 +131,13 @@ library(mapedit)   # https://github.com/r-spatial/mapedit
 # 空间点数据处理、分析
 library(sp)
 library(sf)
-# Linking to GEOS 3.10.2, GDAL 3.4.1, PROJ 8.2.1; sf_use_s2() is TRUE
+# Linking to GEOS 3.9.1, GDAL 3.4.0, PROJ 8.1.1; sf_use_s2() is TRUE
 library(gstat)
 library(lattice)
 library(mapsf)
 library(maptiles)
 # 栅格数据处理
 library(raster)
-# Warning: package 'raster' was built under R version 4.1.2
 library(rasterVis)
 library(stars)
 # Loading required package: abind
@@ -146,8 +145,6 @@ library(stars)
 options(rgl.useNULL = TRUE)
 options(rgl.printRglwidget = TRUE)
 library(rgl)
-# This build of rgl does not include OpenGL functions.  Use
-#  rglwidget() to display results, e.g. via options(rgl.printRglwidget = TRUE).
 ```
 
 # 数据结构
@@ -162,13 +159,6 @@ library(rgl)
 
 关于栅格数据的介绍，还是以 raster 为主，因为读者肯定还会遇到大量以 raster 为主的分析代码，同时提供 terra 替代介绍，后者是升级替代，性能更好。raster 和 terra 在栅格数据的抽象表示上和 stars 是不同的。
 
-栅格数据是空间数据的另一种类型，比如遥感卫星拍摄的照片，**raster** ([Hijmans 2022](#ref-raster)) 可以处理这类数据的分析和可视化。**raster** 包正在过渡到 **terra** 包，后者速度更快，接口函数是相似的。图<a href="#fig:layer">1</a>来自[layer](https://github.com/marcosci/layer) 包，栅格数据包含丰富的层次性。
-
-<figure>
-<img src="/img/maps-in-r/layer.jpg" class="full" alt="图 1: 图片来自layer 包" />
-<figcaption aria-hidden="true">图 1: 图片来自<strong>layer</strong> 包</figcaption>
-</figure>
-
 ``` r
 data(grain, package = "spData")
 terra::plot(grain,
@@ -178,8 +168,8 @@ terra::plot(grain,
 ```
 
 <figure>
-<img src="/img/maps-in-r/raster-grain.png" class="full" alt="图 2: terra 包绘制栅格数据" />
-<figcaption aria-hidden="true">图 2: <strong>terra</strong> 包绘制栅格数据</figcaption>
+<img src="/img/maps-in-r/raster-grain.png" class="full" alt="图 1: terra 包绘制栅格数据" />
+<figcaption aria-hidden="true">图 1: <strong>terra</strong> 包绘制栅格数据</figcaption>
 </figure>
 
 ## 栅格数据 terra
@@ -223,8 +213,8 @@ plot(wheat["yield"])
 ```
 
 <figure>
-<img src="/img/maps-in-r/sf-wheat.png" class="full" alt="图 3: 小麦产量空间分布图" />
-<figcaption aria-hidden="true">图 3: 小麦产量空间分布图</figcaption>
+<img src="/img/maps-in-r/sf-wheat.png" class="full" alt="图 2: 小麦产量空间分布图" />
+<figcaption aria-hidden="true">图 2: 小麦产量空间分布图</figcaption>
 </figure>
 
 ## 栅格数据 stars
@@ -239,29 +229,6 @@ install.packages("starsdata",
 ```
 
 # 栅格图形
-
-## leaflet
-
-下面采用高德地图的卫星影像数据做背景，定位地点矿大北京学10楼，往南即北京语言大学、成府路，往右是学院路，往北是清华东路。
-
-``` r
-library(leaflet)
-leaflet() |>
-  addTiles(urlTemplate = paste(
-    "https://webst01.is.autonavi.com",
-    "appmaptile?style=6&x={x}&y={y}&z={z}",
-    sep = "/"
-  )) |>
-  addMarkers(
-    lng = 116.347817, lat = 39.997202,
-    popup = "中国矿业大学（北京）学院路校区"
-  )
-```
-
-<figure>
-<img src="/img/maps-in-r/cumtb-satellite.png" class="full" alt="图 4: 中国矿业大学（北京）学院路校区卫星影像" />
-<figcaption aria-hidden="true">图 4: 中国矿业大学（北京）学院路校区卫星影像</figcaption>
-</figure>
 
 ## ggplot2
 
@@ -288,8 +255,8 @@ ggplot() +
 ```
 
 <figure>
-<img src="/img/maps-in-r/cloud-stars.png" class="full" alt="图 5: stars 包读取 raster 数据" />
-<figcaption aria-hidden="true">图 5: <strong>stars</strong> 包读取 raster 数据</figcaption>
+<img src="/img/maps-in-r/cloud-stars.png" class="full" alt="图 3: stars 包读取 raster 数据" />
+<figcaption aria-hidden="true">图 3: <strong>stars</strong> 包读取 raster 数据</figcaption>
 </figure>
 
 颜色越深，乌云越厚，真正的 GeoTIFF 图片一般包含 RGB 三颜色和 alpha 通道，笔者用 iPhone 12 Pro 拍摄的天空照片，与之相似但是缺少了 alpha 通道。卫星拍摄的 TIFF 照片与此大致相仿，所使用的镜头不同而已。剩下的就是图像处理，这一块内容很多，如检测 detection，分割 segmentation，识别 recognition 等等，鉴于笔者对这一领域全然不了解，就不班门弄斧了。
@@ -406,9 +373,9 @@ xfun::session_info(packages = c(
   "knitr", "rmarkdown", "blogdown",
   "sp", "gstat", "lattice"
 ), dependencies = FALSE)
-# R version 4.1.1 (2021-08-10)
+# R version 4.1.3 (2022-03-10)
 # Platform: x86_64-apple-darwin17.0 (64-bit)
-# Running under: macOS Big Sur 10.16
+# Running under: macOS Big Sur/Monterey 10.16
 # 
 # Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
 # 
@@ -464,12 +431,6 @@ Diggle, Peter J., and Paulo J. Ribeiro Jr. 2007. *Model-Based Geostatistics*. Ne
 <div id="ref-PrevMap2017" class="csl-entry">
 
 Giorgi, Emanuele, and Peter J. Diggle. 2017. “PrevMap: An R Package for Prevalence Mapping.” *Journal of Statistical Software* 78 (8): 1–29.
-
-</div>
-
-<div id="ref-raster" class="csl-entry">
-
-Hijmans, Robert J. 2022. *Raster: Geographic Data Analysis and Modeling*. <https://rspatial.org/raster>.
 
 </div>
 

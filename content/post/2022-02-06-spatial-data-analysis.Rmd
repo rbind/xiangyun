@@ -194,12 +194,6 @@ library(rgl)
 关于栅格数据的介绍，还是以 raster 为主，因为读者肯定还会遇到大量以 raster 为主的分析代码，同时提供 terra 替代介绍，后者是升级替代，性能更好。raster 和 terra 在栅格数据的抽象表示上和 stars 是不同的。
 
 
-栅格数据是空间数据的另一种类型，比如遥感卫星拍摄的照片，**raster** [@raster] 可以处理这类数据的分析和可视化。**raster** 包正在过渡到 **terra** 包，后者速度更快，接口函数是相似的。图\@ref(fig:layer)来自[layer](https://github.com/marcosci/layer) 包，栅格数据包含丰富的层次性。
-
-![(\#fig:layer) 图片来自**layer** 包](/img/maps-in-r/layer.jpg){.full}
-
-
-
 ```{r raster-grain, eval=FALSE}
 data(grain, package = "spData")
 terra::plot(grain,
@@ -249,26 +243,6 @@ install.packages("starsdata",
 
 
 # 栅格图形
-
-## leaflet
-
-下面采用高德地图的卫星影像数据做背景，定位地点矿大北京学10楼，往南即北京语言大学、成府路，往右是学院路，往北是清华东路。
-
-```{r,eval=FALSE}
-library(leaflet)
-leaflet() |>
-  addTiles(urlTemplate = paste(
-    "https://webst01.is.autonavi.com",
-    "appmaptile?style=6&x={x}&y={y}&z={z}",
-    sep = "/"
-  )) |>
-  addMarkers(
-    lng = 116.347817, lat = 39.997202,
-    popup = "中国矿业大学（北京）学院路校区"
-  )
-```
-
-![(\#fig:cumtb-satellite)中国矿业大学（北京）学院路校区卫星影像](/img/maps-in-r/cumtb-satellite.png){.full}
 
 
 ## ggplot2
