@@ -19,34 +19,23 @@ paginate = 9
     url = "/"
     weight = 1
 [[menu.main]]
-    name = "关于"
-    url = "/about/"
+    name = "文章"
+    url = "/archives/"
     weight = 2
 [[menu.main]]
     name = "类别"
     url = "/categories/"
     weight = 3
 [[menu.main]]
-    name = "标签"
-    url = "/tags/"
+    name = "关于"
+    url = "/about/"
     weight = 4
-[[menu.main]]
-    name = "订阅"
-    url = "/index.xml"
-[[menu.main]]
-    name = "文章"
-    url = "/archives/"
-    weight = 5
-[[menu.main]]
-    name = "友链"
-    url = "/blog/"
-    weight = 7
 
 [params]
     description = "网站由 [Hugo](https://github.com/gohugoio/hugo) 和 [blogdown](https://github.com/rstudio/blogdown) 强力驱动"
     summary_length = 200
     github_edit = "https://github.com/XiangyunHuang/xiangyun/edit/master/content/"
-    footer = "&copy; [黄湘云](https://xiangyun.rbind.io/) 2016 - 2022 | [Github](https://github.com/XiangyunHuang) | [推特](https://twitter.com/StatCloud) | [爆栈网](https://stackoverflow.com/users/8278176) | [新浪微博](https://weibo.com/Cloud2016)"
+    footer = "&copy; [黄湘云](https://xiangyun.rbind.io/) 2016 - 2022 | [Github](https://github.com/XiangyunHuang) | [推特](https://twitter.com/StatCloud) | [爆栈网](https://stackoverflow.com/users/8278176) | [微博](https://weibo.com/Cloud2016)"
 
 [params.text]
     back = "&larr; 回到主页"
