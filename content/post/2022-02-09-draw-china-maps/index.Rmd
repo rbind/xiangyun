@@ -217,7 +217,20 @@ terra::plot(china_map, col = terrain.colors(20, rev = F))
 
 # 交互地图
 
-本节主要采用 **leaflet** 包[@leaflet]绘制交互地图，**leafletCN**[@leafletCN] 包内置一部分中国省、市边界地图数据，支持调用高德瓦片地图服务，提供部分合规的中国地图，核心函数是 `geojsonMap()`，它封装了 GeoJSON 格式的地图数据和绘图功能，更多定制参考`leaflet::leaflet()`。只要数据包含的一列区域名称和地图数据能映射上，就可以绘制出图\@ref(fig:china-leafletcn)，图中数据是随机生成的，调色板采用 `RdBu`，将连续的数据分段，每段对应一个色块。 
+本节主要采用 **leaflet** 包[@leaflet]绘制交互地图，**leafletCN**[@leafletCN] 包内置一部分中国省、市边界地图数据，支持调用高德瓦片地图服务，提供部分合规的中国地图，核心函数是 `geojsonMap()`，它封装了 GeoJSON 格式的地图数据和绘图功能，更多定制参考`leaflet::leaflet()`。
+
+**leaflet** 包调用的地图数据服务来自 OpenStreetMap 由 OpenStreetMap基金会（OSMF）采用开放数据共享开放数据库许可协议（ODbL）授权，详见[协议文件内容](https://www.openstreetmap.org/copyright)。
+
+郎大为开发的[**leafletCN**](https://github.com/Lchiffon/leafletCN) 包，提供的 `amap()` 函数封装了高德瓦片地图服务的接口，leaflet 提供了服务调用的模版，只要符合模版格式，就可以将 leaflet 服务替换成任意其他地图服务。
+
+```{r}
+# 封装调用高德 Web 瓦片地图服务的 URL 模版
+leafletCN::amap
+# 调用 Tile 瓦片服务
+leaflet::addTiles
+```
+
+只要数据包含的一列区域名称和地图数据能映射上，就可以绘制出图\@ref(fig:china-leafletcn)，图中数据是随机生成的，调色板采用 `RdBu`，将连续的数据分段，每段对应一个色块。 
 
 ```{r china-leafletcn}
 #| fig.cap="交互地图数据可视化"
