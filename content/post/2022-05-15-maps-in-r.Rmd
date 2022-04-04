@@ -1375,7 +1375,7 @@ nc3 <- st_as_sf(nc3, sf_column_name = "geom")
 class(nc3)
 ```
 
-## ggplot2
+## ggplot2 & sf
 
 **ggplot2** 提供的几何图层 `geom_sf()` 是专门为 sf 数据对象准备的，`facet_wrap()` 和 `facet_grid()` 都可以用来实现分面，布局样式稍有不同，更多绘图细节介绍见《ggplot2: Elegant Graphics for Data Analysis》[@Wickham2022]
 第三版的地图章节，如图 \@ref(fig:sf-nc)。在地图上绘制栅格图形，有个专业的制图术语 --- [Choropleth Map](https://en.wikipedia.org/wiki/Choropleth_map)，翻译过来，大致叫填充地图、等值域图、瓦片图、围栏图、面量图、断层图等，可以非常直观地展示观测变量在地理区域内的变化情况。
@@ -1393,14 +1393,14 @@ ggplot() +
 
 ![(\#fig:sf-nc) sf 数据可视化](/img/maps-in-r/sf-nc.png){.full}
 
-## leaflet
+## leaflet & mapdeck
 
 而 **leaflet** 支持绘制交互式的图形，如图 \@ref(fig:leaflet-nc) 所示。稍微注意的是，需要先将数据映射到坐标参考系 EPSG:4326 上，而后 **leaflet** 会负责将数据转化映射到 EPSG:3857，详见[文档](https://rstudio.github.io/leaflet/projections.html)。
 
 ```{r,eval=FALSE}
 # https://stackoverflow.com/questions/57223853/
 # 转化坐标和 leaflet 的坐标系保持一致
-nc2 <- sf::st_transform(nc2, crs = CRS("EPSG:4326"))
+nc2 <- sf::st_transform(nc2, crs = 4326)
 library(leaflet)
 # 调色板
 pal <- colorNumeric("plasma", domain = NULL)
@@ -1415,6 +1415,20 @@ leaflet(nc2) |>
 ```
 
 ![(\#fig:leaflet-nc) **leaflet** 数据可视化](/img/maps-in-r/leaflet-nc.png){.full}
+
+实现类似功能的还有 **mapdeck** 包。
+
+```{r,eval=FALSE}
+library(mapdeck)
+mapdeck() |> 
+  add_polygon(
+    data = nc2, 
+    fill_colour = "SID74",
+    fill_opacity = 0.5,
+    palette = "spectral"
+  )
+```
+
 
 ## sp::spplot
 
