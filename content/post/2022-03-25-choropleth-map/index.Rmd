@@ -9,17 +9,16 @@ tags:
   - 专题地图
   - 制图学
   - 地理可视化
-  - ggplot2
-  - sf
-  - tmap
-  - mapsf
-  - lattice
-  - latticeExtra
+  - 区间估计
+  - 数据指标
+  - 癌症死亡率
+  - 莫兰指数
+  - 空间相关性
+  - Base R
   - maps
-  - mapproj
-  - usmapdata
-  - showtext
-  - tidycensus
+  - lattice
+  - sf
+  - ggplot2
 draft: true
 link-citations: true
 bibliography: 
@@ -118,40 +117,43 @@ knitr::opts_chunk$set(
     cache = FALSE,
  collapse = TRUE
 )
+# library(latticeExtra) # latticeExtra 和 ggplot2 在函数 layer 上冲突
 ```
 
 
 # 本文概览
 
 
-专题地图应用广泛，特别是展示统计年鉴数据。笔者从美国和日本国家统计局官网发现存在大量专题地图用于展示各类指标，衡量一个部门、一个业务、一个公司、一个行业，乃至一个国家都有一套金字塔式的指标体系，而国家每年发布的统计年鉴就是衡量国家经营状态的指标体系，涵盖人口、土地、生产、消费等专题，省、市、区县以及自治区、州、县等各级地方统计局每年也会发布一份地方统计年鉴。
+专题地图应用广泛，特别是展示统计年鉴数据。笔者从美国和日本国家统计局官网发现存在大量专题地图用于展示各类指标，衡量一个部门、一个业务、一个公司、一个行业，乃至一个国家都有一套金字塔式的指标体系，而国家每年发布的统计年鉴就是衡量国家经营状态的指标体系，涵盖人口、土地、生产、消费等等专题，省、市、区县以及自治区、州、县等各级地方统计局每年也会发布一份地方统计年鉴。
 
 
-接下来，本文分四个部分展开介绍专题地图，分别是单变量情形、多变量情形、应用案例和本文小结。
+接下来，本文分四个部分展开介绍专题地图，分别是单变量情形、多变量情形、本文小结和未来展望。
+
+单变量情形中以 **latticeExtra** 包内置的数据集 USCancerRates 为例，以专题地图形式展示美国 1999-2003 年度各城镇的年平均癌症死亡率，此处专题的含义是「人口死亡率」，显而易见，癌症死亡率只是一方面，还有婴儿死亡率等，癌症可以分类型，如乳腺癌、子宫癌等，人又可以分性别、年龄、种族等等。在数据操作、指标计算和分面绘图等方面介绍从零开始绘制专题地图的过程，介绍涉及的基础数据操作，比较五个绘图工具 **latticeExtra** 包、**ggplot2** 包、**tmap** 包、**sf** 包和 **mapsf** 包，阐述数据指标「年平均癌症死亡率」的实际含义、指标口径和计算过程，从易到难，层层深入，以期达到出版级的水准，探索出最佳实践。
 
 
-单变量情形中先以 R 软件内置的数据集 state.x77 为例展示 1975 年美国**各个州**每平方英里的人口数，即以专题地图形式展示各州人口密度，此处专题的含义是「人口」，显而易见，人口密度只是一方面，还有人口结构，结构又可以分性别、年龄、种族等等。接着，以 **maps** 包内置的数据集 unemp 数据集为例展示 2009 年美国**各个城镇**的失业率。这样，从州到城镇，专题地图的介绍就覆盖了常见情形。
+多变量情形中以美国人口统计局发布的调查数据为基础，分析北卡罗来纳州各区县普查粒度的家庭收入中位数与白人占比的空间相关性。先分别以单变量的专题地图描述各个普查区域里家庭收入中位数、白人占比的空间分布，接着和二元变量的专题地图形成对比，展示相关性的空间分布。
 
 
-进一步，以 **latticeExtra** 包内置的数据集 USCancerRates 为例，介绍美国 1999-2003 年度各个城镇的年平均癌症死亡率。这将在数据操作、指标计算和分面绘图等方面提升一倍的复杂度，逐步解剖从零开始绘制专题地图的过程。将更加深入地介绍涉及的基础数据操作，详细比较五个绘图工具 **latticeExtra** 包、**ggplot2** 包、**tmap** 包、**sf** 包和 **mapsf** 包，详细阐述数据指标「年平均癌症死亡率」的实际含义、指标口径和计算过程，从易到难，层层深入，以期达到出版级的水准，探索出最佳实践。
-
-
-多变量情形中以美国人口统计局发布的调查数据为基础，分析北卡罗来纳州各区县普查粒度的收入与种族的空间相关性。先分别以单变量的专题地图描述各个普查区域里家庭收入中位数、白人占比的空间分布，接着和二元变量的专题地图形成对比，展示相关性的空间分布。
-
-
-本文小结围绕数据获取、数据操作、度量指标、统计分析、数据展示等方面展开总结和讨论。尽量寻求来源权威可靠的第一手材料，对手头现有的材料有追根溯源和交叉验证的热情。数据操作的过程应满足可重复性的基本要求，以便检查分析过程和结论。度量指标需要围绕专题分析的目标，并结合实际背景选择合适的维度拆解。借助统计工具分析隐藏数据中的深层规律，科学定量地刻画，并将规律用领域语言表达，最后，结合软件工具选用恰当的图形准确呈现，直观定性地表达降低沟通成本，快速形成决策建议，落地推广。
+本文小结围绕数据获取、数据操作、度量指标、统计分析、数据展示等方面展开总结和讨论。尽量寻求来源权威可靠的第一手材料，对手头现有的材料有追根溯源和交叉验证的热情。数据操作的过程应满足可重复性的基本要求，以便检查分析过程和结论。度量指标需要围绕专题分析的目标，并结合实际背景选择合适的维度拆解。借助统计工具分析隐藏数据中的深层规律，科学定量地刻画，并将规律用领域语言表达，最后，结合软件工具选用恰当的图形准确呈现，直观定性地表达降低沟通成本，快速形成决策建议，乃至落地推广。
 
 
 <!-- 
-后续各个小节，具体地详细阐述，可能遇到的问题，解决办法，一些具体的经验，建议。
+尽量让每个小节相互独立，读者可任选一个工具进行了解，也可以从头到尾全面了解，理解各个工具的区别和联系。
 
-统计分析的基本工具：离散空间相关性度量，连续空间波动程度的度量。
+每个小节先介绍绘图需要的数据格式、绘图工具的背景历史，然后给出具体代码和效果图，再点出一些独特的地方。
 
-多变量情形，添加中国城镇化率。
 
-改革开放40多年，最显著的变化就是城市化，大量人口进城，围绕吃穿住行，房地产行业，互联网行业，餐饮外卖行业，新零售行业，出行行业，教育培训行业，以及休闲娱乐行业，互联网在各行各业渗透，大数据、互联网、人工智能等技术极大地推动智慧城市规划和建设。「以经济建设为中心」一百年不动摇，必将在下一个四十年为城市发展持续注入动力。
+专题地图的一些背景介绍，历史脉络和综述
+各个方法的实现介绍，特别是点出不同的地方
+统一比较各个方法，优劣，方法进行归类，归类提炼通用的点
+数据背景，比率指标的置信区间，如何获得的，原始癌症死亡数据是如何获得的，
+实验设计和抽样调查是如何实施的
+基于乔治·耐曼 Jerzy Neyman (1894-1981) 提出的系统分层抽样+区间估计两大统计理论
 
-这就是最大的因，因果推断技术本质是从因推断果，而不是相反。围绕此核心分析总体概况，从时间（趋势）、空间（地域）两个维度，拆解分析人、行业。
+
+统计分析的基本工具：离散空间相关性度量，连续空间波动程度的度量。莫兰指数
+
 
 结合 Apple 金融决策支持岗位的要求[Apple Finance](https://jobs.apple.com/en-us/details/200311967/data-scientist-apple-finance-r-shiny)，此文工作的意义是非常明确的，对个人提升是非常有帮助的。
 -->
@@ -159,23 +161,70 @@ knitr::opts_chunk$set(
 
 # 单变量情形
 
-以 state.x77 数据集一步步实现，介绍过程细节。
+空间地理可视化的内容非常丰富，涉及空间坐标投影、操作空间数据、选择图形种类、选择绘图工具等。就图形种类而言，对标鼎鼎大名的商业 BI  工具[Tableau](https://www.tableau.com/zh-cn/solutions/maps)，至少包含最常见的面量图、比例符号地图、点分布图、流线图、蜘蛛图（飞线图）、热图。其中的「面量图」通常又叫专题地图、地区分布图，外文一般为[Choropleth map](https://en.wikipedia.org/wiki/Choropleth_map)，典型样例是基于统计年鉴的各类专题数据的地理可视化，国家地理信息公共服务平台提供了[专题图层服务](https://zhfw.tianditu.gov.cn/)，可以快速地查看各个统计指标。下面仅以地区分布图为例，详细介绍 R 语言在绘制地区分布图中的探索和实践，读者可取其共性迁移至其它绘图场景。接下来，主要围绕 R 语言社区比较成熟的三套绘图工具 Base R、**lattice** 和 **ggplot2** 展开，它们代表三种绘图时的思考方式：
 
-再进一步，青出于蓝，以美国各个城镇的癌症死亡率分布为例，介绍更加复杂的场景
+- Base R 提供了泛型函数 `plot()` 支持各类数据对象，快速出图，若深度定制，需要解构，理解点、线、多边形、坐标轴、刻度线、图例、字体、颜色、文本、边空、布局等一系列基础要素。《现代统计图形》[@Zhao2021] 对此有详细的阐述，可做帮助手册。
+- **lattice** 在 **grid** 图形系统的基础上构建了一套易于使用的高级数据可视化函数，同时支持复杂的非标准的自定义绘图需求。《lattice: Multivariate Data Visualization with R》[@Sarkar2008] 详细全面地阐述了一元到多元数据的可视化方法，各个函数的使用细节，可做帮助手册。
+- **ggplot2** 在 **grid** 图形系统的基础上实现了一套图形语法[@Wilkinson2005]，笔者认为最重要的概念是图层，涵盖几何、统计、颜色、刻度、图例等，要点是将绘图的过程拆分成一个个图层，建立起数据到图层的映射。《ggplot2: Elegant Graphics for Data Analysis》[@Wickham2022] 已经出到第三版了，是从入门到进阶全面介绍 **ggplot2** 的著作。
 
-lattice ggplot2 sf 三个绘图工具，代表三种绘图的思考方式。
-
-介绍[Choropleth map](https://en.wikipedia.org/wiki/Choropleth_map)
-
-
-
-## 美国各州的人口密度分布
+在掌握基础的一些工具后，余以为培养审美能力最重要方式就是多看，就好比鉴赏书画古董，只要围绕身边的都是精品，再看次品一眼就能认出来。接着，从入门到进阶就需要打磨细节，笔者推荐著作《Data Visualisation with R: 111 Examples》[@Rahlf2019]。
 
 
-state.x77 数据集中 Population 州人口数据是 1977 年美国人口调查局发布的统计数据，单位是 1000 人，统计的是 1975 年的人口数据，原始数据可以从官网发布的年度报告[Statistical Abstract of the United States: 1977](https://www.census.gov/library/publications/1977/compendia/statab/98ed.html)获取。
+
+## 美国各城镇的年平均癌症死亡率分布
+
+
+接下来，以 [**latticeExtra** 包](https://latticeextra.r-forge.r-project.org/)内置的 USCancerRates 数据集为例介绍分面，同时展示多个观测指标的空间分布。USCancerRates 数据集来自美国[National Cancer Institute](https://statecancerprofiles.cancer.gov/)（美国国家癌症研究中心，简称NCI）。根据1999-2003年的5年数据，分男女统计癌症年平均死亡率（单位十万分之一），这其中的癌症数是所有癌症种类之和。不难看出，女性癌症死亡率整体上低于男性，且各个地区的死亡率有明显差异。癌症死亡率根据2000年美国[标准人口年龄分组](https://seer.cancer.gov/stdpopulations/stdpop.19ages.html)调整，分母人口数量由 NCI 根据普查的人口数调整，即将各年各个年龄段的普查人口数按照 2000 年的**美国标准人口年龄分组**换算。下面对此数据指标的调整过程略加说明，这里面其实隐含很多的道理。
+
+人口数每年都会变的，为使各年数据指标可比，人口划分就保持一致，表\@ref(tab:us-std-pop) 展示 1940-2000 年各个年龄段（共19个年龄组）的标准人口数，各个年龄段的普查人口数换算成年龄调整的标准人口数，换算公式为：
+
+$$
+某年龄段标准人口数 = 某年龄段普查人口数 / 总普查人口数 * 1000000.
+$$
+
+以 2000 年的 10-14 岁年龄段标准人口数为例，即：
+
+$$
+73032 = 20056779 / 274633642 * 1000000.
+$$
+
+<!--
+一系列复杂的调整是为什么？
+指标稳定性，咋一看可能觉得奇怪，本身就是要优化提升指标，你还弄来一个稳定的指标，稳定不是代表不变，稳定是不受轻易干扰。
+一致性，时效性，准确性
+
+置信区间又是怎么算的？
+为什么要这样调整呢？
+-->
+
+
+
+```{r us-std-pop}
+#| echo=FALSE
+us_std_pop <- readRDS(file = "data/us_std_pop.rds")
+knitr::kable(us_std_pop, format = "markdown", caption = "1940-2000 年美国标准人口分组")
+```
+
+
+表\@ref(tab:us-std-pop)不难看出美国 60 年来的人口结构变化。纵观过去，美国是没有老龄化现象的，惊不惊讶，意不意外！笔者初看有点意外，想了会儿又觉得是情理之中。有些基本问题无论从前还是未来，无论发达国家还是发展中国家，都要给出自己的解法。笔者不准备讨论与国家政策相关的敏感话题，仅推荐一本正儿八经的人物传记以飨读者[^neyman]---现代统计学家《Neyman》[@Reid1982] 或中文翻译版《耐曼》[@Yao1985]，笔者认为里面给出了一些线索。
+
+[^neyman]: 笔者英文水平有限，看的是中文版，推荐有条件的读者尝试看英文版，应该会舒服得多。
+
+年龄调整的比率（Age-adjusted Rates）的定义详见[网站](https://seer.cancer.gov/seerstat/tutorials/aarates/definition.html)，它是一个对年龄调整的加权平均数，权重根据年龄段人口在标准人口中的比例来定，一个包含年龄 $x$ 到年龄 $y$ 的分组，其年龄调整的比率计算公式如下：
+
+$$
+aarate_{x-y} = \sum_{i=x}^{y}\Big[ \big( \frac{count_i}{pop_i} \big) \times 100,000 \times \big( \frac{stdmil_i}{\sum_{j=x}^{y} stdmil_j} \big) \Big]
+$$
+
+一个具体的例子可见[网站](https://seer.cancer.gov/seerstat/tutorials/aarates/step3.html)，篇幅所限，此处略去细节。
+
+
+**maps** 包内置的美国城镇地图数据欠缺一部分，导致数据集 USCancerRates 有部分数据没法绘制在地图上，主要是阿拉斯加、夏威夷和其它少量地方，此外，USCancerRates 没有夏威夷、波多黎各各个城镇的数据，阿拉斯加的部分城镇有数据，结合图\@ref(fig:us-cancer-rates-lattice)，不少城镇没有收集到癌症死亡率数据，以空白表示。只需传给参数 `colramp` 一个生成颜色值向量的函数即可更改调色板，比如 R 内置的 `hcl.colors()` 或 `terrain.colors()` 等，为保持全文配色风格一致，图中配色采用 **viridisLite** 包提供的 plasma 调色板。 **lattice** 包提供非常简便的绘图公式语法，**latticeExtra** 也很好地继承了这一特性，`rownames(USCancerRates) ~ rate.female + rate.male`。`rownames(USCancerRates)` 表示的城镇名称和地图数据 `us_county` 里的城镇名称 names 是可以映射上的。值得一提的是，关于死亡率分级，不同的分法会带给人不同的印象甚至是错觉，此处是可以有操作空间的，特定的死亡率分割方式可以让男女死亡率的空间分布**看起来**差异不大或很大[@Kolak2020]，推荐 Marynia Kolak 和 Susan Paykin 在 2021 R/Medicine 大会上的材料，包括 [视频](https://youtu.be/-HvRISFkQZQ)和[网页](https://makosak.github.io/Intro2RSpatialMed/02-choropleth.html)。
 
 
 ### maps
+
+maps 包[@maps]的设计
 
 ```{r}
 library(maps)
@@ -184,160 +233,41 @@ list.files(path = system.file("mapdata", package = "maps"))
 ```
 
 
-### ggplot2
-
-
-```{r usa-states-density-ggplot2}
-#| fig.cap="1975 年美国各州人口密度，单位每平方英里人口数",
-#| fig.width=7,
-#| fig.height=5,
+```{r us-cancer-rates-maps}
+#| fig.cap="美国各个城镇的癌症死亡率分布",
+#| fig.width=8,
+#| fig.height=10,
 #| fig.align="center",
 #| fig.showtext=TRUE
-
-# 准备数据
-state_x77 <- data.frame(state = rownames(state.x77), state.x77)
-state_map <- usmapdata::us_map("states")
-state_df <- merge(state_map, state_x77, by.x = "full", by.y = "state", all.x = T)
-state_df <- state_df[order(state_df$order), ]
-# 绘制地图
-library(ggplot2)
-ggplot() +
-  geom_polygon(
-    data = state_df, aes(x, y, group = group, fill = 1000 * Population / Area),
-    colour = "gray", size = 0.3
-  ) +
-  scale_fill_viridis_c(trans = "log10", option = "plasma", na.value = "grey80") +
-  labs(
-    fill = "人口密度", title = "1975 年美国各州人口密度",
-    caption = "数据源：美国人口调查局"
-  ) +
-  theme_void() +
-  theme(plot.title = element_text(hjust = 0.5))
-```
-
-
-先将地图数据放左边，观测数据放右边，以 LEFT JOIN （左关联） 的方式关联起来，接着对相关原子和衍生指标做一些必要转化计算，最后调用绘图函数绘制专题地图。
-
-
-### latticeExtra
-
-
-
-
-
-### sf
-
-
-```{r usa-states-density-sf}
-#| fig.cap="1975 年美国各州人口密度，单位每平方英里人口数",
-#| fig.width=7,
-#| fig.height=4,
-#| fig.align="center",
-#| fig.showtext=TRUE,
-#| message=FALSE
-
-library(sf)
-us_states_shifted <- readRDS(file = "data/us_states_shifted.rds")
-us_states <- merge(us_states_shifted, state_x77, by.x = "NAME", by.y = "state", all.x = TRUE)
-us_states <- within(us_states, { den <- 1000 * Population / Area })
-plot(us_states["den"], logz = TRUE, border = "gray", 
-  pal = viridisLite::plasma, nbreaks = 12,
-  reset = FALSE, main = "1975 年美国各州人口密度"
-)
-mtext(text = "数据源：美国人口调查局", side = 1, adj = 0)
-```
-
-### ggplot2 + sf
-
-```{r usa-states-density-ggplot2-sf}
-#| fig.cap="1975 年美国各州人口密度，单位每平方英里人口数",
-#| fig.width=7,
-#| fig.height=4,
-#| fig.align="center",
-#| fig.showtext=TRUE
-
-ggplot() +
-  geom_sf(data = us_states, aes(fill = den)) +
-  scale_fill_viridis_c(trans = "log10", option = "plasma", na.value = "grey80") +
-  labs(
-    fill = "人口密度", title = "1975 年美国各州人口密度",
-    caption = "数据源：美国人口调查局"
-  ) +
-  theme_void() +
-  theme(plot.title = element_text(hjust = 0.5))
-```
-
-
-### ggplot2 + ggspatial
-
-**ggspatial** [@Dewey2021]
-
-### tmap
-
-
-
-### mapsf
-
-
-
-除了州，还有城镇，甚至人口普查单元粒度的地区分布图，以描述更加详细点的空间分布，
-
-
-接下来，将详细介绍 R 语言在绘制地区分布图中的探索和实践，主要围绕 R 语言社区比较成熟的两套绘图工具 **lattice** 和 **ggplot2** 展开。空间地理可视化的内容非常丰富，笔者所知十分有限，仅以地区分布图为例，读者可取其共性迁移至其它绘图场景。
-
-
-## 美国各个城镇的失业率分布
-
-
-以 2009 年美国各个城镇的失业率数据为例，数据来自 **maps** 包的 unemp 数据集，它有三个变量，fips 城镇代码[^fips]，pop 人口，unemp 失业率。失业率本是连续的数据，将其分级划分区间，每个失业率区间用不同颜色表示。
-
-
-[^fips]: 可类比我国[行政区划代码](http://www.mca.gov.cn/article/sj/xzqh/1980/)，自1980年以来，每年都会发布一次，涉及一些市、区、县、乡、镇、街道等的变更。
-
-
-### maps
-
-**maps** 包提供城镇地图数据，数据集 county.fips 各个城镇的名称 polyname 及 行政代码 fips，和 unemp 数据集关联可以知道各个城镇的失业率，再与城镇地图数据关联，就可以将数据绘制在地图上。county.fips 没有夏威夷、阿拉斯加、波多黎各的地图数据，导致 unemp 数据集里阿拉斯加、夏威夷、波多黎各和部分弗吉尼亚的小城市无法映射到地图上。
-
-
-
-
-```{r unemp-maps}
-#| fig.cap="2009 年美国各个城镇的失业率分布",
-#| fig.width=6*1.5,
-#| fig.height=4*1.75,
-#| fig.align="center",
-#| fig.showtext=TRUE,
-#| collapse=TRUE,
-#| out.width="75%"
-
-# 代码调整自帮助文档 ?map
+# 加载数据
+data(USCancerRates, package = "latticeExtra")
 library(maps)
-library(mapproj)
-# 失业率数据
-data(unemp)
-# 行政编码
-data(county.fips)
-# 准备调色板
-# colors <- c("#F1EEF6", "#D4B9DA", "#C994C7", "#DF65B0", "#DD1C77", "#980043")
-colors <- viridisLite::plasma(9)
-# 失业率划分区间
-unemp$colorBuckets <- as.numeric(cut(unemp$unemp, c(seq(0, 10, by = 2), 15, 20, 25, 100)))
-# 准备图例文本
-leg.txt <- c("<2%", "2-4%", "4-6%", "6-8%", "8-10%", "10-15%", "15-20%", "20-25%", ">25%")
-
-cnty.fips <- county.fips$fips[match(
-  map("county", plot = FALSE)$names,
-  county.fips$polyname
-)]
-
-# 匹配上的区域
-colorsmatched <- unemp$colorBuckets[match(cnty.fips, unemp$fips)]
-par(mar = c(1.5, 0, 2, 0))
+# 城镇地图数据
+us_county <- map("county", plot = FALSE, fill = TRUE, projection = "polyconic")
+# 奈何 maps 内置的地图数据不全，仅保留部分观察数据
+USCancerRates2 <- subset(x = USCancerRates, subset = rownames(USCancerRates) %in% us_county$names)
+# 调色板
+colors <- viridisLite::plasma(13)
+# 图例文本
+leg.txt <- mapply(paste, 50*0:12, 50*1:13, collapse = " ", sep = "~")
+# 癌症死亡率划分区间
+USCancerRates2$colorBuckets_male <- as.numeric(cut(USCancerRates2$rate.male, 50*0:13))
+# 根据城镇名称给地图上每个区域的癌症死亡率匹配颜色
+colorsmatched_male <- USCancerRates2$colorBuckets_male[match(us_county$names, rownames(USCancerRates2))]
+# 对女性癌症死亡率类似操作
+USCancerRates2$colorBuckets_female <- as.numeric(cut(USCancerRates2$rate.female, 50*0:13))
+colorsmatched_female <- USCancerRates2$colorBuckets_female[match(us_county$names, rownames(USCancerRates2))]
+# 绘图
+par(mar = c(0, 0, 3, 0), mfrow = c(2, 1))
+# 添加地图背景
+map("county",
+  col = "grey80", fill = TRUE, resolution = 0,
+  lty = 0, projection = "polyconic"
+)
 # 绘制区县地图
 map("county",
-  col = colors[colorsmatched], fill = TRUE, resolution = 0,
-  lty = 0, projection = "polyconic", mar = c(0.5, 0.5, 2, 0.5)
+  col = colors[colorsmatched_male], fill = TRUE, resolution = 0,
+  lty = 0, projection = "polyconic", add = TRUE
 )
 # 添加州边界线
 map("state",
@@ -345,147 +275,44 @@ map("state",
   lty = 1, lwd = 0.2, projection = "polyconic"
 )
 # 添加图标题
-title("2009 年美国各个城镇的失业率")
-mtext(text = "数据源：美国人口调查局", side = 1, adj = 0)
+title("1999-2003 年美国各个城镇的年平均癌症死亡率（单位：十万分之一）", line = 2)
+mtext(text = "男性", side = 3, adj = 0.5)
+par(mar = c(1, 0, 2, 0))
+map("county",
+  col = "grey80", fill = TRUE, resolution = 0,
+  lty = 0, projection = "polyconic"
+)
+map("county",
+  col = colors[colorsmatched_female], fill = TRUE, resolution = 0,
+  lty = 0, projection = "polyconic", add = TRUE
+)
+# 添加州边界线
+map("state",
+  col = "white", fill = FALSE, add = TRUE,
+  lty = 1, lwd = 0.2, projection = "polyconic"
+)
+mtext(text = "女性", side = 3, adj = 0.5)
+mtext(text = "数据源：美国国家癌症研究所", side = 1, adj = 0)
 # 添加图例
-legend("top", leg.txt, horiz = TRUE, fill = colors, cex = 0.85)
-```
-
-### latticeExtra
-
-```{r unemp-lattice}
-#| fig.cap="2009 年美国各个城镇的失业率分布",
-#| fig.width=8,
-#| fig.height=5,
-#| fig.align="center",
-#| fig.showtext=TRUE
-
-# 地图数据
-us_county <- map("county", plot = FALSE, fill = TRUE, projection = "polyconic")
-# 失业率数据和行政区域名称关联
-unemp_df <- merge(unemp, county.fips, by = "fips")
-# 绘图
-latticeExtra::mapplot(polyname ~ unemp,
-  data = unemp_df,
-  map = us_county,
-  colramp = viridisLite::plasma,
-  border = NA,
-  # cuts = 10, # 等距分桶的数，和参数 breaks 二选一
-  breaks = c(seq(0, 10, by = 2), 15, 20, 25, 30, 35),
-  subset = polyname %in% us_county$names,
-  scales = list(draw = F),
-  xlab = "",
-  par.settings = list(
-    # 副标题放在左下角
-    par.sub.text = list(
-      font = 2,
-      just = "left",
-      x = grid::unit(5, "mm"),
-      y = grid::unit(5, "mm")
-    ),
-    # 轴线设置白色以隐藏
-    axis.line = list(col = "white")
-  ),
-  sub = "数据源：美国人口调查局",
-  main = "2009 年美国各个城镇的失业率"
+legend("bottomright",
+  legend = c(leg.txt, "NA"), title = "死亡率", box.col = NA, border = NA,
+  horiz = FALSE, fill = c(colors, "grey80"), cex = 0.85, xjust = 0.5
 )
 ```
 
 
-### ggplot2
+::: rmdtip
+函数 `match()` 返回一个向量，向量的长度与参数 x 一致，向量的元素是整型的，表示参数 x 中的元素出现在参数 table 中的位置，下面是三个小示例。
 
-
-[**usmapdata**](https://github.com/pdil/usmapdata) 包提供美国国家、州和城镇边界地图数据，下面以此数据为基础，借助 **ggplot2** 包[@Wickham2022]绘制失业率专题地图，未收集到失业率数据的城镇填充灰色，图中中文采用 **showtext** 包[@Qiu2015]处理，如图 \@ref(fig:unemp-ggplot2) 所示。
-
-```{r unemp-ggplot2}
-#| fig.cap="2009 年美国各个城镇的失业率分布",
-#| fig.width=8,
-#| fig.height=6,
-#| fig.align="center",
-#| fig.showtext=TRUE,
-#| echo=FALSE
-
-# 失业率数据和行政编码数据结合
-unemp_df <- merge(unemp, county.fips, by = "fips")
-# 从 usmapdata 包获取地图数据
-county_df <- usmapdata::us_map("counties")
-# 行政编码是一串数字组成的字符串
-county_df$fips <- as.numeric(county_df$fips)
-# 地图数据和失业率数据结合
-choropleth <- merge(county_df, unemp_df, by = "fips", all.x = TRUE)
-# 还原地图数据的顺序
-choropleth <- choropleth[order(choropleth$order), ]
-# 失业率分级
-choropleth$rate_d <- cut(choropleth$unemp, breaks = c(seq(0, 10, by = 2), 15, 20, 25, 30, 35))
-# 准备州边界线数据
-state_df <- usmapdata::us_map("states")
-# 绘图
-library(ggplot2)
-ggplot(choropleth, aes(x, y, group = group)) +
-  geom_polygon(aes(fill = rate_d), colour = alpha("white", 1 / 4), size = 0.2) +
-  geom_polygon(data = state_df, colour = "white", fill = NA, size = 0.3) +
-  # scale_fill_brewer(palette = "PuRd", na.value = "grey80") +
-  scale_fill_viridis_d(option = "plasma", na.value = "grey80") +
-  labs(
-    fill = "失业率(%)", title = "2009 年美国各个城镇的失业率",
-    caption = "数据源：美国人口调查局"
-  ) +
-  theme_void() +
-  theme(plot.title = element_text(hjust = 0.5))
+```{r}
+match(x = c("A", "B"), table = c("A"))
+match(x = c("A", "B"), table = c("C", "A"))
+match(x = c("A", "B"), table = c("C", "A", "D"))
 ```
+:::
 
-
-### sf
-
-相比于前任 **sp** 包，**sf** 包将是新一代空间数据操作、分析和可视化的基石，引入 GDAL、PROJ 和 GEOS 三大基础框架，和更庞大的空间数据社区接轨，不局限于 R 语言社区的一亩三分地。**sf** 包支持 Base R 绘图，以此绘制失业率专题地图，如图\@ref(fig:unemp-sf)所示，可见效果丝毫不逊于 **lattice** 和 **ggplot2** 版本，而且在兼容性、代码量、稳定性和性能等方面有明显优势。
-
-```{r unemp-sf}
-#| fig.cap="2009 年美国各个城镇的失业率分布",
-#| fig.width=8,
-#| fig.height=5,
-#| fig.align="center",
-#| message=FALSE,
-#| fig.showtext=TRUE
-
-# 准备地图数据
-us_county_shifted <- readRDS(file = "data/us_county_shifted.rds")
-# 准备用于合并操作的主键
-us_county_shifted <- within(us_county_shifted, {
-  polyname <- tolower(paste(STATE_NAME, NAME, sep = ","))
-})
-# 将失业率数据和地图数据合并
-us_county_data <- merge(x = us_county_shifted, y = unemp_df, by = "polyname", all.x = T)
-# 绘制失业率地图
-plot(us_county_data["unemp"],
-  pal = viridisLite::plasma,
-  breaks = c(seq(0, 10, by = 2), 15, 20, 25, 30, 35),
-  border = NA, key.pos = 4, reset = F,
-  main = "2009 年美国各个城镇的失业率"
-)
-# 添加州边界
-plot(st_geometry(us_states_shifted), col = NA, border = "gray", add = T)
-mtext(text = "数据源：美国人口调查局", side = 1, adj = 0)
-```
-
-
-
-
-## 美国各个城镇的年平均癌症死亡率分布
-
-
-接下来，以 [**latticeExtra** 包](https://latticeextra.r-forge.r-project.org/)内置的 USCancerRates 数据集为例介绍分面，同时展示多个观测指标的空间分布。USCancerRates 数据集来自美国[National Cancer Institute](https://statecancerprofiles.cancer.gov/)（美国国家癌症研究中心，简称NCI）。根据1999-2003年的5年数据，分男女统计癌症年平均死亡率（单位十万分之一），这其中的癌症数是所有癌症种类之和。不难看出，女性癌症死亡率整体上低于男性，且各个地区的死亡率有明显差异。
-
-<!--
-死亡率根据2000年美国[标准人口年龄分组](https://seer.cancer.gov/stdpopulations/stdpop.19ages.html)调整，分母人口数量由NCI根据普查的人口数调整。
-
-一系列复杂的调整是为什么？
-指标稳定性，咋一看可能觉得奇怪，本身就是要优化提升指标，你还弄来一个稳定的指标，稳定不是代表不变，稳定是不受轻易干扰。
-一致性，时效性，准确性
--->
 
 ### latticeExtra
-
-**maps** 包内置的美国城镇地图数据欠缺一部分，导致数据集 USCancerRates 有部分数据没法绘制在地图上，主要是阿拉斯加、夏威夷和其它少量地方，此外，USCancerRates 没有夏威夷、波多黎各各个城镇的数据，阿拉斯加的部分城镇有数据，结合图\@ref(fig:us-cancer-rates-lattice)，不少城镇没有收集到癌症死亡率数据，以空白表示。只需传给参数 `colramp` 一个生成颜色值向量的函数即可更改调色板，比如 R 内置的 `hcl.colors()` 和 `terrain.colors()` 等，为保持全文配色风格一致，图中配色采用 **viridisLite** 包提供的 plasma 调色板。 **lattice** 包提供非常简便的绘图公式语法，**latticeExtra** 也很好地继承了这一特性，`rownames(USCancerRates) ~ rate.female / 100 + rate.male / 100`。`rownames(USCancerRates)` 表示的城镇名称和地图数据 `us_county` 里的城镇名称 names 是可以映射上的。值得一提的是，关于死亡率分级，不同的分法会带给人不同的印象甚至是错觉，此处是可以做手脚的，特定的死亡率分割方式可以让男女死亡率的空间分布**看起来**差异不大或很大。
 
 
 ```{r us-cancer-rates-lattice}
@@ -494,37 +321,43 @@ mtext(text = "数据源：美国人口调查局", side = 1, adj = 0)
 #| fig.height=10,
 #| fig.align="center",
 #| fig.showtext=TRUE
-
-library(maps)
-library(lattice)
 # 加载数据
 data(USCancerRates, package = "latticeExtra")
+# 美国州边界数据
+us_state <- map("state", plot = FALSE, fill = TRUE, projection = "polyconic")
+library(lattice)
 # 绘图
-latticeExtra::mapplot(rownames(USCancerRates) ~ rate.female / 100 + rate.male / 100,
+latticeExtra::mapplot(rownames(USCancerRates) ~ rate.female + rate.male,
   # 数据
   data = USCancerRates,
+  panel = function(x, y, map, ...) {
+    # 对未收集到癌症死亡率数据的城镇，添加城镇边界线
+    panel.lines(x = us_county$x, y = us_county$y, lty = 1, lwd = 0.2, col = "black")
+    latticeExtra::panel.mapplot(x, y, map, ...)
+  },
   # 城镇地图数据为背景
   map = us_county,
   # 填充地图用的调色板
   colramp = viridisLite::plasma,
-  # 城镇边界线
+  # 覆盖城镇边界线
   border = NA,
-  # 多图布局 1 列 2 行
+  # 多图布局 2 行 1 列
   layout = c(1, 2),
   # 死亡率分桶数
   # cuts = 14, # 指定 breaks 后就不需要 cuts
   # 死亡率数据分割点
-  breaks = seq(from = 0, to = 6.5, by = 0.5),
+  breaks = 50 * 0:13,
   # 仅展示地图数据中包含的城镇死亡率数据
   subset = rownames(USCancerRates) %in% us_county$names,
   # 取消坐标轴刻度
   scales = list(draw = F),
   # 修改分面展示文本
   strip = strip.custom(factor.levels = c("女性", "男性")),
+  # 去掉横轴标签
   xlab = "",
   # 添加图例标题
   legend = list(top = list(
-    fun = grid::textGrob("死亡率(‰)", y = 0.1, x = 1.03)
+    fun = grid::textGrob("死亡率", y = 0.1, x = 1.03)
   )),
   # 常规图形参数列表 trellis.par.get('par.sub.text')
   par.settings = list(
@@ -544,39 +377,29 @@ latticeExtra::mapplot(rownames(USCancerRates) ~ rate.female / 100 + rate.male / 
   # 副标题
   sub = "数据源：美国国家癌症研究所",
   # 主标题
-  main = "1999 年至 2003 年美国各个城镇的年平均癌症死亡率"
-)
+  main = "1999-2003 年美国各个城镇的年平均癌症死亡率"
+) +
+  latticeExtra::layer(panel.lines(x = us_state$x, y = us_state$y, lty = 1, lwd = 0.2, col = "white"))
 ```
 
-<!-- 
-颜色变量的分级，等距分割，分位点分割
-https://makosak.github.io/Intro2RSpatialMed/02-choropleth.html
+用 **lattice** 包绘图往往可以一个函数搞定，参数非常多，都放在一起，这和 Base R 的绘图函数类似，也同时提供全局图形参数控制，但似乎更加复杂。下面谈三个细节：
 
-如何修改 strip names
-https://stackoverflow.com/questions/7373487/change-text-on-strips-in-lattice-plots 
-par.settings 图形参数设置
-https://www.magesblog.com/post/2015-06-16-how-to-place-titles-in-lattice-plots/
-par.sub.text 所有可调整的参数及其含义
-trellis.par.get('par.sub.text')
+1.  笔者参考 Markus Gesmann 在 2015 年写的一篇文章[@Gesmann2015]，设置 Lattice 图形参数 `par.settings` 对图中的标题做了细致的调节，比如副标题的文本 `par.sub.text` 所有可调整的细节有：
 
--->
+    ```{r}
+    trellis.par.get('par.sub.text')
+    ```
 
+    想必读者已看出其规律，以 R 语言的列表结构来传递各个层级的图形参数值。
 
-**lattice** 包[@Sarkar2008]可以提供精细化的图形操作，如图 \@ref(fig:show-settings) 所示
+1.  笔者参考 SO 论坛[帖子](https://stackoverflow.com/questions/7373487/)设置参数 `strip` 自定义了分面子图的标题文本，再在 `par.settings` 里对背景 `strip.background` 和边界 `strip.border` 微调，而类似的设置在 **ggplot2** 包的主题函数 `theme()` 里[也有](https://ggplot2.tidyverse.org/reference/theme.html)，在 R 控制台执行 `formalArgs(ggplot2::theme)`  可获得主题函数的参数列表。
 
-```{r show-settings}
-#| fig.cap="图形控制参数",
-#| fig.width=9,
-#| fig.height=6,
-#| fig.align="center"
+1.  读者下一个疑惑可能是如何知道所有的图形控制参数，以及控制的精细程度，Deepayan Sarkar 在书里以图\@ref(fig:trellis-par)归纳了，纵轴是图形参数，横轴是参数值名称列表[@Sarkar2008]。
 
-library(lattice)
-show.settings()
-```
-
+(ref:lattice-par) **lattice** 包常用图形参数小抄
 
 ```{r trellis-par}
-#| fig.cap="lattice 常用图形参数小抄",
+#| fig.cap="(ref:lattice-par)",
 #| fig.width=6,
 #| fig.height=8,
 #| fig.align="center",
@@ -628,7 +451,34 @@ levelplot(z ~ y * x,
 )
 ```
 
+参数控制的效果预览如图 \@ref(fig:show-settings) 所示，不难看出，**lattice** 包[@Sarkar2008]可以提供精细化的图形调整，是一个非常成熟的绘图工具。
 
+```{r show-settings}
+#| fig.cap="图形控制参数",
+#| fig.width=9,
+#| fig.height=6,
+#| echo=FALSE,
+#| fig.align="center"
+
+library(lattice)
+show.settings()
+```
+
+如前所述，**lattice** 和 **ggplot2** 同出一脉，既然 **ggplot2** 有图层的概念，**lattice** 自然也有，除了 提供丰富的内置图层，约**100**个，读者可在控制台运行 `apropos('panel')` 查看当前环境下可用的图层，也支持用户自定义图层，图\@ref(fig:lattice-panel-superpose) 展示叠加图层 `panel.superpose` 的效果，传递自定义的符号给 `pch` 参数，实际上修改了默认图形参数 `"superpose.symbol"`。
+
+```{r lattice-panel-superpose}
+#| fig.cap="panel 叠加图层",
+#| fig.width=5,
+#| fig.height=4,
+#| fig.align="center"
+xyplot(Sepal.Length ~ Sepal.Width, data = iris, groups = Species,
+  pch = c("L", "M", "N"), panel = panel.superpose
+)
+```
+
+此外，**latticeExtra** 扩展了图层功能，特别是 `layer()` 函数，可在主体绘图函数之后直接叠加新图层。如上图\@ref(fig:us-cancer-rates-lattice)，在 `latticeExtra::mapplot()` 完成主体绘图工作后，添加美国各州边界线，有助于识别城镇位置。[^county-location]
+
+[^county-location]: 大家都有这样一种感觉，将一张只有中国国家边界的地图放在面前，你不一定能清晰地指出每一个省份的位置，但是只要画上各个省的边界，你肯定能增加准确度，类似地，从省到市、乃至区县，边界给了我们很好的参照。
 
 ### ggplot2
 
@@ -636,6 +486,7 @@ levelplot(z ~ y * x,
 
 USCancerRates 数据集除了 state 和 county 列，剩余列是由三个原子指标按性别维度衍生出来的，分别是癌症死亡率及其置信区间的上、下限值。在「宽格式」转「长格式」过程中，要注意转化前后各个列名的对应关系，后面会着重介绍一下。
 
+先将地图数据放左边，观测数据放右边，以 LEFT JOIN （左关联） 的方式关联起来，接着对相关原子和衍生指标做一些必要转化计算，最后调用绘图函数绘制专题地图。
 
 ```{r}
 # 宽格式转长格式
@@ -654,17 +505,14 @@ us_cancer_rates <- reshape(
   new.row.names = 1:(2 * 3041),
   direction = "long"
 )
-# 性别字段重编码，死亡率单位从十万分之一转为千分之一
-us_cancer_rates <- within(us_cancer_rates, {
-  rate <- rate / 100
-  LCL95 <- LCL95 / 100
-  UCL95 <- UCL95 / 100
-})
+# 从 usmapdata 包获取地图数据
+county_df <- usmapdata::us_map("counties")
 # 给每个城镇的癌症死亡率数据配上地图数据
 dat <- merge(county_df, us_cancer_rates, by.x = c("full", "county"), by.y = c("state", "county"), all.y = T)
+# 准备州边界线数据
+state_df <- usmapdata::us_map("states")
 # 癌症死亡率分级
-# dat$rate_d <- cut(dat$rate, breaks = c(0, 0.50, 1.00, 1.50, 2.00, 2.50, 3.00, 4.50, 6.00, 7.50))
-dat$rate_d <- cut(dat$rate, breaks = seq(from = 0, to = 6.5, by = 0.5))
+dat$rate_d <- cut(dat$rate, breaks = 50*0:13)
 # 恢复地图数据顺序
 dat <- dat[order(dat$order), ]
 ```
@@ -675,7 +523,7 @@ dat <- dat[order(dat$order), ]
 处理数百 GB 乃至 TB 级的海量数据，聚合计算通常都是由写 SQL 完成的，不太可能直接用 R 语言或 Python 语言去处理，什么牛逼的工具包都不行！SQL 聚合计算后得到的数据集就 KB 或 MB级，大约几千，几万或几十万，即使遇到几百万条记录，也是用 SQL 再按需聚合。只在最后，为了可视化和分析建模，对 SQL 查询后的数据做各种适应性变换，这其中变形重塑的数据操作是最常见的，也是最复杂的数据操作，并且在SQL中实现复杂而在R中非常简单。用户唯一的痛点是非常难记住 reshape 的到底是谁，长变宽还是宽变长。从 `reshape()` 函数到 **reshape** 包，再到 **reshape2** 包，再到 **tidyr** 包，一路折腾，笔者认为还是应该回归到出发点来看待 `reshape()` 函数。
 
 
-R 软件内置的函数 `reshape()` 有很丰富的解释。所谓的「宽格式」和「长格式」数据来源于纵向数据分析领域 longitudinal data analysis --- 对同一对象的同一特征在不同时间点重复测量分析（假定对象没有随时间发生变化），也可以是对多个特征在不同时间点重复测量，这些特征就是所谓的时间变量 timevar（time-varying variables），有的特征随时间不会变化，比如性别、种族等，称之为时间常量 （time-constant variables）。函数 `reshape()` 的参数就采用纵向数据分析的术语。
+R 软件内置的函数 `reshape()` 有很丰富的解释。所谓的「宽格式」和「长格式」数据来源于纵向数据分析领域 longitudinal data analysis --- 对同一对象的同一特征在不同时间点重复测量分析（假定对象没有随时间发生变化），也可以是对多个特征在不同时间点重复测量，这些特征就是所谓的时间变量（随时间变化的变量）timevar（time-varying variables），具体地，测量一个人的头发长度，有的特征随时间不会变化，比如性别、种族等，称之为时间常量（time-constant variables）。函数 `reshape()` 的参数就采用纵向数据分析的术语。R 是一个用于统计计算和绘图的编程语言和环境，主要由统计学家开发和维护，很多重要的函数都要回归到统计上去理解，才会豁然开朗。
 
 
 大部分的数据可视化和统计建模函数要求长格式的数据，所以，从宽格式到长格式是更常见的变形操作。以上对数据集 USCancerRates 从宽格式到长格式的变形操作是非常典型的，读者可对照帮助文档 `?reshape()` 和如下两种方式理解其他传参方式对结果的影响，以加深对变形操作的理解。
@@ -719,7 +567,7 @@ reshape(
 1. 添加每个城镇的癌症死亡率数据，填充颜色根据死亡率而定，以浅白色绘制城镇的边界线，且将线调细一些，与后面州的边界线形成层次。
 1. 添加美国各个州的边界线，帮助熟悉美国地图的从州到城镇快速定位。
 1. 类似前文设置，采用 `plasma` 调色板，未采集到死亡率数据的城镇填充灰色，和地图背景融为一体。
-1. 以函数 `facet_wrap()` 实现分面，分面标题放在图形下方，布局为一列两行。
+1. 以函数 `facet_wrap()` 实现分面，分面标题放在图形上方，布局为两行一列。
 1. 添加整个图形的主标题、副标题和图例标题。
 1. 设置整个图形主题样式 `theme_void()` 以符合专题地图特色，将图形主标题居中。
 
@@ -729,18 +577,18 @@ reshape(
 #| fig.height=10,
 #| fig.align="center",
 #| fig.showtext=TRUE
-
+library(ggplot2)
 ggplot() +
   geom_polygon(data = county_df, aes(x, y, group = group), fill = "grey80") +
-  geom_polygon(data = dat, aes(x, y, group = group, fill = rate_d), colour = alpha("white", 1 / 4), size = 0.2) +
-  geom_polygon(data = state_df, aes(x, y, group = group), colour = "white", fill = NA, size = 0.3) +
+  geom_polygon(data = dat, aes(x, y, group = group, fill = rate_d), colour = alpha("white", 1 / 4), size = 0.1) +
+  geom_polygon(data = state_df, aes(x, y, group = group), colour = "gray80", fill = NA, size = 0.15) +
   scale_fill_viridis_d(option = "plasma", na.value = "grey80") +
-  facet_wrap(~sex, ncol = 1, strip.position = "bottom") +
+  facet_wrap(~sex, ncol = 1, strip.position = "top") +
   labs(
-    fill = "死亡率(‰)", title = "1999 年至 2003 年美国各个城镇的年平均癌症死亡率",
+    fill = "死亡率", title = "1999-2003 年美国各个城镇的年平均癌症死亡率",
     caption = "数据源：美国国家癌症研究所"
   ) +
-  theme_void() +
+  theme_void(base_size = 13) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
@@ -751,13 +599,47 @@ ggplot() +
 **ggplot2** 绘图的理论基础是图形语法，将数据和几何元素建立映射关系，几何和统计图层层层叠加实现主体部分，辅以字体、颜色、坐标系、布局等实现精细调整，达到出版级的效果。图层的精妙之处在于符合 Unix 哲学 --- Do one thing, and do it well! 上面将整个复杂的图形拆解为一张张图层，每个图层干一件事，将复杂的过程简化下来。至于具体到地图，因涉及到地图数据，情况稍微复杂一些，需要考虑地图数据和观测数据的坐标参考系，点、线、面（多边形或区域）数据类型，以及属于矢量还是栅格数据。总而言之，画个图，看似简单其实也透着综合能力，复杂过程的拆解能力，软件工具的熟练程度，领域知识的了解深度，难以言表的审美能力。
 
 
-
 ```{r}
 qnorm(p = 1 - 0.05 / 2)
-head(us_cancer_rates)
+subset(x = us_cancer_rates, subset = state == "Alabama" & county == "Pickens County")
 ```
 
-Alabama 的 Pickens County 为例，死亡率为，在 95% 置信水平下，区间上下限关于统计值对称，则
+Alabama 的 Pickens County 为例，1999-2003年平均年龄调整的男性癌症死亡率为 363.7（单位：十万分之一），在 95% 置信水平下，置信限为 $[311.1, 423.2]$。根据最新的五年数据显示 2014-2018 年男性癌症死亡率为 479.8，95% 置信水平下的置信区间为 $[425.7, 539.3]$。简单验证一下，就会发现有意思的现象，置信区间不是关于观测的癌症死亡率对称，但也不是特别离谱，以阿拉巴马州为例，如图\@ref(fig:alabama-ci-rank)所示。
+
+```{r alabama-ci-rank}
+#| fig.cap="1999-2003 年美国阿拉巴马州各个城镇的年平均癌症死亡率 CI Rank",
+#| fig.width=8,
+#| fig.height=10,
+#| fig.align="center",
+#| fig.showtext=TRUE
+alabama_us_cancer_rates = subset(x = us_cancer_rates, subset = state == "Alabama")
+alabama_us_cancer_rates$id = rep(1:(nrow(alabama_us_cancer_rates) / 2), 2)
+
+ggplot(data = alabama_us_cancer_rates) +
+  geom_segment(
+    aes(x = LCL95, xend = UCL95, y = id, yend = id, color = sex)
+  ) +
+  geom_point(aes(x = rate, y = id, color = sex), size = 2) +
+  scale_y_continuous() +
+  labs(x = "癌症死亡率", color = "性别", y = "城镇")
+```
+
+一般来说，100000 人中有 363.7 人因癌症死亡，置信区间上下限应该分别为：
+
+```{r}
+# 置信下限
+363.7 - 1.96 * sqrt(363.7 / 100000 * (1 - 363.7 / 100000) / 100000) * 100000
+# 置信上限
+363.7 + 1.96 * sqrt(363.7 / 100000 * (1 - 363.7 / 100000) / 100000) * 100000
+```
+
+而美国国家癌症研究所的置信带要更宽，显然这里面的算法不一样。NCI [网站](https://statecancerprofiles.cancer.gov/confidenceintervals.html)对此置信区间的解释跟统计学课本上没有太多差别，就是没有提供具体的计算公式。但，置信区间不对称说明建模错了，一定是偏态一类的分布。经过一番查找，结合美国疾控预防中心发布的2021年统计报告[@Xu2021]，发现，通常情况下，死亡是有一个过程的，大部分都是缓慢的，因此，刻画死亡率不应该是二项分布的成功概率而是泊松分布的期望。
+
+::: rmdwarn
+癌症死亡率相关数据仅可用于统计报告和分析，不可用于其他目的，请遵守[相关法律规定](https://statecancerprofiles.cancer.gov/help/data-use.html)。
+:::
+
+关于统计值对称，则
 
 $$
 \begin{align}
@@ -768,6 +650,7 @@ $$
 
 癌症死亡率，及其波动情况，一个地区的平均死亡率 660 人，波动很大，意味着该地区不同地方的死亡率差别很大。
 
+
 LCL95 和 UCL95 是怎么计算的？需要研究和说明一下，从美国国家癌症研究所了解一下
 
 
@@ -775,29 +658,41 @@ LCL95 和 UCL95 是怎么计算的？需要研究和说明一下，从美国国�
 
 同 **sf** 包[@Pebesma2018]的绘图函数 `plot()` 一样，**tmap** [@Tennekes2018] 也是基于 Base R 图形系统，但使用语法更加贴合 **ggplot2** 包[@Wickham2022]，对空间数据可视化有更多专业支持，比如比例符号图[@Susumu2006]。
 
-```{r us-cancer-rates-tmap}
-#| fig.cap="1999-2003 年美国各个城镇的年平均癌症死亡率分布",
-#| fig.width=8,
-#| fig.height=10,
-#| fig.align="center",
-#| fig.showtext=TRUE
 
+```{r}
+# 准备地图数据
+library(sf)
+us_states_shifted <- readRDS(file = "data/us_states_shifted.rds")
+us_county_shifted <- readRDS(file = "data/us_county_shifted.rds")
+# 合并地图数据和观测数据
 us_county_cancer2 <- merge(
   x = us_county_shifted, y = us_cancer_rates,
   by.x = c("STATE_NAME", "NAMELSAD"),
   by.y = c("state", "county"), all.x = TRUE
 )
+```
 
+
+
+```{r us-cancer-rates-tmap}
+#| fig.cap="1999-2003 年美国各个城镇的年平均癌症死亡率分布",
+#| fig.width=8,
+#| fig.height=10,
+#| fig.align="center",
+#| fig.showtext=TRUE,
+#| eval=FALSE
+
+# 绘图
 tmap::tm_shape(us_county_cancer2) +
   tmap::tm_polygons(border.col = "gray") +
   tmap::tm_shape(us_county_cancer2) +
   tmap::tm_polygons(
     col = "rate",
     palette = "plasma", border.alpha = 0.2,
-    legend.reverse = TRUE, title = "死亡率(‰)",
+    legend.reverse = TRUE, title = "死亡率",
     colorNA = "gray",
     textNA = "NA", border.col = "gray",
-    breaks = seq(from = 0, to = 6.5, by = 0.5)
+    breaks = 50*0:13
   ) +
   tmap::tm_facets(by = "sex", drop.NA.facets = T, ncol = 1) +
   tmap::tm_shape(us_states_shifted) +
@@ -809,47 +704,110 @@ tmap::tm_shape(us_county_cancer2) +
     legend.outside = TRUE,
     legend.outside.position = "right",
     legend.outside.size = 0.15,
+    legend.format = list(text.separator = "~"),
     outer.margins = 0, 
     asp = 0
   )
 ```
 
 
+<!-- tmaptools 加载速度极慢，为什么？tmap 绘图速度极慢，为什么？绘图使用 Base R 图形 -->
+
+
 ### sf
+
+[TIGER](http://www.census.gov/geo/www/tiger/) (Topologically Integrated Geographic Encoding and Referencing system ) / Line and Master Address database export
 
 ```{r us-cancer-rates-sf}
 #| fig.cap="1999-2003 年美国各个城镇的年平均癌症死亡率分布",
 #| fig.width=8,
-#| fig.height=5,
+#| fig.height=10,
 #| fig.align="center",
 #| fig.showtext=TRUE
 
+# 准备地图数据
+us_county_shifted <- readRDS(file = "data/us_county_shifted.rds")
 # 空间数据合并观测数据
 us_county_cancer <- merge(
   x = us_county_shifted, y = USCancerRates,
   by.x = c("STATE_NAME", "NAMELSAD"),
   by.y = c("state", "county"), all.x = TRUE
 )
+par(mar = c(0, 0, 4, 0), mfrow = c(2, 1))
 # 绘图数据
+plot(st_geometry(us_county_shifted),
+  reset = FALSE, border = NA, col = "grey80", main = ""
+)
 plot(us_county_cancer["rate.male"],
-  pal = viridisLite::plasma, reset = FALSE,
-  breaks = seq(from = 0, to = 6.5, by = 0.5) * 100,
-  border = "gray", lwd = 0.25, main = "男性", key.pos = 4
+  pal = viridisLite::plasma, reset = FALSE, key.pos = NULL,
+  breaks = 50 * 0:13,
+  border = NA, lwd = 0.25, add = TRUE
 )
-plot(st_geometry(us_states_shifted), border = "gray80", add = TRUE)
-mtext(text = "数据源：美国人口调查局", side = 1, adj = 0)
+plot(st_geometry(us_states_shifted), border = "gray80", lwd = 0.25, add = TRUE)
+title(main = "1999-2003 年美国各个城镇的年平均癌症死亡率", line = 2)
+mtext(text = "男性", side = 3, adj = 0.5)
+par(mar = c(1, 0, 2, 0))
+plot(st_geometry(us_county_shifted),
+  reset = FALSE, border = NA, col = "grey80", main = ""
+)
 plot(us_county_cancer["rate.female"],
-  pal = viridisLite::plasma, reset = FALSE,
-  breaks = seq(from = 0, to = 6.5, by = 0.5) * 100,
-  border = "gray", lwd = 0.25, main = "女性", key.pos = 4
+  pal = viridisLite::plasma, reset = FALSE, key.pos = NULL,
+  breaks = 50 * 0:13,
+  border = NA, lwd = 0.25, add = TRUE
 )
-plot(st_geometry(us_states_shifted), border = "gray80", add = TRUE)
+plot(st_geometry(us_states_shifted), border = "gray80", lwd = 0.25, add = TRUE)
+mtext(text = "女性", side = 3, adj = 0.5)
 mtext(text = "数据源：美国人口调查局", side = 1, adj = 0)
+# 调色板
+colors <- viridisLite::plasma(13)
+# 图例文本
+leg.txt <- mapply(paste, 50 * 0:12, 50 * 1:13, collapse = " ", sep = "~")
+# 添加图例
+legend("bottomright",
+  legend = c(leg.txt, "NA"), title = "死亡率", box.col = NA, border = NA,
+  horiz = FALSE, fill = c(colors, "grey80"), cex = 0.85, xjust = 0.5
+)
 ```
+
+
+### ggplot2 + sf
+
+```{r us-cancer-rates-ggplot2-sf}
+#| fig.cap="1999 年至 2003 年美国各个城镇的年平均癌症死亡率分布",
+#| fig.width=8,
+#| fig.height=9,
+#| fig.align="center",
+#| fig.showtext=TRUE
+
+us_county_cancer2$rate_d <- cut(us_county_cancer2$rate, breaks = 50*0:13)
+ggplot() +
+  geom_sf(
+    data = us_county_shifted,
+    fill = I("grey80"), colour = NA
+  ) +
+  geom_sf(
+    data = us_county_cancer2[!is.na(us_county_cancer2$sex), ],
+    aes(fill = rate_d), colour = alpha("white", 1 / 4), size = 0.1
+  ) +
+  geom_sf(
+    data = us_states_shifted,
+    colour = alpha("gray80", 1 / 4), fill = NA, size = 0.15
+  ) +
+  scale_fill_viridis_d(option = "plasma", na.value = "grey80") +
+  coord_sf() +
+  facet_wrap(~sex, ncol = 1) +
+  labs(
+    fill = "死亡率", title = "1999-2003 年美国各个城镇的年平均癌症死亡率",
+    caption = "数据源：美国国家癌症研究所"
+  ) +
+  theme_void(base_size = 13) +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
 
 ### mapsf
 
-**mapsf** 包 [@mapsf2022] 在 sf 包的基础上添加更多地理可视化的功能，比如指北针、比例尺等。
+**mapsf** 包 [@mapsf2022] 在 sf 包的基础上添加更多地理可视化的功能，比如指北针、比例尺等。[mapsf](https://rcarto.github.io/foss4g2021) 将连续变量分类。
 
 ```{r us-cancer-rates-mapsf}
 #| fig.cap="1999-2003 年美国各个城镇的年平均癌症死亡率分布",
@@ -866,13 +824,13 @@ mf_map(
   x = us_county_cancer, 
   var = "rate.male",
   type = "choro",
-  breaks = seq(from = 0, to = 6.5, by = 0.5) * 100,
+  breaks = 50*0:13,
   pal = "Plasma",
   border = "gray", 
   lwd = 0.5,
   leg_val_rnd = 0,
   leg_pos = "left", 
-  leg_no_data = "缺失",
+  leg_no_data = "NA",
   leg_title = "死亡率\n(每10万人)"
 ) 
 # 指北箭头
@@ -880,9 +838,9 @@ mf_arrow(pos = "topleft")
 # 比例尺
 mf_scale(pos = "bottomleft")
 # 标题
-mf_title(txt = "男性", bg = "#f7f7f7", fg = "black")
+mf_title(txt = "男性", bg = "#f7f7f7", fg = "black", cex = 1)
 # 出处
-mf_credits(txt = "数据源：美国人口调查局", pos = "bottomright")
+mf_credits(txt = "数据源：美国人口调查局", pos = "bottomright", cex = 1)
 
 mf_map(
   x = us_county_cancer, 
@@ -894,13 +852,13 @@ mf_map(
   lwd = 0.5,
   leg_val_rnd = 0,
   leg_pos = "left", 
-  leg_no_data = "缺失",
+  leg_no_data = "NA",
   leg_title = "死亡率\n(每10万人)"
 ) 
 mf_arrow(pos = "topleft")
 mf_scale(pos = "bottomleft")
-mf_title(txt = "女性", bg = "#f7f7f7", fg = "black")
-mf_credits(txt = "数据源：美国人口调查局", pos = "bottomright")
+mf_title(txt = "女性", bg = "#f7f7f7", fg = "black", cex = 1)
+mf_credits(txt = "数据源：美国人口调查局", pos = "bottomright", cex = 1)
 ```
 
 ::: rmdnote
@@ -915,7 +873,7 @@ mf_credits(txt = "数据源：美国人口调查局", pos = "bottomright")
 
 ## 美国北卡州家庭收入中位数与白人占比的空间相关性
 
-数据集来自 2015-2019 年度美国社区调查 American Community Survey，北卡罗来纳州家庭收入中位数和白人居民的百分比，社区普查粒度（大致相当于按乡镇、街道统计），如图\@ref(fig:bivar-us-states)所示，原始数据可从借助 **tidycensus** 包下载美国官方数据。
+除了城镇，还有人口普查单元粒度的地区分布图，以描述更加详细点的空间分布。下面的数据集来自 2015-2019 年度美国社区调查 American Community Survey，北卡罗来纳州家庭收入中位数和白人居民的百分比，社区普查粒度（大致相当于咱们按乡镇、街道统计），如图\@ref(fig:bivar-us-states)所示，原始数据可从借助 **tidycensus** 包下载美国官方数据。
 
 Kyle Walker 开发的[**tidycensus**](https://github.com/walkerke/tidycensus) 包制作了 US Census Bureau 美国人口调查局的数据 API 的 R 接口。读者需要先注册一个访问令牌，保存到 R 环境变量 `CENSUS_API_KEY`，以便后续调用。下面主要介绍 `get_decennial()` 可以获取 10 年一次的人口普查数据。
 
@@ -949,7 +907,9 @@ plot(st_geometry(nc_county_map), border = "white")
 ```
 
 
-![(\#fig:us-nc-income) 美国北卡普查收入](img/us-nc-income.png){.full}
+![(\#fig:us-nc-income) 北卡罗来纳州普查水平下家庭收入中位数的空间分布](img/us-nc-income.png){.full}
+
+
 
 
 ### ggplot2 + sf
@@ -1013,29 +973,49 @@ ggdraw() +
 ```
 
 
-
-
-# 应用案例
-
-
-以 2022-03-05 至 2022-03-11 美国新冠日均感染率（单位十万分之一）为例，如图\@ref(fig:us-covid-cases) 所示，图片截自[纽约时报网站](https://www.nytimes.com/interactive/2021/us/covid-cases.html)。
-
-
-![(\#fig:us-covid-cases) 美国各个城镇新冠感染率，单位十万分之一](img/us-covid-cases.png){.full}
-
+::: rmdtip
+**sf** 包内置的北卡城镇地图数据集 nc.gpkg 坐标参考系为 `EPSG:4267`，而通常使用的 **leaflet** 包和 **mapdeck** 包 需要地图数据集转化到 `EPSG:4326`，其细微差别详见 Hiroaki Yutani 的博客 [@Yutani2018]。而使用国内的 Web 地图服务，要求地图数据转化到火星坐标系。
+:::
 
 # 本文小结
 
 
-- 静态版
-
-[ggspatial](https://github.com/paleolimbot/ggspatial) 补充 ggplot2，并没有解决地图变形的核心问题。
-[tmap](https://github.com/r-tmap/tmap) 类似 [mapsf](https://github.com/riatelab/mapsf)，相比而言，上游依赖很多，相应功能也多，但绘图性能很差。sp 已是上一代产品，现有工具足以替代，不再介绍。
+**ggspatial** [@Dewey2021] 在 ggplot2 的基础上补充了一些地图特有的元素，如比例尺、指北针，但并没有解决地图变形的核心问题。截止当前最新版本，[ggplot2](https://github.com/tidyverse/ggplot2)  在空间数据可视化都是非常不专业的，最糟糕的一个点是它会将地图弄变形了，而空间形状在空间分析领域是至关重要的部分。如果空间分析在不同投影下的结果不同，那么应该采用何种投影呢？可以考虑保角映射，原始的数据在投影下不至于膨胀或变形，尽管尺寸会缩小，共形变换保持了角度以及无穷小物体的形状。保角映射是复变函数中非常重要的概念，空间几何计算需要一些基础的复变函数、微分几何、微分流形、微分拓扑等高等数学知识。
 
 
-- 交互版
 
-leaflet/mapdeck/plotly/echarts4r 等交互式图形包不在本文探讨范围，可另外写一篇介绍数据产品，比如面向网页输出的可重复性文档，沉浸式探索性的数据产品
+关于 ggplot2 和 mapsf tmap 的对比，以及 tidyverse 的评论 Roger Bivand 的[回答](https://stat.ethz.ch/pipermail/r-sig-geo/2022-March/028921.html) 
+
+
+[tmap](https://github.com/r-tmap/tmap) 类似 [mapsf](https://github.com/riatelab/mapsf)，相比而言，上游依赖很多，相应功能也多，但绘图性能很差。**sp** 已是上一代产品，现有工具足以替代，不再介绍，劝大家赶快迁移到 **sf** / **stars** / **terra** 包[@Pebesma2022]。
+
+
+据笔者了解，R 语言社区也有不少 R 包可以绘制交互版的地区分布图，比如 leaflet 包[@leaflet]、mapdeck 包[@mapdeck]、plotly 包[@plotly]和 echarts4r 包[@echarts4r]等。
+
+芝加哥大学空间数据科学中心有一些培训材料，从入门开始讲解，比较系统全面细致，推荐读者看看[@Anselin2019]。
+
+交互式图形包不在本文探讨范围，可另外写一篇介绍数据产品，比如面向网页输出的可重复性文档，沉浸式探索性的数据产品
+
+配色是正文没有细谈的方面，在全书全文保持风格一致即可，若和数据背景相关就更好了。
+
+# 未来展望
+
+专题方向上，还有很多有意思的话题
+
+以 2022-03-05 至 2022-03-11 美国新冠日均感染率（单位十万分之一）为例，如图\@ref(fig:us-covid-cases) 所示，图片截自[纽约时报网站](https://www.nytimes.com/interactive/2021/us/covid-cases.html)。
+
+![(\#fig:us-covid-cases) 美国各个城镇新冠感染率，单位十万分之一](img/us-covid-cases.png){.full}
+
+
+改革开放40多年，最显著的变化就是城市化，大量人口进城，以互联网技术为基础，围绕吃穿住行、教育发展和休闲娱乐，餐饮外卖行业，新零售行业，房地产行业，出行行业，教育培训行业，以及休闲娱乐行业，互联网横向在各行各业渗透，纵向从一二线城市到三四五线城市下沉。大数据、互联网、人工智能等新技术极大地推动智慧城市规划和建设。「以经济建设为中心，一百年不动摇」必将在下一个四十年为城市发展持续注入动力。这就是当今中国社会最大的因，因果推断技术本质是从因推断果，而不是相反。围绕此核心分析总体概况，从时间（趋势）、空间（地域）两个维度，拆解分析人群、行业变化，笔者相信可以据此理解已经发生的、正在发生的和将要发生的一系列事情，而衡量中国城市化进程最直接的结果指标就是中国城镇化率。
+
+
+王江浩、龙瀛城市人口收缩变化 
+2010 年至 2020 年，中国人口结构发生了显著的变化。
+
+数据可视化方面，还有很多展示手段
+
+[Geographical templates for non-contiguous cartograms of the UK.](https://github.com/houseofcommonslibrary/uk-hex-cartograms-noncontiguous)
 
 
 
@@ -1047,8 +1027,8 @@ leaflet/mapdeck/plotly/echarts4r 等交互式图形包不在本文探讨范围�
 xfun::session_info(packages = c(
   "knitr", "rmarkdown", "blogdown",
   "ggplot2", "cowplot", "biscale", 
-  "lattice", "latticeExtra",
-  "maps", "sf", "tidycensus", "tigris"
+  "lattice", "latticeExtra", # "tmap",
+  "maps", "sf", "tidycensus"
 ), dependencies = FALSE)
 ```
 
