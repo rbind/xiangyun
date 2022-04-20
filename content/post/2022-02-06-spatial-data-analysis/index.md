@@ -131,7 +131,7 @@ library(mapedit)   # https://github.com/r-spatial/mapedit
 # 空间点数据处理、分析
 library(sp)
 library(sf)
-# Linking to GEOS 3.9.1, GDAL 3.4.0, PROJ 8.1.1; sf_use_s2() is TRUE
+# Linking to GEOS 3.10.2, GDAL 3.4.2, PROJ 8.2.1; sf_use_s2() is TRUE
 library(gstat)
 library(lattice)
 library(mapsf)
@@ -240,7 +240,7 @@ magick dark_cloud.HEIC -resize 10% dark_cloud.tif
 
 ``` r
 library(stars)
-dark_cloud <- stars::read_stars("../../static/img/maps-in-r/dark-cloud.tif")
+dark_cloud <- stars::read_stars("img/dark-cloud.tif")
 plot(dark_cloud)
 # 调用 ggplot2 绘图
 library(ggplot2)
@@ -343,7 +343,8 @@ Boston
 -   中国国家、省、市、县统计年鉴数据
 -   日本
 -   美国人口普查数据
-    [Analyzing US Census Data: Methods, Maps, and Models in R](https://walker-data.com/census-r/mapping-census-data-with-r.html)
+
+[Analyzing US Census Data: Methods, Maps, and Models in R](https://walker-data.com/census-r/mapping-census-data-with-r.html)
 
 [tigris](https://github.com/walkerke/tigris)
 [tidycensus](https://github.com/walkerke/tidycensus)
@@ -371,7 +372,7 @@ shiny 沉浸式探索性分析
 ``` r
 xfun::session_info(packages = c(
   "knitr", "rmarkdown", "blogdown",
-  "sp", "gstat", "lattice"
+  "sp", "gstat", "lattice", "tidycensus"
 ), dependencies = FALSE)
 # R version 4.1.3 (2022-03-10)
 # Platform: x86_64-apple-darwin17.0 (64-bit)
@@ -380,8 +381,8 @@ xfun::session_info(packages = c(
 # Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
 # 
 # Package version:
-#   blogdown_1.8    gstat_2.0-9     knitr_1.37      lattice_0.20-45 rmarkdown_2.13 
-#   sp_1.4-6       
+#   blogdown_1.9    gstat_2.0-9     knitr_1.38      lattice_0.20-45 rmarkdown_2.13 
+#   sp_1.4-6        tidycensus_1.2 
 # 
 # Pandoc version: 2.17.1.1
 # 

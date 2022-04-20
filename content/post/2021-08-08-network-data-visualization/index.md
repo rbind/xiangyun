@@ -164,7 +164,7 @@ div.img {
 | **qgraph** ([Epskamp et al. 2022](#ref-qgraph))                                               | Graph Plotting Methods, Psychometric Data Visualization and Graphical Model Estimation | Sacha Epskamp       | GPL-2                |
 | **igraph** ([file. 2022](#ref-igraph))                                                        | Network Analysis and Visualization                                                     | Tamás Nepusz        | GPL (\>= 2)          |
 | **ggraph** ([Pedersen 2021](#ref-ggraph))                                                     | An Implementation of Grammar of Graphics for Graphs and Networks                       | Thomas Lin Pedersen | MIT + file LICENSE   |
-| **tidygraph** ([Pedersen 2020](#ref-tidygraph))                                               | A Tidy API for Graph Manipulation                                                      | Thomas Lin Pedersen | MIT + file LICENSE   |
+| **tidygraph** ([Pedersen 2022](#ref-tidygraph))                                               | A Tidy API for Graph Manipulation                                                      | Thomas Lin Pedersen | MIT + file LICENSE   |
 | **node2vec** ([Tian, Li, and Ren 2021](#ref-node2vec))                                        | Algorithmic Framework for Representational Learning on Graphs                          | Yang Tian           | GPL (\>= 3)          |
 
 表 1: 网络分析的 R 包（排名不分先后）
@@ -241,22 +241,7 @@ renderGraph(gl)
 4个节点，给定邻接矩阵，即可画出关系图
 
 ``` r
-library(graph)
-# Loading required package: BiocGenerics
-# 
-# Attaching package: 'BiocGenerics'
-# The following objects are masked from 'package:stats':
-# 
-#     IQR, mad, sd, var, xtabs
-# The following objects are masked from 'package:base':
-# 
-#     anyDuplicated, append, as.data.frame, basename, cbind,
-#     colnames, dirname, do.call, duplicated, eval, evalq,
-#     Filter, Find, get, grep, grepl, intersect, is.unsorted,
-#     lapply, Map, mapply, match, mget, order, paste, pmax,
-#     pmax.int, pmin, pmin.int, Position, rank, rbind, Reduce,
-#     rownames, sapply, setdiff, sort, table, tapply, union,
-#     unique, unsplit, which.max, which.min
+# library(graph)
 mat <- matrix(c(
   0, 0, 1, 1,
   0, 0, 1, 1,
@@ -269,8 +254,8 @@ dimnames = list(letters[1:4], letters[1:4])
 ```
 
 ``` r
-g1 <- graphAM(adjMat = mat)
-plot(g1)
+g1 <- graph::graphAM(adjMat = mat)
+graph::plot(g1)
 ```
 
 <figure>
@@ -284,17 +269,17 @@ plot(g1)
 set.seed(123)
 V <- letters[1:10] # 图的顶点
 M <- 1:4  # 选择生成图的
-g2 <- randomGraph(V, M, p = 0.2)
-numEdges(g2)  # 边的个数
+g2 <- graph::randomGraph(V, M, p = 0.2)
+graph::numEdges(g2)  # 边的个数
 # [1] 16
-edgeNames(g2) # 边的名字，无向图顶点之间用 ~ 连接
+graph::edgeNames(g2) # 边的名字，无向图顶点之间用 ~ 连接
 #  [1] "a~b" "a~d" "a~e" "a~f" "a~h" "b~f" "b~d" "b~e" "b~h" "c~h"
 # [11] "d~e" "d~f" "d~h" "e~f" "e~h" "f~h"
 g2
 # A graphNEL graph with undirected edges
 # Number of Nodes = 10 
 # Number of Edges = 16
-edges(g2) # 边
+graph::edges(g2) # 边
 # $a
 # [1] "b" "d" "e" "f" "h"
 # 
@@ -324,7 +309,7 @@ edges(g2) # 边
 # 
 # $j
 # character(0)
-edgeWeights(g2) # 边的权重
+graph::edgeWeights(g2) # 边的权重
 # $a
 # b d e f h 
 # 1 1 1 1 1 
@@ -368,7 +353,7 @@ p 表示从集合 M 中选出一个元素的概率。随机图的构造方法如
 从 M 中以概率 p 选出一个元素，比如 1 （或者没有选），然后将 1 随机地指给 V 中的一个顶点 a，重复这个过程 4 次（次数取决于 M 中元素的个数）完成对一个顶点的随机指定，此时，顶点 a 对应一个长度为 4 的逻辑向量，有值的位置记为 TRUE，反之记为 FALSE，对其他顶点操作类似，这样就可以得到一个 10 \* 4 的矩阵。如果某一列有两个顶点共有一个元素，比如 1， 则这两个顶点有边连接，反之则无。如果两个顶点共用2和3两个元素，则连接两个顶点的边的权重为 2。可见，V 和 M 的数量，以及 p 的值决定图的稠密程度。
 
 ``` r
-plot(g2)
+graph::plot(g2)
 ```
 
 <figure>
@@ -379,7 +364,7 @@ plot(g2)
 换个布局
 
 ``` r
-plot(g2, "neato")
+graph::plot(g2, "neato")
 ```
 
 <figure>
@@ -388,7 +373,7 @@ plot(g2, "neato")
 </figure>
 
 ``` r
-plot(g2, "twopi")
+graph::plot(g2, "twopi")
 ```
 
 <figure>
@@ -436,20 +421,20 @@ knitr::kable(head(license_pdb_aggr, 15),
 
 | R 包协议                     | R 包数量 |
 |:-----------------------------|---------:|
-| GPL (\>= 2)                  |     4450 |
-| GPL-3                        |     4290 |
-| MIT + file LICENSE           |     3264 |
-| GPL-2                        |     2641 |
-| GPL (\>= 3)                  |     1084 |
-| GPL                          |      522 |
-| GPL-2 \| GPL-3               |      342 |
-| CC0                          |      200 |
-| GPL-3 \| file LICENSE        |      163 |
-| LGPL-3                       |      155 |
-| BSD_3\_clause + file LICENSE |      131 |
-| AGPL-3                       |      119 |
-| Artistic-2.0                 |      113 |
-| BSD_2\_clause + file LICENSE |      111 |
+| GPL (\>= 2)                  |     4398 |
+| GPL-3                        |     4301 |
+| MIT + file LICENSE           |     3345 |
+| GPL-2                        |     2592 |
+| GPL (\>= 3)                  |     1126 |
+| GPL                          |      502 |
+| GPL-2 \| GPL-3               |      334 |
+| CC0                          |      201 |
+| GPL-3 \| file LICENSE        |      161 |
+| LGPL-3                       |      156 |
+| BSD_3\_clause + file LICENSE |      134 |
+| AGPL-3                       |      123 |
+| BSD_2\_clause + file LICENSE |      112 |
+| Artistic-2.0                 |      111 |
 | GPL (\>= 2.0)                |      106 |
 
 表 2: CRAN 上受开发者欢迎的 R 包发布协议（Top 15）
@@ -472,8 +457,8 @@ db[grepl(x = db, pattern = "^Name:")]
 ``` r
 subset(pdb, subset = Published == min(Published), 
        select = c("Package", "Title", "Published"))
-#        Package                          Title  Published
-# 2904 coxrobust Robust Estimation in Cox Model 2006-03-15
+#       Package                              Title  Published
+# 11525    pack Convert values to/from raw vectors 2008-09-08
 ```
 
 18000 多个 R 包，距离上次更新的时间间隔分布
@@ -485,8 +470,8 @@ diff_date_pdb <- subset(pdb, select = c("Package", "Published")) |>
 
 ``` r
 quantile(diff_date_pdb$diff_date)
-#     0%    25%    50%    75%   100% 
-#    0.0  180.5  547.0 1338.0 5825.0
+#   0%  25%  50%  75% 100% 
+#    0  182  545 1308 4972
 ```
 
 半年时间更新 25% 的 R 包，一年半时间更新 50% 的 R 包，三年半时间也只更新 75% 的 R 包。
@@ -594,7 +579,7 @@ maintainer_db <- subset(
   transform(Maintainer = tolower(Maintainer))
 
 length(unique(maintainer_db$Maintainer))
-# [1] 10201
+# [1] 10178
 ```
 
 ### Top 组织
@@ -642,21 +627,21 @@ knitr::kable(list(tmp1, tmp2),
 
 | 邮箱后缀       | R 包数量 |
 |:---------------|---------:|
-| gmail.com      |     6781 |
-| rstudio.com    |      205 |
-| hotmail.com    |      176 |
-| outlook.com    |      141 |
-| R-project.org  |      105 |
+| gmail.com      |     6791 |
+| rstudio.com    |      207 |
+| hotmail.com    |      180 |
+| outlook.com    |      143 |
+| R-project.org  |      107 |
+| 163.com        |       91 |
+| umich.edu      |       86 |
 | uw.edu         |       86 |
-| umich.edu      |       85 |
-| 163.com        |       82 |
 | berkeley.edu   |       82 |
-| umn.edu        |       78 |
-| yahoo.com      |       76 |
-| debian.org     |       66 |
-| protonmail.com |       61 |
+| umn.edu        |       79 |
+| yahoo.com      |       74 |
+| debian.org     |       67 |
+| protonmail.com |       64 |
 | stanford.edu   |       60 |
-| gmx.de         |       59 |
+| gmx.de         |       57 |
 
 </td>
 <td>
@@ -664,20 +649,20 @@ knitr::kable(list(tmp1, tmp2),
 | 邮箱后缀          | R 包数量 |
 |:------------------|---------:|
 | ncsu.edu          |       57 |
-| stat.math.ethz.ch |       57 |
-| wisc.edu          |       55 |
-| auckland.ac.nz    |       54 |
+| auckland.ac.nz    |       56 |
+| stat.math.ethz.ch |       56 |
+| wisc.edu          |       54 |
+| googlemail.com    |       52 |
 | r-project.org     |       51 |
-| googlemail.com    |       50 |
 | duke.edu          |       46 |
 | uwaterloo.ca      |       46 |
+| ucl.ac.uk         |       45 |
 | mailbox.org       |       44 |
-| ucl.ac.uk         |       44 |
 | columbia.edu      |       42 |
-| outlook.fr        |       40 |
+| outlook.fr        |       42 |
 | yale.edu          |       40 |
 | inrae.fr          |       38 |
-| uiowa.edu         |       37 |
+| uiowa.edu         |       38 |
 
 </td>
 </tr>
@@ -712,44 +697,44 @@ knitr::kable(list(tmp1, tmp2),
 <tr>
 <td>
 
-| 邮箱后缀     | R 包数量 |
-|:-------------|---------:|
-| uw.edu       |       86 |
-| umich.edu    |       85 |
-| berkeley.edu |       82 |
-| umn.edu      |       78 |
-| stanford.edu |       60 |
-| ncsu.edu     |       57 |
-| wisc.edu     |       55 |
-| duke.edu     |       46 |
-| columbia.edu |       42 |
-| yale.edu     |       40 |
-| uiowa.edu    |       37 |
-| ucdavis.edu  |       35 |
-| illinois.edu |       33 |
-| cornell.edu  |       31 |
-| monash.edu   |       31 |
+| 邮箱后缀          | R 包数量 |
+|:------------------|---------:|
+| umich.edu         |       86 |
+| uw.edu            |       86 |
+| berkeley.edu      |       82 |
+| umn.edu           |       79 |
+| stanford.edu      |       60 |
+| ncsu.edu          |       57 |
+| wisc.edu          |       54 |
+| duke.edu          |       46 |
+| columbia.edu      |       42 |
+| yale.edu          |       40 |
+| uiowa.edu         |       38 |
+| illinois.edu      |       34 |
+| ucdavis.edu       |       34 |
+| cornell.edu       |       31 |
+| wharton.upenn.edu |       31 |
 
 </td>
 <td>
 
-| 邮箱后缀          | R 包数量 |
-|:------------------|---------:|
-| fas.harvard.edu   |       30 |
-| mayo.edu          |       29 |
-| nd.edu            |       29 |
-| wharton.upenn.edu |       29 |
-| psu.edu           |       28 |
-| unc.edu           |       26 |
-| usc.edu           |       24 |
-| vanderbilt.edu    |       23 |
-| vt.edu            |       23 |
-| msu.edu           |       22 |
-| ucla.edu          |       22 |
-| jhu.edu           |       20 |
-| osu.edu           |       20 |
-| iastate.edu       |       19 |
-| stat.umn.edu      |       19 |
+| 邮箱后缀        | R 包数量 |
+|:----------------|---------:|
+| fas.harvard.edu |       30 |
+| mayo.edu        |       29 |
+| monash.edu      |       29 |
+| nd.edu          |       28 |
+| psu.edu         |       26 |
+| unc.edu         |       26 |
+| usc.edu         |       25 |
+| vt.edu          |       25 |
+| msu.edu         |       23 |
+| ucla.edu        |       23 |
+| osu.edu         |       22 |
+| vanderbilt.edu  |       21 |
+| iastate.edu     |       20 |
+| jhu.edu         |       20 |
+| ucsd.edu        |       20 |
 
 </td>
 </tr>
@@ -762,7 +747,7 @@ knitr::kable(list(tmp1, tmp2),
 
 ``` r
 sum(edu_email$Package)
-# [1] 2837
+# [1] 2828
 ```
 
 一般人我都不告诉他，勾搭 NB 院校老师的机会来了，我们先来看看斯坦佛大学（stanford.edu）的哪些老师贡献了哪些 R 包。
@@ -908,40 +893,40 @@ knitr::kable(list(tmp1, tmp2),
 
 | 开发者             | R 包数量 |
 |:-------------------|---------:|
-| Dirk Eddelbuettel  |       66 |
+| Dirk Eddelbuettel  |       67 |
 | Gábor Csárdi       |       57 |
-| Scott Chamberlain  |       51 |
 | Hadley Wickham     |       48 |
-| Jeroen Ooms        |       46 |
-| Stéphane Laurent   |       38 |
+| Scott Chamberlain  |       48 |
+| Jeroen Ooms        |       47 |
+| Stéphane Laurent   |       40 |
 | Robin K. S. Hankin |       33 |
 | Henrik Bengtsson   |       31 |
-| Kartikeya Bolar    |       31 |
+| Kartikeya Bolar    |       29 |
 | Kurt Hornik        |       28 |
 | Jan Wijffels       |       27 |
-| John Muschelli     |       27 |
 | Bob Rudis          |       26 |
 | Kirill Müller      |       26 |
-| Martin Maechler    |       26 |
+| Torsten Hothorn    |       26 |
+| Martin Maechler    |       25 |
 
 </td>
 <td>
 
 | 开发者               | R 包数量 |
 |:---------------------|---------:|
-| Torsten Hothorn      |       26 |
 | Muhammad Yaseen      |       25 |
+| Achim Zeileis        |       24 |
 | Richard Cotton       |       24 |
-| Achim Zeileis        |       23 |
+| Guangchuang Yu       |       22 |
 | Max Kuhn             |       22 |
 | Yihui Xie            |       22 |
 | Florian Schwendinger |       21 |
-| Guangchuang Yu       |       21 |
+| John Muschelli       |       21 |
 | Kevin R. Coombes     |       21 |
 | Michael D. Sumner    |       21 |
+| Paul Gilbert         |       21 |
 | Carl Boettiger       |       20 |
 | Joe Thorley          |       20 |
-| Paul Gilbert         |       20 |
 | Thomas Lin Pedersen  |       20 |
 | Hana Sevcikova       |       19 |
 
@@ -1067,9 +1052,9 @@ knitr::kable(list(tmp1, tmp2),
 |:-------------------|---------:|
 | Kurt Hornik        |       28 |
 | Simon Urbanek      |       27 |
-| Martin Maechler    |       26 |
 | Torsten Hothorn    |       26 |
-| Achim Zeileis      |       23 |
+| Martin Maechler    |       25 |
+| Achim Zeileis      |       24 |
 | Paul Murrell       |       19 |
 | Toby Dylan Hocking |       16 |
 | Brian Ripley       |       12 |
@@ -1090,10 +1075,10 @@ knitr::kable(list(tmp1, tmp2),
 | Stefano M. Iacus |        5 |
 | John Chambers    |        4 |
 | Michael Lawrence |        4 |
+| Bettina Grün     |        3 |
 | Douglas Bates    |        3 |
 | Simon Wood       |        3 |
 | Bettina Gruen    |        2 |
-| Bettina Grün     |        2 |
 | Deepayan Sarkar  |        2 |
 | Martyn Plummer   |        2 |
 | Peter Dalgaard   |        1 |
@@ -1290,11 +1275,11 @@ knitr::kable(list(tmp1, tmp2),
 |:--------------------|---------:|
 | Hadley Wickham      |       48 |
 | Max Kuhn            |       22 |
+| Davis Vaughan       |       15 |
 | Lionel Henry        |       15 |
-| Davis Vaughan       |       14 |
-| Jennifer Bryan      |       14 |
-| Winston Chang       |       14 |
-| Daniel Falbel       |       12 |
+| Winston Chang       |       15 |
+| Daniel Falbel       |       13 |
+| Jennifer Bryan      |       13 |
 | Carson Sievert      |        8 |
 | Barret Schloerke    |        6 |
 | Thomas Lin Pedersen |        6 |
@@ -1456,35 +1441,36 @@ xfun::session_info(packages = c(
   "knitr", "rmarkdown", "blogdown",
   "data.table", "node2vec"
 ))
-# R version 4.1.2 (2021-11-01)
+# R version 4.1.3 (2022-03-10)
 # Platform: x86_64-apple-darwin17.0 (64-bit)
-# Running under: macOS Big Sur 10.16
+# Running under: macOS Big Sur/Monterey 10.16
 # 
 # Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
 # 
 # Package version:
-#   base64enc_0.1.3    blogdown_1.8       bookdown_0.24     
-#   cli_3.2.0          cluster_2.1.2      crayon_1.5.0      
-#   data.table_1.14.2  digest_0.6.29      dplyr_1.0.8       
-#   ellipsis_0.3.2     evaluate_0.15      fansi_1.0.2       
-#   fastmap_1.1.0      generics_0.1.2     glue_1.6.2        
-#   graphics_4.1.2     grDevices_4.1.2    grid_4.1.2        
-#   highr_0.9          htmltools_0.5.2    httpuv_1.6.5      
-#   igraph_1.2.11      jquerylib_0.1.4    jsonlite_1.8.0    
-#   knitr_1.37         later_1.3.0        lattice_0.20.45   
-#   lifecycle_1.0.1    magrittr_2.0.2     MASS_7.3.55       
-#   Matrix_1.4.0       methods_4.1.2      mgcv_1.8.38       
-#   mime_0.12          nlme_3.1.155       node2vec_0.1.0    
-#   permute_0.9.7      pillar_1.7.0       pkgconfig_2.0.3   
-#   promises_1.2.0.1   purrr_0.3.4        R6_2.5.1          
-#   Rcpp_1.0.8         RcppProgress_0.4.2 rlang_1.0.1       
-#   rlist_0.4.6.2      rmarkdown_2.11     servr_0.24        
-#   splines_4.1.2      stats_4.1.2        stringi_1.7.6     
-#   stringr_1.4.0      tibble_3.1.6       tidyselect_1.1.2  
-#   tinytex_0.37       tools_4.1.2        utf8_1.2.2        
-#   utils_4.1.2        vctrs_0.3.8        vegan_2.5.7       
-#   word2vec_0.3.4     xfun_0.29          XML_3.99.0.9      
-#   yaml_2.3.5        
+#   base64enc_0.1.3    blogdown_1.9       bookdown_0.26     
+#   bslib_0.3.1        cli_3.2.0          cluster_2.1.3     
+#   crayon_1.5.1       data.table_1.14.2  digest_0.6.29     
+#   dplyr_1.0.8        ellipsis_0.3.2     evaluate_0.15     
+#   fansi_1.0.3        fastmap_1.1.0      fs_1.5.2          
+#   generics_0.1.2     glue_1.6.2         graphics_4.1.3    
+#   grDevices_4.1.3    grid_4.1.3         highr_0.9         
+#   htmltools_0.5.2    httpuv_1.6.5       igraph_1.3.0      
+#   jquerylib_0.1.4    jsonlite_1.8.0     knitr_1.38        
+#   later_1.3.0        lattice_0.20.45    lifecycle_1.0.1   
+#   magrittr_2.0.3     MASS_7.3.56        Matrix_1.4.1      
+#   methods_4.1.3      mgcv_1.8.40        mime_0.12         
+#   nlme_3.1.157       node2vec_0.1.0     permute_0.9.7     
+#   pillar_1.7.0       pkgconfig_2.0.3    promises_1.2.0.1  
+#   purrr_0.3.4        R6_2.5.1           rappdirs_0.3.3    
+#   Rcpp_1.0.8.3       RcppProgress_0.4.2 rlang_1.0.2       
+#   rlist_0.4.6.2      rmarkdown_2.13     sass_0.4.1        
+#   servr_0.24         splines_4.1.3      stats_4.1.3       
+#   stringi_1.7.6      stringr_1.4.0      tibble_3.1.6      
+#   tidyselect_1.1.2   tinytex_0.38       tools_4.1.3       
+#   utf8_1.2.2         utils_4.1.3        vctrs_0.4.1       
+#   vegan_2.5.7        word2vec_0.3.4     xfun_0.30         
+#   XML_3.99.0.9       yaml_2.3.5        
 # 
 # Pandoc version: 2.17.1.1
 # 
@@ -1645,15 +1631,15 @@ Mohammadi, Reza, and Ernst C. Wit. 2019. “BDgraph: An R Package for Bayesian S
 
 </div>
 
-<div id="ref-tidygraph" class="csl-entry">
+<div id="ref-ggraph" class="csl-entry">
 
-Pedersen, Thomas Lin. 2020. *Tidygraph: A Tidy API for Graph Manipulation*. <https://CRAN.R-project.org/package=tidygraph>.
+Pedersen, Thomas Lin. 2021. *Ggraph: An Implementation of Grammar of Graphics for Graphs and Networks*. <https://CRAN.R-project.org/package=ggraph>.
 
 </div>
 
-<div id="ref-ggraph" class="csl-entry">
+<div id="ref-tidygraph" class="csl-entry">
 
-———. 2021. *Ggraph: An Implementation of Grammar of Graphics for Graphs and Networks*. <https://CRAN.R-project.org/package=ggraph>.
+———. 2022. *Tidygraph: A Tidy API for Graph Manipulation*. <https://CRAN.R-project.org/package=tidygraph>.
 
 </div>
 

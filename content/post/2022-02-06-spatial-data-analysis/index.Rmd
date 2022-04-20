@@ -255,7 +255,7 @@ magick dark_cloud.HEIC -resize 10% dark_cloud.tif
 
 ```{r,eval=FALSE}
 library(stars)
-dark_cloud <- stars::read_stars("../../static/img/maps-in-r/dark-cloud.tif")
+dark_cloud <- stars::read_stars("img/dark-cloud.tif")
 plot(dark_cloud)
 # 调用 ggplot2 绘图
 library(ggplot2)
@@ -352,6 +352,8 @@ Boston
 - 中国国家、省、市、县统计年鉴数据
 - 日本
 - 美国人口普查数据
+
+
 [Analyzing US Census Data: Methods, Maps, and Models in R](https://walker-data.com/census-r/mapping-census-data-with-r.html)
 
 [tigris](https://github.com/walkerke/tigris)
@@ -387,7 +389,7 @@ shiny 沉浸式探索性分析
 ```{r}
 xfun::session_info(packages = c(
   "knitr", "rmarkdown", "blogdown",
-  "sp", "gstat", "lattice"
+  "sp", "gstat", "lattice", "tidycensus"
 ), dependencies = FALSE)
 ```
 
