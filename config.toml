@@ -23,6 +23,14 @@ paginate = 9
     url = "/about/"
     weight = 4
 
+[params]
+    description = "A website built through Hugo and blogdown."
+
+    highlightjsVersion = "9.12.0"
+    highlightjsCDN = "//cdnjs.cloudflare.com/ajax/libs"
+    highlightjsLang = ["r", "yaml"]
+    highlightjsTheme = "github"
+
 [markup]
     [markup.goldmark.renderer]
       unsafe = true
