@@ -2,7 +2,7 @@
 
 ---
 
-这是我个人网站 <https://xiangyun.rbind.io> 的源文件，想在本地预览，请先把仓库克隆下来
+这是个人网站 <https://xiangyun.rbind.io> 的源文件，在本地预览，请先把仓库克隆下来
 
 ```bash
 gh repo clone rbind/xiangyun
