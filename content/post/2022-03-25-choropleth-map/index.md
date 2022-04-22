@@ -109,7 +109,7 @@ div.img {
 
 接下来，本文分四个部分展开介绍专题地图，分别是单变量情形、多变量情形、本文小结和未来展望。
 
-单变量情形中以 **latticeExtra** 包([Sarkar and Andrews 2019](#ref-latticeExtra))内置的数据集 USCancerRates 为例，以专题地图形式展示美国 1999-2003 年度各城镇的年平均癌症死亡率，此处专题的含义是「人口死亡率」，显而易见，癌症死亡率只是一方面，还有婴儿死亡率等，癌症可以分类型，如乳腺癌、子宫癌等，人又可以分性别、年龄、种族等等。在数据操作、指标计算和分面绘图等方面介绍从零开始绘制专题地图的过程，介绍涉及的基础数据操作，比较六个绘图工具 **maps** 包([Becker and Wilks 1993](#ref-Becker1993))、**latticeExtra** 包([Sarkar and Andrews 2019](#ref-latticeExtra))、**ggplot2** 包([Wickham and Girlich 2022](#ref-Wickham2022))、**tmap** 包([Tennekes 2018](#ref-Tennekes2018))、**sf** 包([E. J. Pebesma 2018](#ref-Pebesma2018))和 **mapsf** 包([Giraud 2022](#ref-mapsf2022))，阐述数据指标「年平均癌症死亡率」的实际含义、指标口径和计算过程，从易到难，层层深入，以期达到出版级的水准，探索出最佳实践。
+单变量情形中以 **latticeExtra** 包([Sarkar and Andrews 2019](#ref-latticeExtra))内置的数据集 USCancerRates 为例，以专题地图形式展示美国 1999-2003 年度各城镇的年平均癌症死亡率，此处专题的含义是「人口死亡率」，显而易见，癌症死亡率只是一方面，还有婴儿死亡率等，癌症可以分类型，如乳腺癌、子宫癌等，人又可以分性别、年龄、种族等等。在数据操作、指标计算和分面绘图等方面从零开始介绍绘制专题地图的过程，涉及的基础数据操作以及六个绘图工具 **maps** 包([Becker and Wilks 1993](#ref-Becker1993))、**latticeExtra** 包([Sarkar and Andrews 2019](#ref-latticeExtra))、**ggplot2** 包([Wickham and Girlich 2022](#ref-Wickham2022))、**tmap** 包([Tennekes 2018](#ref-Tennekes2018))、**sf** 包([E. J. Pebesma 2018](#ref-Pebesma2018))和 **mapsf** 包([Giraud 2022](#ref-mapsf2022))，阐述数据指标「年平均癌症死亡率」的实际含义、指标口径和计算过程，从易到难，层层深入，以期达到出版级的水准，探索出最佳实践。
 
 多变量情形中以美国人口统计局发布的调查数据为基础，分析北卡罗来纳州各区县普查粒度的家庭收入中位数与白人占比的空间相关性。先分别以单变量的专题地图描述各个普查区域里家庭收入中位数、白人占比的空间分布，接着和二元变量的专题地图形成对比，展示相关性的空间分布。
 
@@ -123,11 +123,11 @@ div.img {
 -   **lattice** 在 **grid** 图形系统的基础上构建了一套易于使用的高级数据可视化函数，同时支持复杂的非标准的自定义绘图需求。《lattice: Multivariate Data Visualization with R》([Sarkar 2008](#ref-Sarkar2008)) 详细全面地阐述了一元到多元数据的可视化方法，各个函数的使用细节，可做帮助手册。
 -   **ggplot2** 在 **grid** 图形系统的基础上实现了一套图形语法([Wilkinson 2005](#ref-Wilkinson2005))，笔者认为最重要的概念是图层，涵盖几何、统计、颜色、刻度、图例等，要点是将绘图的过程拆分成一个个图层，建立起数据到图层的映射。《ggplot2: Elegant Graphics for Data Analysis》([Wickham and Girlich 2022](#ref-Wickham2022)) 已经出到第三版了，是从入门到进阶全面介绍 **ggplot2** 的著作。
 
-在掌握基础的一些工具后，培养审美能力最重要方式就是多看，就好比鉴赏书画古董，只要围绕身边的都是精品，再看次品一眼就能认出来。接着，从入门到进阶就需要打磨细节，笔者推荐著作《Data Visualisation with R: 111 Examples》([Rahlf 2019](#ref-Rahlf2019))。
+在掌握基础的一些工具后，培养审美能力最重要方式就是多看，就好比鉴赏书画古董，只要围绕身边的都是精品，再看次品一眼就能认出来。接着，从入门到进阶就需要打磨细节，推荐著作《Data Visualisation with R: 111 Examples》([Rahlf 2019](#ref-Rahlf2019))。
 
 ## 美国各城镇的年平均癌症死亡率分布
 
-接下来，以 [**latticeExtra** 包](https://latticeextra.r-forge.r-project.org/)内置的 USCancerRates 数据集为例介绍分面，同时展示多个观测指标的空间分布。USCancerRates 数据集来自美国[美国国家癌症研究所](https://statecancerprofiles.cancer.gov/)（National Cancer Institute，简称 NCI）。根据1999-2003年的5年数据，分男女统计癌症年平均死亡率（单位十万分之一），这其中的癌症数是所有癌症种类之和。癌症死亡率根据2000年美国[标准人口年龄分组](https://seer.cancer.gov/stdpopulations/stdpop.19ages.html)调整，分母人口数量由 NCI 根据普查的人口数调整，即将各年各个年龄段的普查人口数按照 2000 年的**美国标准人口年龄分组**换算。下面对此数据指标的调整过程略加说明，这里面其实隐含很多的道理。
+接下来，以 [**latticeExtra** 包](https://latticeextra.r-forge.r-project.org/)内置的 USCancerRates 数据集为例介绍分面，同时展示多个观测指标的空间分布。USCancerRates 数据集来自美国[美国国家癌症研究所](https://statecancerprofiles.cancer.gov/)（National Cancer Institute，简称 NCI）。根据1999-2003年的5年数据，分男女统计癌症年平均死亡率（单位十万分之一），这其中的癌症数是所有癌症种类之和。癌症死亡率根据2000年美国[标准人口年龄分组](https://seer.cancer.gov/stdpopulations/stdpop.19ages.html)调整，分母人口数量由 NCI 根据普查的人口数调整，即将各年各个年龄段的普查人口数按照 2000 年的**美国标准人口年龄分组**换算。因**latticeExtra** 包没有提供数据集的加工过程，笔者结合 NCI 网站信息，对此数据指标的调整过程略加说明，这里面其实隐含很多的道理。
 
 人口数每年都会变的，为使各年数据指标可比，人口划分就保持一致，表<a href="#tab:us-std-pop">1</a> 展示 1940-2000 年各个年龄段（共19个年龄组）的标准人口数，各个年龄段的普查人口数换算成年龄调整的标准人口数，换算公式为：
 
@@ -168,13 +168,13 @@ $$
 
 表<a href="#tab:us-std-pop">1</a>不难看出美国 60 年来的人口结构变化。纵观过去，美国是没有老龄化现象的，惊不惊讶，意不意外！笔者初看有点意外，想了会儿又觉得是情理之中。有些基本问题无论从前还是未来，无论发达国家还是发展中国家，都要给出自己的解法。笔者不准备讨论与国家政策相关的敏感话题，仅推荐一本正儿八经的人物传记[^1]—现代统计学家《Neyman》([Reid 1982](#ref-Reid1982))，有相应中译版《耐曼》([Reid 1985](#ref-Yao1985))，里面给出了一些线索。
 
-年龄调整的比率（Age-adjusted Rates）的定义详见[网站](https://seer.cancer.gov/seerstat/tutorials/aarates/definition.html)，它是一个对年龄调整的加权平均数，权重根据年龄段人口在标准人口中的比例来定，一个包含年龄 `\(x\)` 到年龄 `\(y\)` 的分组，其年龄调整的比率计算公式如下：
+年龄调整的比率（Age-adjusted Rates）的定义详见[网站](https://seer.cancer.gov/seerstat/tutorials/aarates/definition.html)，它是一个根据年龄调整的加权平均数，权重根据年龄段人口在标准人口中的比例来定，一个包含年龄 `\(x\)` 到年龄 `\(y\)` 的分组，其年龄调整的比率计算公式如下：
 
 $$
 aarate_{x-y} = \sum_{i=x}^{y}\Big[ \big( \frac{count_i}{pop_i} \big)  \times \big( \frac{stdmil_i}{\sum_{j=x}^{y} stdmil_j} \big) \times 100000 \Big]
 $$
 
-一个具体的例子可见[网站](https://seer.cancer.gov/seerstat/tutorials/aarates/step3.html)，篇幅所限，此处仅以2000年举例，年龄段 00 years 死亡人数 **29**，总人数 **139879**，则年龄调整的死亡率：
+一个具体的例子可见[网站](https://seer.cancer.gov/seerstat/tutorials/aarates/step3.html)，篇幅所限，此处仅以2000年举例，一个年龄段 00 years 死亡人数 **29**（可看作婴儿死亡人数），总人数 **139879**，则年龄调整的死亡率：
 
 $$
 aarate_{0-0} = \frac{29}{139879}*\frac{3794901}{274633642}*100000 = 0.2864
@@ -244,7 +244,7 @@ $$
 
 ### maps
 
-**maps** 包内置的美国城镇地图数据欠缺一部分，导致数据集 USCancerRates 有部分数据没法绘制在地图上，主要是阿拉斯加、夏威夷和其它少量地方，此外，USCancerRates 没有夏威夷、波多黎各各个城镇的数据，阿拉斯加的部分城镇有数据，结合图<a href="#fig:us-cancer-rates-lattice">3</a>，不少城镇没有收集到癌症死亡率数据，以空白表示。只需传给参数 `colramp` 一个生成颜色值向量的函数即可更改调色板，比如 R 内置的 `hcl.colors()` 或 `terrain.colors()` 等，为保持全文配色风格一致，图中配色采用 **viridisLite** 包提供的 plasma 调色板。 **lattice** 包提供非常简便的绘图公式语法，**latticeExtra** 也很好地继承了这一特性，`rownames(USCancerRates) ~ rate.female + rate.male`。`rownames(USCancerRates)` 表示的城镇名称和地图数据 `us_county` 里的城镇名称 names 是可以映射上的。值得一提的是，关于死亡率分级，不同的分法会带给人不同的印象甚至是错觉，此处是可以有操作空间的，特定的死亡率分割方式可以让男女死亡率的空间分布**看起来**差异不大或很大([Kolak et al. 2020](#ref-Kolak2020))，推荐 Marynia Kolak 和 Susan Paykin 在 2021 R/Medicine 大会上的材料，包括 [视频](https://youtu.be/-HvRISFkQZQ)和[网页](https://makosak.github.io/Intro2RSpatialMed/02-choropleth.html)。
+**maps** 包内置的美国城镇地图数据欠缺一部分，导致数据集 USCancerRates 有部分数据没法绘制在地图上，主要是阿拉斯加、夏威夷和其它少量地方，此外，USCancerRates 没有夏威夷、波多黎各各个城镇的数据，阿拉斯加的部分城镇有数据，结合图<a href="#fig:us-cancer-rates-lattice">3</a>，不少城镇没有收集到癌症死亡率数据，以空白表示。只需传给参数 `colramp` 一个生成颜色值向量的函数即可更改调色板，比如 R 内置的 `hcl.colors()` 或 `terrain.colors()` 等，为保持全文配色风格一致，图中配色采用 **viridisLite** 包提供的 plasma 调色板。值得一提的是，关于死亡率分级，不同的分法会带给人不同的印象甚至是错觉，此处是可以有操作空间的，特定的死亡率分割方式可以让男女死亡率的空间分布**看起来**差异不大或很大([Kolak et al. 2020](#ref-Kolak2020))，推荐 Marynia Kolak 和 Susan Paykin 在 2021 R/Medicine 大会上的材料，包括 [视频](https://youtu.be/-HvRISFkQZQ)和[网页](https://makosak.github.io/Intro2RSpatialMed/02-choropleth.html)。
 
 分析和展示地理信息数据是一项常规任务，约 30 年前，Richard A. Becker 等为 S 语言引入地理可视化，特别是本文介绍的专题地图，以及简单的区域面积和中心的计算的能力([Becker and Wilks 1993](#ref-Becker1993), [1995](#ref-Becker1995))，而后到了 2003年，Ray Brownrigg、Thomas P Minka 和 Alex Deckmyn 等将其引入 R 语言社区并持续维护至今([Richard A. Becker, Ray Brownrigg. Enhancements by Thomas P Minka, and Deckmyn. 2021](#ref-maps))。除了最基础的 **maps** 包，还有坐标投影 **mapproj** 包([R by Ray Brownrigg, Minka, and Plan 9 codebase by Roger Bivand. 2022](#ref-mapproj))，以及提供更多地图数据的 **mapdata** 包([Richard A. Becker and Ray Brownrigg. 2018](#ref-mapdata))。那个时候，因缺乏一些基础工具，在地图数据获取、空间数据操作和可视化方面都不太容易，仅用这些能做到下图<a href="#fig:us-cancer-rates-maps">2</a>已属不易。
 
@@ -937,13 +937,13 @@ ggdraw() +
 
 关于数据操作，在不影响效率的情况下，笔者会优先选择 Base R 来做数据操作，若遇到小规模数据会考虑调用 **data.table** 来处理，若遇到大规模数据肯定是用 SQL 来处理，聚合完继续用 Base R 或 **data.table** 处理。工作几年下来，任凭窗外云卷云舒，在稳定和效率面前，我自岿然不动，看过不少净土代码，也写过一些，所知有限，不敢示人，常晓其大意，换之以 Base R。
 
-处理数百 GB 乃至 TB 级的海量数据，聚合计算通常都是由写 SQL 完成的，不太可能直接用 R 语言或 Python 语言去处理，什么牛逼的工具包都不行！SQL 聚合计算后得到的数据集就 KB 或 MB级，大约几千，几万或几十万，即使遇到几百万条记录，也是用 SQL 再按需聚合。只在最后，为了可视化和分析建模，对 SQL 查询后的数据做各种适应性变换，这其中变形重塑的数据操作是最常见的，也是最复杂的数据操作，并且在SQL中实现复杂而在R中非常简单。用户唯一的痛点是非常难记住 reshape 的到底是谁，长变宽还是宽变长。从 `reshape()` 函数到 **reshape** 包([Wickham 2007](#ref-Wickham2007))，再到 **reshape2** 包，再到 **tidyr** 包([Wickham and Girlich 2022](#ref-Wickham2022))，一路折腾，还是应该回归到出发点来看待 `reshape()` 函数。
+处理数百 GB 乃至 TB 级的海量数据，聚合计算通常都是由写 SQL 完成的，不太可能直接用 R 语言或 Python 语言去处理，什么牛逼的工具包都不行！SQL 聚合计算后得到的数据集就 KB 或 MB级，大约几千，几万或几十万，即使遇到几百万条记录，也是用 SQL 再按需聚合。只在最后，为了可视化和分析建模，对 SQL 查询后的数据做各种适应性变换，这其中变形重塑的数据操作是最常见的，也是最复杂的数据操作，并且在SQL中实现复杂而在R中非常简单。用户唯一的痛点是非常难记住 reshape 的到底是谁，长变宽还是宽变长。R 语言社区陆续出现一些工具，从 `reshape()` 函数到 **reshape** 包([Wickham 2007](#ref-Wickham2007))，再到 **reshape2** 包，再到 **tidyr** 包([Wickham and Girlich 2022](#ref-Wickham2022))，一路折腾，还是应该回归到出发点来看待 `reshape()` 函数。
 
 R 软件内置的函数 `reshape()` 有很丰富的解释。所谓的「宽格式」和「长格式」数据来源于纵向数据分析领域 longitudinal data analysis — 对同一对象的同一特征在不同时间点重复测量分析（假定对象没有随时间发生变化），也可以是对多个特征在不同时间点重复测量，这些特征就是所谓的时间变量（随时间变化的变量）timevar（time-varying variables），具体地，测量一个人的头发长度，有的特征随时间不会变化，比如性别、种族等，称之为时间常量（time-constant variables）。函数 `reshape()` 的参数就采用纵向数据分析的术语。R 是一个用于统计计算和绘图的编程语言和环境，主要由统计学家开发和维护，很多重要的函数要回归到统计上去理解，才会豁然开朗。
 
-**lattice** 包绘制图形，常常以层层嵌套的列表传递给参数来实现局部细节调整，这和一些基于 JavaScripts 的数据可视化库是不谋而合，前者是 R 中的 list 列表类型的数据对象，后者往往是一些 JSON 格式或键值对形式的数据对象。关键点是纵向的层次性和横向的互斥性，同层互斥不同层正交，稳扎稳打，不至于牵一发而动全身，掌握此规律，调整图的局部到调整代码的局部就建立好联系了。
+**lattice** 包提供非常简便的绘图公式语法，**latticeExtra** 也很好地继承了这一特性，`rownames(USCancerRates) ~ rate.female + rate.male`。最庆幸的是`rownames(USCancerRates)` 表示的城镇名称和地图数据 `us_county` 里的城镇名称 names 是可以映射上的。**lattice** 包绘制图形，常常以层层嵌套的列表数据对象传递给参数来实现局部细节调整，这和一些基于 JavaScripts 的数据可视化库是不谋而合，前者是 R 中的 list 列表类型的数据对象，后者往往是一些 JSON 格式或键值对形式的数据对象。关键点是纵向的层次性和横向的互斥性，同层互斥不同层正交，稳扎稳打，不至于牵一发而动全身，掌握此规律，调整图的局部到调整代码的局部就建立好联系了。
 
-**ggplot2** 绘图的理论基础是图形语法，将数据和几何元素建立映射关系，几何和统计图层层层叠加实现主体部分，辅以字体、颜色、坐标系、布局等实现精细调整，达到出版级的效果。图层的精妙之处在于符合 Unix 哲学 — Do one thing, and do it well! 上面将整个复杂的图形拆解为一张张图层，每个图层干一件事，将复杂的过程简化下来。至于具体到专题地图，因涉及到地图数据，情况稍微复杂一些，需要考虑地图数据和观测数据的坐标参考系，点、线、面（多边形或区域）数据类型，以及属于矢量还是栅格数据。总而言之，画个图，看似简单其实也透着综合能力，复杂过程的拆解能力，软件工具的熟练程度，领域知识的了解深度，难以言表的审美能力。
+**ggplot2** 绘图的理论基础是图形语法，将数据和几何元素建立映射关系，几何和统计图层层层叠加实现主体部分，辅以字体、颜色、坐标系、布局等实现精细调整，达到出版级的效果。图层的精妙之处在于符合 Unix 哲学 — Do one thing, and do it well! 整个复杂的图形拆解为一张张图层，每个图层干一件事，将复杂的过程简化下来。至于具体到专题地图，因涉及到地图数据，情况稍微复杂一些，需要考虑地图数据和观测数据的坐标参考系，点、线、面（多边形或区域）数据类型，以及属于矢量还是栅格数据。总而言之，画个图，看似简单其实也透着综合能力，复杂过程的拆解能力，软件工具的熟练程度，领域知识的了解深度，难以言表的审美能力。
 
 [**tmap**](https://github.com/r-tmap/tmap) 类似 [**mapsf**](https://github.com/riatelab/mapsf)，相比而言，上游依赖很多，相应功能也多，但，据笔者在 MacOS 和 Ubuntu 系统上测试图<a href="#fig:us-cancer-rates-tmap">8</a>，发现绘图性能很差。**sp** 已是上一代产品，现有工具足以替代，因此，不再介绍， E. Pebesma and Bivand ([2022](#ref-Pebesma2022)) 推荐大家根据具体情况赶快迁移到新的空间数据工具箱 **sf**、**stars** ([E. Pebesma 2021](#ref-stars)) 或 **terra** ([Hijmans 2022](#ref-terra))，已成历史的三个 R 包 — 空间几何计算 **rgeos** ([R. Bivand and Rundel 2021](#ref-rgeos))、空间数据导入 **rgdal** ([R. Bivand, Keitt, and Rowlingson 2022](#ref-rgdal))和空间数据操作 **maptools** ([R. Bivand and Lewin-Koh 2022](#ref-maptools)) 将于 **2023** 年底退休。
 
@@ -951,13 +951,13 @@ R 软件内置的函数 `reshape()` 有很丰富的解释。所谓的「宽格�
 
 在写作过程中查找了不少材料，发现一个事实，即使在空间统计领域，崇拜 **tidyverse** ([Wickham et al. 2019](#ref-Wickham2019))的人也对 Base R 充满敌视，措辞非常严厉。笔者曾请教 **tidycensus** 包作者[一些问题](https://github.com/walkerke/tidycensus/issues/439)，尽管问题本身和 Base R 没有太多关系，但人家会毫无理由地严厉地批评 `base::merge()` 而后推荐 `dplyr::left_join()`，读者遇到此类问题，请辩证地看待。据笔者深入了解，**sf** 及整个空间数据处理的基础框架都没有偏向 **tidyverse** 的意思，Edzer J. Pebesma 在 RStudio 2019 年会上的报告 — [Spatial data science in the Tidyverse](https://youtu.be/2d8YaVu1uzs) — 被很多人当作 **sf** 生态偏向 **tidyverse** 的标志。**sf** 是中立的，最初支持 Base R 数据操作和统计作图，后来支持部分净土操作，实际上 **data.table** ([Dowle and Srinivasan 2021](#ref-Dowle2021))也将在[下个版本](https://github.com/Rdatatable/data.table/pull/5224)更好地支持 **sf** 的空间数据类型。此外，若将本文中的代码替换为[净土代码](https://yihui.org/cn/2019/07/tidy-noise/)，将引入很多的 R 包依赖，并在不久的将来有丧失可重复性的风险。
 
-在写作过程中，陆续看了一些虽未引用但有价值的材料：
+在写作过程中，陆续遇到一些虽未直接引用但有价值的材料：
 
 -   芝加哥大学空间数据科学中心有一些培训材料，从入门开始讲解，比较系统全面细致，推荐读者看看([Anselin 2019](#ref-Anselin2019))。
 
 -   Edzer Pebesma 在历年 useR! 大会上的材料，如[2016年](https://edzer.github.io/UseR2016/)、[2017年](https://edzer.github.io/UseR2017/)、[2019年](https://github.com/edzer/UseR2019)、[2020年](https://edzer.github.io/UseR2020/)、[2021年](https://edzer.github.io/UseR2021/)。
 
--   Edzer Pebesma 和 Roger Bivand 合著的书籍[《Spatial Data Science with applications in R》](https://www.r-spatial.org/book) 架起了理论到应用的桥梁，详细阐述了空间数据科学的基本概念和统计方法，同时介绍了 R 语言在空间统计方面的整个生态：过去、现在和未来。
+-   Edzer Pebesma 和 Roger Bivand 合著的书籍[《Spatial Data Science with applications in R》](https://www.r-spatial.org/book) 架起了理论到应用的桥梁，详细阐述了空间数据科学的基本概念和统计方法，R 语言在空间统计生态的过去、现在和未来。
 
 最后，建议尽量寻求来源权威可靠的第一手材料，对手头现有的材料有追根溯源和交叉验证的热情。数据操作的过程应满足可重复性的基本要求，以便检查分析过程和结论。度量指标需要围绕专题分析的目标，并结合实际背景选择合适的维度拆解。借助统计工具分析隐藏数据中的深层规律，科学定量地刻画，并将规律用领域语言表达，最后，结合软件工具选用恰当的图形准确呈现，直观定性地表达降低沟通成本，快速形成决策建议，乃至落地推广。
 
@@ -977,8 +977,8 @@ R 软件内置的函数 `reshape()` 有很丰富的解释。所谓的「宽格�
 -   **城市规划方面**，龙瀛等创立[北京城市实验室](https://www.beijingcitylab.com/)关注[中国城市人口的收缩](https://www.beijingcitylab.com/projects-1/15-shrinking-cities/)，如图<a href="#fig:shrinking-china-cities">15</a>所示，在城市化进程中，2010年相比于2000年人口，区县级城镇人口变化，城市化进程是非常快的，城乡人口结构发生了根本性的变化。人口往长三角、珠三角等经济发达的地区集聚。城市的发展完全要靠人口集聚么？
 
 <figure>
-<img src="img/shrinking-china-cities.jpeg" class="full" alt="图 15: 关注城市化进程中正在收缩的城市：蓝色表示收缩，红色表示扩张" />
-<figcaption aria-hidden="true">图 15: 关注城市化进程中正在收缩的城市：蓝色表示收缩，红色表示扩张</figcaption>
+<img src="img/shrinking-china-cities.jpeg" class="full" alt="图 15: 关注城市化进程中正在收缩的城市：蓝色表示人口收缩，红色表示人口扩张" />
+<figcaption aria-hidden="true">图 15: 关注城市化进程中正在收缩的城市：蓝色表示人口收缩，红色表示人口扩张</figcaption>
 </figure>
 
 在数据可视化上，还有很多展示方式，比如：
