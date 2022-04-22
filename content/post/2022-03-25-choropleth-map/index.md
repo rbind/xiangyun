@@ -457,7 +457,7 @@ latticeExtra::mapplot(rownames(USCancerRates) ~ rate.female + rate.male,
 
 </div>
 
-如前所述，**lattice** 和 **ggplot2** 同出一脉，既然 **ggplot2** 有图层的概念，**lattice** 自然也有，除了 提供丰富的内置图层，约**100**个，读者可在控制台运行 `apropos('panel')` 查看当前环境下可用的图层，也支持用户自定义图层，图<a href="#fig:lattice-panel-superpose">6</a> 展示叠加图层 `panel.superpose` 的效果，传递自定义的符号给 `pch` 参数，实际上修改了默认图形参数 `"superpose.symbol"`。
+如前所述，**lattice** 和 **ggplot2** 同出一脉，既然 **ggplot2** 有图层的概念，**lattice** 自然也有，除了 提供丰富的内置图层（约**100**个，读者可在控制台运行 `apropos('panel')` 查看当前环境下可用的图层），也支持用户自定义图层，图<a href="#fig:lattice-panel-superpose">6</a> 展示叠加图层 `panel.superpose` 的效果，传递自定义的符号给 `pch` 参数，实际上修改了默认图形参数 `"superpose.symbol"`。
 
 ``` r
 xyplot(Sepal.Length ~ Sepal.Width, data = iris, groups = Species,
@@ -583,7 +583,7 @@ ggplot() +
 
 </div>
 
-尽管笔者已经调整了上图<a href="#fig:us-cancer-rates-ggplot2">7</a>的长宽比例，可一旦和非 **ggplot2** 绘制的图形对比，就可以看出明显变形的迹象。
+尽管已经调整了上图<a href="#fig:us-cancer-rates-ggplot2">7</a>的长宽比例，可一旦和非 **ggplot2** 绘制的图形对比，就可以看出明显变形了。
 
 ### tmap
 
@@ -604,7 +604,7 @@ us_county_cancer2 <- merge(
 )
 ```
 
-准备好数据后，绘图的过程就比较类似之前使用 **ggplot2** 绘图的时候。所不同的是，添加了指北针、比例尺等专题地图特有的内容。
+准备好数据后，绘图过程比较类似之前使用 **ggplot2** 绘图，所不同的是，添加了指北针、比例尺等专题地图特有的内容。
 
 ``` r
 # 绘图
@@ -646,7 +646,7 @@ tmap::tm_shape(us_county_cancer2) +
 
 ### sf
 
-在上一节已经准备好了美国各个城镇的边界数据，接下来合并各个城镇的癌症死亡率数据 USCancerRates，然后调用 **sf** 包的绘图函数 `plot()`。除了调用函数 `plot()`的几行代码，绘制图<a href="#fig:us-cancer-rates-sf">9</a>的代码和前面调用 **maps** 包大体是完全类似的，但灵活性高得多，因 **sf** 包的强大，支持大量的空间数据存储格式，不受限于 **maps** 包内置的不完整地图数据，也不需要为城镇区域上色添加额外的数据操作。
+在上一节已经准备好了美国各个城镇的边界数据，接下来合并各个城镇的癌症死亡率数据 USCancerRates，调用 **sf** 包的绘图函数 `plot()`。除了调用函数 `plot()`的几行代码，绘制图<a href="#fig:us-cancer-rates-sf">9</a>的代码和前面调用 **maps** 包绘图大体是类似的，但灵活性高得多，因 **sf** 包的强大，支持大量的空间数据存储格式，不受限于 **maps** 包内置的不完整地图数据，也不需要因给城镇区域上色添加额外的数据匹配操作。
 
 ``` r
 # 准备地图数据
@@ -658,18 +658,23 @@ us_county_cancer <- merge(
   by.y = c("state", "county"), all.x = TRUE
 )
 par(mar = c(0, 0, 4, 0), mfrow = c(2, 1))
-# 绘图数据
+# 添加城镇地图
 plot(st_geometry(us_county_shifted),
   reset = FALSE, border = NA, col = "grey80", main = ""
 )
+# 添加癌症死亡率数据
 plot(us_county_cancer["rate.male"],
   pal = viridisLite::plasma, reset = FALSE, key.pos = NULL,
   breaks = 50 * 0:13,
   border = NA, lwd = 0.25, add = TRUE
 )
+# 美国各个州边界
 plot(st_geometry(us_states_shifted), border = "gray80", lwd = 0.25, add = TRUE)
+# 添加主标题
 title(main = "1999-2003 年美国各个城镇的年平均癌症死亡率", line = 2)
+# 添加分面标题
 mtext(text = "男性", side = 3, adj = 0.5)
+# 调整边空
 par(mar = c(1, 0, 2, 0))
 plot(st_geometry(us_county_shifted),
   reset = FALSE, border = NA, col = "grey80", main = ""
