@@ -206,7 +206,7 @@ qnorm(p = 1 - 0.05 / 2)
 # [1] 401
 ```
 
-而美国国家癌症研究所给的置信带更宽，更保守一些，显然这里面的算法没这么简单。以阿拉巴马州为例，将所有的城镇死亡率及其置信区间绘制出来，如图<a href="#fig:alabama-ci-rank">1</a>所示，可见，整体来说，偏离置信区间中心也不太远。
+而美国国家癌症研究所给的置信带更宽，更保守一些，显然这里面的算法没这么简单。以阿拉巴马州为例，将所有的城镇死亡率及其置信区间绘制出来，如图<a href="#fig:alabama-ci-rank">1</a>所示，整体来说，偏离置信区间中心都不太远。
 
 <div class="figure" style="text-align: center">
 
@@ -217,7 +217,7 @@ qnorm(p = 1 - 0.05 / 2)
 
 </div>
 
-不难看出，女性癌症死亡率整体上低于男性，且各个地区的死亡率有明显差异。NCI [网站](https://statecancerprofiles.cancer.gov/confidenceintervals.html)仅对置信区间的统计意义给予解释，这跟统计学课本上没有太多差别，但没有提供具体的计算过程。可以推断的是必然使用了泊松、伽马一类的偏态分布来刻画死亡人数的分布，疑问尚未解开，欢迎大家讨论。
+不难看出，女性癌症死亡率整体上低于男性，且各个地区的死亡率有明显差异。NCI [网站](https://statecancerprofiles.cancer.gov/confidenceintervals.html)仅对置信区间的统计意义给予解释，这跟统计学课本上没有太多差别，没有提供具体的计算过程。可以推断的是必然使用了泊松、伽马一类的偏态分布来刻画死亡人数的分布，疑问尚未解开，欢迎大家讨论。
 
 <!--
 结合美国疾控预防中心（Centers for Disease Control and Prevention，简称 CDC）发布的2021年统计报告[@Xu2021]，假定死亡人数服从泊松分布，暂不谈抽样误差，具体到某一个年度调查，每一个州每一个年龄段癌症死亡人数 `\(X\)` 服从泊松分布 `\(P(\lambda)\)`
@@ -244,7 +244,7 @@ $$
 
 ### maps
 
-**maps** 包内置的美国城镇地图数据欠缺一部分，导致数据集 USCancerRates 有部分数据没法绘制在地图上，主要是阿拉斯加、夏威夷和其它少量地方，此外，USCancerRates 没有夏威夷、波多黎各各个城镇的数据，阿拉斯加的部分城镇有数据，结合图<a href="#fig:us-cancer-rates-lattice">3</a>，不少城镇没有收集到癌症死亡率数据，以空白表示。只需传给参数 `colramp` 一个生成颜色值向量的函数即可更改调色板，比如 R 内置的 `hcl.colors()` 或 `terrain.colors()` 等，为保持全文配色风格一致，图中配色采用 **viridisLite** 包提供的 plasma 调色板。值得一提的是，关于死亡率分级，不同的分法会带给人不同的印象甚至是错觉，此处是可以有操作空间的，特定的死亡率分割方式可以让男女死亡率的空间分布**看起来**差异不大或很大([Kolak et al. 2020](#ref-Kolak2020))，详细介绍见 Marynia Kolak 和 Susan Paykin 在 2021 R/Medicine 大会上的[视频](https://youtu.be/-HvRISFkQZQ)和[网页](https://makosak.github.io/Intro2RSpatialMed/02-choropleth.html)材料。
+**maps** 包内置的美国城镇地图数据欠缺一部分，阿拉斯加、夏威夷和波多黎各都没有。数据集 USCancerRates 没有夏威夷、波多黎各各个城镇的数据，阿拉斯加的部分城镇有数据，如图<a href="#fig:us-cancer-rates-lattice">3</a>所示，不少城镇没有收集到癌症死亡率数据，以灰色表示。值得一提的是，关于死亡率分级，不同的分法会带给人不同的印象甚至是错觉，此处是可以有操作空间的，特定的死亡率分割方式可以让男女死亡率的空间分布**看起来**差异不大或很大([Kolak et al. 2020](#ref-Kolak2020))，详细介绍见 Marynia Kolak 和 Susan Paykin 在 2021 R/Medicine 大会上的[视频](https://youtu.be/-HvRISFkQZQ)和[网页](https://makosak.github.io/Intro2RSpatialMed/02-choropleth.html)材料。
 
 分析和展示地理信息数据是一项常规任务，约 30 年前，Richard A. Becker 等为 S 语言引入地理可视化，特别是本文介绍的专题地图，以及简单的区域面积和区域中心的计算能力([Becker and Wilks 1993](#ref-Becker1993), [1995](#ref-Becker1995))，而后到了 2003年，Ray Brownrigg、Thomas P Minka 和 Alex Deckmyn 等将其引入 R 语言社区并持续维护至今([Richard A. Becker, Ray Brownrigg. Enhancements by Thomas P Minka, and Deckmyn. 2021](#ref-maps))。除了最基础的 **maps** 包，还有坐标投影 **mapproj** 包([R by Ray Brownrigg, Minka, and Plan 9 codebase by Roger Bivand. 2022](#ref-mapproj))，以及提供更多地图数据的 **mapdata** 包([Richard A. Becker and Ray Brownrigg. 2018](#ref-mapdata))。那个时候，因缺乏一些基础工具，在地图数据获取、空间数据操作和可视化方面都不太容易，仅用这些能做到下图<a href="#fig:us-cancer-rates-maps">2</a>已属不易。
 
@@ -409,9 +409,11 @@ latticeExtra::mapplot(rownames(USCancerRates) ~ rate.female + rate.male,
 
 </div>
 
-用 **lattice** 包绘图往往可以一个函数搞定，参数非常多，都放在一起，这和 Base R 的绘图函数类似，也同时提供全局图形参数控制，但似乎更加复杂。下面谈三个细节：
+用 **lattice** 包绘图往往可以一个函数搞定，参数非常多，都放在一起，这和 Base R 的绘图函数类似，也同时提供全局图形参数控制，但似乎更加复杂。下面谈几个细节：
 
-1.  笔者参考 Markus Gesmann 在 2015 年写的一篇文章([Gesmann 2015](#ref-Gesmann2015))，设置 Lattice 图形参数 `par.settings` 对图中的标题做了细致的调节，比如副标题的文本 `par.sub.text` 所有可调整的细节有：
+1.  只需传给参数 `colramp` 一个生成颜色值向量的函数即可更改调色板，比如 R 内置的 `hcl.colors()` 或 `terrain.colors()` 等，为保持全文配色风格一致，图中配色采用 **viridisLite** 包提供的 plasma 调色板。
+
+2.  笔者参考 Markus Gesmann 在 2015 年写的一篇文章([Gesmann 2015](#ref-Gesmann2015))，设置 Lattice 图形参数 `par.settings` 对图中的标题做了细致的调节，比如副标题的文本 `par.sub.text` 所有可调整的细节有：
 
     ``` r
     trellis.par.get('par.sub.text')
@@ -433,9 +435,9 @@ latticeExtra::mapplot(rownames(USCancerRates) ~ rate.female + rate.male,
 
     想必读者已看出其规律，以 R 语言的列表结构来传递各个层级的图形参数值。
 
-2.  笔者参考 SO 论坛[帖子](https://stackoverflow.com/questions/7373487/)设置参数 `strip` 自定义了分面子图的标题文本，再在 `par.settings` 里对背景 `strip.background` 和边界 `strip.border` 微调，而类似的设置在 **ggplot2** 包的主题函数 `theme()` 里[也有](https://ggplot2.tidyverse.org/reference/theme.html)，在 R 控制台执行 `formalArgs(ggplot2::theme)` 可获得主题函数的参数列表。
+3.  笔者参考 SO 论坛[帖子](https://stackoverflow.com/questions/7373487/)设置参数 `strip` 自定义了分面子图的标题文本，再在 `par.settings` 里对背景 `strip.background` 和边界 `strip.border` 微调，而类似的设置在 **ggplot2** 包的主题函数 `theme()` 里[也有](https://ggplot2.tidyverse.org/reference/theme.html)，在 R 控制台执行 `formalArgs(ggplot2::theme)` 可获得主题函数的参数列表。
 
-3.  读者下一个疑惑可能是如何知道所有的图形控制参数，以及控制的精细程度，Deepayan Sarkar 在书里以图<a href="#fig:trellis-par">4</a>归纳了，纵轴是图形参数，横轴是参数值名称列表([Sarkar 2008](#ref-Sarkar2008))。
+4.  读者下一个疑惑可能是如何知道所有的图形控制参数，以及控制的精细程度，Deepayan Sarkar 在书里以图<a href="#fig:trellis-par">4</a>归纳了，纵轴是图形参数，横轴是参数值名称列表([Sarkar 2008](#ref-Sarkar2008))。
 
 <div class="figure" style="text-align: center">
 
