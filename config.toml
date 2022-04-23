@@ -19,14 +19,6 @@ paginate = 9
     url = "/"
     weight = 1
 [[menu.main]]
-    name = "《现代统计图形》"
-    url = "https://bookdown.org/xiangyun/msg/"
-    weight = 2
-[[menu.main]]
-    name = "《现代应用统计》"
-    url = "https://xiangyunhuang.github.io/masr/"
-    weight = 3
-[[menu.main]]
     name = "关于"
     url = "/about/"
     weight = 4
