@@ -84,6 +84,11 @@ div.rmdinfo::before {
   margin-bottom: 0.25em;
 }
 
+.full-width {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+}
+
 figure {
   text-align: center;
 }
@@ -856,10 +861,14 @@ plot(st_geometry(nc_county_map), border = "white")
 mtext(text = "数据源：美国人口调查局", side = 1, adj = 0)
 ```
 
+<div class="full-width">
+
 <figure>
 <img src="img/us-nc-income.png" class="full" alt="图 12: 北卡罗来纳州普查水平下家庭收入中位数的空间分布" />
 <figcaption aria-hidden="true">图 12: 北卡罗来纳州普查水平下家庭收入中位数的空间分布</figcaption>
 </figure>
+
+</div>
 
 地图数据包含的多边形越多，绘图需要花费时间越多，对于这样大中型的数据集，考虑到 **ggplot2** 有些吃不消，接下来以 **ggplot2** 配合 **sf** 包，利用 **sf** 包内置的地图数据集，将各个数据指标从社区上卷到各个城镇。
 
