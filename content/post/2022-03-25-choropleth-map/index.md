@@ -19,7 +19,6 @@ tags:
 link-citations: true
 bibliography: 
   - refer.bib
-toc: true
 description: "专题地图应用广泛，特别是展示统计年鉴数据，在美国和日本国家统计局官网，大量专题地图用于展示各类指标。衡量一个部门、一个业务、一个公司、一个行业，乃至一个国家都有一套金字塔式的指标体系，而国家每年发布的统计年鉴就是衡量国家经营状态的指标体系，涵盖人口、土地、生产、消费等专题，省、市、区县以及自治区等各级地方统计局每年也会发布一份地方统计年鉴。"
 ---
 
@@ -109,7 +108,7 @@ div.img {
 
 接下来，本文分四个部分展开介绍专题地图，分别是单变量情形、多变量情形、本文小结和未来展望。
 
-单变量情形中以 **latticeExtra** 包([Sarkar and Andrews 2019](#ref-latticeExtra))内置的数据集 USCancerRates 为例，以专题地图形式展示美国 1999-2003 年度各城镇的年平均癌症死亡率，此处专题的含义是「人口死亡率」，显而易见，癌症死亡率只是一方面，还有婴儿死亡率等，癌症可以分类型，如乳腺癌、子宫癌等，人又可以分性别、年龄、种族等等。在数据操作、指标计算和分面绘图等方面从零开始介绍绘制专题地图的过程，涉及的基础数据操作以及六个绘图工具 **maps** 包([Becker and Wilks 1993](#ref-Becker1993))、**latticeExtra** 包([Sarkar and Andrews 2019](#ref-latticeExtra))、**ggplot2** 包([Wickham and Girlich 2022](#ref-Wickham2022))、**tmap** 包([Tennekes 2018](#ref-Tennekes2018))、**sf** 包([E. J. Pebesma 2018](#ref-Pebesma2018))和 **mapsf** 包([Giraud 2022](#ref-mapsf2022))，阐述数据指标「年平均癌症死亡率」的实际含义、指标口径和计算过程，从易到难，层层深入，以期达到出版级的水准，探索出最佳实践。
+单变量情形中以 **latticeExtra** 包([Sarkar and Andrews 2019](#ref-latticeExtra))内置的数据集 USCancerRates 为例，以专题地图形式展示美国 1999-2003 年度各城镇的年平均癌症死亡率，此处专题的含义是「人口死亡率」，显而易见，癌症死亡率只是一方面，还有流感死亡率等，癌症可以分类型，如乳腺癌、子宫癌等，人又可以分属性，如性别、年龄、种族等等。在数据操作、指标计算和分面绘图等方面从零开始介绍绘制专题地图的过程，包括基础数据操作以及六个绘图工具 **maps** 包([Becker and Wilks 1993](#ref-Becker1993))、**latticeExtra** 包([Sarkar and Andrews 2019](#ref-latticeExtra))、**ggplot2** 包([Wickham and Girlich 2022](#ref-Wickham2022))、**tmap** 包([Tennekes 2018](#ref-Tennekes2018))、**sf** 包([E. J. Pebesma 2018](#ref-Pebesma2018))和 **mapsf** 包([Giraud 2022](#ref-mapsf2022))，阐述数据指标「年平均癌症死亡率」的实际含义、指标口径和计算过程，从易到难，层层深入，以期达到出版级的水准，探索出最佳实践。
 
 多变量情形中以美国人口统计局发布的调查数据为基础，分析北卡罗来纳州各区县普查粒度的家庭收入中位数与白人占比的空间相关性。先分别以单变量的专题地图描述各个普查区域里家庭收入中位数、白人占比的空间分布，接着和二元变量的专题地图形成对比，展示相关性的空间分布。
 
@@ -123,7 +122,7 @@ div.img {
 -   **lattice** 在 **grid** 图形系统的基础上构建了一套易于使用的高级数据可视化函数，同时支持复杂的非标准的自定义绘图需求。《lattice: Multivariate Data Visualization with R》([Sarkar 2008](#ref-Sarkar2008)) 详细全面地阐述了一元到多元数据的可视化方法，各个函数的使用细节，可做帮助手册。
 -   **ggplot2** 在 **grid** 图形系统的基础上实现了一套图形语法([Wilkinson 2005](#ref-Wilkinson2005))，笔者认为最重要的概念是图层，涵盖几何、统计、颜色、刻度、图例等，要点是将绘图的过程拆分成一个个图层，建立起数据到图层的映射。《ggplot2: Elegant Graphics for Data Analysis》([Wickham and Girlich 2022](#ref-Wickham2022)) 已经出到第三版了，是从入门到进阶全面介绍 **ggplot2** 的著作。
 
-在掌握基础的一些工具后，培养审美能力最重要方式就是多看，就好比鉴赏书画古董，只要围绕身边的都是精品，再看次品一眼就能认出来。接着，从入门到进阶就需要打磨细节，推荐著作《Data Visualisation with R: 111 Examples》([Rahlf 2019](#ref-Rahlf2019))。
+在掌握基础的一些工具后，培养审美能力最重要方式就是多看，然后打磨细节，推荐学习著作《Data Visualisation with R: 111 Examples》([Rahlf 2019](#ref-Rahlf2019))。
 
 ## 美国各城镇的年平均癌症死亡率分布
 
@@ -180,7 +179,7 @@ $$
 aarate_{0-0} = \frac{29}{139879}*\frac{3794901}{274633642}*100000 = 0.2864
 $$
 
-读者可能有疑惑，一系列复杂的调整是为什么？指标稳定性。稳定不是代表不变，稳定是不受轻易干扰。从各社区、各城镇、各州乃至国家，从下往上聚合数据的时候，分年龄、种族、性别等下钻/上卷的时候，有的城镇总人口可能相对很少，死亡人数也很少。
+读者可能有疑惑，一系列复杂的调整是为什么？指标稳定性和可比性。稳定不是代表不变，稳定是不受轻易干扰。从各社区、各城镇、各州乃至国家，从下往上聚合数据的时候，分年龄、种族、性别等下钻/上卷的时候，有的城镇总人口可能相对很少，死亡人数也很少。可比性是指组与组间可比，且随时间变化依然可比，刻画因癌症死亡的相对风险。
 
 ``` r
 # 加载死亡率数据
@@ -321,7 +320,7 @@ legend("bottomright",
 
 </div>
 
-在数据操作方面，麻烦的是建立数据指标和各个地理区域的映射，上面反复用到函数 `match()`，Base R 有很多这样短小精悍的函数。下面简单介绍一下以助理解，函数 `match()` 返回一个向量，向量的长度与参数 x 一致，向量的元素是整型的，表示参数 x 中的元素出现在参数 table 中的位置，下面是三个小示例。
+在数据操作方面，麻烦的是建立数据指标和各个地理区域的映射，上面反复用到函数 `match()`，Base R 有很多这样短小精悍的函数。下面简单介绍一下以助理解，函数 `match()` 返回一个向量，向量的长度与参数 x 一致，向量的元素是整型的，表示参数 x 中的元素出现在参数 table 中的位置，下面是三个小示例：
 
 ``` r
 match(x = c("A", "B"), table = c("A"))
@@ -332,11 +331,11 @@ match(x = c("A", "B"), table = c("C", "A", "D"))
 # [1]  2 NA
 ```
 
-另外，**maps** 包内置的地图数据制作起来比较复杂，也很长时间没有更新了，笔者不推荐读者再从零开始构建 map 数据对象。**sp** 包([E. J. Pebesma and Bivand 2005](#ref-Pebesma2005))发布后，**maps** 包支持将 Spatial 数据对象转为 map 数据对象，这相当于引入了 **sp** 包及其生态在空间数据获取和数据操作方面的能力([R. S. Bivand, Pebesma, and Gomez-Rubio 2013](#ref-Bivand2013))。实际上，美国国家人口统计局提供了历年的州、城镇、普查级多个比例尺的行政区划地图数据，配合 **sf** 包，可以很好地解决地理可视化的背景底图问题。一些以前看起来很难的问题，随着时间变迁，技术革新，已经解决了。
+另外，**maps** 包内置的地图数据制作起来比较复杂，也很长时间没有更新了，笔者不推荐读者再从零开始构建 map 数据对象。**sp** 包([E. J. Pebesma and Bivand 2005](#ref-Pebesma2005))发布后，**maps** 包支持将 Spatial 数据对象转为 map 数据对象，这相当于引入了 **sp** 包及其生态在空间数据获取和数据操作方面的能力([R. S. Bivand, Pebesma, and Gomez-Rubio 2013](#ref-Bivand2013))。目前，美国国家人口统计局已提供了历年的州、城镇、普查级多个比例尺的行政区划地图数据，配合 **sf** 包，可以很好地解决地理可视化的背景底图问题。一些以前看起来很难的问题，随着时间变迁，技术革新，已经解决了。
 
 ### latticeExtra
 
-**maps** 包是基于 Base R 绘图系统的，以线和多边形为基础，辅以颜色填充，还没有任何分层绘图的概念，Deepayan Sarkar 将其引入新的 Trellis（栅格）图形系统，这就有了 **latticeExtra** 包 ([Sarkar and Andrews 2019](#ref-latticeExtra))，它是以 **lattice** 包([Sarkar 2008](#ref-Sarkar2008))为基础的，特别适合多元数据可视化，不管数据是「宽格式」还是「长格式」都能轻松应对，既保留了 Base R 那种精细调整的图形操作能力，也引入图层面板的概念。如图<a href="#fig:us-cancer-rates-lattice">3</a>，在实现上将所有的操作都集于一身，没有严格的分层绘图，保留更大的灵活性的代价是提升了复杂性。
+**maps** 包是基于 Base R 绘图系统的，以线和多边形为基础，辅以颜色填充，还没有任何分层绘图的概念，Deepayan Sarkar 将其引入新的 Trellis（栅格）图形系统，这就有了 **latticeExtra** 包 ([Sarkar and Andrews 2019](#ref-latticeExtra))，它是以 **lattice** 包([Sarkar 2008](#ref-Sarkar2008))为基础的，特别适合多元数据可视化，不管数据是「宽格式」还是「长格式」都能轻松应对，既保留了 Base R 那种精细操作图形元素的能力，也引入图层面板的概念。如图<a href="#fig:us-cancer-rates-lattice">3</a>，在代码形式上将所有的操作都集于一身，没有严格的分层绘图，保留更大的灵活性的代价是提升了复杂性。
 
 ``` r
 # 加载数据
@@ -346,8 +345,9 @@ us_state <- map("state", plot = FALSE, fill = TRUE, projection = "polyconic")
 library(lattice)
 # 绘图
 latticeExtra::mapplot(rownames(USCancerRates) ~ rate.female + rate.male,
-  # 数据
+  # 观测数据
   data = USCancerRates,
+  # 修改默认的面板函数
   panel = function(x, y, map, ...) {
     # 对未收集到癌症死亡率数据的城镇，添加城镇边界线
     panel.lines(x = us_county$x, y = us_county$y, lty = 1, lwd = 0.2, col = "black")
@@ -397,7 +397,11 @@ latticeExtra::mapplot(rownames(USCancerRates) ~ rate.female + rate.male,
   # 主标题
   main = "1999-2003 年美国各个城镇的年平均癌症死亡率"
 ) +
-  latticeExtra::layer(panel.lines(x = us_state$x, y = us_state$y, lty = 1, lwd = 0.2, col = "white"))
+  # 添加州边界
+  latticeExtra::layer(panel.lines(
+    x = us_state$x, y = us_state$y,
+    lty = 1, lwd = 0.2, col = "white"
+  ))
 ```
 
 <div class="figure" style="text-align: center">
@@ -413,7 +417,7 @@ latticeExtra::mapplot(rownames(USCancerRates) ~ rate.female + rate.male,
 
 1.  只需传给参数 `colramp` 一个生成颜色值向量的函数即可更改调色板，比如 R 内置的 `hcl.colors()` 或 `terrain.colors()` 等，为保持全文配色风格一致，图中配色采用 **viridisLite** 包提供的 plasma 调色板。
 
-2.  笔者参考 Markus Gesmann 在 2015 年写的一篇文章([Gesmann 2015](#ref-Gesmann2015))，设置 Lattice 图形参数 `par.settings` 对图中的标题做了细致的调节，比如副标题的文本 `par.sub.text` 所有可调整的细节有：
+2.  参考 Markus Gesmann 在 2015 年写的一篇文章([Gesmann 2015](#ref-Gesmann2015))，设置 Lattice 图形参数 `par.settings` 对图中的标题做了细致的调节，比如副标题的文本 `par.sub.text` 所有可调整的细节有：
 
     ``` r
     trellis.par.get('par.sub.text')
@@ -435,9 +439,9 @@ latticeExtra::mapplot(rownames(USCancerRates) ~ rate.female + rate.male,
 
     想必读者已看出其规律，以 R 语言的列表结构来传递各个层级的图形参数值。
 
-3.  笔者参考 SO 论坛[帖子](https://stackoverflow.com/questions/7373487/)设置参数 `strip` 自定义了分面子图的标题文本，再在 `par.settings` 里对背景 `strip.background` 和边界 `strip.border` 微调，而类似的设置在 **ggplot2** 包的主题函数 `theme()` 里[也有](https://ggplot2.tidyverse.org/reference/theme.html)，在 R 控制台执行 `formalArgs(ggplot2::theme)` 可获得主题函数的参数列表。
+3.  参考 SO 论坛[帖子](https://stackoverflow.com/questions/7373487/)设置参数 `strip` 自定义了分面子图的标题文本，再在 `par.settings` 里对背景 `strip.background` 和边界 `strip.border` 微调，而类似的设置在 **ggplot2** 包的主题函数 `theme()` 里[也有](https://ggplot2.tidyverse.org/reference/theme.html)，在 R 控制台执行 `formalArgs(ggplot2::theme)` 可获得主题函数的参数列表。
 
-4.  读者下一个疑惑可能是如何知道所有的图形控制参数，以及控制的精细程度，Deepayan Sarkar 在书里以图<a href="#fig:trellis-par">4</a>归纳了，纵轴是图形参数，横轴是参数值名称列表([Sarkar 2008](#ref-Sarkar2008))。
+4.  读者下一个疑惑可能是如何知道所有的图形控制参数，以及控制的精细程度，Deepayan Sarkar 在书里以图<a href="#fig:trellis-par">4</a>归纳了，纵轴是图形参数，横轴是参数值名称列表([Sarkar 2008](#ref-Sarkar2008))，按图索骥一定有所帮助。
 
 <div class="figure" style="text-align: center">
 
@@ -476,15 +480,15 @@ xyplot(Sepal.Length ~ Sepal.Width, data = iris, groups = Species,
 
 </div>
 
-此外，**latticeExtra** 扩展了图层功能，特别是 `layer()` 函数，可在主体绘图函数之后直接叠加新图层。如上图<a href="#fig:us-cancer-rates-lattice">3</a>，在 `latticeExtra::mapplot()` 完成主体绘图工作后，添加美国各州边界线，有助于识别城镇位置。[^2]
+此外，**latticeExtra** 扩展了图层功能，特别是 `layer()` 函数，可在主体绘图函数之后直接叠加新图层。如上图<a href="#fig:us-cancer-rates-lattice">3</a>，在 `latticeExtra::mapplot()` 完成主体绘图工作后，添加美国各州边界线，有助于识别城镇位置—大家都有这样一种感觉，将一张只有中国国家边界的地图放在面前，你不一定能清晰地指出每一个省份的位置，但是只要画上各个省的边界，你肯定能增加准确度，类似地，从省到市、乃至区县，边界给了我们很好的参照。
 
 ### ggplot2
 
-考虑到 **maps** 包内置的地图数据的缺陷，**ggplot2** 包的流行度，下面采用 **ggplot2** 包绘制分面专题地图，相比于 **latticeExtra** 包，**ggplot2** 包更适合「长格式」的数据，因此，先重塑 USCancerRates 数据集，对性别和死亡率字段做一些处理，城镇死亡率数据和城镇地理边界数据配对，再根据死亡率的分布设置合适分段，最后恢复地图数据的原始顺序。
+考虑到 **maps** 包内置的地图数据的缺陷，**ggplot2** 包的流行度，下面采用 **ggplot2** 包绘制分面专题地图，相比于 **latticeExtra** 包，**ggplot2** 包更适合「长格式」的数据，因此，需要先重塑 USCancerRates 数据集，将城镇死亡率数据和城镇地理边界数据配对，根据死亡率的分布设置合适分段，最后恢复地图数据的原始顺序。数据操作过程中有两点强调：
 
-USCancerRates 数据集除了 state 和 county 列，剩余列是由三个原子指标按性别维度衍生出来的，分别是癌症死亡率及其置信区间的上、下限值。在「宽格式」转「长格式」过程中，要注意转化前后各个列名的对应关系，后面会着重介绍一下。
+1.  数据重塑：USCancerRates 数据集除了 state 和 county 列，剩余列是由三个原子指标按性别维度衍生出来的，分别是癌症死亡率及其置信区间的上、下限值。在「宽格式」转「长格式」过程中，要注意转化前后各个列名的对应关系，后面会着重介绍一下。
 
-先将地图数据放左边，观测数据放右边，以 LEFT JOIN （左关联） 的方式关联起来，接着将连续性的死亡率数据分段，最后调用绘图函数绘制专题地图。
+2.  数据关联：先将地图数据放左边，观测数据放右边，以 LEFT JOIN （左关联） 的方式关联起来，接着将连续性的死亡率数据分段，最后调用绘图函数绘制专题地图。
 
 ``` r
 # 宽格式转长格式
@@ -515,7 +519,7 @@ dat$rate_d <- cut(dat$rate, breaks = 50*0:13)
 dat <- dat[order(dat$order), ]
 ```
 
-大部分的数据可视化和统计建模函数要求长格式的数据，所以，从宽格式到长格式是更常见的变形操作。以上对数据集 USCancerRates 从宽格式到长格式的变形操作是非常典型的，读者可对照帮助文档 `?reshape()` 和如下两种方式理解其他传参方式对结果的影响，以加深对变形操作的理解。
+大部分的数据可视化和统计建模函数要求「长格式」的数据，所以，从「宽格式」到「长格式」是更常见的变形操作。以上对数据集 USCancerRates 从「宽格式」到「长格式」的变形操作是非常典型的，读者可对照帮助文档 `?reshape()` 和如下两种方式理解其他传参方式对结果的影响，以加深对变形操作的理解。
 
 ``` r
 # 方式二
@@ -589,7 +593,7 @@ ggplot() +
 
 ### tmap
 
-同 **sf** 包([E. J. Pebesma 2018](#ref-Pebesma2018))的绘图函数 `plot()` 一样，**tmap** ([Tennekes 2018](#ref-Tennekes2018)) 也是基于 Base R 图形系统，但使用语法更加贴合 **ggplot2** 包([Wickham and Girlich 2022](#ref-Wickham2022))，对空间数据可视化有更多专业支持，比如基于比例的符号/气泡图([Tanimura, Kuroiwa, and Mizota 2006](#ref-Susumu2006)) [^3]和基于二维核密度估计的热力图([Tennekes 2018](#ref-Tennekes2018))。
+同 **sf** 包([E. J. Pebesma 2018](#ref-Pebesma2018))的绘图函数 `plot()` 一样，**tmap** ([Tennekes 2018](#ref-Tennekes2018)) 也是基于 Base R 图形系统，但使用语法更加贴合 **ggplot2** 包([Wickham and Girlich 2022](#ref-Wickham2022))，对空间数据可视化有更多专业支持，比如基于比例的符号/气泡图([Tanimura, Kuroiwa, and Mizota 2006](#ref-Susumu2006)) [^2]和基于二维核密度估计的热力图([Tennekes 2018](#ref-Tennekes2018))。
 
 **tmap** 支持 **sp** 包提供的 Spatial 类数据对象，也支持 **sf** 包提供的 Simple Features 类数据对象，众所周知，后者是新一代更好的工具，因此接下来的示例都将基于 **sf** 包。首先从美国人口调查局下载州和城镇级别的[多边形边界数据](https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html)，再类似 **usmapdata** 包对阿拉斯加、夏威夷和波多黎各做适当的调整，借助 **tidycensus** 包([Walker and Herman 2022](#ref-tidycensus))让这个过程变得容易，调整地图数据的代码与源文档放在一起，读者可自取。
 
@@ -648,7 +652,7 @@ tmap::tm_shape(us_county_cancer2) +
 
 ### sf
 
-在上一节已经准备好了美国各个城镇的边界数据，接下来合并各个城镇的癌症死亡率数据 USCancerRates，调用 **sf** 包的绘图函数 `plot()`。除了调用函数 `plot()`的几行代码，绘制图<a href="#fig:us-cancer-rates-sf">9</a>的代码和前面调用 **maps** 包绘图大体是类似的，但灵活性高得多，因 **sf** 包的强大，支持大量的空间数据存储格式，不受限于 **maps** 包内置的不完整地图数据，也不需要因给城镇区域上色添加额外的数据匹配操作。
+在上一节已经准备好了美国各个城镇的边界数据，接下来合并各个城镇的癌症死亡率数据 USCancerRates，调用 **sf** 包的绘图函数 `plot()`。除了调用函数 `plot()`的几行代码，绘制图<a href="#fig:us-cancer-rates-sf">9</a>的代码和前面调用 **maps** 包绘图大体是类似的，但灵活性高得多，因 **sf** 包的强大，支持大量的空间数据存储格式，不受限于 **maps** 包内置的不完整地图数据，也不因给城镇区域上色添加额外的数据匹配操作。
 
 ``` r
 # 准备地图数据
@@ -711,12 +715,12 @@ legend("bottomright",
 
 ### ggplot2 + sf
 
-**ggplot2** 在 2018 年发布 3.0.0 版本，开始借助 **sf** 包支持 Simple Features 数据对象的绘图，截止当前最新版本，[ggplot2](https://github.com/tidyverse/ggplot2) 在空间数据可视化都是**非常不专业**的，最糟糕的一个点是它会将地图弄变形了，而空间形状在空间分析领域是至关重要的一部分[^4]。
+**ggplot2** 截止当前最新版本，[ggplot2](https://github.com/tidyverse/ggplot2) 在空间数据可视化都是**非常不专业**的，最糟糕的一个点是它会将地图弄变形了。
 尽管**ggspatial** ([Dunnington 2021](#ref-Dewey2021)) 在 **ggplot2** 的基础上补充了一些地图特有的元素，如比例尺、指北针，但并没有解决地图变形的核心问题。正如 Roger Bivand [所言](https://stat.ethz.ch/pipermail/r-sig-geo/2022-March/028921.html)，还有其它可能难以预料的问题：
 
 > For visualisation, please **avoid** using **ggplot2** unless you use this package often (daily). For thematic mapping, **tmap** and **mapsf** are to be preferred, because they are written for making maps. Do not simplify/generalise coastlines unless you really need to do so. You can use **tmap** and **mapview** to view thematic maps interactively - as you zoom in, you see artefacts created by line generalization.
 
-因此，尽管 **ggplot2** 包已经流行开来，并且在很多方面取得成绩，但严格来说，不推荐使用 **ggplot2** 包来绘制任何和地图相关的图形，除非很清楚研究区域的情况，即在合适的地理区域采用合适的投影、合适的工具绘制准确的地理图形。
+因此，尽管 **ggplot2** 包已经流行开来，并且在很多方面取得成绩，但严格来说，不推荐使用 **ggplot2** 包来绘制任何和地图相关的图形，除非很清楚研究区域的情况，即在合适的地理区域采用合适的投影、合适的工具绘制准确的地理图形。**ggplot2** 在 2018 年发布 3.0.0 版本，开始借助 **sf** 包支持 Simple Features 数据对象的绘图，这就一定程度上缓解了地图变形的问题。
 
 ``` r
 us_county_cancer2$rate_d <- cut(us_county_cancer2$rate, breaks = 50*0:13)
@@ -746,9 +750,9 @@ ggplot() +
 
 <div class="figure" style="text-align: center">
 
-<img src="{{< blogdown/postref >}}index_files/figure-html/us-cancer-rates-ggplot2-sf-1.png" alt="1999 年至 2003 年美国各个城镇的年平均癌症死亡率分布" width="768" />
+<img src="{{< blogdown/postref >}}index_files/figure-html/us-cancer-rates-ggplot2-sf-1.png" alt="1999-2003 年美国各个城镇的年平均癌症死亡率分布" width="768" />
 <p class="caption">
-图 10: 1999 年至 2003 年美国各个城镇的年平均癌症死亡率分布
+图 10: 1999-2003 年美国各个城镇的年平均癌症死亡率分布
 </p>
 
 </div>
@@ -815,19 +819,19 @@ mf_credits(txt = "数据源：美国国家癌症研究所", pos = "bottomright",
 
 <div class="rmdnote">
 
-**mapsf** 包函数 `mf_map()` 的参数 `pal` 取自 R 内置的调色板 `hcl.pals()`，共计 115 个。设置调色板的内部函数 `mapsf:::get_the_pal()` 将原调色板 `hcl.colors()` 反向了，导致图<a href="#fig:us-cancer-rates-mapsf">11</a>的整个配色和之前的图形有所不同，但这并不妨碍图形的准确性和美观性。
+**mapsf** 包函数 `mf_map()` 的参数 `pal` 可取自 R 内置的调色板 `hcl.pals()`，共计 115 个。设置调色板的内部函数 `mapsf:::get_the_pal()` 将原调色板 `hcl.colors()` 反向了，导致图<a href="#fig:us-cancer-rates-mapsf">11</a>的整个配色和之前的图形有所不同，但这并不妨碍图形的准确性和美观性。
 
 </div>
 
 # 多变量情形
 
-[多元专题地图](https://en.wikipedia.org/wiki/Multivariate_map)用以同时展示两个具有空间相关性的变量，比如人均收入和平均寿命，房地产投资占比和城镇化率([Meyer, Broome, and Jr 1975](#ref-Meyer1975))。下面以美国北卡州家庭收入中位数与白人占比的空间相关性为例，在专题地图上同时展示多个指标，除了用到 **ggplot2** 和 **sf** 包，还需 [**biscale**](https://github.com/slu-openGIS/biscale) ([Prener, Grossenbacher, and Zehr 2020](#ref-Prener2020))和 [**cowplot**](https://github.com/wilkelab/cowplot) ([Wilke 2020](#ref-Wilke2020))两个包，前者构造多元变量分组，后者负责将图例和地图主体合并。R 社区最早的技术实现方案来自 Timo Grossenbacher 的博客[Bivariate maps with ggplot2 and sf](https://timogrossenbacher.ch/2019/04/bivariate-maps-with-ggplot2-and-sf/)。
+[多元专题地图](https://en.wikipedia.org/wiki/Multivariate_map)用以同时展示两个具有空间相关性的变量，比如人均收入和平均寿命，房地产投资占比和城镇化率([Meyer, Broome, and Jr 1975](#ref-Meyer1975))。下面以美国北卡州家庭收入中位数与白人占比的空间相关性为例，在专题地图上同时展示多个指标，除了用到 **ggplot2** 和 **sf** 包，还需 [**biscale**](https://github.com/slu-openGIS/biscale) ([Prener, Grossenbacher, and Zehr 2020](#ref-Prener2020))和 [**cowplot**](https://github.com/wilkelab/cowplot) ([Wilke 2020](#ref-Wilke2020))两个包，前者构造多元变量分组，后者负责将图例和地图主体合并。R 社区最早的技术实现方案来自 Timo Grossenbacher 的博客[Bivariate maps with **ggplot2** and **sf**](https://timogrossenbacher.ch/2019/04/bivariate-maps-with-ggplot2-and-sf/)。
 
 ## 美国北卡州家庭收入中位数与白人占比的空间相关性
 
-受上个示例的启发，除了城镇，还有人口普查单元粒度的地区分布图，以描述更加详细点的空间分布，同时，这次从美国人口调查局直接获取数据。下面的数据集来自 2015-2019 年度美国社区调查 American Community Survey（约**300**万家庭的抽样），社区普查粒度（大致相当于咱们按乡镇、街道统计）的北卡罗来纳州家庭收入中位数[^5]和白人居民的百分比，原始数据可借助 **tidycensus** 包([Walker and Herman 2022](#ref-tidycensus))从美国官方网站下载。美国人口调查局（US Census Bureau）提供数据 API 作为公共服务，Kyle Walker 为此开发了 R 接口 [**tidycensus**](https://github.com/walkerke/tidycensus) 包 。下载数据之前，需要先注册一个访问令牌，保存到 R 环境变量 `CENSUS_API_KEY`，可在 `.Renviron` 文件中存储环境变量 `CENSUS_API_KEY`，以便后续调用。此处略去数据下载整理的过程，整理好的数据集保存到本地文件 `nc_race_income.RData`，整理过程的代码与本文源文档放在一起。
+受上个示例的启发，除了城镇，还有人口普查单元粒度的地区分布图，以描述更加详细点的空间分布，同时，这次从美国人口调查局直接获取数据。下面的数据集来自 2015-2019 年度美国社区调查（American Community Survey，约**300**万家庭的抽样），社区普查粒度（大致相当于咱们按乡镇、街道统计）的北卡罗来纳州家庭收入中位数（家庭收入中位数指的是过去12个月家庭收入的中位数，已根据 2019 年的美国通货膨胀情况调整，这种调整使得各个年份的数据是有可比性的。）和白人居民的百分比，原始数据可借助 **tidycensus** 包([Walker and Herman 2022](#ref-tidycensus))从美国官方网站下载。美国人口调查局（US Census Bureau）提供数据 API 作为公共服务，Kyle Walker 为此开发了 R 接口 [**tidycensus**](https://github.com/walkerke/tidycensus) 包 。下载数据之前，需要先注册一个访问令牌，保存到 R 环境变量 `CENSUS_API_KEY`，可在 `.Renviron` 文件中存储环境变量 `CENSUS_API_KEY`，以便后续调用。此处略去数据下载整理的过程，整理好的数据集保存到本地文件 `nc_race_income.RData`，整理过程的代码与本文源文档放在一起。
 
-先看下2015-2019年度美国北卡罗来纳州普查级**家庭收入中位数**的空间分布，笔者已经以直方图探查过收入的分布情况，因此在图<a href="#fig:us-nc-income">12</a>设置了自定义的收入分段，以体现各个收入阶层：10 万以下低收入，10-15 万中等收入，15-20万中高收入，20-25万高收入。除了去除通货膨胀因素，严格来讲，还应该结合美国官方定义的高、中、低收入的标准，考虑地域差异，即发展程度不同的城市设置不同的高、中、低收入的标准，从而构造出更加合理的、可对比的收入阶层划分。图中空白处表示未收集到相关数据，熟悉北卡州的读者想必能对此图有更加细致的解释。
+先看下2015-2019年度美国北卡罗来纳州普查级**家庭收入中位数**的空间分布，笔者已经以直方图探查过收入的分布情况，因此在图<a href="#fig:us-nc-income">12</a>设置了自定义的收入分段，以体现各个收入阶层：10 万以下**低收入**，10-15 万**中等收入**，15-20万**中高收入**，20-25万**高收入**。除去通货膨胀因素，严格来讲，还应该结合美国官方定义的高、中、低收入的标准，考虑地域差异，即发展程度不同的城市设置不同的高、中、低收入的标准，从而构造出更加合理的、可对比的收入阶层划分。图中空白处表示未收集到相关数据，熟悉北卡州的读者想必能对此图有更加细致的解释。
 
 ``` r
 # 加载收入数据
@@ -943,7 +947,7 @@ ggdraw() +
 
 R 软件内置的函数 `reshape()` 有很丰富的解释。所谓的「宽格式」和「长格式」数据来源于纵向数据分析领域 longitudinal data analysis — 对同一对象的同一特征在不同时间点重复测量分析（假定对象没有随时间发生变化），也可以是对多个特征在不同时间点重复测量，这些特征就是所谓的时间变量（随时间变化的变量）timevar（time-varying variables），具体地，测量一个人的头发长度，有的特征随时间不会变化，比如性别、种族等，称之为时间常量（time-constant variables）。函数 `reshape()` 的参数就采用纵向数据分析的术语。R 是一个用于统计计算和绘图的编程语言和环境，主要由统计学家开发和维护，很多重要的函数要回归到统计上去理解，才会豁然开朗。
 
-**lattice** 包提供非常简便的绘图公式语法，**latticeExtra** 也很好地继承了这一特性，`rownames(USCancerRates) ~ rate.female + rate.male`。最庆幸的是`rownames(USCancerRates)` 表示的城镇名称和地图数据 `us_county` 里的城镇名称 names 是可以映射上的。**lattice** 包绘制图形，常常以层层嵌套的列表数据对象传递给参数来实现局部细节调整，这和一些基于 JavaScripts 的数据可视化库是不谋而合，前者是 R 中的 list 列表类型的数据对象，后者往往是一些 JSON 格式或键值对形式的数据对象。关键点是纵向的层次性和横向的互斥性，同层互斥不同层正交，稳扎稳打，不至于牵一发而动全身，掌握此规律，调整图的局部到调整代码的局部就建立好联系了。
+**lattice** 包提供非常简便的绘图公式语法，**latticeExtra** 也很好地继承了这一特性，如`rownames(USCancerRates) ~ rate.female + rate.male`。最庆幸的是`rownames(USCancerRates)` 表示的城镇名称和地图数据 `us_county` 里的城镇名称 names 是可以映射上的，否则专题地图就没法画了。**lattice** 包绘制图形，常常以层层嵌套的列表数据对象传递给参数来实现局部细节调整，这和一些基于 JavaScripts 的数据可视化库是不谋而合，前者是 R 中的 list 列表类型的数据对象，后者往往是一些 JSON 格式或键值对形式的数据对象。关键点是纵向的层次性和横向的互斥性，同层互斥不同层正交，稳扎稳打，不至于牵一发而动全身，掌握此规律，调整图的局部到调整代码的局部就建立好联系了。
 
 **ggplot2** 绘图的理论基础是图形语法，将数据和几何元素建立映射关系，几何和统计图层层层叠加实现主体部分，辅以字体、颜色、坐标系、布局等实现精细调整，达到出版级的效果。图层的精妙之处在于符合 Unix 哲学 — Do one thing, and do it well! 整个复杂的图形拆解为一张张图层，每个图层干一件事，将复杂的过程简化下来。至于具体到专题地图，因涉及到地图数据，情况稍微复杂一些，需要考虑地图数据和观测数据的坐标参考系，点、线、面（多边形或区域）数据类型，以及属于矢量还是栅格数据。总而言之，画个图，看似简单其实也透着综合能力，复杂过程的拆解能力，软件工具的熟练程度，领域知识的了解深度，难以言表的审美能力。
 
@@ -951,7 +955,7 @@ R 软件内置的函数 `reshape()` 有很丰富的解释。所谓的「宽格�
 
 据了解，R 语言社区也有不少 R 包可以绘制交互版的地区分布图，比如 **leaflet** 包([Cheng, Karambelkar, and Xie 2022](#ref-leaflet))、**mapdeck** 包([Cooley 2020](#ref-mapdeck))、**plotly** 包([Sievert et al. 2021](#ref-plotly))和 **echarts4r** 包([Coene 2022](#ref-echarts4r))等。交互式图形包不在本文探讨范围，可另外写一篇介绍，比如面向网页输出的可重复性文档，沉浸式探索性的数据产品。配色是正文没有细谈的方面，在全文保持风格一致即可，若和数据背景相关就更好了。
 
-在写作过程中查找了不少材料，发现一个事实，即使在空间统计领域，崇拜 **tidyverse** ([Wickham et al. 2019](#ref-Wickham2019))的人也对 Base R 充满敌视，措辞非常严厉。笔者曾请教 **tidycensus** 包作者[一些问题](https://github.com/walkerke/tidycensus/issues/439)，尽管问题本身和 Base R 没有太多关系，但人家会毫无理由地严厉地批评 `base::merge()` 而后推荐 `dplyr::left_join()`，读者遇到此类问题，请辩证地看待。据笔者深入了解，**sf** 及整个空间数据处理的基础框架都没有偏向 **tidyverse** 的意思，Edzer J. Pebesma 在 RStudio 2019 年会上的报告 — [Spatial data science in the Tidyverse](https://youtu.be/2d8YaVu1uzs) — 被很多人当作 **sf** 生态偏向 **tidyverse** 的标志。**sf** 是中立的，最初支持 Base R 数据操作和统计作图，后来支持部分净土操作，实际上 **data.table** ([Dowle and Srinivasan 2021](#ref-Dowle2021))也将在[下个版本](https://github.com/Rdatatable/data.table/pull/5224)更好地支持 **sf** 的空间数据类型。此外，若将本文中的代码替换为[净土代码](https://yihui.org/cn/2019/07/tidy-noise/)，将引入很多的 R 包依赖，并在不久的将来有丧失可重复性的风险。
+在写作过程中查找了不少材料，发现一个事实，即使在空间统计领域，崇拜 **tidyverse** ([Wickham et al. 2019](#ref-Wickham2019))的人也对 Base R 充满敌视，措辞非常严厉。笔者曾请教 **tidycensus** 包作者[一些问题](https://github.com/walkerke/tidycensus/issues/439)，尽管问题本身和 Base R 没有太多关系，但人家会毫无理由地严厉地批评 `base::merge()` 而后推荐 `dplyr::left_join()`，读者遇到此类问题，请辩证地看待。据笔者深入了解，**sf** 及整个空间数据处理的基础框架都没有偏向 **tidyverse** 的意思，Edzer J. Pebesma 在 RStudio 2019 年会上的报告 — [Spatial data science in the Tidyverse](https://resources.rstudio.com/rstudio-conf-2019/spatial-data-science-in-the-tidyverse) — 被很多人当作 **sf** 生态偏向 **tidyverse** 的标志。**sf** 是中立的，最初支持 Base R 数据操作和统计作图，后来支持部分净土操作，实际上 **data.table** ([Dowle and Srinivasan 2021](#ref-Dowle2021))也将在[下个版本](https://github.com/Rdatatable/data.table/pull/5224)更好地支持 **sf** 的空间数据类型。此外，若将本文中的代码替换为[净土代码](https://yihui.org/cn/2019/07/tidy-noise/)，将引入很多的 R 包依赖，并在不久的将来有丧失可重复性的风险。
 
 在写作过程中，陆续遇到一些虽未直接引用但有价值的材料：
 
@@ -994,30 +998,31 @@ R 软件内置的函数 `reshape()` 有很丰富的解释。所谓的「宽格�
 
 # 环境信息
 
-在 RStudio IDE 内编辑本文的 R Markdown 源文件，用 **blogdown** 构建网站，[Hugo](https://github.com/gohugoio/hugo) 渲染 knitr 之后的 Markdown 文件，得益于 **blogdown** 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：
+在 RStudio IDE 内编辑本文的 R Markdown 源文件，用 **blogdown** ([Xie, Hill, and Thomas 2017](#ref-blogdown)) 构建网站，[Hugo](https://github.com/gohugoio/hugo) 渲染 knitr 之后的 Markdown 文件，得益于 **blogdown** 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：
 
 ``` r
 xfun::session_info(packages = c(
   "knitr", "rmarkdown", "blogdown",
   "ggplot2", "cowplot", "biscale", 
   "grid", "lattice", "latticeExtra", 
-  "maps", "sf", "tidycensus", "mapsf",
-  "usmapdata", "tmap"
+  "maps", "mapproj", "sf", "tidycensus", 
+  "usmapdata", "mapsf", "tmap"
 ), dependencies = FALSE)
-# R version 4.1.3 (2022-03-10)
+# R version 4.2.0 (2022-04-22)
 # Platform: x86_64-apple-darwin17.0 (64-bit)
 # Running under: macOS Big Sur/Monterey 10.16
 # 
-# Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / POSIX / en_US.UTF-8 / en_US.UTF-8
+# Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
 # 
 # Package version:
 #   biscale_0.2.0       blogdown_1.9        cowplot_1.1.1      
-#   ggplot2_3.3.5       grid_4.1.3          knitr_1.38         
-#   lattice_0.20-45     latticeExtra_0.6-29 maps_3.4.0         
-#   mapsf_0.4.0         rmarkdown_2.13      sf_1.0-7           
-#   tidycensus_1.2.1    tmap_3.3-3          usmapdata_0.1.0    
+#   ggplot2_3.3.5       grid_4.2.0          knitr_1.39         
+#   lattice_0.20-45     latticeExtra_0.6-29 mapproj_1.2.8      
+#   maps_3.4.0          mapsf_0.4.0         rmarkdown_2.14     
+#   sf_1.0-7            tidycensus_1.2.1    tmap_3.3-3         
+#   usmapdata_0.1.0    
 # 
-# Pandoc version: 2.17.1.1
+# Pandoc version: 2.18
 # 
 # Hugo version: 0.91.2
 ```
@@ -1101,12 +1106,6 @@ Dowle, Matt, and Arun Srinivasan. 2021. *<span class="nocase">data.table</span>:
 <div id="ref-Dewey2021" class="csl-entry">
 
 Dunnington, Dewey. 2021. *<span class="nocase">ggspatial</span>: Spatial Data Framework for <span class="nocase">ggplot2</span>*. <https://CRAN.R-project.org/package=ggspatial>.
-
-</div>
-
-<div id="ref-Dunnington2021" class="csl-entry">
-
-Dunnington, Dewey, Edzer Pebesma, and Ege Rubak. 2021. *<span class="nocase">s2</span>: Spherical Geometry Operators Using the S2 Geometry Library*. <https://CRAN.R-project.org/package=s2>.
 
 </div>
 
@@ -1284,6 +1283,12 @@ Wilkinson, Leland. 2005. *The Grammar of Graphics*. 2nd ed. Springer, New York, 
 
 </div>
 
+<div id="ref-blogdown" class="csl-entry">
+
+Xie, Yihui, Alison Presmanes Hill, and Amber Thomas. 2017. *<span class="nocase">blogdown</span>: Creating Websites with R Markdown*. Boca Raton, Florida: Chapman; Hall/CRC. <https://bookdown.org/yihui/blogdown/>.
+
+</div>
+
 <div id="ref-Yutani2018" class="csl-entry">
 
 Yutani, Hiroaki. 2018. “Plot <span class="nocase">geom_sf()</span> on OpenStreetMap Tiles.” <https://yutani.rbind.io/post/2018-06-09-plot-osm-tiles/>.
@@ -1300,10 +1305,4 @@ Yutani, Hiroaki. 2018. “Plot <span class="nocase">geom_sf()</span> on OpenStre
 
 [^1]: 笔者英文水平有限，看的是中文版，推荐有条件的读者尝试看英文版，应该会舒服得多。《Neyman》书中多次提及另一本卡尔·皮尔逊（Karl Person）的著作《The Grammar of Science》([Person 1911](#ref-Person1911))，也有中译本《科学的规范》([Person 1998](#ref-Person1998))，值得一读。众所周知，耐曼在波兰和英国时期和爱根·皮尔逊（E. S. Person）在假设检验和置信区间理论方面有大量合作，一起奠定了统计学严格的数学基础。耐曼的早期工作从卡尔·皮尔逊时代开始，研究了大量实际问题，所以，了解一些生活中实在的具体问题，就不会被 N-P 引理折磨了。于我个人而言，毕业以后，第一阶段应用，从书中来到工作中去，第二阶段理论，从工作中来到书中去。我的第一阶段正在进行中，第二阶段不知道什么时候开始。
 
-[^2]: 大家都有这样一种感觉，将一张只有中国国家边界的地图放在面前，你不一定能清晰地指出每一个省份的位置，但是只要画上各个省的边界，你肯定能增加准确度，类似地，从省到市、乃至区县，边界给了我们很好的参照。
-
-[^3]: Tanimura, Kuroiwa, and Mizota ([2006](#ref-Susumu2006)) 基于 2000 年日本长崎县长崎市的町村级行政边界地图数据，以及当年关于儿童人口普查数据，以比例气泡图展示人口的空间分布，是 R 语言社区最早一幅用 **maps** 包绘制的比例气泡地图。顺便一提，长崎市大约相当于咱们的地级市，粗略地讲，往上都道府县是一级，往下町村为一级，中间是市区一级。
-
-[^4]: 顺便一说，如果空间分析在不同投影下的结果不同，那么应该采用何种投影呢？ Edzer J. Pebesma 在 [useR! 2021](https://youtu.be/cK08bxUJn5A) 会上建议考虑保角映射，原始的数据在投影下不至于膨胀或变形，尽管尺寸会缩小，共形变换保持了角度以及无穷小物体的形状。保角映射是复变函数中非常重要的概念，空间球面几何计算需要一些基础的复变函数、微分几何等高等数学知识，这在 **s2** 包([Dunnington, Pebesma, and Rubak 2021](#ref-Dunnington2021))中有很多应用，也构成了 **sf** 包的核心基础。
-
-[^5]: 家庭收入中位数指的是过去12个月家庭收入的中位数，已根据 2019 年的美国通货膨胀情况调整，这种调整使得各个年份的数据是可比的。
+[^2]: Tanimura, Kuroiwa, and Mizota ([2006](#ref-Susumu2006)) 基于 2000 年日本长崎县长崎市的町村级行政边界地图数据，以及当年关于儿童人口普查数据，以比例气泡图展示人口的空间分布，是 R 语言社区最早一幅用 **maps** 包绘制的比例气泡地图。顺便一提，长崎市大约相当于咱们的地级市，粗略地讲，往上都道府县是一级，往下町村为一级，中间是市区一级。
