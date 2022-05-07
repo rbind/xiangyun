@@ -2,14 +2,14 @@
   command = "hugo"
   publish = "public"
 [build.environment]
-  HUGO_VERSION = "0.91.2"
+  HUGO_VERSION = "0.98.0"
   PYTHON_VERSION = "3.8"
 
 [context.branch-deploy]
-  command = "hugo -F -b $DEPLOY_PRIME_URL"
+  command = "hugo -F -b $DEPLOY_URL"
 
 [context.deploy-preview]
-  command = "hugo -F -b $DEPLOY_PRIME_URL"
+  command = "hugo -F -b $DEPLOY_URL"
 
 [context.production.environment]
   HUGO_ENV = "production"
