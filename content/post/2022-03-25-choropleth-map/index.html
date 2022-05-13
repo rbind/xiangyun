@@ -1,9 +1,9 @@
 ---
 title: 地区分布图及其应用
 author: 黄湘云
-date: '2022-04-20'
+date: '2022-05-13'
 slug: choropleth-map
-meta_extra: "审稿：张沥今；编辑：xxx"
+meta_extra: "审稿：张沥今"
 categories:
   - 统计图形
 tags: 
@@ -18,6 +18,7 @@ tags:
   - lattice
   - sf
   - ggplot2
+  - tmap
 output:
   blogdown::html_page:
     toc: true
@@ -163,7 +164,7 @@ blockquote > p:first-child {
 <p>接下来，本文分四个部分展开介绍地区分布图，分别是单变量情形、多变量情形、本文小结和未来展望。</p>
 <p>单变量情形中以 <strong>latticeExtra</strong> 包<span class="citation">(<a href="#ref-latticeExtra" role="doc-biblioref">Sarkar and Andrews 2019</a>)</span>内置的数据集 USCancerRates 为例，以地区分布图形式展示美国 1999-2003 年度各郡的年平均癌症死亡率，此处专题的含义是「人口死亡率」，显而易见，癌症死亡率只是一方面，还有流感死亡率等，癌症可以分类型，如乳腺癌、子宫癌等，人又可以分属性，如性别、年龄、种族等等。在数据操作、指标计算和分面绘图等方面从零开始介绍绘制地区分布图的过程，包括基础数据操作以及六个绘图工具 <strong>maps</strong> 包<span class="citation">(<a href="#ref-Becker1993" role="doc-biblioref">Becker and Wilks 1993</a>)</span>、<strong>latticeExtra</strong> 包、<strong>ggplot2</strong> 包<span class="citation">(<a href="#ref-Wickham2022" role="doc-biblioref">Wickham and Girlich 2022</a>)</span>、<strong>tmap</strong> 包<span class="citation">(<a href="#ref-Tennekes2018" role="doc-biblioref">Tennekes 2018</a>)</span>、<strong>sf</strong> 包<span class="citation">(<a href="#ref-Pebesma2018" role="doc-biblioref">E. J. Pebesma 2018</a>)</span>和 <strong>mapsf</strong> 包<span class="citation">(<a href="#ref-mapsf2022" role="doc-biblioref">Giraud 2022</a>)</span>，阐述数据指标「年平均癌症死亡率」的实际含义、指标口径和计算过程，从易到难，层层深入，以期达到出版级的水准，探索出最佳实践。</p>
 <p>多变量情形中以美国人口调查局发布的调查数据为基础，分析北卡罗来纳州各郡社区普查级的家庭年收入与白人占比的空间相关性。先以单变量的地区分布图描述各个普查区域里家庭年收入的空间分布，接着和二元变量的地区分布图形成对比，展示相关性的空间分布。</p>
-<p>本文小结部分总结了 7 种绘图方案的情况，总结了不同方案间的关系和一些绘图经验，希望帮助读者加深理解和学习。</p>
+<p>本文小结部分给出了 7 种不同绘图方案间的关系和一些绘图经验，希望帮助读者加深理解和学习。</p>
 <p>未来展望部分从应用场景和绘图技术方面继续提供一些示例，供读者继续探索。</p>
 </div>
 <div id="单变量情形" class="section level1">
@@ -467,7 +468,6 @@ subset(x = USCancerRates, subset = state == &quot;Alabama&quot; &amp; county == 
 </div>
 <div id="maps" class="section level3">
 <h3>maps</h3>
-<p><strong>maps</strong> 包<span class="citation">(<a href="#ref-Becker1993" role="doc-biblioref">Becker and Wilks 1993</a>)</span>内置的美国郡地图数据欠缺一部分，阿拉斯加、夏威夷和波多黎各都没有。数据集 USCancerRates 没有夏威夷、波多黎各各个郡的数据，阿拉斯加的部分郡有数据，如图<a href="#fig:us-cancer-rates-maps">2</a>所示，不少郡没有收集到癌症死亡率数据，以灰色表示。值得一提的是，关于死亡率分级，不同的分法会带给人不同的印象甚至是错觉，此处是可以有操作空间的，特定的死亡率分割方式可以让男女死亡率的空间分布<strong>看起来</strong>差异不大或很大<span class="citation">(<a href="#ref-Kolak2020" role="doc-biblioref">Kolak et al. 2020</a>)</span>，详细介绍见 Marynia Kolak 和 Susan Paykin 在 2021 R/Medicine 大会上的<a href="https://youtu.be/-HvRISFkQZQ">视频</a>和<a href="https://makosak.github.io/Intro2RSpatialMed/02-choropleth.html">网页</a>材料。</p>
 <p>分析和展示地理信息数据是一项常规任务，约 30 年前，Richard A. Becker 等为 S 语言引入地理可视化，特别是本文介绍的地区分布图，以及简单的区域面积和区域中心的计算能力<span class="citation">(<a href="#ref-Becker1993" role="doc-biblioref">Becker and Wilks 1993</a>, <a href="#ref-Becker1995" role="doc-biblioref">1995</a>)</span>，而后到了 2003年，Ray Brownrigg、Thomas P Minka 和 Alex Deckmyn 等将其引入 R 语言社区并持续维护至今<span class="citation">(<a href="#ref-maps" role="doc-biblioref">Richard A. Becker, Ray Brownrigg. Enhancements by Thomas P Minka, and Deckmyn. 2021</a>)</span>。除了最基础的 <strong>maps</strong> 包，还有坐标投影 <strong>mapproj</strong> 包<span class="citation">(<a href="#ref-mapproj" role="doc-biblioref">R by Ray Brownrigg, Minka, and Plan 9 codebase by Roger Bivand. 2022</a>)</span>，以及提供更多地图数据的 <strong>mapdata</strong> 包<span class="citation">(<a href="#ref-mapdata" role="doc-biblioref">Richard A. Becker and Ray Brownrigg. 2018</a>)</span>。那个时候，因缺乏一些基础工具，在地图数据获取、空间数据操作和可视化方面都不太容易，仅用这些能做到下图<a href="#fig:us-cancer-rates-maps">2</a>已属不易。</p>
 <pre class="r"><code># 加载数据
 data(USCancerRates, package = &quot;latticeExtra&quot;)
@@ -536,6 +536,7 @@ legend(&quot;bottomright&quot;,
 图 2: 1999-2003 年美国各个郡的年平均癌症死亡率分布
 </p>
 </div>
+<p><strong>maps</strong> 包<span class="citation">(<a href="#ref-Becker1993" role="doc-biblioref">Becker and Wilks 1993</a>)</span>内置的美国郡级地图数据欠缺阿拉斯加、夏威夷和波多黎各。数据集 USCancerRates 没有夏威夷、波多黎各各个郡的数据，阿拉斯加的部分郡有数据，如图<a href="#fig:us-cancer-rates-maps">2</a>所示，不少郡没有收集到癌症死亡率数据，以灰色表示。值得一提的是，关于死亡率分级，不同的分法会带给人不同的印象甚至是错觉，此处是可以有操作空间的，特定的死亡率分割方式可以让男女死亡率的空间分布<strong>看起来</strong>差异不大或很大<span class="citation">(<a href="#ref-Kolak2020" role="doc-biblioref">Kolak et al. 2020</a>)</span>，详细介绍见 Marynia Kolak 和 Susan Paykin 在 2021 R/Medicine 大会上的<a href="https://youtu.be/-HvRISFkQZQ">视频</a>和<a href="https://makosak.github.io/Intro2RSpatialMed/02-choropleth.html">网页</a>材料。</p>
 <p>在数据操作方面，麻烦的是建立数据指标和各个地理区域的映射，上面反复用到函数 <code>match()</code>，Base R 有很多这样短小精悍的函数。下面简单介绍一下以助理解，函数 <code>match()</code> 返回一个向量，向量的长度与参数 x 一致，向量的元素是整型的，表示参数 x 中的元素出现在参数 table 中的位置，下面是三个小示例：</p>
 <pre class="r"><code>match(x = c(&quot;A&quot;, &quot;B&quot;), table = c(&quot;A&quot;))
 # [1]  1 NA
@@ -543,7 +544,7 @@ match(x = c(&quot;A&quot;, &quot;B&quot;), table = c(&quot;C&quot;, &quot;A&quot
 # [1]  2 NA
 match(x = c(&quot;A&quot;, &quot;B&quot;), table = c(&quot;C&quot;, &quot;A&quot;, &quot;D&quot;))
 # [1]  2 NA</code></pre>
-<p>另外，<strong>maps</strong> 包内置的地图数据制作起来比较复杂，也很长时间没有更新了，笔者不推荐读者再从零开始构建 map 数据对象。<strong>sp</strong> 包<span class="citation">(<a href="#ref-Pebesma2005" role="doc-biblioref">E. J. Pebesma and Bivand 2005</a>)</span>发布后，<strong>maps</strong> 包支持将 Spatial 数据对象转为 map 数据对象，这相当于引入了 <strong>sp</strong> 包及其生态在空间数据获取和数据操作方面的能力<span class="citation">(<a href="#ref-Bivand2013" role="doc-biblioref">R. S. Bivand, Pebesma, and Gomez-Rubio 2013</a>)</span>。目前，美国国家人口统计局已提供了历年的州、郡、普查级多个比例尺的行政区划地图数据，配合 <strong>sf</strong> 包，可以很好地解决地理可视化的背景底图问题。一些以前看起来很难的问题，随着时间变迁，技术革新，已经解决了。</p>
+<p>另外，<strong>maps</strong> 包内置的地图数据制作起来比较复杂，也很长时间没有更新了，笔者不推荐读者再从零开始构建 map 数据对象。<strong>sp</strong> 包<span class="citation">(<a href="#ref-Pebesma2005" role="doc-biblioref">E. J. Pebesma and Bivand 2005</a>)</span>发布后，<strong>maps</strong> 包支持将 Spatial 数据对象转为 map 数据对象，这相当于引入了 <strong>sp</strong> 包及其生态在空间数据获取和数据操作方面的能力<span class="citation">(<a href="#ref-Bivand2013" role="doc-biblioref">R. S. Bivand, Pebesma, and Gomez-Rubio 2013</a>)</span>。目前，美国国家人口统计局已提供了历年的州、郡、普查级多个比例尺的行政区划地图数据，配合 <strong>sf</strong> 包<span class="citation">(<a href="#ref-Pebesma2018" role="doc-biblioref">E. J. Pebesma 2018</a>)</span>，可以很好地解决地理可视化的背景底图问题。一些以前看起来很难的问题，随着时间变迁，技术革新，已经解决了。</p>
 </div>
 <div id="latticeextra" class="section level3">
 <h3>latticeExtra</h3>
@@ -759,7 +760,7 @@ state_df &lt;- usmapdata::us_map(&quot;states&quot;)
 dat$rate_d &lt;- cut(dat$rate, breaks = 50 * 0:13)
 # 恢复地图数据顺序
 dat &lt;- dat[order(dat$order), ]</code></pre>
-<p>数据准备工作完成后，除了在细节上不断试错外<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>，绘图过程主要有七个步骤：</p>
+<p>数据准备工作完成后，绘图过程主要有八个步骤：</p>
 <ol style="list-style-type: decimal">
 <li>底图：绘制美国郡地图，填充灰色背景，以此为底图。</li>
 <li>映射：添加每个郡的癌症死亡率数据，填充颜色根据死亡率而定。同时以浅白色绘制郡的边界线，将线调细一些，与后面州的边界线形成层次。</li>
@@ -768,6 +769,7 @@ dat &lt;- dat[order(dat$order), ]</code></pre>
 <li>布局：以函数 <code>facet_wrap()</code> 实现分面，分面标题放在图形上方，布局为两行一列。</li>
 <li>标题：添加整个图形的主标题、副标题和图例标题。</li>
 <li>主题：设置整个图形主题样式 <code>theme_void()</code> 以符合地图特色，将图形主标题位置居中。</li>
+<li>细节：打磨图形配色、长宽尺寸、字体大小等方面，直至满意。</li>
 </ol>
 <pre class="r"><code>library(ggplot2)
 ggplot() +
@@ -801,7 +803,7 @@ ggplot() +
 </div>
 <div id="tmap" class="section level3">
 <h3>tmap</h3>
-<p>同 <strong>sf</strong> 包<span class="citation">(<a href="#ref-Pebesma2018" role="doc-biblioref">E. J. Pebesma 2018</a>)</span>的绘图函数 <code>plot()</code> 一样，<strong>tmap</strong> <span class="citation">(<a href="#ref-Tennekes2018" role="doc-biblioref">Tennekes 2018</a>)</span> 也是基于 Base R 图形系统，但使用语法更加贴合 <strong>ggplot2</strong> 包<span class="citation">(<a href="#ref-Wickham2022" role="doc-biblioref">Wickham and Girlich 2022</a>)</span>，对空间数据可视化有更多专业支持，比如基于比例的符号/气泡图<span class="citation">(<a href="#ref-Susumu2006" role="doc-biblioref">Tanimura, Kuroiwa, and Mizota 2006</a>)</span> <a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>和基于二维核密度估计的热力图<span class="citation">(<a href="#ref-Tennekes2018" role="doc-biblioref">Tennekes 2018</a>)</span>。</p>
+<p>同 <strong>sf</strong> 包<span class="citation">(<a href="#ref-Pebesma2018" role="doc-biblioref">E. J. Pebesma 2018</a>)</span>的绘图函数 <code>plot()</code> 一样，<strong>tmap</strong> <span class="citation">(<a href="#ref-Tennekes2018" role="doc-biblioref">Tennekes 2018</a>)</span> 也是基于 Base R 图形系统，但使用语法更加贴合 <strong>ggplot2</strong> 包<span class="citation">(<a href="#ref-Wickham2022" role="doc-biblioref">Wickham and Girlich 2022</a>)</span>，对空间数据可视化有更多专业支持，比如基于比例的符号/气泡图<span class="citation">(<a href="#ref-Susumu2006" role="doc-biblioref">Tanimura, Kuroiwa, and Mizota 2006</a>)</span> <a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>和基于二维核密度估计的热力图<span class="citation">(<a href="#ref-Tennekes2018" role="doc-biblioref">Tennekes 2018</a>)</span>。</p>
 <p><strong>tmap</strong> 支持 <strong>sp</strong> 包提供的 Spatial 类数据对象，也支持 <strong>sf</strong> 包提供的 Simple Features 类数据对象，后者是新一代更好的工具，因此接下来的示例都将基于 <strong>sf</strong> 包。首先从美国人口调查局下载州和郡级别的<a href="https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html">多边形边界数据</a>，再类似 <strong>usmapdata</strong> 包对阿拉斯加、夏威夷和波多黎各做适当的调整，借助 <strong>tidycensus</strong> 包<span class="citation">(<a href="#ref-tidycensus" role="doc-biblioref">Walker and Herman 2022</a>)</span>让这个过程变得容易，调整地图数据的代码与源文档放在一起，读者可自取。</p>
 <pre class="r"><code># 准备地图数据
 library(sf)
@@ -1040,7 +1042,7 @@ nc_income_race_county &lt;- get_acs(
   state = &quot;NC&quot;, # 北卡州
   geography = &quot;county&quot;, # 郡级
   # 三个数据指标：家庭年收入，白人数量，总人数
-  variables = c(&quot;B19013_001&quot;, &quot;B02001_001E&quot;, &quot;B02001_002E&quot;),
+  variables = c(&quot;B19013_001&quot;, &quot;B02001_001&quot;, &quot;B02001_002&quot;),
   geometry = TRUE, # 下载北卡郡级地图数据
   output = &quot;wide&quot;, # 输出宽格式数据
   year = 2019, # 2015-2019 年度
@@ -1051,7 +1053,7 @@ nc_income_race_county &lt;- get_acs(
 nc_income_race_tract &lt;- get_acs(
   state = &quot;NC&quot;,
   geography = &quot;tract&quot;, # 社区级
-  variables = c(&quot;B19013_001&quot;, &quot;B02001_001E&quot;, &quot;B02001_002E&quot;),
+  variables = c(&quot;B19013_001&quot;, &quot;B02001_001&quot;, &quot;B02001_002&quot;),
   geometry = TRUE, output = &quot;wide&quot;,
   year = 2019, survey = &quot;acs5&quot;,
   moe_level = 90
@@ -1069,7 +1071,7 @@ nc_tract_map &lt;- tigris::tracts(state = 37, cb = T, year = 2019, class = &quot
 </ol>
 <p>下面补充几个细节：</p>
 <ol style="list-style-type: decimal">
-<li><p>不同年份 ACS 调查的郡、社区有变化，美国也会定期更新地图数据，因此，北卡郡级、社区级地图数据的年份和 ACS 调查数据的发布年份要一致，。</p></li>
+<li><p>不同年份 ACS 调查的郡、社区有变化，美国也会定期更新地图数据，因此，北卡郡级、社区级地图数据的年份和 ACS 调查数据的发布年份要一致。</p></li>
 <li><p>R 软件内置了数据集 <code>state.name</code> 和 <code>state.abb</code>，分别对应美国各个州的名称及其简称，<strong>tidycensus</strong> 包内置的数据集 <code>fips_codes</code> 还提供各州、郡的 FIPS 代码，用于下载所需州郡的数据。</p></li>
 <li><p>读者若对其它数据指标感兴趣，可通过如下命令查看：</p>
 <pre class="r"><code>acs_vars &lt;- load_variables(year = 2019, dataset = &quot;acs5&quot;)
@@ -1088,7 +1090,7 @@ View(acs_vars)</code></pre>
 <p>The phenomenon external to an area of interest affects what goes on inside.</p>
 <p>— Waldo Tobler <span class="citation">(<a href="#ref-Tobler2004" role="doc-biblioref">Tobler 2004</a>)</span></p>
 </blockquote>
-<p>在展示北卡州的数据之前，先看下美国各州、郡的收入分布概况，如图<a href="#fig:us-income-state">12</a> 和图<a href="#fig:us-income-county">13</a> 分别是美国州级、郡级的收入分布图，结合这两张图，不难看出除了少量的西岸加州一带城市和东岸波士顿、纽约、华盛顿一带城市，收入的空间分布较为平衡。北卡州的收入水平属于中等偏上，也算典型，境内分布的罗利和达勒姆、教堂山三座城市被称为东岸硅谷，北卡罗来纳大学有<strong>16</strong>个分校，俨然一个超大规模的大学城，教堂山分校的统计系是北美最早建立的统计系之一。</p>
+<p>在展示北卡州的数据之前，先看下美国各州、郡的收入分布概况，如图<a href="#fig:us-income-state">12</a> 和图<a href="#fig:us-income-county">13</a> 分别是美国州级、郡级的收入分布图，结合这两张图，不难看出除了少量的西岸加州一带城市和东岸波士顿、纽约、华盛顿一带城市，收入的空间分布较为平衡。北卡州的收入水平属于中等偏上，也算典型，境内分布的罗利、达勒姆、教堂山三座城市被称为东岸硅谷。北卡罗来纳大学有<strong>16</strong>个分校，俨然一个超大规模的大学城，教堂山分校的统计系是北美最早建立的统计系之一。</p>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:us-income-state"></span>
 <img src="{{< blogdown/postref >}}index_files/figure-html/us-income-state-1.png" alt="2015-2019 年度美国各个州家庭年收入" width="921.6" />
 <p class="caption">
@@ -1210,9 +1212,6 @@ summary(fit)
 </p>
 </div>
 <p>类似地，图<a href="#fig:pctwhite-moran">22</a>更清晰地描述白人在北卡的分布区域，结合收入分布图<a href="#fig:us-nc-income">14</a>和图<a href="#fig:medinc-moran">21</a>来看，收入越高的地区白人占比越高，由此可见，引入地区分布图帮助我们更直观地了解了白人占比和家庭收入的关系。</p>
-<!-- 
-TODO: 统计过去20年的 $R^2$ 变化，观察其变化趋势。
--->
 <!--
 ::: rmdtip
 **sf** 包内置的北卡州郡级地图数据集 `nc.gpkg` 坐标参考系为 [`EPSG:4267`](https://epsg.io/4267)，而通常使用的 **leaflet** 包[@leaflet]和 **mapdeck** 包[@mapdeck]需要地图数据集转化到 [`EPSG:4326`](https://epsg.io/4326)，其细微差别详见 Hiroaki Yutani 的博客 [@Yutani2018]。本文源文档提供图\@ref(fig:us-nc-income)的 **leaflet** 绘图代码，此处不再介绍。若使用国内的 Web 地图服务，一般需要地图数据转化到[火星坐标系](https://en.wikipedia.org/wiki/Restrictions_on_geographic_data_in_China)，其间会存在一定的[漂移](https://gis.stackexchange.com/questions/234202)。
@@ -1235,13 +1234,20 @@ TODO: 统计过去20年的 $R^2$ 变化，观察其变化趋势。
 <img src="img/choropleth-map.svg" alt="" />
 <p class="caption">图 23:  7 种绘图方案依赖的 R 包及其层次关系</p>
 </div>
-<p><strong>lattice</strong> 包提供非常简便的绘图公式语法，<strong>latticeExtra</strong> 也很好地继承了这一特性，如<code>rownames(USCancerRates) ~ rate.female + rate.male</code>。庆幸的是各郡癌症死亡率数据的郡名称<code>rownames(USCancerRates)</code> 和地图数据 <code>us_county</code> 里的郡名称 <code>names</code> 是可以映射上的，否则地区分布图就没法画了。<strong>lattice</strong> 包绘制图形，常常以层层嵌套的列表数据对象传递给参数来实现局部细节调整，这和一些基于 JavaScripts 的数据可视化库是不谋而合，前者是 R 中的 list 列表类型的数据对象，后者往往是一些 JSON 格式或键值对形式的数据对象。关键点是理解纵向的层次性和横向的互斥性，同层互斥不同层正交，稳扎稳打，不至于牵一发而动全身，掌握此规律，调整图的局部到调整代码的局部就建立好联系了。</p>
+<p>R 语言提供的公式语法大量存在于统计绘图和建模分析中，<strong>lattice</strong> 包提供非常简便的绘图公式语法，<strong>latticeExtra</strong> 也很好地继承了这一特性，如<code>rownames(USCancerRates) ~ rate.female + rate.male</code>。庆幸的是各郡癌症死亡率数据的郡名称<code>rownames(USCancerRates)</code> 和地图数据 <code>us_county</code> 里的郡名称 <code>names</code> 是可以映射上的，否则地区分布图就没法画了。<strong>lattice</strong> 包绘制图形，常常以层层嵌套的列表数据对象传递给参数来实现局部细节调整，这和一些基于 JavaScripts 的数据可视化库是不谋而合，前者是 R 中的 list 列表类型的数据对象，后者往往是一些 JSON 格式或键值对形式的数据对象。关键点是理解纵向的层次性和横向的互斥性，同层互斥不同层正交，稳扎稳打，不至于牵一发而动全身，掌握此规律，调整图的局部到调整代码的局部就建立好联系了。</p>
 <p><strong>ggplot2</strong> 绘图的理论基础是图形语法，将数据和几何元素建立映射关系，几何和统计图层层层叠加实现主体部分，辅以字体、颜色、坐标系、布局等实现精细调整，达到出版级的效果。图层的精妙之处在于符合 Unix 哲学 — Do one thing, and do it well! 整个复杂的图形拆解为一张张图层，每个图层干一件事，将复杂的过程简化下来。至于具体到地区分布图，因涉及到地图数据，情况稍微复杂一些，需要考虑地图数据和观测数据的坐标参考系，点、线、面（多边形或区域）数据类型，以及属于矢量还是栅格数据。总而言之，画个图，看似简单其实也透着综合能力：复杂过程的拆解能力，软件工具的熟练程度，领域知识的了解深度，难以言表的审美能力。</p>
 <p><a href="https://github.com/r-tmap/tmap"><strong>tmap</strong></a> 类似 <a href="https://github.com/riatelab/mapsf"><strong>mapsf</strong></a>，相比而言，上游依赖很多，相应功能也多，其Github站点有丰富的介绍材料。另一方面，据笔者在 MacOS 和 Ubuntu 系统上测试图<a href="#fig:us-cancer-rates-tmap">8</a>，发现绘图性能很差，这应该和它内部将 sf 等数据对象转化为 sp 数据对象有关。<strong>sp</strong> 已是上一代产品，现有工具足以替代，因此，不再介绍， <span class="citation">E. Pebesma and Bivand (<a href="#ref-Pebesma2022" role="doc-biblioref">2022</a>)</span> 推荐大家根据具体情况赶快迁移到新的空间数据工具箱 <strong>sf</strong>、<strong>stars</strong> <span class="citation">(<a href="#ref-stars" role="doc-biblioref">E. Pebesma 2021</a>)</span> 或 <strong>terra</strong> <span class="citation">(<a href="#ref-terra" role="doc-biblioref">Hijmans 2022</a>)</span>，已成历史的三个 R 包 — 空间几何计算 <strong>rgeos</strong> <span class="citation">(<a href="#ref-rgeos" role="doc-biblioref">R. Bivand and Rundel 2021</a>)</span>、空间数据导入 <strong>rgdal</strong> <span class="citation">(<a href="#ref-rgdal" role="doc-biblioref">R. Bivand, Keitt, and Rowlingson 2022</a>)</span>和空间数据操作 <strong>maptools</strong> <span class="citation">(<a href="#ref-maptools" role="doc-biblioref">R. Bivand and Lewin-Koh 2022</a>)</span> 将于 <strong>2023</strong> 年底退休。</p>
 <p>据笔者了解<span class="citation">(<a href="#ref-Huang2022I" role="doc-biblioref">黄湘云 2022b</a>, <a href="#ref-Huang2022II" role="doc-biblioref">2022a</a>)</span>，R 语言社区也有不少 R 包可以绘制交互版的地区分布图，比如 <strong>leaflet</strong> 包<span class="citation">(<a href="#ref-leaflet" role="doc-biblioref">Cheng, Karambelkar, and Xie 2022</a>)</span>、<strong>mapdeck</strong> 包<span class="citation">(<a href="#ref-mapdeck" role="doc-biblioref">Cooley 2020</a>)</span>、<strong>plotly</strong> 包<span class="citation">(<a href="#ref-plotly" role="doc-biblioref">Sievert et al. 2021</a>)</span>和 <strong>echarts4r</strong> 包<span class="citation">(<a href="#ref-echarts4r" role="doc-biblioref">Coene 2022</a>)</span>等。配色是正文没有细谈的方面，在全文保持风格一致即可，若和数据背景相关就更好了。</p>
 </div>
 <div id="未来展望" class="section level1">
 <h1>未来展望</h1>
+<p>在单变量情形中，已用 <strong>7</strong> 种绘图方法展示美国各郡年平均癌症死亡率，还可以补充 <strong>ggplot2</strong> + <strong>ggspatial</strong> 和 <strong>ggplot2</strong> + <strong>maps</strong> 两种历史方法。</p>
+<p>在多变量情形中，对美国社区调查数据，还可以继续做一些拓展分析，比如：</p>
+<ul>
+<li>在社区级调查数据的基础上，分郡建立家庭年收入和白人占比的线性模型，获得各郡的相关性。进一步，将范围从北卡州扩展到全美，展示相关性在美国各郡的空间分布。</li>
+<li>在线性模型的基础上，添加空间效应，引入空间自相关模型来量化家庭年收入与白人占比的空间分布。</li>
+<li>基于过去 10-20 年的美国社区调查数据，分析高、低收入圈在空间集聚的过程和速度。</li>
+</ul>
 <p>在应用方向上，还有很多有意思的场景，比如：</p>
 <ul>
 <li><strong>疾控预防方面</strong>，以 2022-03-05 至 2022-03-11 美国新冠日均感染率（单位十万分之一）为例，如图<a href="#fig:us-covid-cases">24</a> 所示，图片截自<a href="https://www.nytimes.com/interactive/2021/us/covid-cases.html">纽约时报网站</a>。</li>
@@ -1440,7 +1446,6 @@ Xie, Yihui, Alison Presmanes Hill, and Amber Thomas. 2017. <em><span class="noca
 <div class="footnotes footnotes-end-of-document">
 <hr />
 <ol>
-<li id="fn1"><p>除了七个主要的绘图步骤，在图形配色、长宽尺寸、字体大小等方面都需要打磨，这是相当花费时间的。<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
-<li id="fn2"><p><span class="citation">Tanimura, Kuroiwa, and Mizota (<a href="#ref-Susumu2006" role="doc-biblioref">2006</a>)</span> 基于 2000 年日本长崎县长崎市的町村级行政边界地图数据，以及当年关于儿童人口普查数据，以比例气泡图展示人口的空间分布，是 R 语言社区最早一幅用 <strong>maps</strong> 包绘制的比例气泡地图。顺便一提，长崎市大约相当于咱们的地级市，粗略地讲，往上都道府县是一级，往下町村为一级，中间是市区一级。<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn1"><p><span class="citation">Tanimura, Kuroiwa, and Mizota (<a href="#ref-Susumu2006" role="doc-biblioref">2006</a>)</span> 基于 2000 年日本长崎县长崎市的町村级行政边界地图数据，以及当年关于儿童人口普查数据，以比例气泡图展示人口的空间分布，是 R 语言社区最早一幅用 <strong>maps</strong> 包绘制的比例气泡地图。顺便一提，长崎市大约相当于咱们的地级市，粗略地讲，往上都道府县是一级，往下町村为一级，中间是市区一级。<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>

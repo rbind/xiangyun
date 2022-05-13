@@ -1,16 +1,16 @@
 library(tidycensus)
 library(sf)
 options(tigris_use_cache = TRUE)
-Sys.setenv(CENSUS_API_KEY="309076042f04a3e30ff824d1b547b40eb442c3a6")
+Sys.setenv(CENSUS_API_KEY="YOUR_KEY")
 
 # -------------------------------------------------
-# 北卡家庭月收入和白人数量
+# 北卡家庭年收入和白人数量
 # -------------------------------------------------
 ## 郡级
 nc_income_race_county <- get_acs(
   state = "NC",
   geography = "county",
-  variables = c("B19013_001", "B02001_001E", "B02001_002E"),
+  variables = c("B19013_001", "B02001_001", "B02001_002"),
   geometry = TRUE, output = "wide",
   year = 2019, survey = "acs5",
   moe_level = 90
@@ -19,7 +19,7 @@ nc_income_race_county <- get_acs(
 nc_income_race_tract <- get_acs(
   state = "NC",
   geography = "tract",
-  variables = c("B19013_001", "B02001_001E", "B02001_002E"),
+  variables = c("B19013_001", "B02001_001", "B02001_002"),
   geometry = TRUE, output = "wide",
   year = 2019, survey = "acs5",
   moe_level = 90
@@ -29,7 +29,7 @@ plot(nc_income_race_county["B19013_001E"])
 ## 查看社区级收入分布
 plot(nc_income_race_tract["B19013_001E"])
 
-### 社区级家庭月收入的空间分布
+### 社区级家庭年收入的空间分布
 showtext::showtext_auto()
 par(mar = c(2, 0, 0, 0))
 plot(nc_income_race_tract["B19013_001E"],
