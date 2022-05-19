@@ -163,18 +163,24 @@ plot(shaoyang_map["NAME_3"], main = "", key.pos = NULL)
 
 [中华人民共和国民政部](http://xzqh.mca.gov.cn)提供了中国地图数据，是 GeoJSON 格式的，属于权威数据源，推荐使用。笔者最早是从[统计之都论坛](https://d.cosx.org/d/422867-echarts4r/2)上得知的。离散空间数据常见的形式有点、线和多边形，点数据就不用多说了，线数据的典型例子就是北京地铁线路图，而多边形数据就是各级行政区划图。
 
-```{r china-linestring}
-#| fig.cap="静态地图数据"
+```{r}
+#| label: china-linestring
+#| fig.cap: "静态地图数据"
+#| eval: false
 library(sf)
 china_map = st_read(dsn = "http://xzqh.mca.gov.cn/data/quanguo_Line.geojson", stringsAsFactors = FALSE)
 china_map
 plot(china_map)
 ```
 
+![(\#fig:china-linestring)静态地图数据](img/china-linestring.png)
+
 另一份地图数据是全国各省的行政区域，如果读者有各个省的数据，比如人口增长率、人均GDP等，可以利用上此地图数据。
 
-```{r china-province}
-#| fig.cap="静态地图数据"
+```{r}
+#| label: china-province
+#| fig.cap: "静态地图数据"
+#| eval: false
 china_map <- st_read(dsn = "http://xzqh.mca.gov.cn/data/quanguo.json", stringsAsFactors = FALSE)
 # 原数据集没有坐标系信息，因此设置一下
 st_crs(china_map) <- 4326
@@ -182,6 +188,7 @@ china_map
 plot(china_map["QUHUADAIMA"])
 ```
 
+![(\#fig:china-province)静态地图数据](img/china-province.png)
 
 # 栅格数据
 
@@ -213,7 +220,7 @@ class(china_map)
 terra::plot(china_map, col = terrain.colors(20, rev = F))
 ```
 
-![(\#fig:china-elevation) 中国地图海拔数据](/img/maps-in-r/china-elevation.png){.full}
+![(\#fig:china-elevation) 中国地图海拔数据](img/china-elevation.png){.full}
 
 # 交互地图
 
@@ -260,7 +267,7 @@ geojsonMap(dat, mapName = "邵阳", palette = "RdBu", colorMethod = "bin")
 
 可见，市和区县级地图边界数据是存在问题的，省级边界地图数据配合高德提供的背景地图数据是基本可用。一个更可靠的方式是不要使用此边界数据，只使用高德地图，以气泡图代替，类似图\@ref(fig:bubble-map)，要点是需要准备各个区县级以上城市的经纬度坐标，并且和高德地图采用的坐标系是一致的，这样气泡的位置和地图上显示的城市名称是基本重合的。
 
-![(\#fig:bubble-map) 部分区县级城市的气泡散点图](/img/maps-in-r/bubble-map.png){.full}
+![(\#fig:bubble-map) 部分区县级城市的气泡散点图](img/bubble-map.png){.full}
 
 另一个解决办法的使用[阿里 DataV 数据可视化平台](https://datav.aliyun.com/portal/school/atlas/area_selector)开放出来的地图数据，它来自[高德开放平台](https://lbs.amap.com/api/webservice/guide/api/district)。下载到本地保存为文件`邵阳市.json`，检查后，发现地图数据的参考系是 WGS 84，这和 OpenStreetMap 所要求的坐标系正好一致，下面就采用 **leaflet** 包来绘制。以邵阳市地区的数据为例，从[邵阳市统计局](https://www.shaoyang.gov.cn/sytjj/tjsj/rlist.shtml)发布的统计年鉴获取2010年、2015年和2020年邵阳市各个区县的人口数（单位：万人）。邵阳市各个区县近5年和近10年的人口增长率，如图\@ref(fig:shaoyang-pop)所示，邵东市近5年的人口呈**负增长**，笔者在图上还补充了很多数据信息，供读者参考。如果能够收集到全国所有区县级城市的人口数据，还可以发现中国各个经济带的地域差异，沿海内陆差异，南北差异等一系列有用的信息，如洞悉人口流动的方向。
 
@@ -413,7 +420,7 @@ hchinamap(
 )
 ```
 
-![(\#fig:china-hchinamap) 中国地图数据](/img/maps-in-r/china-hchinamap.png){.full}
+![(\#fig:china-hchinamap) 中国地图数据](img/china-hchinamap.png){.full}
 
 
 # 环境信息

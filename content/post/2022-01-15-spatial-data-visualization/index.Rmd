@@ -206,7 +206,7 @@ ggmap::ggmap(cumtb_map) +
   )
 ```
 
-![(\#fig:cumtb-baidu) 百度地图-中国矿业大学（北京）学院路校区](/img/maps-in-r/cumtb-baidu.png){.full}
+![(\#fig:cumtb-baidu) 百度地图-中国矿业大学（北京）学院路校区](img/cumtb-baidu.png){.full}
 
 ## 高德地图
 
@@ -257,7 +257,7 @@ leaflet(options = leafletOptions(
 ```
 
 
-![(\#fig:cumtb-amp) 高德地图-中国矿业大学（北京）学院路校区](/img/maps-in-r/cumtb-amp.png){.full}
+![(\#fig:cumtb-amp) 高德地图-中国矿业大学（北京）学院路校区](img/cumtb-amp.png){.full}
 
 
 下面试试看，将原百度坐标不转化，直接绘制在高德地图上，如图\@ref(fig:cumtb-amp-baidu)所示，可见定位到**中国农业大学**去了，真是失之毫厘，差之千里！
@@ -280,7 +280,7 @@ leaflet(options = leafletOptions(
 ```
 
 
-![(\#fig:cumtb-amp-baidu) 高德地图-中国矿业大学（北京）](/img/maps-in-r/cumtb-amp-baidu.png){.full}
+![(\#fig:cumtb-amp-baidu) 高德地图-中国矿业大学（北京）](img/cumtb-amp-baidu.png){.full}
 
 
 
@@ -312,7 +312,7 @@ PlotOnStaticMap(map_cumtb,
 ```
 
 
-![(\#fig:cumtb-bing) 必应地图-中国矿业大学（北京）学院路校区](/img/maps-in-r/cumtb-bing.png){.full}
+![(\#fig:cumtb-bing) 必应地图-中国矿业大学（北京）学院路校区](img/cumtb-bing.png){.full}
 
 
 ## 谷歌地图
@@ -336,7 +336,7 @@ Google 提供一种瓦片地图，即由一张张小图片拼凑起来形成一�
 http://tile.stamen.com/terrain-background/5/4/10.png 
 -->
 
-![(\#fig:ggmap-tile) ggmap 地形图](/img/maps-in-r/google-tile.png){.full}
+![(\#fig:ggmap-tile) ggmap 地形图](img/google-tile.png){.full}
 
 **ggmap** 也可以调用多种风格样式的地图，地形图、水彩图等，如图\@ref(fig:ggmap-tiles) 所示。
 
@@ -370,7 +370,7 @@ p4 <- ggmap(dat4)
 p1 / p2 | p3 / p4
 ```
 
-![(\#fig:ggmap-tiles) ggmap 几种常用背景地图](/img/maps-in-r/ggmap-tiles.png){.full}
+![(\#fig:ggmap-tiles) ggmap 几种常用背景地图](img/ggmap-tiles.png){.full}
 
 
 # 基础知识
@@ -467,7 +467,7 @@ GET(
 
 将返回的链接输入浏览器，会得到一张如下的图片。
 
-![(\#fig:cumtb) 中国矿业大学（北京）学院路校区](/img/maps-in-r/cumtb.png){.full}
+![(\#fig:cumtb)中国矿业大学（北京）学院路校区](img/cumtb.png){.full}
 
 
 
@@ -489,7 +489,7 @@ leaflet::leaflet() |>
   leaflet::addCircles(lng = dat$longitude, lat = dat$latitude, radius = 3)
 ```
 
-![(\#fig:sf-geohash) GeoHash 地理区域编码](/img/maps-in-r/sf-geohash.png){.full}
+![(\#fig:sf-geohash) GeoHash 地理区域编码](img/sf-geohash.png){.full}
 
 而 **lwgeom** 包[@lwgeom]提供函数 `st_geohash()` 可将经纬度坐标转为 GeoHash 码。在数据规模很大的情况下，这编码解码的过程方便聚合 GeoHash 粒度的数据，并呈现在地图上去观察数据中的空间规律，比如一些局部热点效应。
 
@@ -521,7 +521,7 @@ st_crs(world1)
 # 坐标转化
 world2 <- st_transform(
   x = world1,
-  crs = "+proj=laea +y_0=0 +lon_0=155 +lat_0=-90 +ellps=WGS84 +no_defs"
+  crs = st_crs("ESRI:102020")
 )
 ## 检索坐标参考系统
 st_crs(world2)
@@ -529,7 +529,11 @@ st_crs(world2)
 
 下面将两个不同坐标系统下的世界地图绘制出来，如图 \@ref(fig:sf-crs) 所示。
 
-```{r,eval=FALSE}
+```{r}
+#| label: sf-crs
+#| fig.cap: "WGS 84 和坐标系统"
+#| fig.width: 8
+#| fig.height: 2.75
 library(ggplot2)
 library(patchwork)
 p1 <- ggplot() +
@@ -540,8 +544,6 @@ p2 <- ggplot() +
 
 p1 + p2
 ```
-
-![(\#fig:sf-crs) WGS 84 和坐标系统](/img/maps-in-r/sf-crs.png){.full}
 
 
 # 空间分布
@@ -565,7 +567,7 @@ curl -fLo beijing.07102610.json https://mapv.baidu.com/gl/examples/static/beijin
 下载完成后导入到 R 环境中，并提取其中有效的数据部分，整理成 data.frame 数据类型，以便后续进一步操作。注意，这只是个普通 JSON 格式文件，而不是 GeoJSON 格式，不能用 `sf::read_sf()` 读取，推荐使用 Jeroen Ooms 开发的[**jsonlite** 包](https://github.com/jeroen/jsonlite)，它效率比较高，依赖也少。
 
 ```{r}
-beijing <- jsonlite::fromJSON("../../static/data/mapv-data/beijing.07102610.json")
+beijing <- jsonlite::fromJSON("data/mapv-data/beijing.07102610.json")
 # 提取 JSON 文件中的数据
 beijing <- matrix(as.numeric(beijing$result$data$bound[[1]]), ncol = 3, byrow = F)
 # 设置列名便于后续操作
@@ -598,7 +600,7 @@ beijing_sf <- st_transform(beijing_sf, crs = 4326)
 plot(beijing_sf["den"], pch = 19, cex = 0.2)
 ```
 
-![(\#fig:beijing-sf)北京市热点分布图](/img/maps-in-r/beijing-sf.png){.full}
+![(\#fig:beijing-sf)北京市热点分布图](img/beijing-sf.png){.full}
 
 **ggplot2** 早已支持 sf 数据类型，不强调精雕细琢，绘图过程也十分简单。
 
@@ -608,7 +610,7 @@ ggplot() +
   geom_sf(data = beijing_sf, aes(color = den), cex = 0.2)
 ```
 
-![(\#fig:beijing-ggplot2)北京市热点分布图](/img/maps-in-r/beijing-ggplot2.png){.full}
+![(\#fig:beijing-ggplot2)北京市热点分布图](img/beijing-ggplot2.png){.full}
 
 [**rasterly**](https://github.com/plotly/rasterly) 渲染 35058 多个点毫无压力，使用方式和 **ggplot2** 非常相近，配合 **plotly** 包支持渲染交互式图形，如图\@ref(fig:beijing-rasterly)所示。**rasterly** 的基本想法来自 Python 模块[datashader](https://github.com/holoviz/datashader/)，将数据点映射到网格中，聚合每个网格中的点得到代表点，即像素点，接着照常绘图，简而言之，连续空间离散化以近似，空间点数据转栅格数据。
 
@@ -642,7 +644,7 @@ plotly::plot_ly(beijing, x = ~x, y = ~y) |>
   )
 ```
 
-![(\#fig:beijing-rasterly)北京市热点分布图](/img/maps-in-r/beijing-rasterly.png){.full}
+![(\#fig:beijing-rasterly)北京市热点分布图](img/beijing-rasterly.png){.full}
 
 最后，补充介绍一下 **sp** 包绘制图形的过程，短期内恐还有必要。先将 data.frame 数据类型转为 sp 空间数据类型，以便调用更加高效且丰富的数据处理和可视化函数。
 
@@ -679,7 +681,7 @@ spplot(beijing_sp, "den",
 ```
 
 
-![(\#fig:beijing-spplot)北京市热点分布图](/img/maps-in-r/beijing-spplot.png){.full}
+![(\#fig:beijing-spplot)北京市热点分布图](img/beijing-spplot.png){.full}
 
 
 
@@ -705,7 +707,7 @@ leaflet() |>
   addScaleBar(position = "bottomleft")
 ```
 
-![(\#fig:beijing-leaflet)北京市热点分布图](/img/maps-in-r/beijing-leaflet.png){.full}
+![(\#fig:beijing-leaflet)北京市热点分布图](img/beijing-leaflet.png){.full}
 
 
 [**mapdeck**](https://github.com/SymbolixAU/mapdeck) 包将 [MapBox GL](https://www.mapbox.com/) 的地图服务和[deck.gl](https://github.com/visgl/deck.gl)的大规模可视化能力封装到一起，功能还是很强的，函数 `add_heatmap()` 可用来绘制热力图，数万散点毫无压力，如图\@ref(fig:beijing-heatmap)。
@@ -719,7 +721,7 @@ mapdeck(style = mapdeck_style("dark"), pitch = 45) |>
   )
 ```
 
-![(\#fig:beijing-heatmap)北京市热点分布图](/img/maps-in-r/beijing-heatmap.png){.full}
+![(\#fig:beijing-heatmap)北京市热点分布图](img/beijing-heatmap.png){.full}
 
 
 ## 蜂窝图
@@ -741,7 +743,7 @@ mapdeck(style = mapdeck_style("dark"), pitch = 45) |>
 ```
 
 
-![(\#fig:beijing-hexagons)北京市热点分布图](/img/maps-in-r/beijing-hexagons.png){.full}
+![(\#fig:beijing-hexagons)北京市热点分布图](img/beijing-hexagons.png){.full}
 
 
 ## 柱状图
@@ -762,7 +764,7 @@ mapdeck(style = mapdeck_style("dark"), pitch = 45) |>
 ```
 
 
-![(\#fig:beijing-mapdeck)北京市热点分布图](/img/maps-in-r/beijing-mapdeck.png){.full}
+![(\#fig:beijing-mapdeck)北京市热点分布图](img/beijing-mapdeck.png){.full}
 
 
 ## 飞线图 
@@ -830,7 +832,7 @@ mapdeck(style = "mapbox://styles/mapbox/dark-v9") |>
 ```
 
 
-![(\#fig:us-flights)2013年1月1日纽约机场出发的航班](/img/maps-in-r/us-flights.png){.full}
+![(\#fig:us-flights)2013年1月1日纽约机场出发的航班](img/us-flights.png){.full}
 
 
 
@@ -842,7 +844,7 @@ Thematic Maps (or Statistical Maps) 专题地图或统计地图，重点在于�
 
 一个现代化的示例图\@ref(fig:us-census-2020)来自[美国人口普查局](https://www.census.gov/)官网，展示2020年美国各个城镇的人口密度及相关信息，采用 Tableau 制作而成。
 
-![(\#fig:us-census-2020)2020年美国各个城镇的人口密度](/img/maps-in-r/us-census-2020.png){.full}
+![(\#fig:us-census-2020)2020年美国各个城镇的人口密度](img/us-census-2020.png){.full}
 
 
 下面引用 **leaflet** 包[官方文档](https://rstudio.github.io/leaflet/choropleths.html)中的示例---2011 年美国各个州的人口密度。数据存储以[GeoJSON 格式](https://leafletjs.com/examples/geojson/)存储在文件 `us-states.geojson`里，它是矢量多边形数据，坐标参考系是 WGS 84，包含美国各个州的边界 geometry，各州人口密度数据 density（每平方英里的人口数）。[us-states.geojson](https://rstudio.github.io/leaflet/json/us-states.geojson)的数据源头是 2011 年美国人口普查局。顺便一说，2020年的最新数据可从[维基百科文章](https://en.wikipedia.org/wiki/List_of_states_and_territories_of_the_United_States_by_population_density)获取。
@@ -859,7 +861,7 @@ Thematic Maps (or Statistical Maps) 专题地图或统计地图，重点在于�
 ```{r}
 library(sf)
 # 读取数据
-states <- st_read("../../static/data/us-states.geojson")
+states <- st_read("data/us-states.geojson")
 ```
 
 查看数据采用的坐标参考系。
@@ -918,7 +920,7 @@ leaflet(states) |>
   )
 ```
 
-![(\#fig:us-states-leaflet) **leaflet** 包专题地图](/img/maps-in-r/us-states-leaflet.png){.full}
+![(\#fig:us-states-leaflet) **leaflet** 包专题地图](img/us-states-leaflet.png){.full}
 
 LeafLet JS 在专题地图[choropleth](https://leafletjs.com/examples/choropleth/)示例里调用了 Mapbox 瓦片服务和[地图风格](https://docs.mapbox.com/api/maps/styles/)。下面在函数 `addTiles()` 里替换瓦片服务 URL 模版路径，**leaflet** 也可用上 Mapbox 瓦片地图。
 
@@ -958,7 +960,7 @@ leaflet(states) |>
 ```
 
 
-![(\#fig:us-states-mapbox) **leaflet** 包专题地图](/img/maps-in-r/us-states-mapbox.png){.full}
+![(\#fig:us-states-mapbox) **leaflet** 包专题地图](img/us-states-mapbox.png){.full}
 
 借助[leaflet-providers](https://github.com/leaflet-extras/leaflet-providers)，Leaflet 已经支持很多[瓦片服务](https://leaflet-extras.github.io/leaflet-providers/preview/)，除了以上两种，比如夜景图\@ref(fig:cumtb-nasa)。
 
@@ -974,7 +976,7 @@ leaflet() |>
 ```
 
 
-![(\#fig:cumtb-nasa) **leaflet** 包调 NASA 瓦片服务](/img/maps-in-r/cumtb-nasa.png){.full}
+![(\#fig:cumtb-nasa) **leaflet** 包调 NASA 瓦片服务](img/cumtb-nasa.png){.full}
 
 
 ## mapdeck
@@ -994,7 +996,7 @@ mapdeck() |>
   )
 ```
 
-![(\#fig:us-states-mapdeck) **mapdeck** 包专题地图](/img/maps-in-r/us-states-mapdeck.png){.full}
+![(\#fig:us-states-mapdeck) **mapdeck** 包专题地图](img/us-states-mapdeck.png){.full}
 
 
 ## sf
@@ -1005,7 +1007,7 @@ mapdeck() |>
 plot(states["density"], logz = TRUE)
 ```
 
-![(\#fig:us-states-sf) **sf** 包专题地图](/img/maps-in-r/us-states-sf.png){.full}
+![(\#fig:us-states-sf) **sf** 包专题地图](img/us-states-sf.png){.full}
 
 ## ggplot2
 
@@ -1029,7 +1031,7 @@ ggplot() +
 ```
 
 
-![(\#fig:us-states-ggplot2) **ggplot2** 包专题地图](/img/maps-in-r/us-states-ggplot2.png){.full}
+![(\#fig:us-states-ggplot2) **ggplot2** 包专题地图](img/us-states-ggplot2.png){.full}
 
 
 ```{r,eval=FALSE,echo=FALSE}
@@ -1161,7 +1163,7 @@ options(digits = 4)
 ```
 
 
-![(\#fig:shaodong-house)邵东市各个楼盘的空间位置](/img/maps-in-r/shaodong-house.png){.full}
+![(\#fig:shaodong-house)邵东市各个楼盘的空间位置](img/shaodong-house.png){.full}
 
 值得注意的是「龙熙府邸」和「碧桂园珑璟台」的定位重合了，地理位置上，二者确实也接近。经过这一番使用，可见高德开放平台给的经纬度地址解析服务一般。
 
@@ -1188,7 +1190,7 @@ options(digits = 4)
 library(readxl)
 # 采样点的城市地形数据
 dat1 <- read_xls(
-  path = "../../static/data/cumcm2011A附件_数据.xls",
+  path = "data/cumcm2011A附件_数据.xls",
   col_names = TRUE, sheet = "附件1", range = "A3:E322"
 )
 dat1
@@ -1215,7 +1217,7 @@ dat2
 ```{r out.lines=6}
 # 土壤重金属浓度
 dat3 <- read_xls(
-  path = "../../static/data/cumcm2011A附件_数据.xls",
+  path = "data/cumcm2011A附件_数据.xls",
   col_names = TRUE, sheet = "附件2", range = "A3:I322"
 )
 # 篇幅所限，铅 Pb (μg/g) 和锌 Zn (μg/g) 两列未显示
@@ -1234,7 +1236,7 @@ dat4
 ```{r}
 # 土壤重金属浓度的背景参考值
 dat5 <- read_xls(
-  path = "../../static/data/cumcm2011A附件_数据.xls",
+  path = "data/cumcm2011A附件_数据.xls",
   col_names = TRUE, sheet = "附件3", range = "A3:D11"
 )
 dat5
@@ -1333,7 +1335,7 @@ cloud(`海拔` ~ x * y,
 )
 ```
 
-![(\#fig:elevation-cloud) 采样点在城市各个功能区的空间分布](/img/spatial-data-analysis/elevation-cloud.png){.full}
+![(\#fig:elevation-cloud) 采样点在城市各个功能区的空间分布](img/elevation-cloud.png){.full}
 
 接下来，根据此数据框 data.frame 类型构造空间数据类型 **sp** （对应 **Sp**atial 类），以便后续调用空间数据分析方法。
 
@@ -1359,7 +1361,7 @@ spplot(dat6,
 )
 ```
 
-![(\#fig:elevation-spplot) 采样点在城市各个功能区的空间分布](/img/spatial-data-analysis/elevation-spplot.png){.full}
+![(\#fig:elevation-spplot) 采样点在城市各个功能区的空间分布](img/elevation-spplot.png){.full}
 
 
 由图\@ref(fig:elevation-spplot)不难看出，采样点的位置是以图中左下角的点为参照，城市整体上的地势是西南低东北高，城市中间间或有两座小山。
@@ -1387,7 +1389,7 @@ print(Zn, split = c(4, 2, 4, 2), more = FALSE)
 ```
 
 
-![(\#fig:heavy-metal-concentrations) 地表土壤重金属浓度分布](/img/spatial-data-analysis/heavy-metal-concentrations.png){.full}
+![(\#fig:heavy-metal-concentrations) 地表土壤重金属浓度分布](img/heavy-metal-concentrations.png){.full}
 
 图中，绿色气泡表示重金属浓度低于背景值，红色气泡反之，气泡大小对应不同区间的浓度值，根据浓度值数据的五个分位点划分区间，以砷 As 为例，浓度的分位点如下：
 

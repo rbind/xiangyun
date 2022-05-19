@@ -163,7 +163,7 @@ ggmap::ggmap(cumtb_map) +
 ```
 
 <figure>
-<img src="/img/maps-in-r/cumtb-baidu.png" class="full" alt="图 1: 百度地图-中国矿业大学（北京）学院路校区" />
+<img src="img/cumtb-baidu.png" class="full" alt="图 1: 百度地图-中国矿业大学（北京）学院路校区" />
 <figcaption aria-hidden="true">图 1: 百度地图-中国矿业大学（北京）学院路校区</figcaption>
 </figure>
 
@@ -171,7 +171,7 @@ ggmap::ggmap(cumtb_map) +
 
 高德和百度都是有甲级测绘资质的单位，意味着地图数据符合国家要求，来源权威可用。大家熟知的全球定位系统（GPS）采用 WGS 84，而 GCJ 02 由 WGS 84 加密后的坐标系，是由中国国家测绘局制定的地理坐标系统，又称火星坐标系。高德地图采用火星坐标系 GCJ 02（国测局 **G**uo **C**e **J**u，即国家测绘局），百度地图的坐标系 BD 09 在 GCJ 02 坐标系基础上再次加密，加密过程不可逆，是一种非线性加密方式，反向解密后的坐标在部分区域的定位差别很大。另外，值得注意的是对同一目标不同公司提供的定位可能是不同的，因为所选的地理参考系不同，常用的三种坐标系见文档[坐标系](https://lbsyun.baidu.com/index.php?title=coordinate)。
 
-高德提供很多调用地图服务的 API 接口，如将其它坐标转化为高德坐标的[坐标转化服务](https://lbs.amap.com/api/webservice/guide/api/convert)，前提是先在[高德开放平台](https://lbs.amap.com/)上申请Web服务API类型KEY。继续以地标「中国矿业大学（北京）学院路校区」为例，下面在 R 语言环境中，使用 **httr** 包([Wickham 2020](#ref-httr))调用高德地图服务将百度坐标转化为高德坐标。
+高德提供很多调用地图服务的 API 接口，如将其它坐标转化为高德坐标的[坐标转化服务](https://lbs.amap.com/api/webservice/guide/api/convert)，前提是先在[高德开放平台](https://lbs.amap.com/)上申请Web服务API类型KEY。继续以地标「中国矿业大学（北京）学院路校区」为例，下面在 R 语言环境中，使用 **httr** 包([Wickham 2022b](#ref-httr))调用高德地图服务将百度坐标转化为高德坐标。
 
 ``` r
 library(httr)
@@ -216,7 +216,7 @@ leaflet(options = leafletOptions(
 ```
 
 <figure>
-<img src="/img/maps-in-r/cumtb-amp.png" class="full" alt="图 2: 高德地图-中国矿业大学（北京）学院路校区" />
+<img src="img/cumtb-amp.png" class="full" alt="图 2: 高德地图-中国矿业大学（北京）学院路校区" />
 <figcaption aria-hidden="true">图 2: 高德地图-中国矿业大学（北京）学院路校区</figcaption>
 </figure>
 
@@ -239,7 +239,7 @@ leaflet(options = leafletOptions(
 ```
 
 <figure>
-<img src="/img/maps-in-r/cumtb-amp-baidu.png" class="full" alt="图 3: 高德地图-中国矿业大学（北京）" />
+<img src="img/cumtb-amp-baidu.png" class="full" alt="图 3: 高德地图-中国矿业大学（北京）" />
 <figcaption aria-hidden="true">图 3: 高德地图-中国矿业大学（北京）</figcaption>
 </figure>
 
@@ -270,7 +270,7 @@ PlotOnStaticMap(map_cumtb,
 ```
 
 <figure>
-<img src="/img/maps-in-r/cumtb-bing.png" class="full" alt="图 4: 必应地图-中国矿业大学（北京）学院路校区" />
+<img src="img/cumtb-bing.png" class="full" alt="图 4: 必应地图-中国矿业大学（北京）学院路校区" />
 <figcaption aria-hidden="true">图 4: 必应地图-中国矿业大学（北京）学院路校区</figcaption>
 </figure>
 
@@ -295,7 +295,7 @@ http://tile.stamen.com/terrain-background/5/4/10.png
 -->
 
 <figure>
-<img src="/img/maps-in-r/google-tile.png" class="full" alt="图 5: ggmap 地形图" />
+<img src="img/google-tile.png" class="full" alt="图 5: ggmap 地形图" />
 <figcaption aria-hidden="true">图 5: ggmap 地形图</figcaption>
 </figure>
 
@@ -332,7 +332,7 @@ p1 / p2 | p3 / p4
 ```
 
 <figure>
-<img src="/img/maps-in-r/ggmap-tiles.png" class="full" alt="图 6: ggmap 几种常用背景地图" />
+<img src="img/ggmap-tiles.png" class="full" alt="图 6: ggmap 几种常用背景地图" />
 <figcaption aria-hidden="true">图 6: ggmap 几种常用背景地图</figcaption>
 </figure>
 
@@ -438,7 +438,7 @@ GET(
 将返回的链接输入浏览器，会得到一张如下的图片。
 
 <figure>
-<img src="/img/maps-in-r/cumtb.png" class="full" alt="图 7: 中国矿业大学（北京）学院路校区" />
+<img src="img/cumtb.png" class="full" alt="图 7: 中国矿业大学（北京）学院路校区" />
 <figcaption aria-hidden="true">图 7: 中国矿业大学（北京）学院路校区</figcaption>
 </figure>
 
@@ -461,7 +461,7 @@ leaflet::leaflet() |>
 ```
 
 <figure>
-<img src="/img/maps-in-r/sf-geohash.png" class="full" alt="图 8: GeoHash 地理区域编码" />
+<img src="img/sf-geohash.png" class="full" alt="图 8: GeoHash 地理区域编码" />
 <figcaption aria-hidden="true">图 8: GeoHash 地理区域编码</figcaption>
 </figure>
 
@@ -491,9 +491,17 @@ st_crs(world1)
 #   User input: EPSG:4326 
 #   wkt:
 # GEOGCRS["WGS 84",
-#     DATUM["World Geodetic System 1984",
+#     ENSEMBLE["World Geodetic System 1984 ensemble",
+#         MEMBER["World Geodetic System 1984 (Transit)"],
+#         MEMBER["World Geodetic System 1984 (G730)"],
+#         MEMBER["World Geodetic System 1984 (G873)"],
+#         MEMBER["World Geodetic System 1984 (G1150)"],
+#         MEMBER["World Geodetic System 1984 (G1674)"],
+#         MEMBER["World Geodetic System 1984 (G1762)"],
+#         MEMBER["World Geodetic System 1984 (G2139)"],
 #         ELLIPSOID["WGS 84",6378137,298.257223563,
-#             LENGTHUNIT["metre",1]]],
+#             LENGTHUNIT["metre",1]],
+#         ENSEMBLEACCURACY[2.0]],
 #     PRIMEM["Greenwich",0,
 #         ANGLEUNIT["degree",0.0174532925199433]],
 #     CS[ellipsoidal,2],
@@ -516,30 +524,28 @@ st_crs(world1)
 # 坐标转化
 world2 <- st_transform(
   x = world1,
-  crs = "+proj=laea +y_0=0 +lon_0=155 +lat_0=-90 +ellps=WGS84 +no_defs"
+  crs = st_crs("ESRI:102020")
 )
 ## 检索坐标参考系统
 st_crs(world2)
 # Coordinate Reference System:
-#   User input: +proj=laea +y_0=0 +lon_0=155 +lat_0=-90 +ellps=WGS84 +no_defs 
+#   User input: ESRI:102020 
 #   wkt:
-# PROJCRS["unknown",
-#     BASEGEOGCRS["unknown",
-#         DATUM["Unknown based on WGS84 ellipsoid",
+# PROJCRS["South_Pole_Lambert_Azimuthal_Equal_Area",
+#     BASEGEOGCRS["WGS 84",
+#         DATUM["World Geodetic System 1984",
 #             ELLIPSOID["WGS 84",6378137,298.257223563,
-#                 LENGTHUNIT["metre",1],
-#                 ID["EPSG",7030]]],
+#                 LENGTHUNIT["metre",1]]],
 #         PRIMEM["Greenwich",0,
-#             ANGLEUNIT["degree",0.0174532925199433],
-#             ID["EPSG",8901]]],
-#     CONVERSION["unknown",
+#             ANGLEUNIT["Degree",0.0174532925199433]]],
+#     CONVERSION["South_Pole_Lambert_Azimuthal_Equal_Area",
 #         METHOD["Lambert Azimuthal Equal Area",
 #             ID["EPSG",9820]],
 #         PARAMETER["Latitude of natural origin",-90,
-#             ANGLEUNIT["degree",0.0174532925199433],
+#             ANGLEUNIT["Degree",0.0174532925199433],
 #             ID["EPSG",8801]],
-#         PARAMETER["Longitude of natural origin",155,
-#             ANGLEUNIT["degree",0.0174532925199433],
+#         PARAMETER["Longitude of natural origin",0,
+#             ANGLEUNIT["Degree",0.0174532925199433],
 #             ID["EPSG",8802]],
 #         PARAMETER["False easting",0,
 #             LENGTHUNIT["metre",1],
@@ -550,18 +556,19 @@ st_crs(world2)
 #     CS[Cartesian,2],
 #         AXIS["(E)",north,
 #             MERIDIAN[90,
-#                 ANGLEUNIT["degree",0.0174532925199433,
-#                     ID["EPSG",9122]]],
+#                 ANGLEUNIT["degree",0.0174532925199433]],
 #             ORDER[1],
-#             LENGTHUNIT["metre",1,
-#                 ID["EPSG",9001]]],
+#             LENGTHUNIT["metre",1]],
 #         AXIS["(N)",north,
 #             MERIDIAN[0,
-#                 ANGLEUNIT["degree",0.0174532925199433,
-#                     ID["EPSG",9122]]],
+#                 ANGLEUNIT["degree",0.0174532925199433]],
 #             ORDER[2],
-#             LENGTHUNIT["metre",1,
-#                 ID["EPSG",9001]]]]
+#             LENGTHUNIT["metre",1]],
+#     USAGE[
+#         SCOPE["Not known."],
+#         AREA["Southern hemisphere."],
+#         BBOX[-90,-180,0,180]],
+#     ID["ESRI",102020]]
 ```
 
 下面将两个不同坐标系统下的世界地图绘制出来，如图 <a href="#fig:sf-crs">9</a> 所示。
@@ -578,10 +585,14 @@ p2 <- ggplot() +
 p1 + p2
 ```
 
-<figure>
-<img src="/img/maps-in-r/sf-crs.png" class="full" alt="图 9: WGS 84 和坐标系统" />
-<figcaption aria-hidden="true">图 9: WGS 84 和坐标系统</figcaption>
-</figure>
+<div class="figure">
+
+<img src="{{< blogdown/postref >}}index_files/figure-html/sf-crs-1.png" alt="WGS 84 和坐标系统" width="768" />
+<p class="caption">
+图 9: WGS 84 和坐标系统
+</p>
+
+</div>
 
 # 空间分布
 
@@ -597,7 +608,7 @@ curl -fLo beijing.07102610.json https://mapv.baidu.com/gl/examples/static/beijin
 下载完成后导入到 R 环境中，并提取其中有效的数据部分，整理成 data.frame 数据类型，以便后续进一步操作。注意，这只是个普通 JSON 格式文件，而不是 GeoJSON 格式，不能用 `sf::read_sf()` 读取，推荐使用 Jeroen Ooms 开发的[**jsonlite** 包](https://github.com/jeroen/jsonlite)，它效率比较高，依赖也少。
 
 ``` r
-beijing <- jsonlite::fromJSON("../../static/data/mapv-data/beijing.07102610.json")
+beijing <- jsonlite::fromJSON("data/mapv-data/beijing.07102610.json")
 # 提取 JSON 文件中的数据
 beijing <- matrix(as.numeric(beijing$result$data$bound[[1]]), ncol = 3, byrow = F)
 # 设置列名便于后续操作
@@ -616,6 +627,8 @@ methods("st_as_sf")
 #  [4] st_as_sf.owin*         st_as_sf.ppp*          st_as_sf.ppplist*     
 #  [7] st_as_sf.psp*          st_as_sf.s2_geography* st_as_sf.sf*          
 # [10] st_as_sf.sfc*          st_as_sf.Spatial*      st_as_sf.SpatVector*  
+# [13] st_as_sf.wk_crc*       st_as_sf.wk_rct*       st_as_sf.wk_wkb*      
+# [16] st_as_sf.wk_wkt*       st_as_sf.wk_xy*       
 # see '?methods' for accessing help and source code
 ```
 
@@ -636,7 +649,7 @@ plot(beijing_sf["den"], pch = 19, cex = 0.2)
 ```
 
 <figure>
-<img src="/img/maps-in-r/beijing-sf.png" class="full" alt="图 10: 北京市热点分布图" />
+<img src="img/beijing-sf.png" class="full" alt="图 10: 北京市热点分布图" />
 <figcaption aria-hidden="true">图 10: 北京市热点分布图</figcaption>
 </figure>
 
@@ -649,7 +662,7 @@ ggplot() +
 ```
 
 <figure>
-<img src="/img/maps-in-r/beijing-ggplot2.png" class="full" alt="图 11: 北京市热点分布图" />
+<img src="img/beijing-ggplot2.png" class="full" alt="图 11: 北京市热点分布图" />
 <figcaption aria-hidden="true">图 11: 北京市热点分布图</figcaption>
 </figure>
 
@@ -686,7 +699,7 @@ plotly::plot_ly(beijing, x = ~x, y = ~y) |>
 ```
 
 <figure>
-<img src="/img/maps-in-r/beijing-rasterly.png" class="full" alt="图 12: 北京市热点分布图" />
+<img src="img/beijing-rasterly.png" class="full" alt="图 12: 北京市热点分布图" />
 <figcaption aria-hidden="true">图 12: 北京市热点分布图</figcaption>
 </figure>
 
@@ -760,7 +773,7 @@ spplot(beijing_sp, "den",
 ```
 
 <figure>
-<img src="/img/maps-in-r/beijing-spplot.png" class="full" alt="图 13: 北京市热点分布图" />
+<img src="img/beijing-spplot.png" class="full" alt="图 13: 北京市热点分布图" />
 <figcaption aria-hidden="true">图 13: 北京市热点分布图</figcaption>
 </figure>
 
@@ -789,7 +802,7 @@ leaflet() |>
 ```
 
 <figure>
-<img src="/img/maps-in-r/beijing-leaflet.png" class="full" alt="图 15: 北京市热点分布图" />
+<img src="img/beijing-leaflet.png" class="full" alt="图 15: 北京市热点分布图" />
 <figcaption aria-hidden="true">图 15: 北京市热点分布图</figcaption>
 </figure>
 
@@ -804,7 +817,7 @@ mapdeck(style = mapdeck_style("dark"), pitch = 45) |>
 ```
 
 <figure>
-<img src="/img/maps-in-r/beijing-heatmap.png" class="full" alt="图 16: 北京市热点分布图" />
+<img src="img/beijing-heatmap.png" class="full" alt="图 16: 北京市热点分布图" />
 <figcaption aria-hidden="true">图 16: 北京市热点分布图</figcaption>
 </figure>
 
@@ -827,7 +840,7 @@ mapdeck(style = mapdeck_style("dark"), pitch = 45) |>
 ```
 
 <figure>
-<img src="/img/maps-in-r/beijing-hexagons.png" class="full" alt="图 17: 北京市热点分布图" />
+<img src="img/beijing-hexagons.png" class="full" alt="图 17: 北京市热点分布图" />
 <figcaption aria-hidden="true">图 17: 北京市热点分布图</figcaption>
 </figure>
 
@@ -848,7 +861,7 @@ mapdeck(style = mapdeck_style("dark"), pitch = 45) |>
 ```
 
 <figure>
-<img src="/img/maps-in-r/beijing-mapdeck.png" class="full" alt="图 18: 北京市热点分布图" />
+<img src="img/beijing-mapdeck.png" class="full" alt="图 18: 北京市热点分布图" />
 <figcaption aria-hidden="true">图 18: 北京市热点分布图</figcaption>
 </figure>
 
@@ -917,7 +930,7 @@ mapdeck(style = "mapbox://styles/mapbox/dark-v9") |>
 ```
 
 <figure>
-<img src="/img/maps-in-r/us-flights.png" class="full" alt="图 19: 2013年1月1日纽约机场出发的航班" />
+<img src="img/us-flights.png" class="full" alt="图 19: 2013年1月1日纽约机场出发的航班" />
 <figcaption aria-hidden="true">图 19: 2013年1月1日纽约机场出发的航班</figcaption>
 </figure>
 
@@ -928,7 +941,7 @@ Thematic Maps (or Statistical Maps) 专题地图或统计地图，重点在于�
 一个现代化的示例图<a href="#fig:us-census-2020">20</a>来自[美国人口普查局](https://www.census.gov/)官网，展示2020年美国各个城镇的人口密度及相关信息，采用 Tableau 制作而成。
 
 <figure>
-<img src="/img/maps-in-r/us-census-2020.png" class="full" alt="图 20: 2020年美国各个城镇的人口密度" />
+<img src="img/us-census-2020.png" class="full" alt="图 20: 2020年美国各个城镇的人口密度" />
 <figcaption aria-hidden="true">图 20: 2020年美国各个城镇的人口密度</figcaption>
 </figure>
 
@@ -944,9 +957,10 @@ Thematic Maps (or Statistical Maps) 专题地图或统计地图，重点在于�
 ``` r
 library(sf)
 # 读取数据
-states <- st_read("../../static/data/us-states.geojson")
+states <- st_read("data/us-states.geojson")
 # Reading layer `us-states' from data source 
-#   `/Users/xiangyun/Documents/xiangyun/static/data/us-states.geojson' using driver `GeoJSON'
+#   `/Users/xiangyun/Documents/xiangyun/content/post/2022-01-15-spatial-data-visualization/data/us-states.geojson' 
+#   using driver `GeoJSON'
 # Simple feature collection with 52 features and 3 fields
 # Geometry type: MULTIPOLYGON
 # Dimension:     XY
@@ -1031,7 +1045,7 @@ leaflet(states) |>
 ```
 
 <figure>
-<img src="/img/maps-in-r/us-states-leaflet.png" class="full" alt="图 21: leaflet 包专题地图" />
+<img src="img/us-states-leaflet.png" class="full" alt="图 21: leaflet 包专题地图" />
 <figcaption aria-hidden="true">图 21: <strong>leaflet</strong> 包专题地图</figcaption>
 </figure>
 
@@ -1073,7 +1087,7 @@ leaflet(states) |>
 ```
 
 <figure>
-<img src="/img/maps-in-r/us-states-mapbox.png" class="full" alt="图 22: leaflet 包专题地图" />
+<img src="img/us-states-mapbox.png" class="full" alt="图 22: leaflet 包专题地图" />
 <figcaption aria-hidden="true">图 22: <strong>leaflet</strong> 包专题地图</figcaption>
 </figure>
 
@@ -1091,7 +1105,7 @@ leaflet() |>
 ```
 
 <figure>
-<img src="/img/maps-in-r/cumtb-nasa.png" class="full" alt="图 23: leaflet 包调 NASA 瓦片服务" />
+<img src="img/cumtb-nasa.png" class="full" alt="图 23: leaflet 包调 NASA 瓦片服务" />
 <figcaption aria-hidden="true">图 23: <strong>leaflet</strong> 包调 NASA 瓦片服务</figcaption>
 </figure>
 
@@ -1113,7 +1127,7 @@ mapdeck() |>
 ```
 
 <figure>
-<img src="/img/maps-in-r/us-states-mapdeck.png" class="full" alt="图 24: mapdeck 包专题地图" />
+<img src="img/us-states-mapdeck.png" class="full" alt="图 24: mapdeck 包专题地图" />
 <figcaption aria-hidden="true">图 24: <strong>mapdeck</strong> 包专题地图</figcaption>
 </figure>
 
@@ -1126,7 +1140,7 @@ plot(states["density"], logz = TRUE)
 ```
 
 <figure>
-<img src="/img/maps-in-r/us-states-sf.png" class="full" alt="图 25: sf 包专题地图" />
+<img src="img/us-states-sf.png" class="full" alt="图 25: sf 包专题地图" />
 <figcaption aria-hidden="true">图 25: <strong>sf</strong> 包专题地图</figcaption>
 </figure>
 
@@ -1151,7 +1165,7 @@ ggplot() +
 ```
 
 <figure>
-<img src="/img/maps-in-r/us-states-ggplot2.png" class="full" alt="图 26: ggplot2 包专题地图" />
+<img src="img/us-states-ggplot2.png" class="full" alt="图 26: ggplot2 包专题地图" />
 <figcaption aria-hidden="true">图 26: <strong>ggplot2</strong> 包专题地图</figcaption>
 </figure>
 
@@ -1248,7 +1262,7 @@ leaflet(options = leafletOptions(
 ```
 
 <figure>
-<img src="/img/maps-in-r/shaodong-house.png" class="full" alt="图 27: 邵东市各个楼盘的空间位置" />
+<img src="img/shaodong-house.png" class="full" alt="图 27: 邵东市各个楼盘的空间位置" />
 <figcaption aria-hidden="true">图 27: 邵东市各个楼盘的空间位置</figcaption>
 </figure>
 
@@ -1274,7 +1288,7 @@ leaflet(options = leafletOptions(
 library(readxl)
 # 采样点的城市地形数据
 dat1 <- read_xls(
-  path = "../../static/data/cumcm2011A附件_数据.xls",
+  path = "data/cumcm2011A附件_数据.xls",
   col_names = TRUE, sheet = "附件1", range = "A3:E322"
 )
 dat1
@@ -1314,7 +1328,7 @@ dat2
 ``` r
 # 土壤重金属浓度
 dat3 <- read_xls(
-  path = "../../static/data/cumcm2011A附件_数据.xls",
+  path = "data/cumcm2011A附件_数据.xls",
   col_names = TRUE, sheet = "附件2", range = "A3:I322"
 )
 # 篇幅所限，铅 Pb (μg/g) 和锌 Zn (μg/g) 两列未显示
@@ -1347,7 +1361,7 @@ dat4
 ``` r
 # 土壤重金属浓度的背景参考值
 dat5 <- read_xls(
-  path = "../../static/data/cumcm2011A附件_数据.xls",
+  path = "data/cumcm2011A附件_数据.xls",
   col_names = TRUE, sheet = "附件3", range = "A3:D11"
 )
 dat5
@@ -1482,7 +1496,7 @@ cloud(`海拔` ~ x * y,
 ```
 
 <figure>
-<img src="/img/spatial-data-analysis/elevation-cloud.png" class="full" alt="图 28: 采样点在城市各个功能区的空间分布" />
+<img src="img/elevation-cloud.png" class="full" alt="图 28: 采样点在城市各个功能区的空间分布" />
 <figcaption aria-hidden="true">图 28: 采样点在城市各个功能区的空间分布</figcaption>
 </figure>
 
@@ -1542,7 +1556,7 @@ spplot(dat6,
 ```
 
 <figure>
-<img src="/img/spatial-data-analysis/elevation-spplot.png" class="full" alt="图 29: 采样点在城市各个功能区的空间分布" />
+<img src="img/elevation-spplot.png" class="full" alt="图 29: 采样点在城市各个功能区的空间分布" />
 <figcaption aria-hidden="true">图 29: 采样点在城市各个功能区的空间分布</figcaption>
 </figure>
 
@@ -1570,7 +1584,7 @@ print(Zn, split = c(4, 2, 4, 2), more = FALSE)
 ```
 
 <figure>
-<img src="/img/spatial-data-analysis/heavy-metal-concentrations.png" class="full" alt="图 30: 地表土壤重金属浓度分布" />
+<img src="img/heavy-metal-concentrations.png" class="full" alt="图 30: 地表土壤重金属浓度分布" />
 <figcaption aria-hidden="true">图 30: 地表土壤重金属浓度分布</figcaption>
 </figure>
 
@@ -1591,11 +1605,11 @@ quantile(dat6$As)
 
 R 语言社区在时空数据分析、可视化方面有很多工具，继 [**sp**](https://github.com/edzer/sp) ([E. J. Pebesma and Bivand 2005](#ref-Pebesma2005)) 之后，Edzer Pebesma 开发了 [**sf**](https://github.com/r-spatial/sf) ([E. J. Pebesma 2018](#ref-Pebesma2018))，提供更加高效的矢量空间数据处理方式。紧接着，Robert J. Hijmans 也将处理栅格数据的 [**raster**](https://github.com/rspatial/raster) ([Hijmans 2022a](#ref-raster)) 升级到 [**terra**](https://github.com/rspatial/terra/) ([Hijmans 2022b](#ref-terra))，提供性能强劲且向后兼容性极好的函数接口。[**satellite**](https://github.com/environmentalinformatics-marburg/satellite)包 ([Nauss et al. 2021](#ref-satellite)) 和 **landsat** 包 ([Goslee 2011](#ref-Goslee2011)) 可以处理卫星遥感数据，[**rasterbc**](https://github.com/deankoch/rasterbc) ([Koch 2022](#ref-rasterbc)) 内置 2001-2018 年加拿大英属哥伦比亚省 raster 格式的栅格数据，用于森林生态学研究。
 
-相比于 [**ggplot2**](https://github.com/tidyverse/ggplot2) ([Wickham 2022](#ref-Wickham2022))，[**lattice**](https://github.com/deepayan/lattice) ([Sarkar 2008](#ref-Sarkar2008)) 是被严重低估的数据可视化包，性能不输 **ggplot2**，而且更加稳定，与上一代空间数据处理框架 **sp** 和 **raster** 有很好的集成。[**ggspatial**](https://github.com/paleolimbot/ggspatial) 提供很多针对空间数据可视化的定制，比如指北针、比例尺等。
+相比于 [**ggplot2**](https://github.com/tidyverse/ggplot2) ([Wickham 2022a](#ref-Wickham2022))，[**lattice**](https://github.com/deepayan/lattice) ([Sarkar 2008](#ref-Sarkar2008)) 是被严重低估的数据可视化包，性能不输 **ggplot2**，而且更加稳定，与上一代空间数据处理框架 **sp** 和 **raster** 有很好的集成。[**ggspatial**](https://github.com/paleolimbot/ggspatial) 提供很多针对空间数据可视化的定制，比如指北针、比例尺等。
 
 [**cartography**](https://github.com/riatelab/cartography) 除了基本的维护，不再添加新的功能，推荐读者转移到 [**mapsf**](https://github.com/riatelab/mapsf) 上。[**mapsf**](https://github.com/riatelab/mapsf) ([Giraud 2022](#ref-mapsf)) 基于 Base R 图形系统将 sf 数据对象绘制在地图上，获得出版级的效果，支持比例气泡图、专题地图和拓扑地图等。[**tmap**](https://github.com/r-tmap/tmap) ([Tennekes 2018](#ref-Tennekes2018)) 功能与之类似，使用方式和 **ggplot2** 提供的图形语法一致。
 
-数据产品很多都基于 Web 呈现，交互式图形成为必须的组件，[**leaflet**](https://github.com/rstudio/leaflet) ([Cheng, Karambelkar, and Xie 2022](#ref-leaflet)) 在交互式地理可视化方面是比较成熟的，中小规模数据集下，性能还不错。 [**mapdeck**](https://github.com/SymbolixAU/mapdeck) 包站在 [deck.gl](https://github.com/visgl/deck.gl) 的肩膀上渲染初具规模的空间数据毫无压力。[**mapview**](https://github.com/r-spatial/mapview) ([Appelhans et al. 2021](#ref-mapview))意在提供快速地交互式探索空间数据的能力，支持 **leaflet** 和 **mapdeck** 渲染方法。而[**mapedit**](https://github.com/r-spatial/mapedit) ([Appelhans, Russell, and Busetto 2020](#ref-mapedit))提供空间数据交互式编辑能力。
+数据产品很多都基于 Web 呈现，交互式图形成为必须的组件，[**leaflet**](https://github.com/rstudio/leaflet) ([Cheng, Karambelkar, and Xie 2022](#ref-leaflet)) 在交互式地理可视化方面是比较成熟的，中小规模数据集下，性能还不错。 [**mapdeck**](https://github.com/SymbolixAU/mapdeck) 包站在 [deck.gl](https://github.com/visgl/deck.gl) 的肩膀上渲染初具规模的空间数据毫无压力。[**mapview**](https://github.com/r-spatial/mapview) ([Appelhans et al. 2022](#ref-mapview))意在提供快速地交互式探索空间数据的能力，支持 **leaflet** 和 **mapdeck** 渲染方法。而[**mapedit**](https://github.com/r-spatial/mapedit) ([Appelhans, Russell, and Busetto 2020](#ref-mapedit))提供空间数据交互式编辑能力。
 
 # 环境信息
 
@@ -1612,24 +1626,24 @@ xfun::session_info(packages = c(
   "lattice", "sf", "terra", "stars",
   "sp", "maps", "raster", "rasterly"
 ), dependencies = FALSE)
-# R version 4.1.3 (2022-03-10)
+# R version 4.2.0 (2022-04-22)
 # Platform: x86_64-apple-darwin17.0 (64-bit)
 # Running under: macOS Big Sur/Monterey 10.16
 # 
 # Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
 # 
 # Package version:
-#   baidumap_0.2.2       blogdown_1.8         geohashTools_0.3.1   ggmap_3.0.0         
-#   ggplot2_3.3.5        httr_1.4.2           jsonlite_1.8.0       knitr_1.37          
-#   lattice_0.20-45      leaflet_2.1.0        leaflet.extras_1.0.0 leafletCN_0.2.1     
+#   baidumap_0.2.2       blogdown_1.10        geohashTools_0.3.1   ggmap_3.0.0         
+#   ggplot2_3.3.6.9000   httr_1.4.3           jsonlite_1.8.0       knitr_1.39          
+#   lattice_0.20-45      leaflet_2.1.1        leaflet.extras_1.0.0 leafletCN_0.2.1     
 #   lwgeom_0.2-8         mapdeck_0.3.4        maps_3.4.0           nycflights13_1.0.2  
 #   patchwork_1.1.1      raster_3.5.15        rasterly_0.2.0       rgeolocate_1.4.2    
-#   RgoogleMaps_1.4.5.3  rmarkdown_2.13       sf_1.0-7             sp_1.4-6            
+#   RgoogleMaps_1.4.5.3  rmarkdown_2.14       sf_1.0-7             sp_1.4-7            
 #   spData_2.0.1         stars_0.5.5          terra_1.5.21        
 # 
-# Pandoc version: 2.17.1.1
+# Pandoc version: 2.18
 # 
-# Hugo version: 0.91.2
+# Hugo version: 0.98.0
 ```
 
 # 参考文献
@@ -1638,7 +1652,7 @@ xfun::session_info(packages = c(
 
 <div id="ref-mapview" class="csl-entry">
 
-Appelhans, Tim, Florian Detsch, Christoph Reudenbach, and Stefan Woellauer. 2021. *Mapview: Interactive Viewing of Spatial Data in r*. <https://github.com/r-spatial/mapview>.
+Appelhans, Tim, Florian Detsch, Christoph Reudenbach, and Stefan Woellauer. 2022. *Mapview: Interactive Viewing of Spatial Data in r*. <https://github.com/r-spatial/mapview>.
 
 </div>
 
@@ -1786,21 +1800,21 @@ Tennekes, Martijn. 2018. “<span class="nocase">tmap</span>: Thematic Maps in R
 
 </div>
 
-<div id="ref-httr" class="csl-entry">
-
-Wickham, Hadley. 2020. *Httr: Tools for Working with URLs and HTTP*. <https://CRAN.R-project.org/package=httr>.
-
-</div>
-
 <div id="ref-nycflights13" class="csl-entry">
 
-———. 2021. *Nycflights13: Flights That Departed NYC in 2013*. <https://github.com/hadley/nycflights13>.
+Wickham, Hadley. 2021. *Nycflights13: Flights That Departed NYC in 2013*. <https://github.com/hadley/nycflights13>.
 
 </div>
 
 <div id="ref-Wickham2022" class="csl-entry">
 
-———. 2022. *<span class="nocase">ggplot2</span>: Elegant Graphics for Data Analysis*. 3rd ed. Springer-Verlag New York. <https://ggplot2-book.org/>.
+———. 2022a. *<span class="nocase">ggplot2</span>: Elegant Graphics for Data Analysis*. 3rd ed. Springer-Verlag New York. <https://ggplot2-book.org/>.
+
+</div>
+
+<div id="ref-httr" class="csl-entry">
+
+———. 2022b. *Httr: Tools for Working with URLs and HTTP*. <https://CRAN.R-project.org/package=httr>.
 
 </div>
 
