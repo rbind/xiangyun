@@ -6,11 +6,13 @@ slug: interactive-web-graphics
 categories:
   - 统计图形
 tags:
+  - R 语言
   - plotly
   - ggiraph
   - scatterD3
   - apexcharter
   - echarts4r
+toc: true
 bibliography: 
   - refer.bib
   - packages.bib
@@ -112,16 +114,16 @@ R 语言在数据可视化方面有很长时间的积累，除了内置的基础
 
 本文将主要介绍 R 语言绘制交互式网页图形的扩展包，综合考虑了使用权限，图形种类，接口成熟度等方面因素，挑选了 [**plotly**](https://github.com/plotly/plotly.R)、 [**ggiraph**](https://github.com/davidgohel/ggiraph)、 [**scatterD3**](https://github.com/juba/scatterD3)、 [**apexcharter**](https://github.com/dreamRs/apexcharter) 和 [**echarts4r**](https://github.com/JohnCoene/echarts4r) 等几个 R 包，见表<a href="#tab:table-deps">1</a>。R 语言还有一些专门化的可视化扩展包，比如绘制交互网络图的[**visNetwork**](https://github.com/datastorm-open/visNetwork) ，绘制交互地图的[**leaflet**](https://github.com/rstudio/leaflet) 等，更多详见[Ryan Hafen](https://github.com/hafen) 收集整理的交互式图形[展览网站](https://gallery.htmlwidgets.org/)。
 
-| R 包                                                                                                  | 简介                                                             | 维护者              | 协议                    |
-|:------------------------------------------------------------------------------------------------------|:-----------------------------------------------------------------|:--------------------|:------------------------|
-| [**plotly**](https://github.com/plotly/plotly.R)([Sievert et al. 2021](#ref-plotly))                  | Create Interactive Web Graphics via plotly.js                    | Carson Sievert      | MIT + file LICENSE      |
-| [**ggiraph**](https://davidgohel.github.io/ggiraph/)([Gohel and Skintzos 2021](#ref-ggiraph))         | Make ggplot2 Graphics Interactive                                | David Gohel         | GPL-3                   |
-| [**echarts4r**](https://github.com/JohnCoene/echarts4r)([Coene 2021](#ref-echarts4r))                 | Create Interactive Graphs with Echarts JavaScript Version 5      | John Coene          | Apache License (>= 2.0) |
-| [**scatterD3**](https://juba.github.io/scatterD3/)([Barnier et al. 2021](#ref-scatterD3))             | D3 JavaScript Scatterplot from R                                 | Julien Barnier      | GPL (>= 3)              |
-| [**ggplot2**](https://github.com/tidyverse/ggplot2)([Wickham et al. 2021](#ref-ggplot2))              | Create Elegant Data Visualisations Using the Grammar of Graphics | Thomas Lin Pedersen | MIT + file LICENSE      |
-| [**apexcharter**](https://github.com/dreamRs/apexcharter)([Perrier and Meyer 2021](#ref-apexcharter)) | Create Interactive Chart with the JavaScript ApexCharts Library  | Victor Perrier      | MIT + file LICENSE      |
+| R 包                                                                                                  | 简介                                                             | 维护者              | 协议                     |
+|:------------------------------------------------------------------------------------------------------|:-----------------------------------------------------------------|:--------------------|:-------------------------|
+| [**plotly**](https://github.com/plotly/plotly.R)([Sievert et al. 2021](#ref-plotly))                  | Create Interactive Web Graphics via plotly.js                    | Carson Sievert      | MIT + file LICENSE       |
+| [**ggiraph**](https://davidgohel.github.io/ggiraph/)([Gohel and Skintzos 2022](#ref-ggiraph))         | Make ggplot2 Graphics Interactive                                | David Gohel         | GPL-3                    |
+| [**echarts4r**](https://github.com/JohnCoene/echarts4r)([Coene 2022](#ref-echarts4r))                 | Create Interactive Graphs with Echarts JavaScript Version 5      | John Coene          | Apache License (\>= 2.0) |
+| [**scatterD3**](https://juba.github.io/scatterD3/)([Barnier et al. 2021](#ref-scatterD3))             | D3 JavaScript Scatterplot from R                                 | Julien Barnier      | GPL (\>= 3)              |
+| [**ggplot2**](https://github.com/tidyverse/ggplot2)([Wickham et al. 2022](#ref-ggplot2))              | Create Elegant Data Visualisations Using the Grammar of Graphics | Thomas Lin Pedersen | MIT + file LICENSE       |
+| [**apexcharter**](https://github.com/dreamRs/apexcharter)([Perrier and Meyer 2022](#ref-apexcharter)) | Create Interactive Chart with the JavaScript ApexCharts Library  | Victor Perrier      | MIT + file LICENSE       |
 
-Table 1: 制作交互式网页图形的 R 包（排名不分先后）
+表 1: 制作交互式网页图形的 R 包（排名不分先后）
 
 # plotly
 
@@ -191,11 +193,13 @@ plot_ly(
 ```
 
 <figure>
-<img src="/img/iris.svg" class="full" alt="Figure 1: 鸢尾花散点图（SVG 矢量格式）" /><figcaption aria-hidden="true">Figure 1: 鸢尾花散点图（SVG 矢量格式）</figcaption>
+<img src="/img/iris.svg" class="full" alt="图 1: 鸢尾花散点图（SVG 矢量格式）" />
+<figcaption aria-hidden="true">图 1: 鸢尾花散点图（SVG 矢量格式）</figcaption>
 </figure>
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/140611946-2971d2e6-dab7-4814-8b22-ba57d505bbb3.png" class="full" alt="Figure 2: 鸢尾花散点图（普通 PNG 格式）" /><figcaption aria-hidden="true">Figure 2: 鸢尾花散点图（普通 PNG 格式）</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/140611946-2971d2e6-dab7-4814-8b22-ba57d505bbb3.png" class="full" alt="图 2: 鸢尾花散点图（普通 PNG 格式）" />
+<figcaption aria-hidden="true">图 2: 鸢尾花散点图（普通 PNG 格式）</figcaption>
 </figure>
 
 散点图更多详细设置见[文档](https://plotly.com/r/marker-style/)，此处不一一展示，建议读者直接使用上述代码在 R 控制台里运行起来，并且逐行注释并运行试试看效果，多试几次，对规律的理解会更加深刻，这样即使是其它图形种类也得心应手。散点图主要用来展示变量关系，既是散点，它一般会有大小、颜色、透明度、边界等属性。同样地，是坐标轴就会有横纵轴标签、刻度标签、刻度单位、背景网格线等，是图例就会有标题、位置、方向等，是文本就会有样式、字族、颜色、大小，是线就会有类型、宽度、颜色等。
@@ -224,7 +228,8 @@ plot_ly(
 **plotly** 支持调用 **RColorBrewer** 包所有内置的调色板，图 <a href="#fig:rcolorbrewer">3</a> 是 **RColorBrewer** 包内置的所有调色板，可供快速查阅和对比渲染效果。
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/140612809-ffac9e3e-566e-4ed3-8375-9ae1460d2088.png" class="full" alt="Figure 3: RColorBrewer 包内置调色板" /><figcaption aria-hidden="true">Figure 3: <strong>RColorBrewer</strong> 包内置调色板</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/140612809-ffac9e3e-566e-4ed3-8375-9ae1460d2088.png" class="full" alt="图 3: RColorBrewer 包内置调色板" />
+<figcaption aria-hidden="true">图 3: <strong>RColorBrewer</strong> 包内置调色板</figcaption>
 </figure>
 
 上面提到 **plotly** 是支持集成到 R Shiny 应用中的，下面举个简单的例子，用热力图展示 *faithful* 数据集里喷发时间和等待时间的关系 [^1]。
@@ -274,7 +279,8 @@ shinyApp(ui = ui, server = server)
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/110227135-11e04400-7f30-11eb-949d-61210ee37f5a.png" class="full" alt="Figure 4: 探索老忠实间歇泉喷发规律" /><figcaption aria-hidden="true">Figure 4: 探索老忠实间歇泉喷发规律</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/110227135-11e04400-7f30-11eb-949d-61210ee37f5a.png" class="full" alt="图 4: 探索老忠实间歇泉喷发规律" />
+<figcaption aria-hidden="true">图 4: 探索老忠实间歇泉喷发规律</figcaption>
 </figure>
 
 # ggiraph
@@ -298,7 +304,8 @@ ggplot(data = iris, aes(x = Sepal.Width, y = Sepal.Length, color = Species)) +
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/140610866-f142b14e-071c-48b2-b32d-b59c697516e2.png" class="full" alt="Figure 5: 鸢尾花散点图（ggplot2）" /><figcaption aria-hidden="true">Figure 5: 鸢尾花散点图（<strong>ggplot2</strong>）</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/140610866-f142b14e-071c-48b2-b32d-b59c697516e2.png" class="full" alt="图 5: 鸢尾花散点图（ggplot2）" />
+<figcaption aria-hidden="true">图 5: 鸢尾花散点图（<strong>ggplot2</strong>）</figcaption>
 </figure>
 
 接下来看 **ggiraph** 如何绘制散点图的，tooltip 和 data_id 是交互图特有的，数据到图形的映射方式是一样的，仅仅将 `geom_point()` 换成 `geom_point_interactive()`，`geom_smooth()` 换成 `geom_smooth_interactive()`，就是在这些统计、几何图层函数加了后缀 **\_interactive**而已！
@@ -316,7 +323,8 @@ girafe(ggobj = gg_point)
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/141491741-1cff835d-e1d0-4037-9845-ffe2c97d662a.png" class="full" alt="Figure 6: 鸢尾花散点图（ggiraph）" /><figcaption aria-hidden="true">Figure 6: 鸢尾花散点图（<strong>ggiraph</strong>）</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/141491741-1cff835d-e1d0-4037-9845-ffe2c97d662a.png" class="full" alt="图 6: 鸢尾花散点图（ggiraph）" />
+<figcaption aria-hidden="true">图 6: 鸢尾花散点图（<strong>ggiraph</strong>）</figcaption>
 </figure>
 
 单看保存后的 PNG 格式图 <a href="#fig:ggplot2-iris">5</a> 和 图<a href="#fig:ggiraph-iris">6</a>，几乎看不出差别！
@@ -326,7 +334,8 @@ girafe(ggobj = gg_point)
 Julien Barnier 开发的[**scatterD3**](https://github.com/juba/scatterD3) 包基于鼎鼎大名的 [D3](https://d3js.org/) 图形库，在散点图方面的渲染效果非常好，支持原生 SVG 矢量图形导出。
 
 <figure>
-<img src="https://camo.githubusercontent.com/8a9a67d791b9d8be08ec262edf8fe0e81eced4a9fa9d0fe81fa0a6b14098a00b/68747470733a2f2f7261772e6769746875622e636f6d2f6a7562612f7363617474657244332f6d61737465722f7265736f75726365732f7363617474657244332e676966" class="full" alt="Figure 7: scatterD3 包的官网演示" /><figcaption aria-hidden="true">Figure 7: <strong>scatterD3</strong> 包的官网演示</figcaption>
+<img src="https://camo.githubusercontent.com/8a9a67d791b9d8be08ec262edf8fe0e81eced4a9fa9d0fe81fa0a6b14098a00b/68747470733a2f2f7261772e6769746875622e636f6d2f6a7562612f7363617474657244332f6d61737465722f7265736f75726365732f7363617474657244332e676966" class="full" alt="图 7: scatterD3 包的官网演示" />
+<figcaption aria-hidden="true">图 7: <strong>scatterD3</strong> 包的官网演示</figcaption>
 </figure>
 
 类似前面 **plotly** 的介绍，下面是一个完整的散点图示例，如图<a href="#fig:scatterd3-iris">8</a> 所示
@@ -374,11 +383,13 @@ scatterD3(
 ```
 
 <figure>
-<img src="/img/iris2.svg" class="full" alt="Figure 8: 鸢尾花散点图（矢量格式）" /><figcaption aria-hidden="true">Figure 8: 鸢尾花散点图（矢量格式）</figcaption>
+<img src="/img/iris2.svg" class="full" alt="图 8: 鸢尾花散点图（矢量格式）" />
+<figcaption aria-hidden="true">图 8: 鸢尾花散点图（矢量格式）</figcaption>
 </figure>
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/140610124-7bc984cf-c3dc-474b-896a-fa87a22244f9.png" class="full" alt="Figure 9: 鸢尾花散点图（PNG格式）" /><figcaption aria-hidden="true">Figure 9: 鸢尾花散点图（PNG格式）</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/140610124-7bc984cf-c3dc-474b-896a-fa87a22244f9.png" class="full" alt="图 9: 鸢尾花散点图（PNG格式）" />
+<figcaption aria-hidden="true">图 9: 鸢尾花散点图（PNG格式）</figcaption>
 </figure>
 
 <div class="rmdnote">
@@ -413,11 +424,13 @@ apex(
 ```
 
 <figure>
-<img src="/img/iris3.svg" class="full" alt="Figure 10: 鸢尾花散点图（SVG 格式矢量图）" /><figcaption aria-hidden="true">Figure 10: 鸢尾花散点图（SVG 格式矢量图）</figcaption>
+<img src="/img/iris3.svg" class="full" alt="图 10: 鸢尾花散点图（SVG 格式矢量图）" />
+<figcaption aria-hidden="true">图 10: 鸢尾花散点图（SVG 格式矢量图）</figcaption>
 </figure>
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/141489894-f1b23024-3387-4856-9f48-f880fb3e1ef8.png" class="full" alt="Figure 11: 鸢尾花散点图（交互状态下的截图）" /><figcaption aria-hidden="true">Figure 11: 鸢尾花散点图（交互状态下的截图）</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/141489894-f1b23024-3387-4856-9f48-f880fb3e1ef8.png" class="full" alt="图 11: 鸢尾花散点图（交互状态下的截图）" />
+<figcaption aria-hidden="true">图 11: 鸢尾花散点图（交互状态下的截图）</figcaption>
 </figure>
 
 也可以采用一一指定类别和颜色的映射关系设置调色板，用下述代码替换 `ax_colors()` 所在行。
@@ -488,11 +501,13 @@ iris |>
 使用的方式上与前面介绍过的 R 包 **plotly** 等有些不太一样，连分组散点图画起来都比较费劲，关键是三份材料对照学习，其一是函数帮助文档，其二是 **echarts4r** 包[文档](https://echarts4r.john-coene.com/)，其三是 Apache ECharts [官方文档](https://echarts.apache.org/en)，所幸文档比较全，一点一点调试，积累积累也就好了，不然，画个散点图都能这么费劲，绝对可以劝退很多人。非常亮眼的地方在于鼠标悬停在散点上时，能感受到如丝般顺滑，也不枉来回折腾一趟！如果读者也想体验一下，一定要把上面的代码复制到 R 控制台里运行，话说千遍，不如一干！
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/141676666-8530b06a-d296-42b5-81a6-94ec0c4192b5.png" class="full" alt="Figure 12: 鸢尾花散点图（PNG 格式）" /><figcaption aria-hidden="true">Figure 12: 鸢尾花散点图（PNG 格式）</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/141676666-8530b06a-d296-42b5-81a6-94ec0c4192b5.png" class="full" alt="图 12: 鸢尾花散点图（PNG 格式）" />
+<figcaption aria-hidden="true">图 12: 鸢尾花散点图（PNG 格式）</figcaption>
 </figure>
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/141676721-539aa51a-9fad-46bb-9ee8-4a0433bf4fa7.png" class="full" alt="Figure 13: 鸢尾花散点图（交互状态下的截图）" /><figcaption aria-hidden="true">Figure 13: 鸢尾花散点图（交互状态下的截图）</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/141676721-539aa51a-9fad-46bb-9ee8-4a0433bf4fa7.png" class="full" alt="图 13: 鸢尾花散点图（交互状态下的截图）" />
+<figcaption aria-hidden="true">图 13: 鸢尾花散点图（交互状态下的截图）</figcaption>
 </figure>
 
 如果对效果没啥要求，就是看看，倒也简单，四行代码即可！
@@ -505,7 +520,8 @@ iris |>
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/141642283-25a5c58e-5c6e-4f72-ade1-aec2f72ddfcf.png" class="full" alt="Figure 14: 鸢尾花散点图（没啥要求）" /><figcaption aria-hidden="true">Figure 14: 鸢尾花散点图（没啥要求）</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/141642283-25a5c58e-5c6e-4f72-ade1-aec2f72ddfcf.png" class="full" alt="图 14: 鸢尾花散点图（没啥要求）" />
+<figcaption aria-hidden="true">图 14: 鸢尾花散点图（没啥要求）</figcaption>
 </figure>
 
 哈哈，前后一对比，你就知道开发者给的示例和真正要用的之间的差距了吧！
@@ -524,7 +540,8 @@ scales::show_col(colours = echarts_colors)
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/141676968-ee571997-e490-4993-b7cf-7c6aa62dfab8.png" style="width:85.0%" alt="Figure 15: Apache Echarts 默认的调色板" /><figcaption aria-hidden="true">Figure 15: Apache Echarts 默认的调色板</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/141676968-ee571997-e490-4993-b7cf-7c6aa62dfab8.png" style="width:85.0%" alt="图 15: Apache Echarts 默认的调色板" />
+<figcaption aria-hidden="true">图 15: Apache Echarts 默认的调色板</figcaption>
 </figure>
 
 还有一个调整调色板的办法，调函数 `e_theme()` 设置新的[配色主题](https://echarts.apache.org/en/theme-builder.html)，比如 `"vintage"`，即用
@@ -542,7 +559,8 @@ e_color(color = RColorBrewer::brewer.pal(n = 3, name = "Set2"))
 效果见图<a href="#fig:echarts4r-theme">16</a>。
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/141679368-19883e05-278e-4eff-bfb2-d31d4b63c9f3.png" class="full" alt="Figure 16: Apache Echarts 的配色主题" /><figcaption aria-hidden="true">Figure 16: Apache Echarts 的配色主题</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/141679368-19883e05-278e-4eff-bfb2-d31d4b63c9f3.png" class="full" alt="图 16: Apache Echarts 的配色主题" />
+<figcaption aria-hidden="true">图 16: Apache Echarts 的配色主题</figcaption>
 </figure>
 
 值得注意，目前，**echarts4r** 对统计图形的支持十分有限，分组线性回归尚且做不到，**echarts4r**官网对此也有[示例说明](https://echarts4r.john-coene.com/articles/stats.html#linear)。
@@ -575,7 +593,8 @@ figure() %>%
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/141608636-1606587f-0ae8-4899-875b-266eb9b9a10f.png" class="full" alt="Figure 17: 鸢尾花散点图（rbokeh）" /><figcaption aria-hidden="true">Figure 17: 鸢尾花散点图（rbokeh）</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/141608636-1606587f-0ae8-4899-875b-266eb9b9a10f.png" class="full" alt="图 17: 鸢尾花散点图（rbokeh）" />
+<figcaption aria-hidden="true">图 17: 鸢尾花散点图（rbokeh）</figcaption>
 </figure>
 
 <div class="rmdwarn">
@@ -624,7 +643,8 @@ px.scatter(
 ```
 
 <figure>
-<img src="https://user-images.githubusercontent.com/12031874/140610586-742caa14-c55a-460d-be04-f0810104f6d6.png" class="full" alt="Figure 18: 鸢尾花散点图" /><figcaption aria-hidden="true">Figure 18: 鸢尾花散点图</figcaption>
+<img src="https://user-images.githubusercontent.com/12031874/140610586-742caa14-c55a-460d-be04-f0810104f6d6.png" class="full" alt="图 18: 鸢尾花散点图" />
+<figcaption aria-hidden="true">图 18: 鸢尾花散点图</figcaption>
 </figure>
 
 # 环境信息
@@ -639,20 +659,20 @@ xfun::session_info(packages = c(
 ), dependencies = FALSE)
 ```
 
-    ## R version 4.1.2 (2021-11-01)
+    ## R version 4.2.0 (2022-04-22)
     ## Platform: x86_64-apple-darwin17.0 (64-bit)
-    ## Running under: macOS Big Sur 10.16
+    ## Running under: macOS Big Sur/Monterey 10.16
     ## 
     ## Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
     ## 
     ## Package version:
-    ##   apexcharter_0.3.0 blogdown_1.7      echarts4r_0.4.2   ggiraph_0.8.1    
-    ##   ggplot2_3.3.5     knitr_1.37        plotly_4.10.0     rmarkdown_2.11   
-    ##   scatterD3_1.0.1  
+    ##   apexcharter_0.3.1  blogdown_1.10      echarts4r_0.4.3    ggiraph_0.8.2     
+    ##   ggplot2_3.3.6.9000 knitr_1.39         plotly_4.10.0      rmarkdown_2.14    
+    ##   scatterD3_1.0.1   
     ## 
-    ## Pandoc version: 2.16.2
+    ## Pandoc version: 2.18
     ## 
-    ## Hugo version: 0.91.2
+    ## Hugo version: 0.98.0
 
 # 参考文献
 
@@ -666,13 +686,13 @@ Barnier, Julien, Kent Russell, Mike Bostock, Susie Lu, Speros Kokenes, and Evan 
 
 <div id="ref-echarts4r" class="csl-entry">
 
-Coene, John. 2021. *Echarts4r: Create Interactive Graphs with Echarts JavaScript Version 5*. <https://CRAN.R-project.org/package=echarts4r>.
+Coene, John. 2022. *Echarts4r: Create Interactive Graphs with Echarts JavaScript Version 5*. <https://CRAN.R-project.org/package=echarts4r>.
 
 </div>
 
 <div id="ref-ggiraph" class="csl-entry">
 
-Gohel, David, and Panagiotis Skintzos. 2021. *Ggiraph: Make Ggplot2 Graphics Interactive*. <https://davidgohel.github.io/ggiraph/>.
+Gohel, David, and Panagiotis Skintzos. 2022. *Ggiraph: Make Ggplot2 Graphics Interactive*. <https://davidgohel.github.io/ggiraph/>.
 
 </div>
 
@@ -690,7 +710,7 @@ Murrell, Paul. 2002. “The <span class="nocase">grid</span> Graphics Package.�
 
 <div id="ref-apexcharter" class="csl-entry">
 
-Perrier, Victor, and Fanny Meyer. 2021. *Apexcharter: Create Interactive Chart with the JavaScript ApexCharts Library*. <https://CRAN.R-project.org/package=apexcharter>.
+Perrier, Victor, and Fanny Meyer. 2022. *Apexcharter: Create Interactive Chart with the JavaScript ApexCharts Library*. <https://CRAN.R-project.org/package=apexcharter>.
 
 </div>
 
@@ -720,13 +740,13 @@ Sievert, Carson, Chris Parmer, Toby Hocking, Scott Chamberlain, Karthik Ram, Mar
 
 <div id="ref-Wickham2016" class="csl-entry">
 
-Wickham, Hadley. 2016. *<span class="nocase">ggplot2</span>: Elegant Graphics for Data Analysis*. Springer-Verlag New York. <https://ggplot2.tidyverse.org>.
+Wickham, Hadley. 2016. *<span class="nocase">ggplot2</span>: Elegant Graphics for Data Analysis*. 2nd ed. Springer-Verlag New York. <https://ggplot2.tidyverse.org>.
 
 </div>
 
 <div id="ref-ggplot2" class="csl-entry">
 
-Wickham, Hadley, Winston Chang, Lionel Henry, Thomas Lin Pedersen, Kohske Takahashi, Claus Wilke, Kara Woo, Hiroaki Yutani, and Dewey Dunnington. 2021. *Ggplot2: Create Elegant Data Visualisations Using the Grammar of Graphics*. <https://CRAN.R-project.org/package=ggplot2>.
+Wickham, Hadley, Winston Chang, Lionel Henry, Thomas Lin Pedersen, Kohske Takahashi, Claus Wilke, Kara Woo, Hiroaki Yutani, and Dewey Dunnington. 2022. *Ggplot2: Create Elegant Data Visualisations Using the Grammar of Graphics*.
 
 </div>
 

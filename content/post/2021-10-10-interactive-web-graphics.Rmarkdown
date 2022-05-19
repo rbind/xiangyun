@@ -6,11 +6,13 @@ slug: interactive-web-graphics
 categories:
   - 统计图形
 tags:
+  - R 语言
   - plotly
   - ggiraph
   - scatterD3
   - apexcharter
   - echarts4r
+toc: true
 bibliography: 
   - refer.bib
   - packages.bib
