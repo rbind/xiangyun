@@ -16,6 +16,9 @@ tags:
   - terra
   - sp
   - raster
+output:
+  blogdown::html_page:
+    toc: true
 link-citations: true
 bibliography: 
   - refer.bib

@@ -21,7 +21,9 @@ tags:
   - terra
   - sp
   - raster
-toc: true
+output:
+  blogdown::html_page:
+    toc: true
 link-citations: true
 thumbnail: /img/maps-in-r/usmap-statex77.png
 bibliography: 

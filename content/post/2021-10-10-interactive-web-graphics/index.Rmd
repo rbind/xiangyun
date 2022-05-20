@@ -17,7 +17,7 @@ bibliography:
   - refer.bib
   - packages.bib
 link-citations: true
-thumbnail: /img/iris.svg
+thumbnail: img/iris.svg
 description: "R 语言在数据可视化方面有很长时间的积累，除了内置的基础作图系统和栅格作图系统，以及衍生出来的代表作 lattice 和 ggplot2 ，更加易用、便携、交互的网页图形逐渐形成新的主流。移动终端设备的大规模普及，探索性数据分析和可视化需求越来越强烈，得益于现代硬件设施和前端技术的落地，交互式网页图形逐渐成为数据展示中的标配。"
 ---
 
@@ -249,7 +249,7 @@ plot_ly(
   )
 ```
 
-![(\#fig:plotly-r-iris-a)鸢尾花散点图（SVG 矢量格式）](/img/iris.svg){.full}
+![(\#fig:plotly-r-iris-a)鸢尾花散点图（SVG 矢量格式）](img/iris.svg){.full}
 
 ![(\#fig:plotly-r-iris-b)鸢尾花散点图（普通 PNG 格式）](https://user-images.githubusercontent.com/12031874/140611946-2971d2e6-dab7-4814-8b22-ba57d505bbb3.png){.full}
 
@@ -423,7 +423,7 @@ scatterD3(
 )
 ```
 
-![(\#fig:scatterd3-iris) 鸢尾花散点图（矢量格式）](/img/iris2.svg){.full}
+![(\#fig:scatterd3-iris) 鸢尾花散点图（矢量格式）](img/iris2.svg){.full}
 
 ![(\#fig:scatterd3-iris2) 鸢尾花散点图（PNG格式）](https://user-images.githubusercontent.com/12031874/140610124-7bc984cf-c3dc-474b-896a-fa87a22244f9.png){.full}
 
@@ -458,7 +458,7 @@ apex(
   ax_subtitle(text = "鸢尾花数据集")
 ```
 
-![(\#fig:apexcharter-iris) 鸢尾花散点图（SVG 格式矢量图）](/img/iris3.svg){.full}
+![(\#fig:apexcharter-iris) 鸢尾花散点图（SVG 格式矢量图）](img/iris3.svg){.full}
 
 ![(\#fig:apexcharter-iris2) 鸢尾花散点图（交互状态下的截图）](https://user-images.githubusercontent.com/12031874/141489894-f1b23024-3387-4856-9f48-f880fb3e1ef8.png){.full}
 

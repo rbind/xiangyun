@@ -1,0 +1,1496 @@
+---
+title: 空间数据可视化与 R 语言（下篇）
+author: 黄湘云
+date: '2022-02-22'
+slug: spatial-data-visualization
+categories:
+  - 统计图形
+tags:
+  - 空间数据
+  - 专题地图
+  - 地图服务
+  - 坐标系统
+  - ggplot2
+  - mapdeck
+  - sf
+  - leaflet
+  - httr
+output:
+  blogdown::html_page:
+    toc: true
+thumbnail: /img/maps-in-r/beijing-sf.png
+link-citations: true
+bibliography: 
+  - refer.bib
+  - packages.bib
+description: "数据可视化在数据探索分析中扮演了及其重要的角色，帮助了解数据的质量、分布和潜在规律，为建模和分析提供思路和假设。同时，又有助于阐述分析结果，交流分享。但要注意使用场景，切记过于花哨，引入一些不必要的炫酷手段，比如各种 3D 图，蜂窝图等。"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#本文概览" id="toc-本文概览">本文概览</a></li>
+<li><a href="#地图服务" id="toc-地图服务">地图服务</a>
+<ul>
+<li><a href="#百度地图" id="toc-百度地图">百度地图</a></li>
+<li><a href="#高德地图" id="toc-高德地图">高德地图</a></li>
+<li><a href="#必应地图" id="toc-必应地图">必应地图</a></li>
+<li><a href="#谷歌地图" id="toc-谷歌地图">谷歌地图</a></li>
+</ul></li>
+<li><a href="#基础知识" id="toc-基础知识">基础知识</a>
+<ul>
+<li><a href="#网址定位" id="toc-网址定位">网址定位</a></li>
+<li><a href="#瓦片地图" id="toc-瓦片地图">瓦片地图</a></li>
+<li><a href="#地理编码" id="toc-地理编码">地理编码</a></li>
+<li><a href="#坐标系统" id="toc-坐标系统">坐标系统</a></li>
+</ul></li>
+<li><a href="#空间分布" id="toc-空间分布">空间分布</a>
+<ul>
+<li><a href="#散点图" id="toc-散点图">散点图</a></li>
+<li><a href="#热力图" id="toc-热力图">热力图</a></li>
+<li><a href="#蜂窝图" id="toc-蜂窝图">蜂窝图</a></li>
+<li><a href="#柱状图" id="toc-柱状图">柱状图</a></li>
+<li><a href="#飞线图" id="toc-飞线图">飞线图</a></li>
+</ul></li>
+<li><a href="#专题地图" id="toc-专题地图">专题地图</a>
+<ul>
+<li><a href="#leaflet" id="toc-leaflet">leaflet</a></li>
+<li><a href="#mapdeck" id="toc-mapdeck">mapdeck</a></li>
+<li><a href="#sf" id="toc-sf">sf</a></li>
+<li><a href="#ggplot2" id="toc-ggplot2">ggplot2</a></li>
+</ul></li>
+<li><a href="#邵东市房地产行业分析" id="toc-邵东市房地产行业分析">邵东市房地产行业分析</a></li>
+<li><a href="#地表土壤重金属污染分析" id="toc-地表土壤重金属污染分析">地表土壤重金属污染分析</a></li>
+<li><a href="#本文小结" id="toc-本文小结">本文小结</a></li>
+<li><a href="#环境信息" id="toc-环境信息">环境信息</a></li>
+<li><a href="#参考文献" id="toc-参考文献">参考文献</a></li>
+</ul>
+</div>
+
+<style type="text/css">
+.sidebar {
+  border: 1px solid #ccc;
+}
+
+.rmdwarn {
+  border: 1px solid #EA4335;
+}
+
+.rmdnote {
+  border: 1px solid #FBBC05;
+}
+
+.rmdtip {
+  border: 1px solid #34A853;
+}
+
+.sidebar, .rmdwarn, .rmdnote, .rmdtip {
+  border-left-width: 5px;
+  border-radius: 5px;
+  padding: 1em;
+  margin: 1em 0;
+}
+
+div.rmdwarn::before, div.rmdnote::before, div.rmdtip::before {
+  display: block;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-bottom: 0.25em;
+}
+
+div.rmdwarn::before {
+  content: "警告";
+  color: #EA4335;
+}
+
+div.rmdnote::before {
+  content: "注意";
+  color: #FBBC05;
+}
+
+div.rmdtip::before {
+  content: "提示";
+  color: #34A853;
+}
+
+.rmdinfo {
+  border: 1px solid #ccc;
+  border-left-width: 5px;
+  border-radius: 5px;
+  padding: 1em;
+  margin: 1em 0;
+}
+div.rmdinfo::before {
+  content: "声明";
+  color: block;
+  display: block;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-bottom: 0.25em;
+}
+
+figure {
+  text-align: center;
+}
+
+div.img {
+  text-align: center;
+  display: block; 
+  margin-left: auto; 
+  margin-right: auto;
+}
+</style>
+<div class="rmdinfo">
+<p>本文引用的所有信息均为公开信息，仅代表作者本人观点，与就职单位无关。</p>
+</div>
+<div id="本文概览" class="section level1">
+<h1>本文概览</h1>
+<p>数据可视化在数据探索分析中扮演了极其重要的角色，帮助了解数据的质量、分布和潜在规律，为建模和分析提供思路和假设。同时，有助于阐述分析结果，交流分享。但要注意使用场景，切记过于花哨，引入一些不必要的炫酷手段，比如各种 3D 图，蜂窝图等。</p>
+<p>本文告诉读者如何在 R 语言中调用生活中常见的谷歌、必应、百度和高德等地图服务。介绍一些网址地位、地理编码和坐标转化的 R 包，为空间数据操作、可视化奠定基础。然后，介绍展示空间数据分布的常用图形及其R包实现，再重点介绍专题地图，并以不同 R 包的不同风格实现。最后，以两个实例简要阐述空间数据操作、分析、可视化的过程。</p>
+</div>
+<div id="地图服务" class="section level1">
+<h1>地图服务</h1>
+<p>比较常见的地图服务，国外有谷歌、微软，国内有百度、高德，凡是提供本地生活服务的公司都或多或少地依赖高精地图，如美团外卖，阿里飞猪等。本节主要带领读者了解地图服务，以及使用 R 语言来调地图服务，为增加代入感，笔者就从「中国矿业大学（北京）学院路校区」这个地标的 IP 定位开始。首先用 <a href="https://curl.se/">curl</a> 工具请求网站 <a href="https://ipinfo.io/" class="uri">https://ipinfo.io/</a><a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>，它会自动获取用户上网使用的 IP 以及 IP 所处的地理位置，如下：</p>
+<pre class="bash"><code>curl ipinfo.io</code></pre>
+<pre><code>{
+  &quot;ip&quot;: &quot;223.71.83.98&quot;,
+  &quot;city&quot;: &quot;Beijing&quot;,
+  &quot;region&quot;: &quot;Beijing&quot;,
+  &quot;country&quot;: &quot;CN&quot;,
+  &quot;loc&quot;: &quot;39.9288,116.3890&quot;,
+  &quot;org&quot;: &quot;AS56048 China Mobile Communicaitons Corporation&quot;
+}</code></pre>
+<p>可知学校所处位置：纬度 39.9288 经度 116.3890，当然这离高精地图还有十万八千里。</p>
+<div id="百度地图" class="section level2">
+<h2>百度地图</h2>
+<p>杜亚磊开发的<a href="https://github.com/badbye/baidumap">baidumap</a>包可以调用<a href="https://map.baidu.com/">百度地图服务</a>获取地理可视化的背景底图。百度是国内比较早的互联网公司，之前介绍的 Apache Echarts 也是百度可视化团队领头开发的，百度地理信息可视化平台使用的地理可视化组件来自开源的<a href="https://github.com/huiyan-fe/mapv">mapv</a>。</p>
+<p>在百度地图上，根据地理名称获得经纬度信息，获得经纬度后，可以将位置标记在地图上，下面以「中国矿业大学（北京）」为例。</p>
+<pre class="r"><code>remotes::install_github(&#39;badbye/baidumap&#39;)</code></pre>
+<p><code>BaiduMap_API_Key</code> 是从<a href="https://lbsyun.baidu.com/">百度 LBS 云服务</a>申请到的地图 API 访问令牌，保存到本地 <code>.Renviron</code> 文件里 <code>BaiduMap_API_Key=[key]</code>，这样启动 R 软件时就会自动载入。</p>
+<pre class="r"><code>library(baidumap)
+options(baidumap.key = Sys.getenv(&quot;BaiduMap_API_Key&quot;))
+getCoordinate(&#39;中国矿业大学（北京）学院路校区&#39;, formatted = T)
+#   longtitude     latitude 
+# 116.35376693  40.00382807</code></pre>
+<p>如图<a href="#fig:cumtb-baidu">1</a>，在地图上显示解析出来的位置，可见定位在<strong>矿大1号楼</strong>。</p>
+<pre class="r"><code>cumtb_map &lt;- getBaiduMap(&quot;中国矿业大学（北京）学院路校区&quot;, zoom = 17)
+cumtb_coordinate &lt;- getCoordinate(&quot;中国矿业大学（北京）学院路校区&quot;, formatted = T)
+cumtb_coordinate &lt;- data.frame(t(cumtb_coordinate))
+# 调 ggmap 绘制背景地图
+ggmap::ggmap(cumtb_map) +
+  ggplot2::geom_point(aes(x = longtitude, y = latitude),
+    data = cumtb_coordinate, col = &quot;red&quot;, size = 5
+  )</code></pre>
+<div class="figure"><span style="display:block;" id="fig:cumtb-baidu"></span>
+<img src="img/cumtb-baidu.png" class="full" alt="" />
+<p class="caption">图 1:  百度地图-中国矿业大学（北京）学院路校区</p>
+</div>
+</div>
+<div id="高德地图" class="section level2">
+<h2>高德地图</h2>
+<p>高德和百度都是有甲级测绘资质的单位，意味着地图数据符合国家要求，来源权威可用。大家熟知的全球定位系统（GPS）采用 WGS 84，而 GCJ 02 由 WGS 84 加密后的坐标系，是由中国国家测绘局制定的地理坐标系统，又称火星坐标系。高德地图采用火星坐标系 GCJ 02（国测局 <strong>G</strong>uo <strong>C</strong>e <strong>J</strong>u，即国家测绘局），百度地图的坐标系 BD 09 在 GCJ 02 坐标系基础上再次加密，加密过程不可逆，是一种非线性加密方式，反向解密后的坐标在部分区域的定位差别很大。另外，值得注意的是对同一目标不同公司提供的定位可能是不同的，因为所选的地理参考系不同，常用的三种坐标系见文档<a href="https://lbsyun.baidu.com/index.php?title=coordinate">坐标系</a>。</p>
+<p>高德提供很多调用地图服务的 API 接口，如将其它坐标转化为高德坐标的<a href="https://lbs.amap.com/api/webservice/guide/api/convert">坐标转化服务</a>，前提是先在<a href="https://lbs.amap.com/">高德开放平台</a>上申请Web服务API类型KEY。继续以地标「中国矿业大学（北京）学院路校区」为例，下面在 R 语言环境中，使用 <strong>httr</strong> 包<span class="citation">(<a href="#ref-httr" role="doc-biblioref">Wickham 2022b</a>)</span>调用高德地图服务将百度坐标转化为高德坐标。</p>
+<pre class="r"><code>library(httr)
+# 向高德地图 API 发 GET 请求
+tmp &lt;- GET(
+  url = &quot;https://restapi.amap.com/&quot;,
+  path = &quot;v3/assistant/coordinate/convert&quot;,
+  query = list(
+    # 原坐标，经纬度小数点后不得超过6位
+    locations = &quot;40.003828,116.353766&quot;, 
+    # 原坐标参考系，还支持 GPS 坐标，取值 &#39;gps&#39;
+    coordsys = &quot;baidu&quot;, 
+    # 返回数据格式，还支持 xml
+    output = &quot;json&quot;, 
+    # 高德地图 WEB 服务 API 访问令牌
+    key = Sys.getenv(&quot;AMAP_KEY&quot;) 
+  )
+)
+# 抽取转化后的高德坐标
+content(tmp)$locations
+# [1] &quot;39.997202126977,116.347817690225&quot;</code></pre>
+<p>接着，采用 <strong>leaflet</strong> 包将高德坐标系下的经纬度绘制在地图上。由于 <strong>leaflet</strong> 包默认采用 OpenStreetMap 开放街道地图服务，需要切换一下地图服务，而郎大为开发的 <a href="https://github.com/Lchiffon/leafletCN"><strong>leafletCN</strong></a> 包<span class="citation">(<a href="#ref-leafletCN" role="doc-biblioref">Lang 2017</a>)</span> 正好用函数 <code>amap()</code> 封装了高德瓦片地图服务。如图<a href="#fig:cumtb-amp">2</a>所示，定位在<strong>矿大学10楼</strong>，从百度地图转化过来，这有上百米的距离。一方面开放的高德地图 API 不支持转化高精度的经纬度坐标，另一方面转化是有损失的。</p>
+<pre class="r"><code>library(leaflet)
+library(leafletCN)
+# 绘图
+leaflet(options = leafletOptions(
+  minZoom = 4, maxZoom = 18, 
+  zoomControl = FALSE
+)) |&gt; 
+  amap() |&gt; 
+  setView(lng = 116.347817690225, lat = 39.997202126977, zoom = 18) |&gt; 
+  addCircles(
+    data = data.frame(lon = 116.347817690225, lat = 39.997202126977, size = 10),
+    lng = ~lon, lat = ~lat, radius = ~size, color = &quot;red&quot;,
+    fillOpacity = 0.55, stroke = T, weight = 1,
+    label = htmltools::HTML(&quot;这里是 &lt;b&gt;学院路校区&lt;/b&gt;, 中国矿业大学（北京）&quot;)
+  )</code></pre>
+<div class="figure"><span style="display:block;" id="fig:cumtb-amp"></span>
+<img src="img/cumtb-amp.png" class="full" alt="" />
+<p class="caption">图 2:  高德地图-中国矿业大学（北京）学院路校区</p>
+</div>
+<p>下面试试看，将原百度坐标不转化，直接绘制在高德地图上，如图<a href="#fig:cumtb-amp-baidu">3</a>所示，可见定位到<strong>中国农业大学</strong>去了，真是失之毫厘，差之千里！</p>
+<pre class="r"><code># 绘图
+leaflet(options = leafletOptions(
+  minZoom = 4, maxZoom = 18, 
+  zoomControl = FALSE
+)) |&gt; 
+  amap() |&gt; 
+  setView(lng = 116.35376693, lat = 40.00382807, zoom = 18) |&gt; 
+  addCircles(
+    data = data.frame(lon = 116.35376693, lat = 40.00382807, size = 10),
+    lng = ~lon, lat = ~lat, radius = ~size, color = &quot;red&quot;,
+    fillOpacity = 0.55, stroke = T, weight = 1,
+    label = htmltools::HTML(&quot;这里是 &lt;b&gt;学院路校区&lt;/b&gt;, 中国矿业大学（北京）&quot;)
+  )</code></pre>
+<div class="figure"><span style="display:block;" id="fig:cumtb-amp-baidu"></span>
+<img src="img/cumtb-amp-baidu.png" class="full" alt="" />
+<p class="caption">图 3:  高德地图-中国矿业大学（北京）</p>
+</div>
+</div>
+<div id="必应地图" class="section level2">
+<h2>必应地图</h2>
+<p>与 <strong>ggmap</strong> 包相比，<a href="https://github.com/markusloecher/rgooglemaps"><strong>RgoogleMaps</strong></a>包 <span class="citation">(<a href="#ref-Loecher2015" role="doc-biblioref">Loecher and Ropkins 2015</a>)</span> 支持调用更多的地图服务，除了 Google 地图外，还支持必应地图，以及基于 <strong>lattice</strong> 包的可视化，借助 <a href="https://r-forge.r-project.org/scm/?group_id=1400"><strong>loa</strong></a> <span class="citation">(<a href="#ref-loa" role="doc-biblioref">Ropkins 2021</a>)</span>和 <a href="https://r-forge.r-project.org/projects/latticeextra/"><strong>latticeExtra</strong></a> <span class="citation">(<a href="#ref-latticeExtra" role="doc-biblioref">Sarkar and Andrews 2019</a>)</span>还可以支持高级的自定义，如何使用见<a href="https://github.com/vertica/Vertica-Geospatial"><strong>ggmap</strong> 使用案例</a>、<a href="https://loa.r-forge.r-project.org/loa.intro.html"><strong>loa</strong> 文档</a>和<a href="https://latticeextra.r-forge.r-project.org/"><strong>latticeExtra</strong> 文档</a>。</p>
+<pre class="r"><code>library(RgoogleMaps) # 同时需要 RCurl
+library(RCurl)</code></pre>
+<p>使用 Bing 地图服务也是需要 <code>API_KEY</code> 的，可先去 <a href="https://www.bingmapsportal.com/">Bing 地图开发中心</a> 用 Outlook 邮箱创建账户，然后申请免费的基础版，过程见<a href="https://www.microsoft.com/en-us/maps/create-a-bing-maps-key">说明</a>。继续以地标「中国矿业大学（北京）学院路校区」为例，将百度坐标绘制在必应地图上，如图<a href="#fig:cumtb-bing">4</a>所示，也定位在<strong>中国农业大学</strong>校园内了，而且显示的兴趣点 POI 少很多了！</p>
+<pre class="r"><code># 保存背景地图
+map_cumtb &lt;- GetBingMap(
+  center = c(lat = 40.00382807, lon = 116.35376693),
+  zoom = 17, apiKey = Sys.getenv(&quot;BingMap_API_KEY&quot;),
+  verbose = 0, destfile = &quot;cumtb-bing.png&quot;
+)
+# 将点绘制到地图上
+PlotOnStaticMap(map_cumtb,
+  lat = 40.00382807, lon = 116.35376693,
+  col = &quot;red&quot;, FUN = points,
+  pch = 19, cex = 2
+)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:cumtb-bing"></span>
+<img src="img/cumtb-bing.png" class="full" alt="" />
+<p class="caption">图 4:  必应地图-中国矿业大学（北京）学院路校区</p>
+</div>
+</div>
+<div id="谷歌地图" class="section level2">
+<h2>谷歌地图</h2>
+<p>David Kahle 开发的<a href="https://github.com/dkahle/ggmap"><strong>ggmap</strong></a> <span class="citation">(<a href="#ref-Kahle2013" role="doc-biblioref">Kahle and Wickham 2013</a>)</span> 包在 2011 年发布在 CRAN 上，是一个基于 ggplot2 的空间可视化包，背景地图来自谷歌地图。目前，由于 Google 地图服务策略调整，需要申请 Google 地图服务的访问令牌才可以使用地图服务。
+可将申请到的 <code>GGMAP_GOOGLE_API_KEY</code> 保存到本地文件 <code>~/.Renviron</code>，以供 <strong>ggmap</strong> 后续使用。</p>
+<pre class="r"><code>library(ggmap)
+p &lt;- ggmap::get_googlemap(
+  center = c(lon = 116.35376693, lat = 40.00382807),
+  zoom = 12, size = c(640, 640), scale = 2
+)
+ggmap::ggmap(p)</code></pre>
+<p>Google 提供一种瓦片地图，即由一张张小图片拼凑起来形成一张完整的地图，就好像盖房用的瓦片，精度由瓦片的分辨率决定，如图 <a href="#fig:ggmap-tile">5</a> 所示。</p>
+<!-- 
+http://tile.stamen.com/terrain-background/5/4/10.png 
+-->
+<div class="figure"><span style="display:block;" id="fig:ggmap-tile"></span>
+<img src="img/google-tile.png" class="full" alt="" />
+<p class="caption">图 5:  ggmap 地形图</p>
+</div>
+<p><strong>ggmap</strong> 也可以调用多种风格样式的地图，地形图、水彩图等，如图<a href="#fig:ggmap-tiles">6</a> 所示。</p>
+<pre class="r"><code>library(ggplot2)
+library(ggmap)
+library(patchwork)
+
+us &lt;- c(left = -125, bottom = 25.75, right = -67, top = 49)
+# 从 tile server 服务器上下载 Stamen Maps 数据，组成一个图片
+dat1 &lt;- get_stamenmap(
+  bbox = us, zoom = 5, maptype = &quot;toner-lite&quot;
+  )
+p1 &lt;- ggmap(dat1)
+# 地形图
+dat2 &lt;- get_stamenmap(
+  bbox = us, zoom = 5, maptype = &quot;terrain&quot;
+)
+p2 &lt;- ggmap(dat2)
+
+dat3 &lt;- get_stamenmap(
+  bbox = us, zoom = 5, maptype = &quot;watercolor&quot;
+)
+p3 &lt;- ggmap(dat3)
+
+dat4 &lt;- get_stamenmap(
+  bbox = us, zoom = 5, maptype = &quot;terrain-background&quot;
+)
+p4 &lt;- ggmap(dat4)
+
+p1 / p2 | p3 / p4</code></pre>
+<div class="figure"><span style="display:block;" id="fig:ggmap-tiles"></span>
+<img src="img/ggmap-tiles.png" class="full" alt="" />
+<p class="caption">图 6:  ggmap 几种常用背景地图</p>
+</div>
+</div>
+</div>
+<div id="基础知识" class="section level1">
+<h1>基础知识</h1>
+<p>与地图相关的基础知识有很多，一个简易版本可参考<a href="https://lbs.amap.com/api/jsapi-v2/guide/abc/components">高德教程</a>。</p>
+<div id="网址定位" class="section level2">
+<h2>网址定位</h2>
+<p>Os Keyes 开发的 R 包 <a href="https://github.com/ironholds/rgeolocate"><strong>rgeolocate</strong></a> <span class="citation">(<a href="#ref-rgeolocate" role="doc-biblioref">Keyes et al. 2021</a>)</span> 可以解析 IP 地址，根据 IP 地址数据库提取位置信息，其内置 <code>GeoLite2-Country.mmdb</code> 数据支持定位到国家，是一个 <a href="https://github.com/maxmind">MaxMind</a> 的 GeoIP2 数据库文件。</p>
+<pre class="r"><code>library(rgeolocate)
+# IP 地址 111.203.130.69 在中国矿业大学（北京）校区内。
+maxmind(
+  ips = &quot;111.203.130.69&quot;,
+  file = system.file(&quot;extdata&quot;, &quot;GeoLite2-Country.mmdb&quot;, package = &quot;rgeolocate&quot;),
+  fields = c(
+    &quot;continent_name&quot;, &quot;country_code&quot;, &quot;country_name&quot;,
+    &quot;region_name&quot;, &quot;city_name&quot;, &quot;city_geoname_id&quot;,
+    &quot;timezone&quot;, &quot;longitude&quot;, &quot;latitude&quot;
+  )
+)
+#   continent_name country_code country_name region_name city_name city_geoname_id
+# 1           Asia           CN        China        &lt;NA&gt;      &lt;NA&gt;              NA
+#   timezone longitude latitude
+# 1     &lt;NA&gt;        NA       NA</code></pre>
+<p>依次是洲、国家编码简称、国家名称、区域（省级）名称、城市名称、城市代码（不确定编码体系，类似国家行政区划编码）、时区、经度和纬度。内置的数据库定位精度有限，可以去<a href="https://dev.maxmind.com/geoip/geolite2-free-geolocation-data">MaxMind 官网</a>下载免费的可以定位到城市的数据库。<strong>rgeolocate</strong> 包还提供连接其它 IP 定位服务的接口，比如前面提及的 <a href="https://ipinfo.io/" class="uri">https://ipinfo.io/</a>。</p>
+<pre class="r"><code>ip_info(&#39;111.203.130.69&#39;)
+#      city  region country              loc                                          org
+# 1 Beijing Beijing      CN 39.9075,116.3972 AS4808 China Unicom Beijing Province Network
+#        timezone hostname postal phone
+# 1 Asia/Shanghai       NA     NA    NA</code></pre>
+<p>依次将城市、省份、国家、经纬度、网络服务提供商和时区都提供了。除了 <strong>rgeolocate</strong> 包，还可以使用 <strong>httr</strong> 包向 <strong>ipinfo.io</strong> 发 GET 请求，获取定位信息。</p>
+<pre class="r"><code>library(httr)
+ip_geocode &lt;- GET(url = &quot;ipinfo.io&quot;)
+content(ip_geocode)$loc
+# [1] &quot;39.9075,116.3972&quot;</code></pre>
+<p>或者调用高德地图 IP 定位服务，定位到省、市，并返回一个两个坐标表示的矩形区域。</p>
+<pre class="r"><code># 向高德地图 API 发 GET 请求
+library(httr)
+tmp &lt;- GET(
+    url = &quot;https://restapi.amap.com/&quot;,
+    path = &quot;v3/ip&quot;,
+    query = list(
+      ip = &quot;111.203.130.69&quot;, # IP 地址
+      output = &quot;json&quot;,       # 返回数据格式
+      # 高德地图 WEB 服务 API 访问令牌
+      key = Sys.getenv(&quot;AMAP_KEY&quot;)
+    )
+  )
+# 查看全部返回信息
+# content(tmp)
+# 抽取位置区域
+content(tmp)$rectangle
+# [1] &quot;116.0119343,39.66127144;116.7829835,40.2164962&quot;</code></pre>
+</div>
+<div id="瓦片地图" class="section level2">
+<h2>瓦片地图</h2>
+<p>使用高德<a href="https://lbs.amap.com/api/webservice/guide/api/staticmaps">静态地图</a>遵守<a href="https://lbs.amap.com/pages/customize-map-terms/">自定义地图服务协议</a>，
+应国家要求，国内的地图服务厂商必须是 GCJ-02 或 BD-09 坐标系统，用户必须拿着这两个坐标系下的空间数据，调用各大 Web 地图服务制图，比如地图瓦片，它们采用 Web 墨卡托投影，坐标参考系是 EPSG:3857 或某种再次转化加密过的 Web 墨卡托投影。</p>
+<p>继续以地标「中国矿业大学（北京）学院路校区」为例，之前已经获得它的定位 <code>116.347817,39.997202</code>，调用高德静态地图服务，返回一个静态图片地址。</p>
+<pre class="r"><code>library(httr)
+GET(
+  url = &quot;https://restapi.amap.com/&quot;,
+  path = &quot;v3/staticmap&quot;,
+  query = list(
+    location = &quot;116.347817,39.997202&quot;, # 图的中心位置
+    zoom = 16, # 缩放水平
+    size = &quot;600*400&quot;, # 图片长宽
+    scale = 2, # 返回高清图
+    labels = sprintf(&quot;%s,%s,%s,%s,%s,%s:%s&quot;,
+      content = &quot;矿大北京&quot;, # 标签内容
+      font = 0, # 微软雅黑
+      bold = 1, # 粗体
+      fontSize = 24, # 字体大小
+      fontColor = &quot;0xFF0000&quot;,  # 字体颜色：红色
+      background = &quot;0xFFFFFF&quot;, # 字体背景：白色
+      location = &quot;116.347817,39.997202&quot; # 标签位置
+    ),
+    # 高德地图 WEB 服务 API 访问令牌
+    key = Sys.getenv(&quot;AMAP_KEY&quot;)
+  )
+)</code></pre>
+<p>将返回的链接输入浏览器，会得到一张如下的图片。</p>
+<div class="figure"><span style="display:block;" id="fig:cumtb"></span>
+<img src="img/cumtb.png" class="full" alt="" />
+<p class="caption">图 7: 中国矿业大学（北京）学院路校区</p>
+</div>
+</div>
+<div id="地理编码" class="section level2">
+<h2>地理编码</h2>
+<p>地球上每一块区域都对应有一个唯一的 GeoHash 值，八位 GeoHash 码的定位精度可达400平米，更多详细的介绍可见维基百科<a href="https://en.wikipedia.org/wiki/Geohash">Geohash</a>，比起区、县、乡、镇行政单元，它是用来刻画规则的更小的网格单元，广泛用于本地生活服务场景，比如外卖、打车、配送等。<a href="https://github.com/MichaelChirico/geohashTools"><strong>geohashTools</strong></a> 包<span class="citation">(<a href="#ref-geohashTools" role="doc-biblioref">Chirico 2020</a>)</span>可以非常高效地将 GeoHash 编码的地理区域转为经纬度坐标。</p>
+<pre class="r"><code># 随意造几个位置
+geohash_df &lt;- data.frame(geohash = c(
+  &quot;wmd0k2ktr&quot;, &quot;wmd0k2kv3&quot;, &quot;wmd0k2kv7&quot;,
+  &quot;wmd0k2kvq&quot;, &quot;wmd0k2mj0&quot;, &quot;wmd0k2mj4&quot;
+))
+# 转码为经纬度
+dat &lt;- geohashTools::gh_decode(geohashes = geohash_df$geohash)
+# 将位置绘制在地图上
+leaflet::leaflet() |&gt; 
+  leafletCN::amap() |&gt; 
+  leaflet::addCircles(lng = dat$longitude, lat = dat$latitude, radius = 3)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:sf-geohash"></span>
+<img src="img/sf-geohash.png" class="full" alt="" />
+<p class="caption">图 8:  GeoHash 地理区域编码</p>
+</div>
+<p>而 <strong>lwgeom</strong> 包<span class="citation">(<a href="#ref-lwgeom" role="doc-biblioref">E. Pebesma 2021</a>)</span>提供函数 <code>st_geohash()</code> 可将经纬度坐标转为 GeoHash 码。在数据规模很大的情况下，这编码解码的过程方便聚合 GeoHash 粒度的数据，并呈现在地图上去观察数据中的空间规律，比如一些局部热点效应。</p>
+<pre class="r"><code>library(sf)
+# Linking to GEOS 3.10.2, GDAL 3.4.2, PROJ 8.2.1; sf_use_s2() is TRUE
+library(lwgeom)
+# Linking to liblwgeom 3.0.0beta1 r16016, GEOS 3.10.2, PROJ 8.2.1
+st_geohash(st_sfc(st_point(c(116.35688, 40.00314)), st_point(c(0, 90))), 9)
+# [1] &quot;wx4exf27p&quot; &quot;upbpbpbpb&quot;</code></pre>
+</div>
+<div id="坐标系统" class="section level2">
+<h2>坐标系统</h2>
+<p>地球既不是圆球的也不是标准的椭球，将三维的球面投影到二维的平面有不同的方法，每一种方法都对应一种坐标转化，选定坐标原点后即构成坐标参考系统（Coordinate Reference System，简称 CRS）。<strong>maps</strong> 包<span class="citation">(<a href="#ref-maps" role="doc-biblioref">Brownrigg 2021</a>)</span>内置了一份世界地图数据，它采用 WGS 84 坐标系，此坐标系的详细描述，读者可在 R 软件 控制台运行 <code>sf::st_crs("EPSG:4326")</code> 获取。下面以此为例介绍，本节空间数据的操作都用 <strong>sf</strong>包<span class="citation">(<a href="#ref-sf" role="doc-biblioref">E. Pebesma 2022</a>)</span>来完成。</p>
+<pre class="r"><code>library(sf)
+library(maps)
+# st_as_sf 将 map 类转化为 sf 类
+world1 &lt;- st_as_sf(map(&quot;world&quot;, plot = FALSE, fill = TRUE))
+## 检索坐标参考系统
+st_crs(world1)
+# Coordinate Reference System:
+#   User input: EPSG:4326 
+#   wkt:
+# GEOGCRS[&quot;WGS 84&quot;,
+#     ENSEMBLE[&quot;World Geodetic System 1984 ensemble&quot;,
+#         MEMBER[&quot;World Geodetic System 1984 (Transit)&quot;],
+#         MEMBER[&quot;World Geodetic System 1984 (G730)&quot;],
+#         MEMBER[&quot;World Geodetic System 1984 (G873)&quot;],
+#         MEMBER[&quot;World Geodetic System 1984 (G1150)&quot;],
+#         MEMBER[&quot;World Geodetic System 1984 (G1674)&quot;],
+#         MEMBER[&quot;World Geodetic System 1984 (G1762)&quot;],
+#         MEMBER[&quot;World Geodetic System 1984 (G2139)&quot;],
+#         ELLIPSOID[&quot;WGS 84&quot;,6378137,298.257223563,
+#             LENGTHUNIT[&quot;metre&quot;,1]],
+#         ENSEMBLEACCURACY[2.0]],
+#     PRIMEM[&quot;Greenwich&quot;,0,
+#         ANGLEUNIT[&quot;degree&quot;,0.0174532925199433]],
+#     CS[ellipsoidal,2],
+#         AXIS[&quot;geodetic latitude (Lat)&quot;,north,
+#             ORDER[1],
+#             ANGLEUNIT[&quot;degree&quot;,0.0174532925199433]],
+#         AXIS[&quot;geodetic longitude (Lon)&quot;,east,
+#             ORDER[2],
+#             ANGLEUNIT[&quot;degree&quot;,0.0174532925199433]],
+#     USAGE[
+#         SCOPE[&quot;Horizontal component of 3D system.&quot;],
+#         AREA[&quot;World.&quot;],
+#         BBOX[-90,-180,90,180]],
+#     ID[&quot;EPSG&quot;,4326]]</code></pre>
+<p><strong>sf</strong> 包提供 <code>st_as_sf()</code> 函数将 map 类转化为 sf 类，<code>st_crs()</code> 函数检索地图数据中附带的坐标参考系信息。接下来，用 <code>st_transform()</code> 函数转化坐标，参数 <code>crs</code> 指定新的坐标系统，示例里 <code>+proj=laea</code> 表示 Lambert Azimuthal Equal Area 投影，而 <code>+ellps=WGS84</code> 即 <a href="https://en.wikipedia.org/wiki/World_Geodetic_System">WGS 1984</a>，或称 <a href="https://en.wikipedia.org/wiki/EPSG_Geodetic_Parameter_Dataset">EPSG:4326</a>。<code>+lon_0=155</code> 和 <code>+lat_0=-90</code> 分别是经纬度，东经 155 度，南纬 90 度，也就是观测视角到南极去了。</p>
+<pre class="r"><code># 坐标转化
+world2 &lt;- st_transform(
+  x = world1,
+  crs = st_crs(&quot;ESRI:102020&quot;)
+)
+## 检索坐标参考系统
+st_crs(world2)
+# Coordinate Reference System:
+#   User input: ESRI:102020 
+#   wkt:
+# PROJCRS[&quot;South_Pole_Lambert_Azimuthal_Equal_Area&quot;,
+#     BASEGEOGCRS[&quot;WGS 84&quot;,
+#         DATUM[&quot;World Geodetic System 1984&quot;,
+#             ELLIPSOID[&quot;WGS 84&quot;,6378137,298.257223563,
+#                 LENGTHUNIT[&quot;metre&quot;,1]]],
+#         PRIMEM[&quot;Greenwich&quot;,0,
+#             ANGLEUNIT[&quot;Degree&quot;,0.0174532925199433]]],
+#     CONVERSION[&quot;South_Pole_Lambert_Azimuthal_Equal_Area&quot;,
+#         METHOD[&quot;Lambert Azimuthal Equal Area&quot;,
+#             ID[&quot;EPSG&quot;,9820]],
+#         PARAMETER[&quot;Latitude of natural origin&quot;,-90,
+#             ANGLEUNIT[&quot;Degree&quot;,0.0174532925199433],
+#             ID[&quot;EPSG&quot;,8801]],
+#         PARAMETER[&quot;Longitude of natural origin&quot;,0,
+#             ANGLEUNIT[&quot;Degree&quot;,0.0174532925199433],
+#             ID[&quot;EPSG&quot;,8802]],
+#         PARAMETER[&quot;False easting&quot;,0,
+#             LENGTHUNIT[&quot;metre&quot;,1],
+#             ID[&quot;EPSG&quot;,8806]],
+#         PARAMETER[&quot;False northing&quot;,0,
+#             LENGTHUNIT[&quot;metre&quot;,1],
+#             ID[&quot;EPSG&quot;,8807]]],
+#     CS[Cartesian,2],
+#         AXIS[&quot;(E)&quot;,north,
+#             MERIDIAN[90,
+#                 ANGLEUNIT[&quot;degree&quot;,0.0174532925199433]],
+#             ORDER[1],
+#             LENGTHUNIT[&quot;metre&quot;,1]],
+#         AXIS[&quot;(N)&quot;,north,
+#             MERIDIAN[0,
+#                 ANGLEUNIT[&quot;degree&quot;,0.0174532925199433]],
+#             ORDER[2],
+#             LENGTHUNIT[&quot;metre&quot;,1]],
+#     USAGE[
+#         SCOPE[&quot;Not known.&quot;],
+#         AREA[&quot;Southern hemisphere.&quot;],
+#         BBOX[-90,-180,0,180]],
+#     ID[&quot;ESRI&quot;,102020]]</code></pre>
+<p>下面将两个不同坐标系统下的世界地图绘制出来，如图 <a href="#fig:sf-crs">9</a> 所示。</p>
+<pre class="r"><code>library(ggplot2)
+library(patchwork)
+p1 &lt;- ggplot() +
+  geom_sf(data = world1)
+
+p2 &lt;- ggplot() +
+  geom_sf(data = world2)
+
+p1 + p2</code></pre>
+<div class="figure"><span style="display:block;" id="fig:sf-crs"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/sf-crs-1.png" alt="WGS 84 和坐标系统" width="768" />
+<p class="caption">
+图 9: WGS 84 和坐标系统
+</p>
+</div>
+</div>
+</div>
+<div id="空间分布" class="section level1">
+<h1>空间分布</h1>
+<p>相比于上一篇可视化的文章，本篇示例有一点数据规模，数万或数十万规模的数据，本节以 R 语言复现<a href="https://huiyan.baidu.com/">百度地图慧眼</a>的地理可视化示例，笔者利用开源免费的软件可以获得同样的效果。展示空间点数据的图形有散点图、热力图、蜂窝图、柱状图、飞线图等等，最常见、最常用的莫过于散点图，简单明了地呈现数据随空间位置的分布，快速透视数据的空间模式。</p>
+<p><a href="https://huiyan.baidu.com/">百度地图慧眼</a>开源了一些地理信息可视化库，特别是<a href="https://github.com/huiyan-fe/mapv">Mapv</a>，还有很多<a href="https://mapv.baidu.com/gl/examples/">示例</a>及使用<a href="https://lbsyun.baidu.com/solutions/mapvdata">文档</a>。感兴趣的读者不妨看看。下面以示例中的热力柱图为例，数据<a href="https://mapv.baidu.com/gl/examples/static/beijing.07102610.json">下载地址</a><a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>。</p>
+<pre class="bash"><code># 示例首页 https://mapv.baidu.com/gl/examples/
+curl -fLo beijing.07102610.json https://mapv.baidu.com/gl/examples/static/beijing.07102610.json</code></pre>
+<p>下载完成后导入到 R 环境中，并提取其中有效的数据部分，整理成 data.frame 数据类型，以便后续进一步操作。注意，这只是个普通 JSON 格式文件，而不是 GeoJSON 格式，不能用 <code>sf::read_sf()</code> 读取，推荐使用 Jeroen Ooms 开发的<a href="https://github.com/jeroen/jsonlite"><strong>jsonlite</strong> 包</a>，它效率比较高，依赖也少。</p>
+<pre class="r"><code>beijing &lt;- jsonlite::fromJSON(&quot;data/mapv-data/beijing.07102610.json&quot;)
+# 提取 JSON 文件中的数据
+beijing &lt;- matrix(as.numeric(beijing$result$data$bound[[1]]), ncol = 3, byrow = F)
+# 设置列名便于后续操作
+colnames(beijing) &lt;- c(&quot;x&quot;, &quot;y&quot;, &quot;den&quot;)
+# 将 matrix 转化 data.frame 数据类型
+beijing &lt;- as.data.frame(beijing)</code></pre>
+<div id="散点图" class="section level2">
+<h2>散点图</h2>
+<p>R 语言数据操作常常离不开 data.frame，有很多空间数据也是按照一张张二维表格存储的，为了能够使用 <strong>sf</strong> 包及其生态环境，将 data.frame 类型转化为空间数据类型 sf 是非常必要的。之前，介绍过如何用 <strong>sp</strong> 包将 data.frame 转化为 sp 类型，进一步，<strong>sf</strong> 包提供的泛型函数 <code>st_as_sf()</code> 支持将多种数据类型转化为 sf 类型。目前支持 12 种数据类型转化，基本覆盖日常所需。</p>
+<pre class="r"><code>methods(&quot;st_as_sf&quot;)
+#  [1] st_as_sf.data.frame*   st_as_sf.lpp*          st_as_sf.map*         
+#  [4] st_as_sf.owin*         st_as_sf.ppp*          st_as_sf.ppplist*     
+#  [7] st_as_sf.psp*          st_as_sf.s2_geography* st_as_sf.sf*          
+# [10] st_as_sf.sfc*          st_as_sf.Spatial*      st_as_sf.SpatVector*  
+# [13] st_as_sf.wk_crc*       st_as_sf.wk_rct*       st_as_sf.wk_wkb*      
+# [16] st_as_sf.wk_wkt*       st_as_sf.wk_xy*       
+# see &#39;?methods&#39; for accessing help and source code</code></pre>
+<p>另外，值得一提的是<strong>sfheaders</strong>包<span class="citation">(<a href="#ref-sfheaders" role="doc-biblioref">Cooley 2020</a>)</span>，它可以非常方便高效地将普通数据框 data.frame 类型转化为空间数据 sf（Simple feature）类型，据其官网介绍，转化性能可以和 <strong>data.table</strong> 媲美，上游依赖很少，甚至不需要依赖 <strong>sf</strong> 包。</p>
+<pre class="r"><code>library(sf)
+# library(sfheaders)
+# beijing_sf &lt;- sf_point(beijing, x = &quot;x&quot;, y = &quot;y&quot;, keep = TRUE)
+# 将 data.frame 转化为 sf 类型
+beijing_sf &lt;- st_as_sf(beijing, coords = c(&quot;x&quot;, &quot;y&quot;))
+# 指定原数据的坐标参考系
+st_crs(beijing) &lt;- 3857
+# 转到日常用的经纬度坐标参考系
+beijing_sf &lt;- st_transform(beijing_sf, crs = 4326)
+# 快速绘图查看数据
+plot(beijing_sf[&quot;den&quot;], pch = 19, cex = 0.2)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:beijing-sf"></span>
+<img src="img/beijing-sf.png" class="full" alt="" />
+<p class="caption">图 10: 北京市热点分布图</p>
+</div>
+<p><strong>ggplot2</strong> 早已支持 sf 数据类型，不强调精雕细琢，绘图过程也十分简单。</p>
+<pre class="r"><code>library(ggplot2)
+ggplot() +
+  geom_sf(data = beijing_sf, aes(color = den), cex = 0.2)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:beijing-ggplot2"></span>
+<img src="img/beijing-ggplot2.png" class="full" alt="" />
+<p class="caption">图 11: 北京市热点分布图</p>
+</div>
+<p><a href="https://github.com/plotly/rasterly"><strong>rasterly</strong></a> 渲染 35058 多个点毫无压力，使用方式和 <strong>ggplot2</strong> 非常相近，配合 <strong>plotly</strong> 包支持渲染交互式图形，如图<a href="#fig:beijing-rasterly">12</a>所示。<strong>rasterly</strong> 的基本想法来自 Python 模块<a href="https://github.com/holoviz/datashader/">datashader</a>，将数据点映射到网格中，聚合每个网格中的点得到代表点，即像素点，接着照常绘图，简而言之，连续空间离散化以近似，空间点数据转栅格数据。</p>
+<pre class="r"><code>library(rasterly)
+# 静态散点图
+rasterly(data = beijing, aes(x = x, y = y)) |&gt; 
+  rasterly_points() 
+# 静态散点图：点密度、图片长宽
+rasterly(data = beijing, aes(x = x, y = y, color = den), 
+         plot_width = 700, plot_height = 500) |&gt; 
+  rasterly_points()
+# 也可以绘制交互式的热力图
+LogTransform &lt;- function(z) {
+  log(z)
+}
+plotly::plot_ly(beijing, x = ~x, y = ~y) |&gt;
+  add_rasterly_heatmap(
+    on = ~den, # 对 den 变量取对数
+    reduction_func = &quot;max&quot;, # 聚合方式是求极大
+    scaling = LogTransform, # 对数变换
+    plot_width = 600, plot_height = 400
+  ) |&gt; 
+  plotly::layout(
+    xaxis = list(
+      title = &quot;x&quot;
+    ),
+    yaxis = list(
+      title = &quot;y&quot;
+    )
+  )</code></pre>
+<div class="figure"><span style="display:block;" id="fig:beijing-rasterly"></span>
+<img src="img/beijing-rasterly.png" class="full" alt="" />
+<p class="caption">图 12: 北京市热点分布图</p>
+</div>
+<p>最后，补充介绍一下 <strong>sp</strong> 包绘制图形的过程，短期内恐还有必要。先将 data.frame 数据类型转为 sp 空间数据类型，以便调用更加高效且丰富的数据处理和可视化函数。</p>
+<pre class="r"><code># 调 sp 包转化为 sp 类型
+library(sp)
+beijing_sp &lt;- beijing
+# 指定坐标变量
+coordinates(beijing_sp) &lt;- ~ x + y
+# 指定参考系 EPSG:3857
+proj4string(beijing_sp) &lt;- CRS(&quot;EPSG:3857&quot;)
+# 查看数据
+summary(beijing_sp)
+# Object of class SpatialPointsDataFrame
+# Coordinates:
+#        min      max
+# x 12855679 13079460
+# y  4761527  4985306
+# Is projected: TRUE 
+# proj4string :
+# [+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m
+# +nadgrids=@null +wktext +no_defs]
+# Number of points: 35058
+# Data attributes:
+#       den       
+#  Min.   : 1.00  
+#  1st Qu.: 1.00  
+#  Median : 2.00  
+#  Mean   : 2.48  
+#  3rd Qu.: 3.00  
+#  Max.   :81.00
+# 转化坐标参考系 EPSG:4326
+beijing_sp &lt;- spTransform(beijing_sp, CRSobj = CRS(&quot;EPSG:4326&quot;))
+# 查看转化后的数据
+summary(beijing_sp)
+# Object of class SpatialPointsDataFrame
+# Coordinates:
+#      min    max
+# x 115.48 117.49
+# y  39.28  40.82
+# Is projected: FALSE 
+# proj4string : [+proj=longlat +datum=WGS84 +no_defs]
+# Number of points: 35058
+# Data attributes:
+#       den       
+#  Min.   : 1.00  
+#  1st Qu.: 1.00  
+#  Median : 2.00  
+#  Mean   : 2.48  
+#  3rd Qu.: 3.00  
+#  Max.   :81.00</code></pre>
+<pre class="r"><code># 最后绘图
+spplot(beijing_sp, &quot;den&quot;,
+  colorkey = TRUE,     # 连续型图例
+  alpha = 0.4,         # 散点透明度
+  key.space = &quot;right&quot;, # 图例位置
+  cex = 0.3,           # 点的大小
+  aspect = 0.7,        # 图形长宽比例
+  scales = list(
+    draw = T,
+    # 去掉图形上边、右边多余的刻度线
+    x = list(alternating = 1, tck = c(1, 0)),
+    y = list(alternating = 1, tck = c(1, 0))
+  )
+)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:beijing-spplot"></span>
+<img src="img/beijing-spplot.png" class="full" alt="" />
+<p class="caption">图 13: 北京市热点分布图</p>
+</div>
+</div>
+<div id="热力图" class="section level2">
+<h2>热力图</h2>
+<p>OpenStreetMap 是开放街道地图数据，由来自世界各地的贡献者维护，但不提供免费的地图 API。使用此地图服务，不会将自己的数据上传至 OpenStreetMap 的服务器上。而 Leaflet 是开源的交互式地理可视化 JS 库。Joe Cheng 开发维护的 <a href="https://github.com/rstudio/leaflet"><strong>leaflet</strong></a> 包<span class="citation">(<a href="#ref-leaflet" role="doc-biblioref">Cheng, Karambelkar, and Xie 2022</a>)</span>是 JavaScript 库 <a href="https://github.com/Leaflet/Leaflet">Leaflet</a> 的 R 语言接口。一个提供基础地图服务，一个提供数据渲染可视化，一个提供封装好的 R 语言接口。</p>
+<div class="figure"><span style="display:block;" id="fig:leaflet"></span>
+<img src="/img/leaflet.svg" class="full" alt="" />
+<p class="caption">图 14:  开源交互式 JavaScript 库 Leaflet</p>
+</div>
+<pre class="r"><code>library(leaflet)
+# 提供 addHeatmap 函数绘制热力图 
+library(leaflet.extras) 
+leaflet() |&gt;
+  addTiles() |&gt;
+  addHeatmap(
+    data = beijing,
+    lng = ~x, lat = ~y,
+    intensity = ~den, # 密度
+    blur = 20, max = 0.05, radius = 15
+  ) |&gt;
+  addScaleBar(position = &quot;bottomleft&quot;)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:beijing-leaflet"></span>
+<img src="img/beijing-leaflet.png" class="full" alt="" />
+<p class="caption">图 15: 北京市热点分布图</p>
+</div>
+<p><a href="https://github.com/SymbolixAU/mapdeck"><strong>mapdeck</strong></a> 包将 <a href="https://www.mapbox.com/">MapBox GL</a> 的地图服务和<a href="https://github.com/visgl/deck.gl">deck.gl</a>的大规模可视化能力封装到一起，功能还是很强的，函数 <code>add_heatmap()</code> 可用来绘制热力图，数万散点毫无压力，如图<a href="#fig:beijing-heatmap">16</a>。</p>
+<pre class="r"><code>mapdeck(style = mapdeck_style(&quot;dark&quot;), pitch = 45) |&gt; 
+  add_heatmap(
+    data = beijing, lat = &quot;y&quot;, lon = &quot;x&quot;,
+    weight = &quot;den&quot;, colour_range = hcl.colors(6)
+  )</code></pre>
+<div class="figure"><span style="display:block;" id="fig:beijing-heatmap"></span>
+<img src="img/beijing-heatmap.png" class="full" alt="" />
+<p class="caption">图 16: 北京市热点分布图</p>
+</div>
+</div>
+<div id="蜂窝图" class="section level2">
+<h2>蜂窝图</h2>
+<p>除了热力图，<strong>mapdeck</strong> 调用 <code>add_hexagon()</code> 和 <code>add_screengrid()</code> 还可以绘制蜂窝图，如图<a href="#fig:beijing-hexagons">17</a>。</p>
+<pre class="r"><code>mapdeck(style = mapdeck_style(&quot;dark&quot;), pitch = 45) |&gt; 
+  add_screengrid(
+    data = beijing,
+    lat = &quot;y&quot;,
+    lon = &quot;x&quot;,
+    weight = &quot;den&quot;,
+    layer_id = &quot;screengrid_layer&quot;,
+    cell_size = 5,
+    opacity = 0.6,
+    colour_range = hcl.colors(6)
+  )</code></pre>
+<div class="figure"><span style="display:block;" id="fig:beijing-hexagons"></span>
+<img src="img/beijing-hexagons.png" class="full" alt="" />
+<p class="caption">图 17: 北京市热点分布图</p>
+</div>
+</div>
+<div id="柱状图" class="section level2">
+<h2>柱状图</h2>
+<p>咋一看，读者可能会疑惑，怎么柱状图也能归到地理可视化？它在蜂窝图的基础上，用柱子的高低表示密度值大小，整个地图是三维的，可拖拽。<strong>mapdeck</strong> 提供函数 <code>add_grid()</code> / <code>add_hexagon()</code> 绘制三维柱状图，如图<a href="#fig:beijing-mapdeck">18</a>。</p>
+<pre class="r"><code>library(mapdeck)
+mapdeck(style = mapdeck_style(&quot;dark&quot;), pitch = 45) |&gt; 
+  add_hexagon(
+    data = beijing,
+    lat = &quot;y&quot;, lon = &quot;x&quot;, elevation = &quot;den&quot;,
+    layer_id = &quot;hex_layer&quot;,
+    elevation_scale = 30,
+    colour_range = hcl.colors(6)
+  )</code></pre>
+<div class="figure"><span style="display:block;" id="fig:beijing-mapdeck"></span>
+<img src="img/beijing-mapdeck.png" class="full" alt="" />
+<p class="caption">图 18: 北京市热点分布图</p>
+</div>
+</div>
+<div id="飞线图" class="section level2">
+<h2>飞线图</h2>
+<p>以 <strong>nycflights13</strong> <span class="citation">(<a href="#ref-nycflights13" role="doc-biblioref">Wickham 2021</a>)</span> 包提供航班数据做飞线图，数据由 Hadley Wickham 收集自<a href="https://openflights.org/data.html">OpenFlights Airports Database</a>，从纽约三大机场 JFK, LGA 或 EWR 的准点起飞数据。</p>
+<pre class="r"><code>library(nycflights13)
+data(&quot;flights&quot;) # 航班
+data(&quot;airports&quot;) # 机场</code></pre>
+<p>提取2013年1月1日的航班数据，出发地 origin 和目的地 dest。数据集 airports 包含 FAA 机场代码，经纬度（经纬度精确到小数点后6位，坐标参考系 <code>EPSG:4326</code>）等信息。</p>
+<pre class="r"><code># 提取部分航班数据
+sub_flights &lt;- subset(
+  x = flights, subset = year == 2013 &amp; month == 1 &amp; day == 1,
+  select = c(&quot;origin&quot;, &quot;dest&quot;, &quot;time_hour&quot;)
+)
+# 统计航班架次
+sub_flights &lt;- aggregate(formula = time_hour ~ origin + dest, data = sub_flights, FUN = length)
+# 准备机场位置信息
+sub_airports &lt;- subset(
+  x = airports, select = c(&quot;faa&quot;, &quot;lon&quot;, &quot;lat&quot;)
+)</code></pre>
+<p>关联机场位置信息，获取起飞机场和落地机场的经纬度信息。</p>
+<pre class="r"><code># 起飞机场
+tmp &lt;- merge(sub_flights, sub_airports, by.x = &quot;origin&quot;, by.y = &quot;faa&quot;)
+colnames(tmp) &lt;- c(&quot;origin&quot;, &quot;dest&quot;, &quot;cnt&quot;, &quot;origin_lon&quot;, &quot;origin_lat&quot;)
+# 落地机场
+tmp &lt;- merge(tmp, sub_airports, by.x = &quot;dest&quot;, by.y = &quot;faa&quot;)
+colnames(tmp) &lt;- c(
+  &quot;origin&quot;, &quot;dest&quot;, &quot;cnt&quot;, &quot;origin_lon&quot;, &quot;origin_lat&quot;,
+  &quot;dest_lon&quot;, &quot;dest_lat&quot;
+)</code></pre>
+<p><a href="https://github.com/SymbolixAU/mapdeck">mapdeck</a> 提供 <code>add_greatcircle()</code> 图层绘制飞线图。</p>
+<pre class="r"><code>mapdeck(style = &quot;mapbox://styles/mapbox/dark-v9&quot;) |&gt; 
+  add_greatcircle(
+    data = tmp,
+    layer_id = &quot;arc_layer&quot;,
+    origin = c(&quot;origin_lon&quot;, &quot;origin_lat&quot;),
+    destination = c(&quot;dest_lon&quot;, &quot;dest_lat&quot;),
+    stroke_from = &quot;cnt&quot;,
+    stroke_width = 3, # 弧线宽度
+    palette = &quot;viridis&quot;, # 调色板 &quot;plasma&quot;
+    legend = TRUE
+  ) |&gt;  
+  mapdeck_view(
+    # 视角位置
+    location = c(-110, 48),
+    # 设置缩放水平
+    zoom = 2,
+    # 俯仰角
+    pitch = 45
+  )</code></pre>
+<div class="figure"><span style="display:block;" id="fig:us-flights"></span>
+<img src="img/us-flights.png" class="full" alt="" />
+<p class="caption">图 19: 2013年1月1日纽约机场出发的航班</p>
+</div>
+</div>
+</div>
+<div id="专题地图" class="section level1">
+<h1>专题地图</h1>
+<p>Thematic Maps (or Statistical Maps) 专题地图或统计地图，重点在于呈现一个或多个地理属性（变量）的空间模式，属于制图学 Cartography 范畴。一种常见的 Thematic Maps 是 Choropleth map, 地图上每个单元（或数据收集的单元，比如州、郡、县）用色彩填充表示属性的大小。专题地图具体形式可以有比例符号图（气泡图），散点图，迁徙/流向图等。据 Michael Friendly 等<a href="https://www.datavis.ca/milestones/">考证</a>，最早的 Choropleth Map 可追溯到 1819 年，一位叫 Baron Pierre Charles Dupin 的法国人，统计法国各个地区的文盲分布和比例，用从黑到白的颜色表示文盲比例的高低。</p>
+<p>一个现代化的示例图<a href="#fig:us-census-2020">20</a>来自<a href="https://www.census.gov/">美国人口普查局</a>官网，展示2020年美国各个城镇的人口密度及相关信息，采用 Tableau 制作而成。</p>
+<div class="figure"><span style="display:block;" id="fig:us-census-2020"></span>
+<img src="img/us-census-2020.png" class="full" alt="" />
+<p class="caption">图 20: 2020年美国各个城镇的人口密度</p>
+</div>
+<p>下面引用 <strong>leaflet</strong> 包<a href="https://rstudio.github.io/leaflet/choropleths.html">官方文档</a>中的示例—2011 年美国各个州的人口密度。数据存储以<a href="https://leafletjs.com/examples/geojson/">GeoJSON 格式</a>存储在文件 <code>us-states.geojson</code>里，它是矢量多边形数据，坐标参考系是 WGS 84，包含美国各个州的边界 geometry，各州人口密度数据 density（每平方英里的人口数）。<a href="https://rstudio.github.io/leaflet/json/us-states.geojson">us-states.geojson</a>的数据源头是 2011 年美国人口普查局。顺便一说，2020年的最新数据可从<a href="https://en.wikipedia.org/wiki/List_of_states_and_territories_of_the_United_States_by_population_density">维基百科文章</a>获取。</p>
+<p>笔者在此示例的基础上有几个改进点：</p>
+<ol style="list-style-type: decimal">
+<li>示例中调用 Mapbox 地图的方法不可用，可用 <strong>leaflet</strong> 自带的 OpenStreetMap 瓦片地图替换，或用函数 <code>addTiles()</code> 自定义地图瓦片的方式调用 Mapbox 地图；</li>
+<li>示例中使用<a href="https://github.com/ropensci/geojsonio"><strong>geojsonio</strong></a>包读取 GeoJSON 格式的地图数据文件性能差，且上游过时的依赖很多，改用 <strong>sf</strong> 包读取，性能高、速度快；</li>
+<li>添加一些数据集和代码的中文描述，补充一些细节说明；</li>
+<li>空间数据处理从 <strong>sp</strong> 升级到 <strong>sf</strong>，使得整个数据可视化过程仅依赖 <strong>sf</strong> 和 <strong>leaflet</strong> 包，达到了稳定、高效和可靠。</li>
+</ol>
+<pre class="r"><code>library(sf)
+# 读取数据
+states &lt;- st_read(&quot;data/us-states.geojson&quot;)
+# Reading layer `us-states&#39; from data source 
+#   `/Users/xiangyun/Documents/xiangyun/content/post/2022-01-15-spatial-data-visualization/data/us-states.geojson&#39; 
+#   using driver `GeoJSON&#39;
+# Simple feature collection with 52 features and 3 fields
+# Geometry type: MULTIPOLYGON
+# Dimension:     XY
+# Bounding box:  xmin: -188.9 ymin: 17.93 xmax: -65.63 ymax: 71.35
+# Geodetic CRS:  WGS 84</code></pre>
+<p>查看数据采用的坐标参考系。</p>
+<pre class="r"><code>st_crs(states)
+# Coordinate Reference System:
+#   User input: WGS 84 
+#   wkt:
+# GEOGCRS[&quot;WGS 84&quot;,
+#     DATUM[&quot;World Geodetic System 1984&quot;,
+#         ELLIPSOID[&quot;WGS 84&quot;,6378137,298.257223563,
+#             LENGTHUNIT[&quot;metre&quot;,1]]],
+#     PRIMEM[&quot;Greenwich&quot;,0,
+#         ANGLEUNIT[&quot;degree&quot;,0.0174532925199433]],
+#     CS[ellipsoidal,2],
+#         AXIS[&quot;geodetic latitude (Lat)&quot;,north,
+#             ORDER[1],
+#             ANGLEUNIT[&quot;degree&quot;,0.0174532925199433]],
+#         AXIS[&quot;geodetic longitude (Lon)&quot;,east,
+#             ORDER[2],
+#             ANGLEUNIT[&quot;degree&quot;,0.0174532925199433]],
+#     ID[&quot;EPSG&quot;,4326]]</code></pre>
+<p>查看地图数据的边界信息。</p>
+<pre class="r"><code>st_bbox(states)
+#    xmin    ymin    xmax    ymax 
+# -188.90   17.93  -65.63   71.35</code></pre>
+<p>做一点说明，西经 -188.90491，也就是东经 360 - 188.90491 = 180 - 8.90491 = 171.0951，西经 -65.62680 至西经 -188.90491 跨越范围 188.90491 - 65.62680 = 123.2781。
+中心位置经度 ((-65.62680) + (-188.90491) )/ 2 = -127.2659，纬度 (17.92956 + 71.35163)/2 = 44.64059。此中心位置不在美国大陆。</p>
+<div class="rmdtip">
+<p>本初子午线定义为 0 度经线，是经过英国格林尼治天文台的一条经线，向东、向西分别定义为东经、西经。东经 180 度 和西经 180 度是同一条经线，穿越新西兰罗斯属地，也穿越美国阿拉斯加州。美国国土东西跨度很大，跨越了东（西）经 180 度。</p>
+</div>
+<div id="leaflet" class="section level2">
+<h2>leaflet</h2>
+<pre class="r"><code>library(leaflet)
+# 人口密度分段
+bins &lt;- c(0, 10, 20, 50, 100, 200, 500, 1000, Inf)
+# 构造调色板
+pal &lt;- colorBin(&quot;YlOrRd&quot;, domain = states$density, bins = bins)
+# 准备悬浮提示
+labels &lt;- sprintf(
+  &quot;&lt;strong&gt;%s&lt;/strong&gt;&lt;br/&gt;%g people / mi&lt;sup&gt;2&lt;/sup&gt;&quot;,
+  states$name, states$density
+) |&gt;  lapply(htmltools::HTML)
+
+# 绘图
+leaflet(states) |&gt; 
+  setView(lng = -96, lat = 37.8, zoom = 4) |&gt; 
+  # 添加默认的 OSM 瓦片服务
+  addTiles() |&gt; 
+  addPolygons(
+    color = &quot;white&quot;, # 边界线颜色
+    opacity = 1,     # 颜色透明度
+    weight = 2,      # 边界线宽度
+    fillOpacity = 0.6,   # 填充色透明度
+    fillColor = ~ pal(density),  # 填充色
+    label = labels
+  ) |&gt; 
+  addLegend(
+    pal = pal, 
+    values = ~density,
+    opacity = 0.7, 
+    title = &quot;人口密度&quot;,
+    position = &quot;bottomright&quot;
+  )</code></pre>
+<div class="figure"><span style="display:block;" id="fig:us-states-leaflet"></span>
+<img src="img/us-states-leaflet.png" class="full" alt="" />
+<p class="caption">图 21:  <strong>leaflet</strong> 包专题地图</p>
+</div>
+<p>LeafLet JS 在专题地图<a href="https://leafletjs.com/examples/choropleth/">choropleth</a>示例里调用了 Mapbox 瓦片服务和<a href="https://docs.mapbox.com/api/maps/styles/">地图风格</a>。下面在函数 <code>addTiles()</code> 里替换瓦片服务 URL 模版路径，<strong>leaflet</strong> 也可用上 Mapbox 瓦片地图。</p>
+<pre class="r"><code>leaflet(states) |&gt; 
+  setView(lng = -96, lat = 37.8, zoom = 4) |&gt; 
+  addTiles(urlTemplate = sprintf(
+    paste(
+      &quot;https://api.mapbox.com/styles/v1/mapbox/light-v9&quot;,
+      &quot;tiles/{z}/{x}/{y}?access_token=%s&quot;,
+      sep = &quot;/&quot;
+    ),
+    Sys.getenv(&quot;MAPBOX_TOKEN&quot;) # 准备个人访问令牌
+  ), attribution = sprintf(
+    paste(
+      &quot;Map data &amp;copy; &lt;a href=&#39;%s&#39;&gt;OpenStreetMap&lt;/a&gt;&quot;,
+      &quot;contributors, Imagery © &lt;a href=&#39;%s&#39;&gt;Mapbox&lt;/a&gt;&quot;
+    ),
+    &quot;https://www.openstreetmap.org/copyright&quot;,
+    &quot;https://www.mapbox.com/&quot;
+  )) |&gt; 
+  addPolygons(
+    color = &quot;white&quot;, # 边界线颜色
+    opacity = 1, # 颜色透明度
+    weight = 2, # 边界线宽度
+    fillOpacity = 0.6, # 填充色透明度
+    fillColor = ~ pal(density), # 填充色
+    label = labels
+  ) |&gt; 
+  addLegend(
+    pal = pal,
+    values = ~density,
+    opacity = 0.7,
+    title = &quot;人口密度&quot;,
+    position = &quot;bottomright&quot;
+  )</code></pre>
+<div class="figure"><span style="display:block;" id="fig:us-states-mapbox"></span>
+<img src="img/us-states-mapbox.png" class="full" alt="" />
+<p class="caption">图 22:  <strong>leaflet</strong> 包专题地图</p>
+</div>
+<p>借助<a href="https://github.com/leaflet-extras/leaflet-providers">leaflet-providers</a>，Leaflet 已经支持很多<a href="https://leaflet-extras.github.io/leaflet-providers/preview/">瓦片服务</a>，除了以上两种，比如夜景图<a href="#fig:cumtb-nasa">23</a>。</p>
+<pre class="r"><code>library(leaflet)
+leaflet() |&gt; 
+  addProviderTiles(&quot;NASAGIBS.ViirsEarthAtNight2012&quot;) |&gt; 
+  addMarkers(
+    lng = 116.35376693,
+    lat = 40.00382807,
+    popup = &quot;中国矿业大学（北京）学院路校区&quot;
+  )</code></pre>
+<div class="figure"><span style="display:block;" id="fig:cumtb-nasa"></span>
+<img src="img/cumtb-nasa.png" class="full" alt="" />
+<p class="caption">图 23:  <strong>leaflet</strong> 包调 NASA 瓦片服务</p>
+</div>
+</div>
+<div id="mapdeck" class="section level2">
+<h2>mapdeck</h2>
+<p>与 <strong>leaflet</strong> 要求类似，<strong>mapdeck</strong> 也要求空间数据的坐标参考系是 <code>EPSG:4326</code>。</p>
+<pre class="r"><code>library(mapdeck)
+states &lt;- transform(states, density_log10 = log10(density))
+mapdeck() |&gt; 
+  add_polygon(
+    data = states,
+    fill_colour = &quot;density_log10&quot;,
+    fill_opacity = 0.8,
+    palette = &quot;plasma&quot;,
+    legend = TRUE
+  )</code></pre>
+<div class="figure"><span style="display:block;" id="fig:us-states-mapdeck"></span>
+<img src="img/us-states-mapdeck.png" class="full" alt="" />
+<p class="caption">图 24:  <strong>mapdeck</strong> 包专题地图</p>
+</div>
+</div>
+<div id="sf" class="section level2">
+<h2>sf</h2>
+<p>地理单元的编码具有唯一性，即一套编码体系下，同一块地方不能有两个编码值，可以将其视为主键，则每一块区域上的人口密度就是属性值。</p>
+<pre class="r"><code>plot(states[&quot;density&quot;], logz = TRUE)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:us-states-sf"></span>
+<img src="img/us-states-sf.png" class="full" alt="" />
+<p class="caption">图 25:  <strong>sf</strong> 包专题地图</p>
+</div>
+</div>
+<div id="ggplot2" class="section level2">
+<h2>ggplot2</h2>
+<pre class="r"><code>library(ggplot2)
+ggplot() +
+  geom_sf(data = states, aes(geometry = geometry, fill = density), colour = NA) +
+  scale_fill_gradientn(
+    trans = &quot;log10&quot;, colors = sf.colors(10),
+    guide = guide_colourbar(
+      barwidth = 25, barheight = 0.4,
+      title.position = &quot;left&quot;
+    )
+  ) +
+  theme(
+    panel.grid = element_line(colour = &quot;gray90&quot;),
+    legend.position = &quot;top&quot;,
+    panel.background = element_blank()
+  )</code></pre>
+<div class="figure"><span style="display:block;" id="fig:us-states-ggplot2"></span>
+<img src="img/us-states-ggplot2.png" class="full" alt="" />
+<p class="caption">图 26:  <strong>ggplot2</strong> 包专题地图</p>
+</div>
+</div>
+</div>
+<div id="邵东市房地产行业分析" class="section level1">
+<h1>邵东市房地产行业分析</h1>
+<p>《爱情碟中谍》里宋丹丹说买房子最重要的是：Location、Location、Location（位置，位置，还是位置）！POI（Point of Interest 兴趣点）周围的商业价值，发展潜力，增值空间，如房子周边的学校、商场、交通，反映在时间距离、空间距离，最终体现在房价上。买房子、卖房子，中介和销售玩的就是<strong>信息不对称</strong>。如果能从不同层面，比如地区经济发展状况，和其它地区对比，和市内其它商圈对比，和其它楼盘房子对比，就可以做到不被轻易忽悠了。</p>
+<pre class="r"><code>library(httr)
+# 向高德地图 API 发 GET 请求
+GetCoord &lt;- function(address = &quot;仁为峰邵东壹号&quot;, city = &quot;邵东市&quot;) {
+  tmp &lt;- GET(
+    url = &quot;https://restapi.amap.com/&quot;,
+    path = &quot;v3/geocode/geo&quot;,
+    query = list(
+      # 原坐标，经纬度小数点后不得超过6位
+      address = address,
+      # 原坐标参考系，还支持 GPS 坐标，取值 &#39;gps&#39;
+      city = city,
+      # 返回数据格式，还支持 xml
+      output = &quot;json&quot;,
+      # 高德地图 WEB 服务 API 访问令牌
+      key = Sys.getenv(&quot;AMAP_KEY&quot;)
+    )
+  )
+  as.numeric(strsplit(x = content(tmp)$geocodes[[1]]$location, split = &quot;,&quot;)[[1]])
+}
+# 测试一下
+GetCoord(address = &quot;仁为峰邵东壹号&quot;, city = &quot;湖南省邵阳市邵东市&quot;)</code></pre>
+<pre><code># [1] 111.751713  27.270619</code></pre>
+<p>接下来将函数向量化，以便批量解析地址，获取经纬度数据。可用 <code>Vectorize()</code> 函数实现，只需指定待向量化的参数向量。</p>
+<pre class="r"><code># 函数向量化
+GetCoordVec &lt;- Vectorize(FUN = GetCoord, vectorize.args = c(&quot;address&quot;, &quot;city&quot;), USE.NAMES = F, SIMPLIFY = F)
+# 测试一下
+GetCoordVec(address = &quot;仁为峰邵东壹号&quot;, city = &quot;湖南省邵阳市邵东市&quot;)</code></pre>
+<p>首先准备各个楼盘和地址信息，有的提供楼盘就能比较好的定位，有的定位不行，可见高德的数据不是百分百准确的。实际上任何数据都别想百分百精确，一些楼盘可能是新开的，周围配套还未建立，高德数据未及时更新等。</p>
+<pre class="r"><code># 批量解析地址
+house &lt;- c(
+  &quot;中际城市森林&quot;, &quot;仁为峰邵东壹号&quot;, &quot;龙熙府邸&quot;,
+  &quot;邦盛凤凰城（御玺）&quot;, &quot;碧桂园·星钻&quot;, &quot;泰丰城&quot;,
+  &quot;中驰晨曦桐江府&quot;, &quot;悦富时代广场&quot;, &quot;横科·佳润国际&quot;,
+  &quot;碧桂园·珑璟台&quot;, &quot;中伟·国际公馆&quot;, &quot;福星御景城&quot;,
+  &quot;中翔·龙玺&quot;, &quot;金裕名都&quot;, &quot;横科·金泉华府&quot;, &quot;富景鑫城&quot;
+)
+# 地址来自安居客 App
+address &lt;- paste0(&quot;湖南省邵阳市邵东市&quot;, c(
+  &quot;中际城市森林&quot;, &quot;仁为峰邵东壹号&quot;, &quot;梨园路与金石路交汇处&quot;,
+  &quot;邦盛凤凰城（御玺）&quot;, &quot;绿汀大道与336省道交汇处&quot;, &quot;泰丰城&quot;,
+  &quot;中驰晨曦桐江府&quot;, &quot;悦富时代广场&quot;, &quot;公园路与新辉路交汇处&quot;,
+  &quot;宋家塘梨园路168号&quot;, &quot;建设北路与景秀路交互处&quot;, &quot;福星御景城&quot;,
+  &quot;中翔·龙玺&quot;, &quot;金裕名都&quot;, &quot;横科·金泉华府&quot;, &quot;兴和大道与光大路交叉口&quot;
+))</code></pre>
+<p>调用 <code>mapply()</code> 函数批量发送请求获取数据，返回的 list 列表数据对象，可用函数 <code>do.call()</code> 配合 <code>rbind()</code> 合并成 matrix 类型，再转为通用的 data.frame 类型。</p>
+<pre class="r"><code># 获取数据
+dat &lt;- mapply(FUN = GetCoordVec, address = address, MoreArgs = list(city = &quot;湖南省邵阳市邵东市&quot;))
+# 整理数据
+dat2 &lt;- do.call(&quot;rbind&quot;, dat)
+dat2 &lt;- as.data.frame(dat2)
+colnames(dat2) &lt;- c(&quot;long&quot;, &quot;lat&quot;)
+dat2$house &lt;- house</code></pre>
+<p>最后，调用 <strong>leaflet</strong> 包，将数据导入绘图函数即可。如图<a href="#fig:shaodong-house">27</a>所示，图中红点是邵东市各个在售楼盘的空间位置，仅考虑了安居客 App 的数据。</p>
+<pre class="r"><code>library(leaflet)
+library(leafletCN)
+# 绘图
+leaflet(options = leafletOptions(
+  minZoom = 4, maxZoom = 18,
+  zoomControl = FALSE
+)) |&gt;
+  setView(lng = mean(dat2$long), lat = mean(dat2$lat), zoom = 14) |&gt;
+  leafletCN::amap() |&gt;
+  addCircles(
+    data = dat2,
+    lng = ~long, lat = ~lat, label = ~house,
+    radius = 50, color = &quot;red&quot;,
+    fillOpacity = 0.55, stroke = T, weight = 1
+  )</code></pre>
+<div class="figure"><span style="display:block;" id="fig:shaodong-house"></span>
+<img src="img/shaodong-house.png" class="full" alt="" />
+<p class="caption">图 27: 邵东市各个楼盘的空间位置</p>
+</div>
+<p>值得注意的是「龙熙府邸」和「碧桂园珑璟台」的定位重合了，地理位置上，二者确实也接近。经过这一番使用，可见高德开放平台给的经纬度地址解析服务一般。</p>
+<p>图中信息比较丰富，简单说下：</p>
+<ol style="list-style-type: decimal">
+<li>各个楼盘在城市主干道昭阳大道、绿汀大道两侧排开。</li>
+<li>高铁邵东站、国际商贸城、邦盛凤凰城地理位置价值依次降低，后者短期内发展不起来。</li>
+<li>百富广场、邵东工业品市场、邵东市中医院、邵东一中属于老城区。</li>
+<li>2019年邵东撤县划市，建设新城区，邵东高铁站开通，楼市炒贵族学校、区位优势，县政府推波助澜，房价已翻倍。</li>
+<li>建设新城区，碧桂园等头部房企进场，对房价有推动作用，但整体上供给充足。</li>
+</ol>
+<p>另外，结合最近几年邵东市发布的统计年鉴数据，笔者了解到，邵东市最近几年人口增长为负，经济增长主要靠固定资产投资，换个说法，就是房地产投资。大城市各个行业，特别是产业互联网下沉战略促使三、四、五线城市消费升级，但是小城人民薪资待遇并没有升级，形成收入消费倒挂。因此，小城房地产价格近年猛增已到极限，没有足够配套建设，特别是没有大城市的高质量劳动力回流，城市发展会很慢。结合笔者对邵东市近年来人才引进政策、人力市场需求和薪资待遇的了解，特别是对公务员、中学教师、工程师等岗位的分析，对大城市高质量劳动力吸引不足，也承接不了。</p>
+<p>目前，邵东房价整体在 5000至6000，如果资金充裕，不用选，找最贵的房子买，大家都不傻，地段越好，价格越高。未来城市资源配套都往这集中，等着升值，当下越贵的房子未来升值空间也越高，这就是马太效应！2021年房价基本稳定，国家出台系列政策调控，国家若不出手，房地产就只剩下泡沫了，楼市也将迟早崩盘，这对邵东经济发展是致命的。</p>
+</div>
+<div id="地表土壤重金属污染分析" class="section level1">
+<h1>地表土壤重金属污染分析</h1>
+<p>数据来自 2011 年全国大学生数据<a href="http://www.mcm.edu.cn/html_cn/node/a1ffc4c5587c8a6f96eacefb8dbcc34e.html">建模竞赛 A 题</a>，下载数据到本地后，首先读取城市地形数据，即采样点的位置及所属功能区。功能区代码 1 对应「生活区」，2 对应「工业区」，3 对应「山区」，4 对应「交通区」和 5 对应「公园绿地区」。</p>
+<pre class="r"><code>library(readxl)
+# 采样点的城市地形数据
+dat1 &lt;- read_xls(
+  path = &quot;data/cumcm2011A附件_数据.xls&quot;,
+  col_names = TRUE, sheet = &quot;附件1&quot;, range = &quot;A3:E322&quot;
+)
+dat1
+# # A tibble: 319 × 5
+#     编号 `x(m)` `y(m)` `海拔(m)` 功能区
+#    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt;
+#  1     1     74    781         5      4
+#  2     2   1373    731        11      4
+#  3     3   1321   1791        28      4
+....</code></pre>
+<pre class="r"><code>library(tibble)
+tmp &lt;- tribble(
+  ~`功能区编号`, ~`功能区名称`,
+  1, &quot;生活区&quot;,
+  2, &quot;工业区&quot;,
+  3, &quot;山区&quot;,
+  4, &quot;交通区&quot;,
+  5, &quot;公园绿地区&quot;
+)
+# 合并数据
+dat2 &lt;- merge(x = dat1, y = tmp, by.x = &quot;功能区&quot;, by.y = &quot;功能区编号&quot;, sort = FALSE)
+dat2
+#     功能区 编号  x(m)  y(m) 海拔(m) 功能区名称
+# 1        4    1    74   781       5     交通区
+# 2        4    2  1373   731      11     交通区
+# 3        4    3  1321  1791      28     交通区
+# 4        4   44  8457  8991      21     交通区
+# 5        4    5  1049  2127      12     交通区
+....</code></pre>
+<p>读取地表土壤各种重金属浓度的数据，它在同一个Excel文件的另一个工作区里。</p>
+<pre class="r"><code># 土壤重金属浓度
+dat3 &lt;- read_xls(
+  path = &quot;data/cumcm2011A附件_数据.xls&quot;,
+  col_names = TRUE, sheet = &quot;附件2&quot;, range = &quot;A3:I322&quot;
+)
+# 篇幅所限，铅 Pb (μg/g) 和锌 Zn (μg/g) 两列未显示
+dat3
+# # A tibble: 319 × 9
+#     编号 `As (μg/g)` `Cd (ng/g)` `Cr (μg/g)` `Cu (μg/g)` `Hg (ng/g)` `Ni (μg/g)`
+#    &lt;dbl&gt;       &lt;dbl&gt;       &lt;dbl&gt;       &lt;dbl&gt;       &lt;dbl&gt;       &lt;dbl&gt;       &lt;dbl&gt;
+#  1     1        7.84        154.        44.3        20.6         266        18.2
+#  2     2        5.93        146.        45.0        22.5          86        17.2
+#  3     3        4.9         439.        29.1        64.6         109        10.6
+....</code></pre>
+<p>将采样点的地形数据和土壤重金属浓度数据合并在一起。</p>
+<pre class="r"><code>dat4 &lt;- merge(x = dat2, y = dat3, by.x = &quot;编号&quot;, by.y = &quot;编号&quot;, sort = TRUE)
+dat4
+#     编号 功能区  x(m)  y(m) 海拔(m) 功能区名称 As (μg/g) Cd (ng/g) Cr (μg/g) Cu (μg/g)
+# 1      1      4    74   781       5     交通区      7.84     153.8     44.31     20.56
+# 2      2      4  1373   731      11     交通区      5.93     146.2     45.05     22.51
+# 3      3      4  1321  1791      28     交通区      4.90     439.2     29.07     64.56
+# 4      4      2     0  1787       4     工业区      6.56     223.9     40.08     25.17
+# 5      5      4  1049  2127      12     交通区      6.35     525.2     59.35    117.53
+....</code></pre>
+<p>以上8种主要重金属元素的背景参考值如下：</p>
+<pre class="r"><code># 土壤重金属浓度的背景参考值
+dat5 &lt;- read_xls(
+  path = &quot;data/cumcm2011A附件_数据.xls&quot;,
+  col_names = TRUE, sheet = &quot;附件3&quot;, range = &quot;A3:D11&quot;
+)
+dat5
+# # A tibble: 8 × 4
+#   元素      平均值 标准偏差 范围    
+#   &lt;chr&gt;      &lt;dbl&gt;    &lt;dbl&gt; &lt;chr&gt;   
+# 1 As (μg/g)    3.6      0.9 1.8~5.4 
+# 2 Cd (ng/g)  130       30   70~190  
+# 3 Cr (μg/g)   31        9   13~49   
+# 4 Cu (μg/g)   13.2      3.6 6.0~20.4
+# 5 Hg (ng/g)   35        8   19~51   
+# 6 Ni (μg/g)   12.3      3.8 4.7~19.9
+# 7 Pb (μg/g)   31        6   19~43   
+# 8 Zn (μg/g)   69       14   41~97</code></pre>
+<p>既然提供了各重金属浓度的背景参考值，可以先将原浓度数据标准化。</p>
+<pre class="r"><code># 相比于 transform 函数 within 更友好一些，特别是在列名处理上
+# 详见 https://bugs.r-project.org/show_bug.cgi?id=17890
+dat6 &lt;- within(dat4, {
+  `As (μg/g)` &lt;- (`As (μg/g)` - 3.6) / 0.9
+  `Cd (ng/g)` &lt;- (`Cd (ng/g)` - 130) / 30
+  `Cr (μg/g)` &lt;- (`Cr (μg/g)` - 31) / 9
+  `Cu (μg/g)` &lt;- (`Cu (μg/g)` - 13.2) / 3.6
+  `Hg (ng/g)` &lt;- (`Hg (ng/g)` - 35) / 8
+  `Ni (μg/g)` &lt;- (`Ni (μg/g)` - 12.3) / 3.8
+  `Pb (μg/g)` &lt;- (`Pb (μg/g)` - 31) / 6
+  `Zn (μg/g)` &lt;- (`Zn (μg/g)` - 69) / 14
+})
+# 篇幅所限，仅展示部分列
+dat6
+#     编号 功能区  x(m)  y(m) 海拔(m) 功能区名称 As (μg/g) Cd (ng/g) Cr (μg/g) Cu (μg/g)
+# 1      1      4    74   781       5     交通区   4.71111   0.79333  1.478889   2.04444
+# 2      2      4  1373   731      11     交通区   2.58889   0.54000  1.561111   2.58611
+# 3      3      4  1321  1791      28     交通区   1.44444  10.30667 -0.214444  14.26667
+# 4      4      2     0  1787       4     工业区   3.28889   3.13000  1.008889   3.32500
+# 5      5      4  1049  2127      12     交通区   3.05556  13.17333  3.150000  28.98056
+....</code></pre>
+<p>为了方便后续数据处理和分析，重命名数据框各个列名。</p>
+<pre class="r"><code># 查看各个列名
+colnames(dat6)
+#  [1] &quot;编号&quot;       &quot;功能区&quot;     &quot;x(m)&quot;       &quot;y(m)&quot;       &quot;海拔(m)&quot;    &quot;功能区名称&quot;
+#  [7] &quot;As (μg/g)&quot;  &quot;Cd (ng/g)&quot;  &quot;Cr (μg/g)&quot;  &quot;Cu (μg/g)&quot;  &quot;Hg (ng/g)&quot;  &quot;Ni (μg/g)&quot; 
+# [13] &quot;Pb (μg/g)&quot;  &quot;Zn (μg/g)&quot;
+# 重命名各个列
+colnames(dat6) &lt;- c(
+  &quot;编号&quot;, &quot;功能区&quot;, &quot;x&quot;, &quot;y&quot;, &quot;海拔&quot;, &quot;功能区名称&quot;,
+  &quot;As&quot;, &quot;Cd&quot;, &quot;Cr&quot;, &quot;Cu&quot;, &quot;Hg&quot;, &quot;Ni&quot;, &quot;Pb&quot;, &quot;Zn&quot;
+)</code></pre>
+<pre class="r"><code># 调色板
+# RColorBrewer::brewer.pal(n = 5, name = &quot;Set2&quot;)
+# 查看颜色
+# RColorBrewer::display.brewer.pal(n = 5, name = &quot;Set2&quot;)
+colorize_factor &lt;- function(x) {
+  # 注意因子水平个数
+  scales::col_factor(palette = &quot;Set2&quot;, levels = unique(x))(x)
+}
+# 给每个功能区设置一个颜色
+dat6 &lt;- transform(dat6, color = colorize_factor(`功能区名称`))
+dat6
+#     编号 功能区     x     y 海拔 功能区名称       As       Cd        Cr        Cu
+# 1      1      4    74   781    5     交通区  4.71111  0.79333  1.478889   2.04444
+# 2      2      4  1373   731   11     交通区  2.58889  0.54000  1.561111   2.58611
+# 3      3      4  1321  1791   28     交通区  1.44444 10.30667 -0.214444  14.26667
+# 4      4      2     0  1787    4     工业区  3.28889  3.13000  1.008889   3.32500
+# 5      5      4  1049  2127   12     交通区  3.05556 13.17333  3.150000  28.98056
+....</code></pre>
+<p>查看各个功能区采样点的数量，以及各个功能区的配色。</p>
+<pre class="r"><code>aggregate(`编号` ~ color + `功能区名称`, data = dat6, FUN = function(x) length(unique(x)))
+#     color 功能区名称 编号
+# 1 #66C2A5     交通区  138
+# 2 #8DA0CB 公园绿地区   35
+# 3 #A6D854       山区   66
+# 4 #FC8D62     工业区   36
+# 5 #E78AC3     生活区   44</code></pre>
+<p>采样点在各个功能区的分布情况，如图<a href="#fig:elevation-cloud">28</a>所示，城市地势西南低东北高，西北边界主要分布工业区，交通连接城市各个功能区，东北方向主要是山区。</p>
+<pre class="r"><code>library(lattice)
+# 绘图涉及中文，调用 showtext 包处理
+library(showtext)
+showtext_auto()
+# 三维分组散点图
+cloud(`海拔` ~ x * y,
+  data = dat6, pch = 19,
+  col = dat6$color, # 散点颜色映射功能区
+  # z 轴标签旋转 90 度
+  scales = list(
+    arrows = FALSE, col = &quot;black&quot;,
+    z = list(rot = 90)
+  ),
+  key = list( # 制作图例
+    # space = &quot;right&quot;,
+    corner = c(1.0, 0.5), # 右侧居中
+    points = list(col = c(&quot;#66C2A5&quot;, &quot;#FC8D62&quot;, &quot;#8DA0CB&quot;, &quot;#E78AC3&quot;, &quot;#A6D854&quot;), pch = 19),
+    text = list(c(&quot;交通区&quot;, &quot;工业区&quot;, &quot;公园绿地区&quot;, &quot;生活区&quot;, &quot;山区&quot;))
+  ),
+  # 减少三维图形的边空
+  lattice.options = list(
+    layout.widths = list(
+      left.padding = list(x = -.6, units = &quot;inches&quot;),
+      right.padding = list(x = -1.0, units = &quot;inches&quot;)
+    ),
+    layout.heights = list(
+      bottom.padding = list(x = -.8, units = &quot;inches&quot;),
+      top.padding = list(x = -1.0, units = &quot;inches&quot;)
+    )
+  ),
+  # 设置坐标轴字体大小
+  par.settings = list(
+    axis.line = list(col = &quot;transparent&quot;),
+    fontsize = list(text = 15, points = 10)
+  ),
+  # 设置三维图的观察方位
+  screen = list(z = 30, x = -65, y = 0)
+)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:elevation-cloud"></span>
+<img src="img/elevation-cloud.png" class="full" alt="" />
+<p class="caption">图 28:  采样点在城市各个功能区的空间分布</p>
+</div>
+<p>接下来，根据此数据框 data.frame 类型构造空间数据类型 <strong>sp</strong> （对应 <strong>Sp</strong>atial 类），以便后续调用空间数据分析方法。</p>
+<pre class="r"><code>library(sp)
+coordinates(dat6) &lt;- ~ x + y
+summary(dat6)
+# Object of class SpatialPointsDataFrame
+# Coordinates:
+#   min   max
+# x   0 28654
+# y   0 18449
+# Is projected: NA 
+# proj4string : [NA]
+# Number of points: 319
+# Data attributes:
+#       编号           功能区          海拔        功能区名称              As        
+#  Min.   :  1.0   Min.   :1.00   Min.   :  0.0   Length:319         Min.   :-2.211  
+#  1st Qu.: 80.5   1st Qu.:2.50   1st Qu.: 14.0   Class :character   1st Qu.: 0.189  
+#  Median :160.0   Median :4.00   Median : 29.0   Mode  :character   Median : 1.900  
+#  Mean   :160.0   Mean   :3.26   Mean   : 42.5                      Mean   : 2.307  
+#  3rd Qu.:239.5   3rd Qu.:4.00   3rd Qu.: 55.5                      3rd Qu.: 3.522  
+#  Max.   :319.0   Max.   :5.00   Max.   :308.0                      Max.   :29.478  
+#        Cd              Cr              Cu              Hg               Ni       
+#  Min.   :-3.00   Min.   :-1.74   Min.   : -3.0   Min.   :  -3.3   Min.   :-2.11  
+#  1st Qu.: 0.62   1st Qu.: 0.31   1st Qu.:  1.6   1st Qu.:  -0.6   1st Qu.: 0.05  
+#  Median : 3.62   Median : 1.22   Median :  4.1   Median :   1.9   Median : 0.97  
+#  Mean   : 5.75   Mean   : 2.50   Mean   : 11.6   Mean   :  33.1   Mean   : 1.31  
+#  3rd Qu.: 7.97   3rd Qu.: 2.61   3rd Qu.: 11.1   3rd Qu.:   9.7   3rd Qu.: 1.97  
+#  Max.   :49.66   Max.   :98.87   Max.   :698.7   Max.   :1995.6   Max.   :34.26  
+#        Pb              Zn            color          
+#  Min.   :-1.89   Min.   : -2.58   Length:319        
+#  1st Qu.: 0.45   1st Qu.:  0.46   Class :character  
+#  Median : 2.47   Median :  2.67   Mode  :character  
+#  Mean   : 5.12   Mean   :  9.44                     
+#  3rd Qu.: 6.68   3rd Qu.:  9.11                     
+#  Max.   :73.58   Max.   :263.70</code></pre>
+<pre class="r"><code>spplot(dat6,
+  zcol = c(&quot;海拔&quot;),
+  main = &quot;&quot;,
+  as.table = TRUE, # 面板自左上开始
+  scales = list(
+    draw = TRUE, # 坐标轴刻度
+    # 去掉图形上边、右边多余的刻度线
+    x = list(alternating = 1, tck = c(1, 0)),
+    y = list(alternating = 1, tck = c(1, 0))
+  ),
+  colorkey = TRUE,
+  alpha = 0.7,
+  key.space = &quot;right&quot;
+)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:elevation-spplot"></span>
+<img src="img/elevation-spplot.png" class="full" alt="" />
+<p class="caption">图 29:  采样点在城市各个功能区的空间分布</p>
+</div>
+<p>由图<a href="#fig:elevation-spplot">29</a>不难看出，采样点的位置是以图中左下角的点为参照，城市整体上的地势是西南低东北高，城市中间间或有两座小山。</p>
+<pre class="r"><code>As &lt;- bubble(dat6, zcol = c(&quot;As&quot;), col = c(&quot;#4dac26&quot;, &quot;#d01c8b&quot;), fill = F, key.space = &quot;bottom&quot;)
+Cd &lt;- bubble(dat6, zcol = c(&quot;Cd&quot;), col = c(&quot;#4dac26&quot;, &quot;#d01c8b&quot;), fill = F, key.space = &quot;bottom&quot;)
+Cr &lt;- bubble(dat6, zcol = c(&quot;Cr&quot;), col = c(&quot;#4dac26&quot;, &quot;#d01c8b&quot;), fill = F, key.space = &quot;bottom&quot;)
+Cu &lt;- bubble(dat6, zcol = c(&quot;Cu&quot;), col = c(&quot;#4dac26&quot;, &quot;#d01c8b&quot;), fill = F, key.space = &quot;bottom&quot;)
+Hg &lt;- bubble(dat6, zcol = c(&quot;Hg&quot;), col = c(&quot;#4dac26&quot;, &quot;#d01c8b&quot;), fill = F, key.space = &quot;bottom&quot;)
+Ni &lt;- bubble(dat6, zcol = c(&quot;Ni&quot;), col = c(&quot;#4dac26&quot;, &quot;#d01c8b&quot;), fill = F, key.space = &quot;bottom&quot;)
+Pb &lt;- bubble(dat6, zcol = c(&quot;Pb&quot;), col = c(&quot;#4dac26&quot;, &quot;#d01c8b&quot;), fill = F, key.space = &quot;bottom&quot;)
+Zn &lt;- bubble(dat6, zcol = c(&quot;Zn&quot;), col = c(&quot;#4dac26&quot;, &quot;#d01c8b&quot;), fill = F, key.space = &quot;bottom&quot;)
+
+# 4 列 2 行，图按列
+print(As, split = c(1, 1, 4, 2), more = TRUE)
+print(Cd, split = c(1, 2, 4, 2), more = TRUE)
+print(Cr, split = c(2, 1, 4, 2), more = TRUE)
+print(Cu, split = c(2, 2, 4, 2), more = TRUE)
+print(Hg, split = c(3, 1, 4, 2), more = TRUE)
+print(Ni, split = c(3, 2, 4, 2), more = TRUE)
+print(Pb, split = c(4, 1, 4, 2), more = TRUE)
+print(Zn, split = c(4, 2, 4, 2), more = FALSE)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:heavy-metal-concentrations"></span>
+<img src="img/heavy-metal-concentrations.png" class="full" alt="" />
+<p class="caption">图 30:  地表土壤重金属浓度分布</p>
+</div>
+<p>图中，绿色气泡表示重金属浓度低于背景值，红色气泡反之，气泡大小对应不同区间的浓度值，根据浓度值数据的五个分位点划分区间，以砷 As 为例，浓度的分位点如下：</p>
+<pre class="r"><code>quantile(dat6$As)
+#      0%     25%     50%     75%    100% 
+# -2.2111  0.1889  1.9000  3.5222 29.4778</code></pre>
+<p>现在数据准备好了，通过上述探索，也有了基本的了解，接下来的问题是如何找到城市的重金属污染源？</p>
+</div>
+<div id="本文小结" class="section level1">
+<h1>本文小结</h1>
+<p>空间数据最核心的概念还是几何元素的表示，关系及其应用。
+结合地图服务绘图需要注意坐标参考系统及其转化关系 <span class="citation">(<a href="#ref-Brown2016" role="doc-biblioref">Brown 2016</a>)</span>，同时需要验证/注意地图服务提供的数据的准确性。</p>
+<p>R 语言社区在时空数据分析、可视化方面有很多工具，继 <a href="https://github.com/edzer/sp"><strong>sp</strong></a> <span class="citation">(<a href="#ref-Pebesma2005" role="doc-biblioref">E. J. Pebesma and Bivand 2005</a>)</span> 之后，Edzer Pebesma 开发了 <a href="https://github.com/r-spatial/sf"><strong>sf</strong></a> <span class="citation">(<a href="#ref-Pebesma2018" role="doc-biblioref">E. J. Pebesma 2018</a>)</span>，提供更加高效的矢量空间数据处理方式。紧接着，Robert J. Hijmans 也将处理栅格数据的 <a href="https://github.com/rspatial/raster"><strong>raster</strong></a> <span class="citation">(<a href="#ref-raster" role="doc-biblioref">Hijmans 2022a</a>)</span> 升级到 <a href="https://github.com/rspatial/terra/"><strong>terra</strong></a> <span class="citation">(<a href="#ref-terra" role="doc-biblioref">Hijmans 2022b</a>)</span>，提供性能强劲且向后兼容性极好的函数接口。<a href="https://github.com/environmentalinformatics-marburg/satellite"><strong>satellite</strong></a>包 <span class="citation">(<a href="#ref-satellite" role="doc-biblioref">Nauss et al. 2021</a>)</span> 和 <strong>landsat</strong> 包 <span class="citation">(<a href="#ref-Goslee2011" role="doc-biblioref">Goslee 2011</a>)</span> 可以处理卫星遥感数据，<a href="https://github.com/deankoch/rasterbc"><strong>rasterbc</strong></a> <span class="citation">(<a href="#ref-rasterbc" role="doc-biblioref">Koch 2022</a>)</span> 内置 2001-2018 年加拿大英属哥伦比亚省 raster 格式的栅格数据，用于森林生态学研究。</p>
+<p>相比于 <a href="https://github.com/tidyverse/ggplot2"><strong>ggplot2</strong></a> <span class="citation">(<a href="#ref-Wickham2022" role="doc-biblioref">Wickham 2022a</a>)</span>，<a href="https://github.com/deepayan/lattice"><strong>lattice</strong></a> <span class="citation">(<a href="#ref-Sarkar2008" role="doc-biblioref">Sarkar 2008</a>)</span> 是被严重低估的数据可视化包，性能不输 <strong>ggplot2</strong>，而且更加稳定，与上一代空间数据处理框架 <strong>sp</strong> 和 <strong>raster</strong> 有很好的集成。<a href="https://github.com/paleolimbot/ggspatial"><strong>ggspatial</strong></a> 提供很多针对空间数据可视化的定制，比如指北针、比例尺等。</p>
+<p><a href="https://github.com/riatelab/cartography"><strong>cartography</strong></a> 除了基本的维护，不再添加新的功能，推荐读者转移到 <a href="https://github.com/riatelab/mapsf"><strong>mapsf</strong></a> 上。<a href="https://github.com/riatelab/mapsf"><strong>mapsf</strong></a> <span class="citation">(<a href="#ref-mapsf" role="doc-biblioref">Giraud 2022</a>)</span> 基于 Base R 图形系统将 sf 数据对象绘制在地图上，获得出版级的效果，支持比例气泡图、专题地图和拓扑地图等。<a href="https://github.com/r-tmap/tmap"><strong>tmap</strong></a> <span class="citation">(<a href="#ref-Tennekes2018" role="doc-biblioref">Tennekes 2018</a>)</span> 功能与之类似，使用方式和 <strong>ggplot2</strong> 提供的图形语法一致。</p>
+<p>数据产品很多都基于 Web 呈现，交互式图形成为必须的组件，<a href="https://github.com/rstudio/leaflet"><strong>leaflet</strong></a> <span class="citation">(<a href="#ref-leaflet" role="doc-biblioref">Cheng, Karambelkar, and Xie 2022</a>)</span> 在交互式地理可视化方面是比较成熟的，中小规模数据集下，性能还不错。 <a href="https://github.com/SymbolixAU/mapdeck"><strong>mapdeck</strong></a> 包站在 <a href="https://github.com/visgl/deck.gl">deck.gl</a> 的肩膀上渲染初具规模的空间数据毫无压力。<a href="https://github.com/r-spatial/mapview"><strong>mapview</strong></a> <span class="citation">(<a href="#ref-mapview" role="doc-biblioref">Appelhans et al. 2022</a>)</span>意在提供快速地交互式探索空间数据的能力，支持 <strong>leaflet</strong> 和 <strong>mapdeck</strong> 渲染方法。而<a href="https://github.com/r-spatial/mapedit"><strong>mapedit</strong></a> <span class="citation">(<a href="#ref-mapedit" role="doc-biblioref">Appelhans, Russell, and Busetto 2020</a>)</span>提供空间数据交互式编辑能力。</p>
+</div>
+<div id="环境信息" class="section level1">
+<h1>环境信息</h1>
+<p>在 RStudio IDE 内编辑本文的 R Markdown 源文件，用 <strong>blogdown</strong> <span class="citation">(<a href="#ref-Xie2017" role="doc-biblioref">Xie, Hill, and Thomas 2017</a>)</span> 构建网站，<a href="https://github.com/gohugoio/hugo">Hugo</a> 渲染 <strong>knitr</strong> 之后的 Markdown 文件，得益于 <strong>blogdown</strong> 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：</p>
+<pre class="r"><code>xfun::session_info(packages = c(
+  &quot;knitr&quot;, &quot;rmarkdown&quot;, &quot;blogdown&quot;,
+  &quot;httr&quot;, &quot;jsonlite&quot;, &quot;nycflights13&quot;,
+  &quot;ggmap&quot;, &quot;ggplot2&quot;, &quot;patchwork&quot;, &quot;spData&quot;,
+  &quot;leaflet&quot;, &quot;leafletCN&quot;, &quot;leaflet.extras&quot;,
+  &quot;baidumap&quot;, &quot;RgoogleMaps&quot;, &quot;mapdeck&quot;,
+  &quot;geohashTools&quot;, &quot;lwgeom&quot;, &quot;rgeolocate&quot;,
+  &quot;lattice&quot;, &quot;sf&quot;, &quot;terra&quot;, &quot;stars&quot;,
+  &quot;sp&quot;, &quot;maps&quot;, &quot;raster&quot;, &quot;rasterly&quot;
+), dependencies = FALSE)
+# R version 4.2.0 (2022-04-22)
+# Platform: x86_64-apple-darwin17.0 (64-bit)
+# Running under: macOS Big Sur/Monterey 10.16
+# 
+# Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
+# 
+# Package version:
+#   baidumap_0.2.2       blogdown_1.10        geohashTools_0.3.1   ggmap_3.0.0         
+#   ggplot2_3.3.6        httr_1.4.3           jsonlite_1.8.0       knitr_1.39          
+#   lattice_0.20-45      leaflet_2.1.1        leaflet.extras_1.0.0 leafletCN_0.2.1     
+#   lwgeom_0.2-8         mapdeck_0.3.4        maps_3.4.0           nycflights13_1.0.2  
+#   patchwork_1.1.1      raster_3.5.15        rasterly_0.2.0       rgeolocate_1.4.2    
+#   RgoogleMaps_1.4.5.3  rmarkdown_2.14       sf_1.0-7             sp_1.4-7            
+#   spData_2.0.1         stars_0.5.5          terra_1.5.21        
+# 
+# Pandoc version: 2.18
+# 
+# Hugo version: 0.98.0</code></pre>
+</div>
+<div id="参考文献" class="section level1 unnumbered">
+<h1>参考文献</h1>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-mapview" class="csl-entry">
+Appelhans, Tim, Florian Detsch, Christoph Reudenbach, and Stefan Woellauer. 2022. <em>Mapview: Interactive Viewing of Spatial Data in r</em>. <a href="https://github.com/r-spatial/mapview">https://github.com/r-spatial/mapview</a>.
+</div>
+<div id="ref-mapedit" class="csl-entry">
+Appelhans, Tim, Kenton Russell, and Lorenzo Busetto. 2020. <em>Mapedit: Interactive Editing of Spatial Data in r</em>. <a href="https://github.com/r-spatial/mapedit">https://github.com/r-spatial/mapedit</a>.
+</div>
+<div id="ref-Brown2016" class="csl-entry">
+Brown, Patrick E. 2016. <span>“Maps, Coordinate Reference Systems and Visualising Geographic Data with <span class="nocase">mapmisc</span>.”</span> <em><span>R Journal</span></em> 8 (1): 64–91. <a href="https://journal.r-project.org/archive/2016-1/brown.pdf">https://journal.r-project.org/archive/2016-1/brown.pdf</a>.
+</div>
+<div id="ref-maps" class="csl-entry">
+Brownrigg, Ray. 2021. <em>Maps: Draw Geographical Maps</em>. <a href="https://CRAN.R-project.org/package=maps">https://CRAN.R-project.org/package=maps</a>.
+</div>
+<div id="ref-leaflet" class="csl-entry">
+Cheng, Joe, Bhaskar Karambelkar, and Yihui Xie. 2022. <em>Leaflet: Create Interactive Web Maps with the JavaScript Leaflet Library</em>. <a href="https://rstudio.github.io/leaflet/">https://rstudio.github.io/leaflet/</a>.
+</div>
+<div id="ref-geohashTools" class="csl-entry">
+Chirico, Michael. 2020. <em>geohashTools: Tools for Working with Geohashes</em>. <a href="https://github.com/MichaelChirico/geohashTools">https://github.com/MichaelChirico/geohashTools</a>.
+</div>
+<div id="ref-sfheaders" class="csl-entry">
+Cooley, David. 2020. <em>Sfheaders: Converts Between r Objects and Simple Feature Objects</em>. <a href="https://dcooley.github.io/sfheaders/">https://dcooley.github.io/sfheaders/</a>.
+</div>
+<div id="ref-mapsf" class="csl-entry">
+Giraud, Timothée. 2022. <em>Mapsf: Thematic Cartography</em>. <a href="https://CRAN.R-project.org/package=mapsf">https://CRAN.R-project.org/package=mapsf</a>.
+</div>
+<div id="ref-Goslee2011" class="csl-entry">
+Goslee, Sarah C. 2011. <span>“Analyzing Remote Sensing Data in <span>R</span>: The <span class="nocase">landsat</span> Package.”</span> <em>Journal of Statistical Software</em> 43 (4): 1–25. <a href="http://www.jstatsoft.org/v43/i04/">http://www.jstatsoft.org/v43/i04/</a>.
+</div>
+<div id="ref-raster" class="csl-entry">
+Hijmans, Robert J. 2022a. <em>Raster: Geographic Data Analysis and Modeling</em>. <a href="https://rspatial.org/raster">https://rspatial.org/raster</a>.
+</div>
+<div id="ref-terra" class="csl-entry">
+———. 2022b. <em>Terra: Spatial Data Analysis</em>. <a href="https://rspatial.org/terra/">https://rspatial.org/terra/</a>.
+</div>
+<div id="ref-Kahle2013" class="csl-entry">
+Kahle, David, and Hadley Wickham. 2013. <span>“<span class="nocase">ggmap</span>: Spatial Visualization with <span class="nocase">ggplot2</span>.”</span> <em>The R Journal</em> 5 (1): 144–61. <a href="https://journal.r-project.org/archive/2013-1/kahle-wickham.pdf">https://journal.r-project.org/archive/2013-1/kahle-wickham.pdf</a>.
+</div>
+<div id="ref-rgeolocate" class="csl-entry">
+Keyes, Os, Drew Schmidt, David Robinson, Chris Davis, Bob Rudis, Maxmind, Inc., Pascal Gloor, and IP2Location.com. 2021. <em>Rgeolocate: IP Address Geolocation</em>. <a href="https://CRAN.R-project.org/package=rgeolocate">https://CRAN.R-project.org/package=rgeolocate</a>.
+</div>
+<div id="ref-rasterbc" class="csl-entry">
+Koch, Dean. 2022. <em>Rasterbc: Access Forest Ecology Layers for British Columbia in 2001-2018</em>. <a href="https://CRAN.R-project.org/package=rasterbc">https://CRAN.R-project.org/package=rasterbc</a>.
+</div>
+<div id="ref-leafletCN" class="csl-entry">
+Lang, Dawei. 2017. <em>leafletCN: An r Gallery for China and Other Geojson Choropleth Map in Leaflet</em>. <a href="https://CRAN.R-project.org/package=leafletCN">https://CRAN.R-project.org/package=leafletCN</a>.
+</div>
+<div id="ref-Loecher2015" class="csl-entry">
+Loecher, Markus, and Karl Ropkins. 2015. <span>“<span>RgoogleMaps</span> and <span class="nocase">loa</span>: Unleashing <span>R</span> Graphics Power on Map Tiles.”</span> <em>Journal of Statistical Software</em> 63 (4): 1–18. <a href="http://www.jstatsoft.org/v63/i04/">http://www.jstatsoft.org/v63/i04/</a>.
+</div>
+<div id="ref-satellite" class="csl-entry">
+Nauss, Thomas, Hanna Meyer, Tim Appelhans, and Florian Detsch. 2021. <em>Satellite: Handling and Manipulating Remote Sensing Data</em>. <a href="https://CRAN.R-project.org/package=satellite">https://CRAN.R-project.org/package=satellite</a>.
+</div>
+<div id="ref-lwgeom" class="csl-entry">
+Pebesma, Edzer. 2021. <em>Lwgeom: Bindings to Selected Liblwgeom Functions for Simple Features</em>. <a href="https://github.com/r-spatial/lwgeom/">https://github.com/r-spatial/lwgeom/</a>.
+</div>
+<div id="ref-sf" class="csl-entry">
+———. 2022. <em>Sf: Simple Features for r</em>. <a href="https://CRAN.R-project.org/package=sf">https://CRAN.R-project.org/package=sf</a>.
+</div>
+<div id="ref-Pebesma2018" class="csl-entry">
+Pebesma, Edzer J. 2018. <span>“<span class="nocase">Simple Features for R: Standardized Support for Spatial Vector Data</span>.”</span> <em><span>The R Journal</span></em> 10 (1): 439–46. <a href="https://doi.org/10.32614/RJ-2018-009">https://doi.org/10.32614/RJ-2018-009</a>.
+</div>
+<div id="ref-Pebesma2005" class="csl-entry">
+Pebesma, Edzer J., and Roger S. Bivand. 2005. <span>“Classes and Methods for Spatial Data in <span>R</span>.”</span> <em>R News</em> 5 (2): 9–13. <a href="https://CRAN.R-project.org/doc/Rnews/">https://CRAN.R-project.org/doc/Rnews/</a>.
+</div>
+<div id="ref-loa" class="csl-entry">
+Ropkins, Karl. 2021. <em>Loa: Lattice Options and Add-Ins</em>. <a href="http://loa.r-forge.r-project.org/loa.intro.html">http://loa.r-forge.r-project.org/loa.intro.html</a>.
+</div>
+<div id="ref-Sarkar2008" class="csl-entry">
+Sarkar, Deepayan. 2008. <em><span class="nocase">lattice</span>: Multivariate Data Visualization with <span>R</span></em>. New York: Springer-Verlag. <a href="http://lmdvr.r-forge.r-project.org">http://lmdvr.r-forge.r-project.org</a>.
+</div>
+<div id="ref-latticeExtra" class="csl-entry">
+Sarkar, Deepayan, and Felix Andrews. 2019. <em>latticeExtra: Extra Graphical Utilities Based on Lattice</em>. <a href="http://latticeextra.r-forge.r-project.org/">http://latticeextra.r-forge.r-project.org/</a>.
+</div>
+<div id="ref-Tennekes2018" class="csl-entry">
+Tennekes, Martijn. 2018. <span>“<span class="nocase">tmap</span>: Thematic Maps in <span>R</span>.”</span> <em>Journal of Statistical Software</em> 84 (6): 1–39. <a href="https://doi.org/10.18637/jss.v084.i06">https://doi.org/10.18637/jss.v084.i06</a>.
+</div>
+<div id="ref-nycflights13" class="csl-entry">
+Wickham, Hadley. 2021. <em>Nycflights13: Flights That Departed NYC in 2013</em>. <a href="https://github.com/hadley/nycflights13">https://github.com/hadley/nycflights13</a>.
+</div>
+<div id="ref-Wickham2022" class="csl-entry">
+———. 2022a. <em><span class="nocase">ggplot2</span>: Elegant Graphics for Data Analysis</em>. 3rd ed. Springer-Verlag New York. <a href="https://ggplot2-book.org/">https://ggplot2-book.org/</a>.
+</div>
+<div id="ref-httr" class="csl-entry">
+———. 2022b. <em>Httr: Tools for Working with URLs and HTTP</em>. <a href="https://CRAN.R-project.org/package=httr">https://CRAN.R-project.org/package=httr</a>.
+</div>
+<div id="ref-Xie2017" class="csl-entry">
+Xie, Yihui, Alison Presmanes Hill, and Amber Thomas. 2017. <em><span class="nocase">blogdown</span>: Creating Websites with <span>R</span> Markdown</em>. Boca Raton, Florida: Chapman; Hall/CRC. <a href="https://bookdown.org/yihui/blogdown/">https://bookdown.org/yihui/blogdown/</a>.
+</div>
+</div>
+</div>
+<div class="footnotes footnotes-end-of-document">
+<hr />
+<ol>
+<li id="fn1"><p><a href="https://github.com/ipinfo">ipinfo</a> 工具是开源可商用的，由前 Facebook 工程师 Ben Dowling 于 2013 年创建，后来发展成 IPinfo 公司，专门提供 IP 定位服务，服务的公司包括腾讯、戴尔、耐克等。<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>查看示例可以看到源数据的地址， 其它示例数据可以通过类似的方法获取，比如点图层中的全国点效果示例：</p>
+<pre class="bash"><code>curl -fLo chinalocation.json https://mapv.baidu.com/gl/examples/data/chinalocation.json</code></pre>
+<a href="#fnref2" class="footnote-back">↩︎</a></li>
+</ol>
+</div>

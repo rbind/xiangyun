@@ -10,7 +10,7 @@ Sys.setenv(CENSUS_API_KEY="YOUR_KEY")
 nc_income_race_county <- get_acs(
   state = "NC",
   geography = "county",
-  variables = c("B19013_001", "B02001_001", "B02001_002"),
+  variables = c("B19013_001", "B02001_001E", "B02001_002E"),
   geometry = TRUE, output = "wide",
   year = 2019, survey = "acs5",
   moe_level = 90
@@ -19,7 +19,7 @@ nc_income_race_county <- get_acs(
 nc_income_race_tract <- get_acs(
   state = "NC",
   geography = "tract",
-  variables = c("B19013_001", "B02001_001", "B02001_002"),
+  variables = c("B19013_001", "B02001_001E", "B02001_002E"),
   geometry = TRUE, output = "wide",
   year = 2019, survey = "acs5",
   moe_level = 90

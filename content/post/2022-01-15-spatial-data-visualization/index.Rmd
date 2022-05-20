@@ -15,7 +15,9 @@ tags:
   - sf
   - leaflet
   - httr
-toc: true
+output:
+  blogdown::html_page:
+    toc: true
 thumbnail: /img/maps-in-r/beijing-sf.png
 link-citations: true
 bibliography: 

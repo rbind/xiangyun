@@ -17,7 +17,7 @@ bibliography:
   - refer.bib
   - packages.bib
 link-citations: true
-thumbnail: /img/iris.svg
+thumbnail: img/iris.svg
 description: "R 语言在数据可视化方面有很长时间的积累，除了内置的基础作图系统和栅格作图系统，以及衍生出来的代表作 lattice 和 ggplot2 ，更加易用、便携、交互的网页图形逐渐形成新的主流。移动终端设备的大规模普及，探索性数据分析和可视化需求越来越强烈，得益于现代硬件设施和前端技术的落地，交互式网页图形逐渐成为数据展示中的标配。"
 ---
 
@@ -193,7 +193,7 @@ plot_ly(
 ```
 
 <figure>
-<img src="/img/iris.svg" class="full" alt="图 1: 鸢尾花散点图（SVG 矢量格式）" />
+<img src="img/iris.svg" class="full" alt="图 1: 鸢尾花散点图（SVG 矢量格式）" />
 <figcaption aria-hidden="true">图 1: 鸢尾花散点图（SVG 矢量格式）</figcaption>
 </figure>
 
@@ -383,7 +383,7 @@ scatterD3(
 ```
 
 <figure>
-<img src="/img/iris2.svg" class="full" alt="图 8: 鸢尾花散点图（矢量格式）" />
+<img src="img/iris2.svg" class="full" alt="图 8: 鸢尾花散点图（矢量格式）" />
 <figcaption aria-hidden="true">图 8: 鸢尾花散点图（矢量格式）</figcaption>
 </figure>
 
@@ -424,7 +424,7 @@ apex(
 ```
 
 <figure>
-<img src="/img/iris3.svg" class="full" alt="图 10: 鸢尾花散点图（SVG 格式矢量图）" />
+<img src="img/iris3.svg" class="full" alt="图 10: 鸢尾花散点图（SVG 格式矢量图）" />
 <figcaption aria-hidden="true">图 10: 鸢尾花散点图（SVG 格式矢量图）</figcaption>
 </figure>
 
@@ -666,9 +666,9 @@ xfun::session_info(packages = c(
     ## Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
     ## 
     ## Package version:
-    ##   apexcharter_0.3.1  blogdown_1.10      echarts4r_0.4.3    ggiraph_0.8.2     
-    ##   ggplot2_3.3.6.9000 knitr_1.39         plotly_4.10.0      rmarkdown_2.14    
-    ##   scatterD3_1.0.1   
+    ##   apexcharter_0.3.1 blogdown_1.10     echarts4r_0.4.3   ggiraph_0.8.2    
+    ##   ggplot2_3.3.6     knitr_1.39        plotly_4.10.0     rmarkdown_2.14   
+    ##   scatterD3_1.0.1  
     ## 
     ## Pandoc version: 2.18
     ## 
@@ -746,7 +746,7 @@ Wickham, Hadley. 2016. *<span class="nocase">ggplot2</span>: Elegant Graphics fo
 
 <div id="ref-ggplot2" class="csl-entry">
 
-Wickham, Hadley, Winston Chang, Lionel Henry, Thomas Lin Pedersen, Kohske Takahashi, Claus Wilke, Kara Woo, Hiroaki Yutani, and Dewey Dunnington. 2022. *Ggplot2: Create Elegant Data Visualisations Using the Grammar of Graphics*.
+Wickham, Hadley, Winston Chang, Lionel Henry, Thomas Lin Pedersen, Kohske Takahashi, Claus Wilke, Kara Woo, Hiroaki Yutani, and Dewey Dunnington. 2022. *Ggplot2: Create Elegant Data Visualisations Using the Grammar of Graphics*. <https://CRAN.R-project.org/package=ggplot2>.
 
 </div>
 
