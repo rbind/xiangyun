@@ -26,6 +26,7 @@ paginate = 9
 [params]
     description = "A website built through Hugo and blogdown."
 
+    customCSS = ["css/custom.css"]
     highlightjsVersion = "9.12.0"
     highlightjsCDN = "//cdn.bootcss.com"
     highlightjsLang = ["r", "yaml", "tex"]
