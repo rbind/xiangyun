@@ -1,0 +1,150 @@
+---
+title: "统计之都在线投稿系统"
+subtitle: "blogdown 建站之路"
+author: "黄湘云"
+institute: "统计之都编辑部出品"
+date: "2019/05/25 @ 中国人民大学，北京，海淀"
+output:
+  xaringan::moon_reader:
+    css: ["default"]
+    lib_dir: libs
+    self_contained: true
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+background-image: url(/img/blogdown.svg)
+
+---
+# COS 投稿指南
+
+1. 软件准备<sup>1</sup>
+  
+  - 可选推荐：[R](https://www.r-project.org/)
+  - 可选推荐：[RStudio](https://www.rstudio.com/)
+  - 可选推荐：[blogdown](https://github.com/rstudio/blogdown)
+  - 可选推荐：[Typora](https://www.typora.io/)
+  - 可选推荐：[Git](https://git-scm.com/)
+
+1. 投稿要求
+
+  - Markdown 格式、排版，具体看[统计之都投稿指南](https://cosx.org/contribute/)
+
+1. 文章编辑
+
+  - Typora 本地编辑文章和 Git 推送到 PR
+  - Github 在线编辑文章和提交 commit
+
+
+
+.footnote[[1] 本地预览推荐安装 RStudio IDE、R 软件 和 blogdown 包，若有安装问题，请在论坛发帖 <https://d.cosx.org/>]
+
+
+---
+# 重走统计之都建站之路
+
+
+1. 创建 Github 账户
+1. 创建 blogdown 项目
+1. 推送 blogdown 项目到 Github
+1. 连接 Netlify 站点和 Github 仓库
+1. 自定义域名和重定向
+
+
+--
+参考文献
+
+- 钟浩光给COS主站投的文章---用 R 语言的 blogdown+hugo+netlify+github 建博客 <https://cosx.org/2018/01/build-blog-with-blogdown-hugo-netlify-github>
+- [Martin Frigaard](https://www.martinfrigaard.io) 写了一篇博文介绍如何使用 Github/Netlify/blogdown 搭建静态网站 <https://www.storybench.org/how-to-build-a-website-with-blogdown-in-r/>
+- 谢益辉讲 blogdown 的历史 Another Year, Another R Package, Another Book, and Endless Joy <https://yihui.name/en/2017/12/blogdown-book/>
+
+
+---
+# Hugo + Github + Netlify
+
+![hugo-github-netlify](https://wp-contents.netlify.com/logos/hugo-github-netlify.svg)
+
+- 两个免费服务 [Github](https://github.com/cosname/cosx.org) + [Netlify](https://www.netlify.com/)
+
+  - Github 托管源代码，大量的 Markdown 文本
+  - Netlify 提供 CI 服务，自动部署网站
+
+- 一个静态站点生成器 [Hugo](https://github.com/gohugoio/hugo)
+
+  - [Blackfriday](https://github.com/russross/blackfriday) 是 Hugo 内建的 Markdown 渲染引擎
+
+---
+# 常用 Git 操作
+
+克隆主站及子模块
+
+```bash
+git clone --recursive git@github.com:XiangyunHuang/cosx.org.git
+```
+
+新建一个分支
+
+```bash
+git checkout -b discuss-barplot
+git push --set-upstream origin discuss-barplot
+```
+
+新建 markdown 文件，按照 Markdown 的语法编辑文章内容，图片存至 Github，如 Github Pages/Netlify/Github issues 等
+
+```bash
+git status # 一定要看一眼是不是要添加的内容
+git add -A
+git commit -m "修改内容说明"
+git push
+```
+
+最后手动提交一下 PR
+
+---
+# 创建 Github Pages 图床
+
+1. Github 上创建一个叫 uploads 的仓库
+
+1. 初始化站点
+
+    ```bash
+    git init 
+    git checkout -b gh-pages
+    git remote add origin https://github.com/XiangyunHuang/uploads.git
+    ``` 
+
+1. 添加图片或者数据，上传图片之前，建议下载 [optipng](http://optipng.sourceforge.net/) 使用 `optipng -o5 *.png` 优化压缩一下
+
+    ```bash
+    git add -A
+    git commit -m "添加说明"
+    git push --set-upstream origin gh-pages
+    ```
+
+1. 图片或数据链接 <https://xiangyunhuang.github.io/uploads/XXX.png>
+
+> 使用 Github Pages 创建的图床需要将 repos 设置为公开，如果想要让 repos 私有的话，就使用 Netlify 部署这个仓库，<https://wp-content.netlify.com/XXX.png>
+
+
+---
+# 投稿之后
+
+--
+
+- 审稿过程中，我们会经历哪些事？
+
+  - 以 [漫谈条形图](https://github.com/cosname/cosx.org/pull/713) 这篇文章为例
+
+--
+
+- 在普及统计学复杂理论概念，如假设检验理论、显著性水平和 P值的概念，专业是前提，通俗是手段。如未通过的[投稿：统计的显著性水平](https://github.com/cosname/cosx.org/pull/761)
+
+
+
+---
+# Q & A
+
+- Slides: http://bit.ly/30VBLaU
+- Github: https://github.com/XiangyunHuang
