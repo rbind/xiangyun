@@ -987,7 +987,7 @@ nc_tract_map <- tigris::tracts(state = 37, cb = T, year = 2019, class = "sf")
     View(acs_vars)
     ```
 
-    一共 **27040** 个指标，其中很多是衍生指标，比如上面用到的白人数量 `B02001_001E`，人口数按种族分组统计，自然还可以有按性别、年龄分组的衍生指标。
+    一共 **27040** 个指标，其中很多是衍生指标，比如上面用到的白人数量 `B02001_001`，人口数按种族分组统计，自然还可以有按性别、年龄分组的衍生指标。
 
 1. Kyle Walker 的著作《Analyzing US Census Data: Methods, Maps, and Models in R》[@Walker2022] 提供了更多关于美国社区调查数据及其使用的介绍。
 
