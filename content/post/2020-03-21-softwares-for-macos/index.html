@@ -1,0 +1,235 @@
+---
+title: 一些 MacOS 上的软件
+author: 黄湘云
+date: '2020-03-21'
+slug: softwares-for-macos
+output:
+  blogdown::html_page:
+    toc: true
+link-citations: true
+categories:
+  - 统计软件
+tags:
+  - 技术笔记
+description: "软件环境配置是个既麻烦又耗时的苦力活，笔者曾经在 Windows 上折腾多年，换过几次电脑，工作之后，转向 MacOS 系统，又开始折腾，人生苦短，现收集整理出来，以后遇到新的坑也会填上来，尽量节省一些不必要的重复折腾。一些历史的折腾也搬上来了，生命不息，重装不止！"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#设置-macos" id="toc-设置-macos">设置 MacOS</a></li>
+<li><a href="#常用软件" id="toc-常用软件">常用软件</a>
+<ul>
+<li><a href="#办公软件" id="toc-办公软件">办公软件</a></li>
+</ul></li>
+<li><a href="#绘图软件" id="toc-绘图软件">绘图软件</a>
+<ul>
+<li><a href="#gnuplot" id="toc-gnuplot">gnuplot</a></li>
+</ul></li>
+<li><a href="#python-虚拟环境" id="toc-python-虚拟环境">Python 虚拟环境</a>
+<ul>
+<li><a href="#用-miniconda-配置" id="toc-用-miniconda-配置">用 miniconda 配置</a></li>
+<li><a href="#用-virtualenv-配置" id="toc-用-virtualenv-配置">用 virtualenv 配置</a></li>
+</ul></li>
+<li><a href="#知识管理" id="toc-知识管理">知识管理</a>
+<ul>
+<li><a href="#gollum" id="toc-gollum">Gollum</a></li>
+</ul></li>
+</ul>
+</div>
+
+<div id="设置-macos" class="section level1">
+<h1>设置 MacOS</h1>
+<ul>
+<li><p>命令行工具 <a href="https://developer.apple.com/download/all/">Xcode</a> 等，在线安装迷你版命令行工具。</p>
+<pre class="bash"><code>xcode-select --install</code></pre></li>
+<li><p>软件包管理工具 <a href="https://mirrors.tuna.tsinghua.edu.cn/help/homebrew/">brew</a></p></li>
+<li><p><a href="https://macos-defaults.com/">Mac 截图去阴影等常用设置</a></p></li>
+<li><p><a href="https://stackoverflow.com/questions/37286971/">自定义终端的命令行提示符</a></p></li>
+<li><p>解决 <a href="https://blog.csdn.net/Rainbow1995/article/details/111475551">raw.githubusercontent.com port 443: Connection refused</a>
+在网站 <a href="https://ipaddress.com/" class="uri">https://ipaddress.com/</a> 输入 <code>raw.githubusercontent.com</code> 拿到 IP 地址，添加到 hosts 文件。</p>
+<pre class="bash"><code>sudo vi /etc/hosts</code></pre>
+<pre><code>185.199.108.133   raw.githubusercontent.com
+185.199.109.133   raw.githubusercontent.com
+185.199.110.133   raw.githubusercontent.com
+185.199.111.133   raw.githubusercontent.com</code></pre></li>
+<li><p>配置 MacOS 终端：MacOS 自带 <a href="https://github.com/zsh-users/zsh">zsh</a>，只需安装 <a href="https://github.com/ohmyzsh/ohmyzsh">Oh My Zsh</a> 配置工具、<a href="https://github.com/ryanoasis/nerd-fonts">nerd-font</a> 图标字体和 <a href="https://github.com/romkatv/powerlevel10k">powerlevel10k</a> 主题。</p>
+<pre class="bash"><code># 安装 fira-code 字体及其配套的图标字体
+brew install --cask font-fira-code font-fira-code-nerd-font</code></pre></li>
+</ul>
+</div>
+<div id="常用软件" class="section level1">
+<h1>常用软件</h1>
+<div id="办公软件" class="section level2">
+<h2>办公软件</h2>
+<pre class="bash"><code>brew install --cask notion jasp
+brew install --cask adobe-creative-cloud</code></pre>
+<p>视频编辑器 <a href="https://github.com/OpenShot/openshot-qt">openshot-video-editor</a> (<a href="https://www.openshot.org/zh-hans/" class="uri">https://www.openshot.org/zh-hans/</a>)</p>
+<pre class="bash"><code>brew install --cask openshot-video-editor</code></pre>
+<p>刘志进实验室有很多免费音乐，支持外链，可以插入博客 <a href="https://music.liuzhijin.cn/" class="uri">https://music.liuzhijin.cn/</a></p>
+<p><a href="https://github.com/mltframework/shotcut">shotcut</a></p>
+<pre class="bash"><code>brew install --cask shotcut</code></pre>
+<p><a href="https://github.com/blender/blender">blender</a> (<a href="https://www.blender.org/" class="uri">https://www.blender.org/</a>)</p>
+<pre class="bash"><code># 3D 建模
+brew install --cask blender
+
+# Github CLI 命令行工具
+brew install tig gh
+brew install tree gnupg
+
+# LaTeX 代码块样式
+# https://www.ctan.org/pkg/codebox</code></pre>
+<p><a href="https://plantuml.com/">plantuml</a> 提供 UML 统一建模语言</p>
+<pre class="bash"><code>brew install plantuml</code></pre>
+<p><a href="https://asymptote.sourceforge.io/">asymptote</a> 提供一种矢量图形编程语言，像 TikZ 支持 LaTeX，<a href="https://ctan.org/pkg/asymptote">asymptote 宏包</a>及其<a href="https://asymptote.sourceforge.io/asymptote.pdf">使用文档</a>。</p>
+<pre class="bash"><code>brew install asymptote</code></pre>
+<p>数据科学平台</p>
+<pre class="bash"><code>brew install --cask rapidminer-studio data-science-studio</code></pre>
+<p><a href="https://github.com/biolab/orange3">Orange</a> (<a href="https://orangedatamining.com/" class="uri">https://orangedatamining.com/</a>) 是开源的数据挖掘软件， 每一个操作都是一个组件，将组件连接起来就是工作流，可视化数据编程</p>
+<pre class="bash"><code># 数据挖掘软件
+brew install --cask orange
+# 收费的商业智能工具
+brew install --cask tableau </code></pre>
+</div>
+</div>
+<div id="绘图软件" class="section level1">
+<h1>绘图软件</h1>
+<div id="gnuplot" class="section level2">
+<h2>gnuplot</h2>
+<p><a href="http://www.gnuplot.info/">gnuplot</a> 是开源的绘图软件，不像 gimp，它是命令行驱动。</p>
+<pre class="bash"><code>brew install gnuplot</code></pre>
+<p>将下面的命令放入文件 <code>~/.gnuplot</code> 自定义字体</p>
+<pre><code>set term qt font &quot;Noto Sans&quot;</code></pre>
+<p>查看本机安装的字体</p>
+<pre class="bash"><code>fc-list : family | sort</code></pre>
+</div>
+</div>
+<div id="python-虚拟环境" class="section level1">
+<h1>Python 虚拟环境</h1>
+<div id="用-miniconda-配置" class="section level2">
+<h2>用 miniconda 配置</h2>
+<p><code>~/.condarc</code> 指定虚拟环境所在目录</p>
+<pre class="yaml"><code>envs_dirs:
+  - /opt/miniconda-virtualenvs/</code></pre>
+<p>详见 miniconda <a href="https://docs.conda.io/en/latest/miniconda.html">官方文档</a></p>
+<pre class="bash"><code># 安装 miniconda
+brew install --cask miniconda
+# 初始化，将配置写入当前 Shell 环境，比如 .zshrc
+conda init &quot;$(basename &quot;${SHELL}&quot;)&quot;   
+
+# 创建环境
+conda create -n r-reticulate python=3.8
+# 激活环境
+conda activate r-reticulate
+# 安装模块
+conda install --yes --file requirements.txt
+
+# 更新升级 conda
+conda update -n base -c defaults conda
+
+# 退出虚拟环境
+conda deactivate</code></pre>
+<pre class="bash"><code># 指定安装路径和 Python 版本
+conda create -p /opt/miniconda-virtualenvs/r-reticulate python=3.7
+# 移除虚拟环境
+conda env remove -p /opt/miniconda-virtualenvs/r-reticulate
+# 更新 miniconda
+conda update conda</code></pre>
+</div>
+<div id="用-virtualenv-配置" class="section level2">
+<h2>用 virtualenv 配置</h2>
+<p>安装 virtualenv</p>
+<pre class="bash"><code>brew install virtualenv</code></pre>
+<p>用 virtualenv 创建虚拟环境，虚拟环境的存放路径是 <code>/opt/.virtualenvs/r-tensorflow</code>，所以名字就是 <code>r-tensorflow</code></p>
+<pre class="bash"><code># 准备虚拟环境萼存放地址
+sudo mkdir -p /opt/.virtualenvs/r-tensorflow
+sudo chown -R $(whoami):staff /opt/.virtualenvs/r-tensorflow
+# 方便后续复用
+export RETICULATE_PYTHON_ENV=/opt/.virtualenvs/r-tensorflow
+# 创建虚拟环境
+virtualenv -p /usr/local/bin/python3 $RETICULATE_PYTHON_ENV</code></pre>
+<p>查看虚拟环境中 Python 版本</p>
+<pre class="bash"><code>python -V</code></pre>
+<p>激活虚拟环境</p>
+<pre class="bash"><code>source $RETICULATE_PYTHON_ENV/bin/activate
+# 取消激活
+deactivate</code></pre>
+<p>进入虚拟环境后，从 requirements.txt 安装 Python 模块</p>
+<pre class="bash"><code>pip install -r requirements.txt</code></pre>
+<p>查看已经安装的 Python 模块</p>
+<pre class="bash"><code>pip list --format=columns</code></pre>
+<p>在文件 <code>.Rprofile</code> 里设置环境变量 <code>RETICULATE_PYTHON</code> 和 <code>RETICULATE_PYTHON_ENV</code>，这样 <strong>reticulate</strong> 包就能发现和使用它了。</p>
+<pre class="bash"><code>Sys.setenv(RETICULATE_PYTHON=&quot;/usr/local/bin/python3&quot;)
+Sys.setenv(RETICULATE_PYTHON_ENV=&quot;/opt/.virtualenvs/r-tensorflow&quot;)</code></pre>
+<p>如果希望打开终端就进入虚拟环境，可以在 .zshrc 文件中添加两行</p>
+<pre class="bash"><code>export RETICULATE_PYTHON_ENV=/opt/.virtualenvs/r-tensorflow
+source $RETICULATE_PYTHON_ENV/bin/activate</code></pre>
+<blockquote>
+<p>注意</p>
+<p>要使用从 brew 安装的 Python3 即 <code>/usr/local/bin/python3</code> 而不是 MacOS 系统自带的 Python3，即 <code>/usr/bin/python3</code></p>
+</blockquote>
+<p>在 RStudio IDE 里配置好 Python 及其虚拟环境，应该能看到</p>
+<pre class="r"><code>Sys.getenv(&quot;RETICULATE_PYTHON&quot;)</code></pre>
+<pre><code>[1] &quot;/usr/local/bin/python3&quot;</code></pre>
+<pre class="r"><code>reticulate::py_discover_config()</code></pre>
+<pre><code>python:         /usr/local/bin/python3
+libpython:      /usr/local/opt/python@3.9/Frameworks/Python.framework/Versions/3.9/lib/python3.9/config-3.9-darwin/libpython3.9.dylib
+pythonhome:     /usr/local/Cellar/python@3.9/3.9.7/Frameworks/Python.framework/Versions/3.9
+version:        3.9.7 (default, Sep  3 2021, 12:37:55)  [Clang 12.0.5 (clang-1205.0.22.9)]
+numpy:          /usr/local/lib/python3.9/site-packages/numpy
+numpy_version:  1.21.2
+
+NOTE: Python version was forced by RETICULATE_PYTHON</code></pre>
+</div>
+</div>
+<div id="知识管理" class="section level1">
+<h1>知识管理</h1>
+<div id="gollum" class="section level2">
+<h2>Gollum</h2>
+<p>用 <a href="https://github.com/gollum/gollum">Gollum</a> 创建 wiki 随时记下个人笔记，gollum 源自电影《指环王》里的角色咕噜。系统环境如下</p>
+<pre class="bash"><code>gem env</code></pre>
+<pre><code>RubyGems Environment:
+  - RUBYGEMS VERSION: 3.0.3
+  - RUBY VERSION: 2.6.3 (2019-04-16 patchlevel 62) [universal.x86_64-darwin20]
+  - INSTALLATION DIRECTORY: /Library/Ruby/Gems/2.6.0
+  - USER INSTALLATION DIRECTORY: /Users/你的账户名/.gem/ruby/2.6.0
+  - RUBY EXECUTABLE: /System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/bin/ruby
+  - GIT EXECUTABLE: /usr/bin/git
+  - EXECUTABLE DIRECTORY: /usr/local/bin
+  - SPEC CACHE DIRECTORY: /Users/你的账户名/.gem/specs
+  - SYSTEM CONFIGURATION DIRECTORY: /Library/Ruby/Site
+  - RUBYGEMS PLATFORMS:
+    - ruby
+    - universal-darwin-20
+  - GEM PATHS:
+     - /Library/Ruby/Gems/2.6.0
+     - /Users/你的账户名/.gem/ruby/2.6.0
+     - /System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/gems/2.6.0
+  - GEM CONFIGURATION:
+     - :update_sources =&gt; true
+     - :verbose =&gt; true
+     - :backtrace =&gt; false
+     - :bulk_threshold =&gt; 1000
+     - :sources =&gt; [&quot;https://mirrors.tuna.tsinghua.edu.cn/rubygems/&quot;]
+     - :concurrent_downloads =&gt; 8
+  - REMOTE SOURCES:
+     - https://mirrors.tuna.tsinghua.edu.cn/rubygems/
+  - SHELL PATH:
+     - /Users/你的账户名/.gem/ruby/2.6.0/bin</code></pre>
+<p>将 <code>/Users/你的账户名/.local/share/gem/ruby/2.6.0/bin</code> 添加到 PATH 变量里，修改修改镜像源，加快下载速度</p>
+<pre class="bash"><code>gem sources --add https://mirrors.tuna.tsinghua.edu.cn/rubygems/ --remove https://rubygems.org/</code></pre>
+<p>安装好 Xcode 库后，安装一些编译环境，比如 cmake，一些 <a href="https://github.com/gollum/gollum">gollum</a> 依赖的库需要编译安装，这些库是用 cmake 创建的项目。更新自带的库</p>
+<pre class="bash"><code>sudo gem update</code></pre>
+<p>然后安装 gollum</p>
+<pre class="bash"><code>brew install cmake pkg-config
+gem install --user-install gollum</code></pre>
+<p>注意 :warning: 由于权限问题，不能安装到系统目录，实际上，也建议安装到非系统目录，即当前账户下的目录，截止 2021-03-06 安装的最新稳定版本 gollum 5.2.1。创建一个目录，并用 git 初始化， gollum 是用 git 来做版本管理的，所以要先初始化，然后使用 gollum 服务，启动 wiki</p>
+<pre class="bash"><code>gollum /path/to/wiki</code></pre>
+<p>最后，预览 Wiki 网页，打开 <a href="http://localhost:4567" class="uri">http://localhost:4567</a>，gollum 默认使用 4567 端口号，如果分支使用 main， 那么启动的时候要加参数 <code>--ref</code> 指定为 main</p>
+<pre class="bash"><code>gollum --ref main --emoji --allow-uploads=dir /path/to/wiki</code></pre>
+<blockquote>
+<p>注意</p>
+<p>先想好目录结构，不然会很乱，以后改起来就麻烦了！</p>
+</blockquote>
+</div>
+</div>

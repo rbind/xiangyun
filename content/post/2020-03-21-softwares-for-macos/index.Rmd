@@ -1,9 +1,12 @@
 ---
-title: 设置 MacOS 电脑
+title: 一些 MacOS 上的软件
 author: 黄湘云
-date: '2021-03-21'
-slug: setup-macos
-toc: true
+date: '2020-03-21'
+slug: softwares-for-macos
+output:
+  blogdown::html_page:
+    toc: true
+link-citations: true
 categories:
   - 统计软件
 tags:
@@ -12,7 +15,7 @@ description: "软件环境配置是个既麻烦又耗时的苦力活，笔者曾
 ---
 
 
-# 高频设置
+# 设置 MacOS
 
 -   命令行工具 [Xcode](https://developer.apple.com/download/all/) 等，在线安装迷你版命令行工具。
 
@@ -46,54 +49,72 @@ description: "软件环境配置是个既麻烦又耗时的苦力活，笔者曾
     brew install --cask font-fira-code font-fira-code-nerd-font
     ```
 
-刘志进实验室有很多免费音乐，支持外链，可以插入博客 <https://music.liuzhijin.cn/>
+
+
 
 # 常用软件
 
 
-``` bash
-# 办公软件
+## 办公软件
+
+
+```bash
 brew install --cask notion jasp
 brew install --cask adobe-creative-cloud
+```
 
+视频编辑器 [openshot-video-editor](https://github.com/OpenShot/openshot-qt) (<https://www.openshot.org/zh-hans/>)
 
-# 视频编辑器 https://www.openshot.org/zh-hans/
-# [openshot-video-editor](https://github.com/OpenShot/openshot-qt)
+```bash
 brew install --cask openshot-video-editor
+```
 
-# https://github.com/mltframework/shotcut
+刘志进实验室有很多免费音乐，支持外链，可以插入博客 <https://music.liuzhijin.cn/>
+
+[shotcut](https://github.com/mltframework/shotcut)
+
+```bash
 brew install --cask shotcut
+```
 
-# https://github.com/blender/blender
-# https://www.blender.org/
+[blender](https://github.com/blender/blender) (<https://www.blender.org/>)
+
+```bash
+# 3D 建模
 brew install --cask blender
-# https://www.blackmagicdesign.com/products/davinciresolve/
 
 # Github CLI 命令行工具
-brew install tig tree
-brew install gh gnupg
+brew install tig gh
+brew install tree gnupg
 
 # LaTeX 代码块样式
 # https://www.ctan.org/pkg/codebox
+```
 
-# 矢量图形编程语言 [asymptote](https://asymptote.sourceforge.io/)
-# https://asymptote.sourceforge.io/asymptote.pdf
-# https://ctan.org/pkg/asymptote
-brew install asymptote
+[plantuml](https://plantuml.com/) 提供 UML 统一建模语言 
 
-# UML 统一建模语言 [plantuml](https://plantuml.com/)
+```bash
 brew install plantuml
+```
 
-brew install --cask visual-paradigm-ce
+[asymptote](https://asymptote.sourceforge.io/) 提供一种矢量图形编程语言，像 TikZ 支持 LaTeX，[asymptote 宏包](https://ctan.org/pkg/asymptote)及其[使用文档](https://asymptote.sourceforge.io/asymptote.pdf)。
 
-# Data science platform
+```bash
+brew install asymptote
+```
+
+数据科学平台
+
+```bash
 brew install --cask rapidminer-studio data-science-studio
-# orange 数据挖掘 https://orangedatamining.com/
-# 每一个操作都是一个组件，将组件连接起来就是工作流，可视化数据编程
-# 是开源的 https://github.com/biolab/orange3
-brew install --cask orange
+```
 
-# Data visualization software 或 BI 工具 如 Qlik
+[Orange](https://github.com/biolab/orange3) (<https://orangedatamining.com/>) 是开源的数据挖掘软件， 每一个操作都是一个组件，将组件连接起来就是工作流，可视化数据编程
+
+```bash
+# 数据挖掘软件
+brew install --cask orange
+# 收费的商业智能工具
 brew install --cask tableau 
 ```
 
@@ -247,7 +268,10 @@ reticulate::py_discover_config()
 
     NOTE: Python version was forced by RETICULATE_PYTHON
 
-# Gollum 知识管理
+
+# 知识管理
+
+## Gollum
 
 用 [Gollum](https://github.com/gollum/gollum) 创建 wiki 随时记下个人笔记，gollum 源自电影《指环王》里的角色咕噜。系统环境如下
 
@@ -303,7 +327,7 @@ brew install cmake pkg-config
 gem install --user-install gollum
 ```
 
-注意:warning:，由于权限问题，不能安装到系统目录，实际上，也建议安装到非系统目录，即当前账户下的目录，截止 2021-03-06 安装的最新稳定版本 gollum 5.2.1。创建一个目录，并用 git 初始化， gollum 是用 git 来做版本管理的，所以要先初始化，然后使用 gollum 服务，启动 wiki
+注意 :warning: 由于权限问题，不能安装到系统目录，实际上，也建议安装到非系统目录，即当前账户下的目录，截止 2021-03-06 安装的最新稳定版本 gollum 5.2.1。创建一个目录，并用 git 初始化， gollum 是用 git 来做版本管理的，所以要先初始化，然后使用 gollum 服务，启动 wiki
 
 ``` bash
 gollum /path/to/wiki
