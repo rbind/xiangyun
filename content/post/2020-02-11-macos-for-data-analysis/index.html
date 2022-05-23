@@ -1,0 +1,261 @@
+---
+title: 在 MacOS 上安装数据分析软件
+date: '2020-02-11'
+author: 黄湘云
+slug: macos-for-data-analysis
+categories:
+  - R 语言
+tags:
+  - 源码编译
+output:
+  blogdown::html_page:
+    toc: true
+link-citations: true
+description: "软件环境配置是个既麻烦又耗时的苦力活，笔者曾经在 Windows 上折腾多年，换过几次电脑，工作之后，转向 MacOS 系统，又开始折腾，人生苦短，现收集整理出来，以后遇到新的坑也会填上来，尽量节省一些不必要的重复折腾。一些历史的折腾也搬上来了，生命不息，重装不止！"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#字体配置" id="toc-字体配置">字体配置</a>
+<ul>
+<li><a href="#字体安装" id="toc-字体安装">字体安装</a></li>
+<li><a href="#字体使用" id="toc-字体使用">字体使用</a></li>
+</ul></li>
+<li><a href="#编辑器" id="toc-编辑器">编辑器</a>
+<ul>
+<li><a href="#代码编辑" id="toc-代码编辑">代码编辑</a></li>
+<li><a href="#文本编辑" id="toc-文本编辑">文本编辑</a></li>
+</ul></li>
+<li><a href="#r-包安装" id="toc-r-包安装">R 包安装</a>
+<ul>
+<li><a href="#r-和-rstudio-软件" id="toc-r-和-rstudio-软件">R 和 RStudio 软件</a></li>
+<li><a href="#r-包与-orca" id="toc-r-包与-orca">R 包与 Orca</a></li>
+<li><a href="#r-包与-phantomjs" id="toc-r-包与-phantomjs">R 包与 PhantomJS</a></li>
+<li><a href="#r-包与-openmp" id="toc-r-包与-openmp">R 包与 OpenMP</a></li>
+<li><a href="#rmpi-包和-open-mpi" id="toc-rmpi-包和-open-mpi">Rmpi 包和 open-mpi</a></li>
+<li><a href="#stringi-包和-icu4c" id="toc-stringi-包和-icu4c">stringi 包和 icu4c</a></li>
+<li><a href="#openssl-包和-openssl1.1" id="toc-openssl-包和-openssl1.1">openssl 包和 <span>openssl@1.1</span></a></li>
+</ul></li>
+<li><a href="#常用软件" id="toc-常用软件">常用软件</a></li>
+</ul>
+</div>
+
+<div id="字体配置" class="section level1">
+<h1>字体配置</h1>
+<div id="字体安装" class="section level2">
+<h2>字体安装</h2>
+<pre class="bash"><code># 字体库
+brew tap homebrew/cask-fonts
+# 代码显示字体：用于 RStudio IDE 等代码编辑器
+brew install --cask font-fira-code
+# 代码排版字体：用于书籍中代码
+brew install font-inconsolata
+# 其它系列字体
+brew install font-dejavu font-liberation
+brew install font-fira-sans font-fira-mono font-fira-code 
+brew install font-open-sans font-open-sans-condensed
+# 中文字体
+brew install --cask font-noto-sans-cjk-sc font-noto-serif-cjk-sc
+brew install --cask font-alegreya-sans-sc font-alegreya-sc
+# 英文字体
+brew install --cask font-source-code-pro font-source-sans-pro  font-source-serif-pro
+# 用于终端显示
+brew install --cask font-source-code-pro-for-powerline
+# 漫画字体
+brew install --cask font-xkcd
+# 表情字体
+brew install --cask font-noto-emoji font-noto-color-emoji
+# Windows 系统字体
+brew install --cask font-arial font-andale-mono font-times-new-roman</code></pre>
+</div>
+<div id="字体使用" class="section level2">
+<h2>字体使用</h2>
+<p>LaTeX 宏包 <strong>xecjk</strong> 支持中文，不必使用 <strong>ctex</strong> 宏包，MacOS 系统上，在 LaTeX 文档里使用 Windows 系统上的黑体、宋体、仿宋、楷体四款中文字体。</p>
+<pre class="tex"><code>\setCJKmainfont[ItalicFont={KaiTi_GB2312}, BoldFont={SimHei}]{SimSun}
+\setCJKsansfont{SimHei}
+\setCJKmonofont{FangSong_GB2312}
+
+\setCJKfamilyfont{heiti}{SimHei}             
+\newcommand{\heiti}{\CJKfamily{heiti}}
+
+\setCJKfamilyfont{kaishu}{KaiTi_GB2312}             
+\newcommand{\kaishu}{\CJKfamily{kaishu}}
+
+\setCJKfamilyfont{songti}{SimSun}             
+\newcommand{\songti}{\CJKfamily{songti}}
+
+\setCJKfamilyfont{fangsong}{FangSong_GB2312}             
+\newcommand{\fangsong}{\CJKfamily{fangsong}}</code></pre>
+</div>
+</div>
+<div id="编辑器" class="section level1">
+<h1>编辑器</h1>
+<div id="代码编辑" class="section level2">
+<h2>代码编辑</h2>
+<p>通用代码文本集成开发编辑环境 IDE</p>
+<pre class="bash"><code>brew install --cask visual-studio-code atom </code></pre>
+</div>
+<div id="文本编辑" class="section level2">
+<h2>文本编辑</h2>
+<p>文字编辑和文档转化工具</p>
+<pre class="bash"><code>brew install pandoc hugo
+brew install --cask mark-text
+brew install --cask calibre lyx</code></pre>
+<p>运行 LyX 内置的 knitr 模版，需要一些 LaTeX 包</p>
+<pre class="r"><code>tinytex::tlmgr_install(c(&#39;palatino&#39;, &#39;babel-english&#39;, &#39;mathpazo&#39;))</code></pre>
+</div>
+</div>
+<div id="r-包安装" class="section level1">
+<h1>R 包安装</h1>
+<div id="r-和-rstudio-软件" class="section level2">
+<h2>R 和 RStudio 软件</h2>
+<pre class="bash"><code>brew install --cask r xquartz
+brew install --cask rstudio</code></pre>
+<p>设置 R 软件的语言为英文<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>，避免一些不必要的编码问题，中文翻译不是很好，此外，看英文最好！</p>
+<pre class="bash"><code>defaults write org.R-project.R force.LANG en_US.UTF-8</code></pre>
+<p>安装一些 R 包需要的系统依赖</p>
+<pre class="bash"><code>brew install glpk
+brew install clp
+brew install udunits gdal
+brew install v8</code></pre>
+<p>安装完 apache-arrow 后，固定下来</p>
+<pre class="bash"><code>brew install apache-arrow
+brew pin apache-arrow </code></pre>
+</div>
+<div id="r-包与-orca" class="section level2">
+<h2>R 包与 Orca</h2>
+<p>安装 orca 将 plotly 绘制的交互式动态图形转化为静态的 SVG/PDF 格式矢量图形</p>
+<pre class="bash"><code>brew install --cask orca</code></pre>
+</div>
+<div id="r-包与-phantomjs" class="section level2">
+<h2>R 包与 PhantomJS</h2>
+<p>安装 phantomjs 用于 <strong>webshot</strong> 包</p>
+<pre class="bash"><code>brew install --cask phantomjs</code></pre>
+<p><code>webshot::install_phantomjs()</code> 将交互式图形截图放在 bookdown 书里</p>
+</div>
+<div id="r-包与-openmp" class="section level2">
+<h2>R 包与 OpenMP</h2>
+<p>目前，发现 R 包 <strong>data.table</strong>、<strong>RandomFields</strong> 和 <strong>RandomFieldsUtils</strong> 需启用 OpenMP 从源码编译才能获得共享内存的多线程并行计算的能力。</p>
+<p>从源码安装 <a href="https://github.com/fxcoudert/gfortran-for-macOS/releases">data.table</a></p>
+<pre class="bash"><code>brew install pkg-config # 检查和发现 zlib
+brew install libomp # OpenMP</code></pre>
+<p>参考 <a href="https://mac.r-project.org/openmp/" class="uri">https://mac.r-project.org/openmp/</a> 文档，在 <code>~/.R/Makevars</code> 添加两行即可。</p>
+<pre><code>CPPFLAGS += -Xclang -fopenmp
+LDFLAGS += -lomp</code></pre>
+</div>
+<div id="rmpi-包和-open-mpi" class="section level2">
+<h2>Rmpi 包和 open-mpi</h2>
+<p>先安装外部软件依赖</p>
+<pre class="bash"><code>brew install open-mpi</code></pre>
+<pre class="r"><code>install.packages(&#39;Rmpi&#39;, type = &#39;source&#39;)</code></pre>
+<pre><code>* installing *source* package ‘Rmpi’ ...
+** package ‘Rmpi’ successfully unpacked and MD5 sums checked
+** using staged installation
+checking for gcc... clang -mmacosx-version-min=11.3
+checking whether the C compiler works... yes
+checking for C compiler default output file name... a.out
+checking for suffix of executables... 
+checking whether we are cross compiling... no
+checking for suffix of object files... o
+checking whether we are using the GNU C compiler... yes
+checking whether clang -mmacosx-version-min=11.3 accepts -g... yes
+checking for clang -mmacosx-version-min=11.3 option to accept ISO C89... none needed
+checking for pkg-config... /usr/local/bin/pkg-config
+checking if pkg-config knows about OpenMPI... yes
+checking for orted... yes
+configure: creating ./config.status
+config.status: creating src/Makevars
+** libs
+clang -mmacosx-version-min=11.3 -I&quot;/Library/Frameworks/R.framework/Resources/include&quot; -DNDEBUG -DPACKAGE_NAME=\&quot;\&quot; -DPACKAGE_TARNAME=\&quot;\&quot; -DPACKAGE_VERSION=\&quot;\&quot; -DPACKAGE_STRING=\&quot;\&quot; -DPACKAGE_BUGREPORT=\&quot;\&quot; -DPACKAGE_URL=\&quot;\&quot; -I/usr/local/Cellar/open-mpi/4.1.1_2/include -DMPI2 -DOPENMPI  -I/usr/local/include   -fPIC  -Wall -g -O2  -c Rmpi.c -o Rmpi.o
+clang -mmacosx-version-min=11.3 -I&quot;/Library/Frameworks/R.framework/Resources/include&quot; -DNDEBUG -DPACKAGE_NAME=\&quot;\&quot; -DPACKAGE_TARNAME=\&quot;\&quot; -DPACKAGE_VERSION=\&quot;\&quot; -DPACKAGE_STRING=\&quot;\&quot; -DPACKAGE_BUGREPORT=\&quot;\&quot; -DPACKAGE_URL=\&quot;\&quot; -I/usr/local/Cellar/open-mpi/4.1.1_2/include -DMPI2 -DOPENMPI  -I/usr/local/include   -fPIC  -Wall -g -O2  -c conversion.c -o conversion.o
+clang -mmacosx-version-min=11.3 -I&quot;/Library/Frameworks/R.framework/Resources/include&quot; -DNDEBUG -DPACKAGE_NAME=\&quot;\&quot; -DPACKAGE_TARNAME=\&quot;\&quot; -DPACKAGE_VERSION=\&quot;\&quot; -DPACKAGE_STRING=\&quot;\&quot; -DPACKAGE_BUGREPORT=\&quot;\&quot; -DPACKAGE_URL=\&quot;\&quot; -I/usr/local/Cellar/open-mpi/4.1.1_2/include -DMPI2 -DOPENMPI  -I/usr/local/include   -fPIC  -Wall -g -O2  -c internal.c -o internal.o
+clang -mmacosx-version-min=11.3 -dynamiclib -Wl,-headerpad_max_install_names -undefined dynamic_lookup -single_module -multiply_defined suppress -L/Library/Frameworks/R.framework/Resources/lib -L/usr/local/lib -o Rmpi.so Rmpi.o conversion.o internal.o -L/usr/local/Cellar/open-mpi/4.1.1_2/lib -L/usr/local/opt/libevent/lib -lmpi -F/Library/Frameworks/R.framework/.. -framework R -Wl,-framework -Wl,CoreFoundation
+installing to /Library/Frameworks/R.framework/Versions/4.1/Resources/library/00LOCK-Rmpi/00new/Rmpi/libs
+** R
+** demo
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** testing if installed package can be loaded from temporary location
+** checking absolute paths in shared objects and dynamic libraries
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (Rmpi)</code></pre>
+</div>
+<div id="stringi-包和-icu4c" class="section level2">
+<h2>stringi 包和 icu4c</h2>
+<p>安装 icu4c</p>
+<pre class="bash"><code>brew install icu4c</code></pre>
+<p>配置环境变量</p>
+<pre class="bash"><code># brew 安装的 icu4c 优先
+echo &#39;export PATH=&quot;/usr/local/opt/icu4c/bin:$PATH&quot;&#39; &gt;&gt; ~/.zshrc
+echo &#39;export PATH=&quot;/usr/local/opt/icu4c/sbin:$PATH&quot;&#39; &gt;&gt; ~/.zshrc
+
+# 用于 C++ 编译器找到 icu4c
+echo &#39;export LDFLAGS=&quot;-L/usr/local/opt/icu4c/lib&quot;&#39; &gt;&gt; ~/.zshrc
+echo &#39;export CPPFLAGS=&quot;-I/usr/local/opt/icu4c/include&quot;&#39; &gt;&gt; ~/.zshrc
+
+# 用于 pkg-config 找到 icu4c 
+echo &#39;export PKG_CONFIG_PATH=&quot;/usr/local/opt/icu4c/lib/pkgconfig&quot;&#39; &gt;&gt; ~/.zshrc</code></pre>
+<p>如果用 brew 安装了新版本的 gcc 编译器，在安装需要启用 gcc 编译链接的 R 包时，出现如下类似警告<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>：</p>
+<p>设置 gfortran 库路径，当前安装的 gcc-11</p>
+<pre><code>FLIBS = -L/usr/local/Cellar/gcc/11.2.0/lib/gcc/11 -lgfortran -lquadmath -lm</code></pre>
+</div>
+<div id="openssl-包和-openssl1.1" class="section level2">
+<h2>openssl 包和 <a href="mailto:openssl@1.1" class="email">openssl@1.1</a></h2>
+<pre class="bash"><code>brew install openssl@1.1</code></pre>
+<p><a href="https://github.com/jeroen/openssl">openssl</a></p>
+<pre class="r"><code>install.packages(
+  pkgs = &quot;openssl&quot;, type = &quot;source&quot;,
+  configure.vars = c(
+    &quot;LIB_DIR=/usr/local/opt/openssl@1.1/lib&quot;,
+    &quot;INCLUDE_DIR=/usr/local/opt/openssl@1.1/include&quot;
+  )
+)</code></pre>
+</div>
+</div>
+<div id="常用软件" class="section level1">
+<h1>常用软件</h1>
+<pre class="bash"><code># 图像处理
+brew install ghostscript imagemagick optipng graphviz
+brew install --cask drawio inkscape gimp
+
+# 视频处理
+brew install ffmpeg
+# GIF 制作
+brew install gifski
+
+# 视频播放
+brew install --cask zy-player
+brew install --cask iina
+
+# 解压、下载软件
+brew install --cask rar free-download-manager
+
+# 数据库管理
+brew install --cask dbeaver-community
+
+# 办公软件
+brew install --cask tencent-meeting zoom
+brew install --cask google-chrome
+brew install --cask adobe-acrobat-reader
+brew install --cask microsoft-office
+brew install --cask zotero
+
+# 统计软件
+brew install jags
+brew install --cask qgis
+brew install --cask julia
+brew install --cask pycharm-ce</code></pre>
+</div>
+<div class="footnotes footnotes-end-of-document">
+<hr />
+<ol>
+<li id="fn1"><p><a href="https://cran.r-project.org/bin/macosx/RMacOSX-FAQ.html#Internationalization-of-the-R_002eapp">Internationalization of the R.app</a><a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p><a href="https://stackoverflow.com/questions/35999874/mac-os-x-r-error-ld-warning-directory-not-found-for-option">Mac OS X R error “ld: warning: directory not found for option”</a></p>
+<p>ld: warning: directory not found for option ‘-L/usr/local/lib/gcc/x86_64-apple-darwin13.0.0/4.8.2’<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>

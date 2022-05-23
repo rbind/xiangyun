@@ -1,0 +1,303 @@
+---
+title: 在 MacOS 上安装数据分析软件
+date: '2020-02-11'
+author: 黄湘云
+slug: macos-for-data-analysis
+categories:
+  - R 语言
+tags:
+  - 源码编译
+output:
+  blogdown::html_page:
+    toc: true
+link-citations: true
+description: "软件环境配置是个既麻烦又耗时的苦力活，笔者曾经在 Windows 上折腾多年，换过几次电脑，工作之后，转向 MacOS 系统，又开始折腾，人生苦短，现收集整理出来，以后遇到新的坑也会填上来，尽量节省一些不必要的重复折腾。一些历史的折腾也搬上来了，生命不息，重装不止！"
+---
+
+
+# 字体配置
+
+## 字体安装
+
+```bash
+# 字体库
+brew tap homebrew/cask-fonts
+# 代码显示字体：用于 RStudio IDE 等代码编辑器
+brew install --cask font-fira-code
+# 代码排版字体：用于书籍中代码
+brew install font-inconsolata
+# 其它系列字体
+brew install font-dejavu font-liberation
+brew install font-fira-sans font-fira-mono font-fira-code 
+brew install font-open-sans font-open-sans-condensed
+# 中文字体
+brew install --cask font-noto-sans-cjk-sc font-noto-serif-cjk-sc
+brew install --cask font-alegreya-sans-sc font-alegreya-sc
+# 英文字体
+brew install --cask font-source-code-pro font-source-sans-pro  font-source-serif-pro
+# 用于终端显示
+brew install --cask font-source-code-pro-for-powerline
+# 漫画字体
+brew install --cask font-xkcd
+# 表情字体
+brew install --cask font-noto-emoji font-noto-color-emoji
+# Windows 系统字体
+brew install --cask font-arial font-andale-mono font-times-new-roman
+```
+
+## 字体使用
+
+LaTeX 宏包 **xecjk** 支持中文，不必使用 **ctex** 宏包，MacOS 系统上，在 LaTeX 文档里使用 Windows 系统上的黑体、宋体、仿宋、楷体四款中文字体。
+
+```tex
+\setCJKmainfont[ItalicFont={KaiTi_GB2312}, BoldFont={SimHei}]{SimSun}
+\setCJKsansfont{SimHei}
+\setCJKmonofont{FangSong_GB2312}
+
+\setCJKfamilyfont{heiti}{SimHei}             
+\newcommand{\heiti}{\CJKfamily{heiti}}
+
+\setCJKfamilyfont{kaishu}{KaiTi_GB2312}             
+\newcommand{\kaishu}{\CJKfamily{kaishu}}
+
+\setCJKfamilyfont{songti}{SimSun}             
+\newcommand{\songti}{\CJKfamily{songti}}
+
+\setCJKfamilyfont{fangsong}{FangSong_GB2312}             
+\newcommand{\fangsong}{\CJKfamily{fangsong}}
+```
+
+
+# 编辑器
+
+## 代码编辑
+
+通用代码文本集成开发编辑环境 IDE
+
+```bash
+brew install --cask visual-studio-code atom 
+```
+
+## 文本编辑
+
+
+文字编辑和文档转化工具
+
+```bash
+brew install pandoc hugo
+brew install --cask mark-text
+brew install --cask calibre lyx
+```
+
+运行 LyX 内置的 knitr 模版，需要一些 LaTeX 包
+
+```r
+tinytex::tlmgr_install(c('palatino', 'babel-english', 'mathpazo'))
+```
+
+# R 包安装
+
+
+
+## R 和 RStudio 软件
+
+```bash
+brew install --cask r xquartz
+brew install --cask rstudio
+```
+
+设置 R 软件的语言为英文[^1]，避免一些不必要的编码问题，中文翻译不是很好，此外，看英文最好！
+
+[^1]: [Internationalization of the R.app](https://cran.r-project.org/bin/macosx/RMacOSX-FAQ.html#Internationalization-of-the-R_002eapp)
+
+```bash
+defaults write org.R-project.R force.LANG en_US.UTF-8
+```
+
+安装一些 R 包需要的系统依赖
+
+```bash
+brew install glpk
+brew install clp
+brew install udunits gdal
+brew install v8
+```
+
+安装完 apache-arrow 后，固定下来
+
+``` bash
+brew install apache-arrow
+brew pin apache-arrow 
+```
+
+## R 包与 Orca
+
+安装 orca 将 plotly 绘制的交互式动态图形转化为静态的 SVG/PDF 格式矢量图形
+
+``` bash
+brew install --cask orca
+```
+
+## R 包与 PhantomJS
+
+安装 phantomjs 用于 **webshot** 包
+
+``` bash
+brew install --cask phantomjs
+```
+
+`webshot::install_phantomjs()` 将交互式图形截图放在 bookdown 书里
+
+## R 包与 OpenMP
+
+目前，发现 R 包 **data.table**、**RandomFields** 和 **RandomFieldsUtils** 需启用 OpenMP 从源码编译才能获得共享内存的多线程并行计算的能力。
+
+从源码安装 [data.table](https://github.com/fxcoudert/gfortran-for-macOS/releases)
+
+``` bash
+brew install pkg-config # 检查和发现 zlib
+brew install libomp # OpenMP
+```
+
+参考 <https://mac.r-project.org/openmp/> 文档，在 `~/.R/Makevars` 添加两行即可。
+
+    CPPFLAGS += -Xclang -fopenmp
+    LDFLAGS += -lomp
+
+## Rmpi 包和 open-mpi
+
+先安装外部软件依赖
+
+``` bash
+brew install open-mpi
+```
+
+``` r
+install.packages('Rmpi', type = 'source')
+```
+
+    * installing *source* package ‘Rmpi’ ...
+    ** package ‘Rmpi’ successfully unpacked and MD5 sums checked
+    ** using staged installation
+    checking for gcc... clang -mmacosx-version-min=11.3
+    checking whether the C compiler works... yes
+    checking for C compiler default output file name... a.out
+    checking for suffix of executables... 
+    checking whether we are cross compiling... no
+    checking for suffix of object files... o
+    checking whether we are using the GNU C compiler... yes
+    checking whether clang -mmacosx-version-min=11.3 accepts -g... yes
+    checking for clang -mmacosx-version-min=11.3 option to accept ISO C89... none needed
+    checking for pkg-config... /usr/local/bin/pkg-config
+    checking if pkg-config knows about OpenMPI... yes
+    checking for orted... yes
+    configure: creating ./config.status
+    config.status: creating src/Makevars
+    ** libs
+    clang -mmacosx-version-min=11.3 -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -I/usr/local/Cellar/open-mpi/4.1.1_2/include -DMPI2 -DOPENMPI  -I/usr/local/include   -fPIC  -Wall -g -O2  -c Rmpi.c -o Rmpi.o
+    clang -mmacosx-version-min=11.3 -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -I/usr/local/Cellar/open-mpi/4.1.1_2/include -DMPI2 -DOPENMPI  -I/usr/local/include   -fPIC  -Wall -g -O2  -c conversion.c -o conversion.o
+    clang -mmacosx-version-min=11.3 -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -I/usr/local/Cellar/open-mpi/4.1.1_2/include -DMPI2 -DOPENMPI  -I/usr/local/include   -fPIC  -Wall -g -O2  -c internal.c -o internal.o
+    clang -mmacosx-version-min=11.3 -dynamiclib -Wl,-headerpad_max_install_names -undefined dynamic_lookup -single_module -multiply_defined suppress -L/Library/Frameworks/R.framework/Resources/lib -L/usr/local/lib -o Rmpi.so Rmpi.o conversion.o internal.o -L/usr/local/Cellar/open-mpi/4.1.1_2/lib -L/usr/local/opt/libevent/lib -lmpi -F/Library/Frameworks/R.framework/.. -framework R -Wl,-framework -Wl,CoreFoundation
+    installing to /Library/Frameworks/R.framework/Versions/4.1/Resources/library/00LOCK-Rmpi/00new/Rmpi/libs
+    ** R
+    ** demo
+    ** inst
+    ** byte-compile and prepare package for lazy loading
+    ** help
+    *** installing help indices
+    ** building package indices
+    ** testing if installed package can be loaded from temporary location
+    ** checking absolute paths in shared objects and dynamic libraries
+    ** testing if installed package can be loaded from final location
+    ** testing if installed package keeps a record of temporary installation path
+    * DONE (Rmpi)
+
+## stringi 包和 icu4c
+
+安装 icu4c
+
+``` bash
+brew install icu4c
+```
+
+配置环境变量
+
+``` bash
+# brew 安装的 icu4c 优先
+echo 'export PATH="/usr/local/opt/icu4c/bin:$PATH"' >> ~/.zshrc
+echo 'export PATH="/usr/local/opt/icu4c/sbin:$PATH"' >> ~/.zshrc
+
+# 用于 C++ 编译器找到 icu4c
+echo 'export LDFLAGS="-L/usr/local/opt/icu4c/lib"' >> ~/.zshrc
+echo 'export CPPFLAGS="-I/usr/local/opt/icu4c/include"' >> ~/.zshrc
+
+# 用于 pkg-config 找到 icu4c 
+echo 'export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig"' >> ~/.zshrc
+```
+
+如果用 brew 安装了新版本的 gcc 编译器，在安装需要启用 gcc 编译链接的 R 包时，出现如下类似警告[^2]：
+
+[^2]: [Mac OS X R error "ld: warning: directory not found for option"](https://stackoverflow.com/questions/35999874/mac-os-x-r-error-ld-warning-directory-not-found-for-option)
+
+    ld: warning: directory not found for option '-L/usr/local/lib/gcc/x86_64-apple-darwin13.0.0/4.8.2'
+
+设置 gfortran 库路径，当前安装的 gcc-11
+
+    FLIBS = -L/usr/local/Cellar/gcc/11.2.0/lib/gcc/11 -lgfortran -lquadmath -lm
+
+
+
+## openssl 包和 openssl@1.1
+
+```bash
+brew install openssl@1.1
+```
+
+[openssl](https://github.com/jeroen/openssl)
+
+```r
+install.packages(
+  pkgs = "openssl", type = "source",
+  configure.vars = c(
+    "LIB_DIR=/usr/local/opt/openssl@1.1/lib",
+    "INCLUDE_DIR=/usr/local/opt/openssl@1.1/include"
+  )
+)
+```
+
+# 常用软件
+
+
+```bash
+# 图像处理
+brew install ghostscript imagemagick optipng graphviz
+brew install --cask drawio inkscape gimp
+
+# 视频处理
+brew install ffmpeg
+# GIF 制作
+brew install gifski
+
+# 视频播放
+brew install --cask zy-player
+brew install --cask iina
+
+# 解压、下载软件
+brew install --cask rar free-download-manager
+
+# 数据库管理
+brew install --cask dbeaver-community
+
+# 办公软件
+brew install --cask tencent-meeting zoom
+brew install --cask google-chrome
+brew install --cask adobe-acrobat-reader
+brew install --cask microsoft-office
+brew install --cask zotero
+
+# 统计软件
+brew install jags
+brew install --cask qgis
+brew install --cask julia
+brew install --cask pycharm-ce
+```
