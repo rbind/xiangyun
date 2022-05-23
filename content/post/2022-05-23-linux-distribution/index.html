@@ -1,0 +1,857 @@
+---
+title: 那些年追过的 Linux 发行版
+date: '2022-05-23'
+author: 黄湘云
+slug: linux-distribution
+categories:
+  - 统计软件
+tags:
+  - 源码编译
+  - Linux 发行版
+link-citations: true
+output:
+  blogdown::html_page:
+    toc: true
+description: "时至今日，CentOS 都停服了，我也不再是那少年，这些折腾记录了我曾是个爱折腾的少年！"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#centos-8.x-fedora-29" id="toc-centos-8.x-fedora-29">CentOS 8.x &amp; Fedora 29+</a>
+<ul>
+<li><a href="#修改网络配置" id="toc-修改网络配置">修改网络配置</a></li>
+<li><a href="#本地化设置" id="toc-本地化设置">本地化设置</a></li>
+<li><a href="#配置组账户权限" id="toc-配置组账户权限">配置组账户权限</a></li>
+<li><a href="#配置镜像源" id="toc-配置镜像源">配置镜像源</a></li>
+<li><a href="#安装软件包" id="toc-安装软件包">安装软件包</a></li>
+<li><a href="#安装-mariadb" id="toc-安装-mariadb">安装 MariaDB</a></li>
+<li><a href="#主宿机文件传输" id="toc-主宿机文件传输">主宿机文件传输</a></li>
+<li><a href="#系统默认软件" id="toc-系统默认软件">系统默认软件</a></li>
+<li><a href="#tree-树形浏览器" id="toc-tree-树形浏览器">tree 树形浏览器</a></li>
+<li><a href="#安装-fishzsh" id="toc-安装-fishzsh">安装 fish/zsh</a></li>
+<li><a href="#安装软件" id="toc-安装软件">安装软件</a></li>
+<li><a href="#删除内核" id="toc-删除内核">删除内核</a></li>
+<li><a href="#linux-工具箱" id="toc-linux-工具箱">Linux 工具箱</a></li>
+<li><a href="#安装-tlmgr" id="toc-安装-tlmgr">安装 tlmgr</a></li>
+</ul></li>
+<li><a href="#rstudio-server-相关" id="toc-rstudio-server-相关">RStudio Server 相关</a>
+<ul>
+<li><a href="#安装-rstudio-server" id="toc-安装-rstudio-server">安装 RStudio Server</a></li>
+<li><a href="#更新-pandoc-版本" id="toc-更新-pandoc-版本">更新 Pandoc 版本</a></li>
+</ul></li>
+<li><a href="#配置-r-环境" id="toc-配置-r-环境">配置 R 环境</a>
+<ul>
+<li><a href="#编辑安全策略" id="toc-编辑安全策略">编辑安全策略</a></li>
+<li><a href="#配置防火墙" id="toc-配置防火墙">配置防火墙</a></li>
+<li><a href="#修改默认配置" id="toc-修改默认配置">修改默认配置</a></li>
+</ul></li>
+<li><a href="#系统安装" id="toc-系统安装">系统安装</a>
+<ul>
+<li><a href="#安装-fedora-29" id="toc-安装-fedora-29">安装 Fedora 29</a></li>
+<li><a href="#安装-centos-7" id="toc-安装-centos-7">安装 CentOS 7</a></li>
+<li><a href="#安装-opensuse" id="toc-安装-opensuse">安装 OpenSUSE</a></li>
+<li><a href="#安装-ubuntu" id="toc-安装-ubuntu">安装 Ubuntu</a></li>
+</ul></li>
+</ul>
+</div>
+
+<p>时至今日，CentOS 都<a href="https://www.centos.org/news-and-events/1321-reminder-centos-linux-is-eol-on-december-31st/">停服</a>了，我也不再是那少年，这些折腾记录了我曾是个爱折腾的少年！</p>
+<div id="centos-8.x-fedora-29" class="section level1">
+<h1>CentOS 8.x &amp; Fedora 29+</h1>
+<p>虚拟机内使用 CentOS 8.x 和 Fedora 29+ 系统时遇到的一些问题。</p>
+<div id="修改网络配置" class="section level2">
+<h2>修改网络配置</h2>
+<pre class="bash"><code># CentOS 8.x
+sudo vi /etc/sysconfig/network-scripts/ifcfg-enp0s8</code></pre>
+<pre><code>TYPE=Ethernet
+PROXY_METHOD=none
+BROWSER_ONLY=no
+BOOTPROTO=dhcp
+DEFROUTE=yes
+IPV4_FAILURE_FATAL=no
+IPV6INIT=yes
+IPV6_AUTOCONF=yes
+IPV6_DEFROUTE=yes
+IPV6_FAILURE_FATAL=no
+IPV6_ADDR_GEN_MODE=stable-privacy
+NAME=enp0s8
+UUID=b1914547-de69-4974-93f3-9b8bef8dabc0
+DEVICE=enp0s8
+ONBOOT=yes</code></pre>
+<p>将 <code>ONBOOT=no</code> 设置为 <code>ONBOOT=yes</code>，然后重启网络</p>
+<pre class="bash"><code>sudo systemctl restart NetworkManager.service
+# 或者
+sudo systemctl stop NetworkManager.service
+sudo systemctl start NetworkManager.service
+# 或者
+sudo nmcli networking off
+sudo nmcli networking on</code></pre>
+</div>
+<div id="本地化设置" class="section level2">
+<h2>本地化设置</h2>
+<p>命令行内输入 <code>locale</code> 看到如下输出时，意味着系统语言环境没有设置</p>
+<pre><code>locale: Cannot set LC_CTYPE to default locale: No such file or directory
+locale: Cannot set LC_MESSAGES to default locale: No such file or directory
+locale: Cannot set LC_ALL to default locale: No such file or directory
+LANG=zh_CN.UTF-8
+LC_CTYPE=&quot;zh_CN.UTF-8&quot;
+LC_NUMERIC=&quot;zh_CN.UTF-8&quot;
+LC_TIME=&quot;zh_CN.UTF-8&quot;
+LC_COLLATE=&quot;zh_CN.UTF-8&quot;
+LC_MONETARY=&quot;zh_CN.UTF-8&quot;
+LC_MESSAGES=&quot;zh_CN.UTF-8&quot;
+LC_PAPER=&quot;zh_CN.UTF-8&quot;
+LC_NAME=&quot;zh_CN.UTF-8&quot;
+LC_ADDRESS=&quot;zh_CN.UTF-8&quot;
+LC_TELEPHONE=&quot;zh_CN.UTF-8&quot;
+LC_MEASUREMENT=&quot;zh_CN.UTF-8&quot;
+LC_IDENTIFICATION=&quot;zh_CN.UTF-8&quot;
+LC_ALL=</code></pre>
+<p>是中文环境，就安装中文语言包，如果是英文环境就安装英文语言包</p>
+<pre class="bash"><code>sudo dnf install -y glibc-langpack-zh</code></pre>
+<blockquote>
+<p>编码、语言环境设置 <a href="https://docs.fedoraproject.org/en-US/fedora/rawhide/system-administrators-guide/basic-system-configuration/System_Locale_and_Keyboard_Configuration/" class="uri">https://docs.fedoraproject.org/en-US/fedora/rawhide/system-administrators-guide/basic-system-configuration/System_Locale_and_Keyboard_Configuration/</a></p>
+</blockquote>
+</div>
+<div id="配置组账户权限" class="section level2">
+<h2>配置组账户权限</h2>
+<pre class="bash"><code># 创建组 staff
+groupadd staff
+
+# 创建 docker 用户，并把它加入到 staff 组中
+useradd -g staff -d /home/docker docker
+
+# 给 staff 组管理员 root 权限
+useradd -s /bin/bash -g staff -G root docker
+usermod -G root docker</code></pre>
+</div>
+<div id="配置镜像源" class="section level2">
+<h2>配置镜像源</h2>
+<p>Fedora 系统</p>
+<pre class="bash"><code># 加快下载速度
+sudo sed -e &#39;s!^metalink=!#metalink=!g&#39; \
+    -e &#39;s!^#baseurl=!baseurl=!g&#39; \
+    -e &#39;s!//download\.fedoraproject\.org/pub!//mirrors.tuna.tsinghua.edu.cn!g&#39; \
+    -e &#39;s!http://mirrors\.tuna!https://mirrors.tuna!g&#39; \
+    -i /etc/yum.repos.d/epel.repo /etc/yum.repos.d/epel-testing.repo /etc/yum.repos.d/epel-modular.repo \
+    /etc/yum.repos.d/epel-playground.repo
+
+# 指定安装源
+sudo sed -e &#39;s|^metalink=|#metalink=|g&#39; \
+   -e &#39;s|^#baseurl=http://download.fedoraproject.org/pub/fedora/linux|baseurl=https://mirrors.ustc.edu.cn/fedora|g&#39; \
+   -i /etc/yum.repos.d/fedora.repo \
+   /etc/yum.repos.d/fedora-modular.repo \
+   /etc/yum.repos.d/fedora-updates.repo \
+   /etc/yum.repos.d/fedora-updates-modular.repo</code></pre>
+</div>
+<div id="安装软件包" class="section level2">
+<h2>安装软件包</h2>
+<pre class="bash"><code># texinfo-tex openblas-devel pandoc
+sudo dnf config-manager --set-enabled PowerTools 
+# R-devel
+sudo dnf -y install epel-release 
+sudo dnf update</code></pre>
+</div>
+<div id="安装-mariadb" class="section level2">
+<h2>安装 MariaDB</h2>
+<pre class="bash"><code># 从系统仓库安装开源版 
+sudo dnf install -y mariadb mariadb-devel mariadb-connector-odbc unixODBC-devel mariadb-server
+
+# 启动 mysql 服务
+sudo systemctl start mariadb.service
+# 设置开机启动
+sudo systemctl enable mariadb.service
+
+# 先设置密码，然后登陆
+sudo &#39;/usr/bin/mysqladmin&#39; -u root password &#39;cloud&#39;
+mysql -u root -h 127.0.0.1 -p 
+mysql -u root -p ‘cloud’</code></pre>
+</div>
+<div id="主宿机文件传输" class="section level2">
+<h2>主宿机文件传输</h2>
+<pre class="bash"><code># 测试链接
+ssh xiangyun@192.168.56.5 -p 22
+# 主机文件 pandoc-2.10.1-linux-amd64.tar.gz 放入虚拟机
+scp -P 22 rstudio-server-rhel-1.3.1073-x86_64.rpm xiangyun@192.168.58.5:/home/xiangyun/</code></pre>
+<p>输入密码后即可传输，速度飞快</p>
+<pre><code>rstudio-server-rhel-1.3.1073-x86_64.rpm       100%   45MB  74.5MB/s   00:00</code></pre>
+</div>
+<div id="系统默认软件" class="section level2">
+<h2>系统默认软件</h2>
+<p>尚未安装其它任何软件的情况下，系统自带的软件包，每一个都是生产力工具，每一个都值得写一篇长文介绍如何使用，留着以后折腾吧！</p>
+<table>
+<colgroup>
+<col width="12%" />
+<col width="76%" />
+<col width="10%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>工具</th>
+<th>概况</th>
+<th>版本</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="https://www.vim.org/">vi</a></td>
+<td>文本编辑器 A minimal version of the VIM editor</td>
+<td>8.0.1763</td>
+</tr>
+<tr class="even">
+<td><a href="https://www.gnu.org/software/bash">bash</a></td>
+<td>The GNU Bourne Again shell</td>
+<td>4.4.19</td>
+</tr>
+<tr class="odd">
+<td><a href="https://www.gnu.org/software/gawk/">gawk</a></td>
+<td>The GNU version of the AWK text processing utility</td>
+<td>4.2.1</td>
+</tr>
+<tr class="even">
+<td><a href="https://www.gnu.org/software/grep/">grep</a></td>
+<td>Pattern matching utilities</td>
+<td>3.1</td>
+</tr>
+<tr class="odd">
+<td><a href="http://sed.sourceforge.net/">sed</a></td>
+<td>A GNU stream text editor</td>
+<td>4.5</td>
+</tr>
+<tr class="even">
+<td><a href="https://github.com/rpm-software-management/dnf">dnf</a></td>
+<td>软件包管理器 Package manager</td>
+<td>4.2.7</td>
+</tr>
+<tr class="odd">
+<td><a href="http://www.openssh.com/portable.html">openssh</a></td>
+<td>An open source implementation of SSH protocol version 2</td>
+<td>8.0p1</td>
+</tr>
+<tr class="even">
+<td><a href="https://www.openssl.org/">openssl</a></td>
+<td>Utilities from the general purpose cryptography library with TLS implementation</td>
+<td>1.1.1c</td>
+</tr>
+<tr class="odd">
+<td><a href="https://curl.haxx.se/">curl</a></td>
+<td>A utility for getting files from remote servers (FTP, HTTP, and others)</td>
+<td>7.61.1</td>
+</tr>
+<tr class="even">
+<td><a href="https://www.netfilter.org/">iptables</a></td>
+<td>Tools for managing Linux kernel packet filtering capabilities</td>
+<td>1.8.2</td>
+</tr>
+<tr class="odd">
+<td><a href="https://www.firewalld.org">firewalld</a></td>
+<td>A firewall daemon with D-Bus interface providing a dynamic firewall</td>
+<td>0.7.0</td>
+</tr>
+<tr class="even">
+<td><a href="http://www.gnome.org/projects/NetworkManager/">NetworkManager</a></td>
+<td>Network connection manager and user applications</td>
+<td>1.20.0</td>
+</tr>
+<tr class="odd">
+<td><a href="https://www.rsyslog.com/">rsyslog</a></td>
+<td>Enhanced system logging and kernel message trapping daemon</td>
+<td>8.37.0</td>
+</tr>
+<tr class="even">
+<td><a href="http://www.freedesktop.org/Software/dbus/">dbus</a></td>
+<td>D-BUS message bus</td>
+<td>1.12.8</td>
+</tr>
+<tr class="odd">
+<td><a href="https://www.freedesktop.org/wiki/Software/systemd">systemd</a></td>
+<td>System and Service Manager</td>
+<td>239</td>
+</tr>
+<tr class="even">
+<td><a href="https://www.gnupg.org/">gnupg2</a></td>
+<td>Utility for secure communication and data storage</td>
+<td>2.2.9</td>
+</tr>
+<tr class="odd">
+<td><a href="https://www.gzip.org/">gzip</a></td>
+<td>The GNU data compression program</td>
+<td>1.9</td>
+</tr>
+<tr class="even">
+<td><a href="https://tukaani.org/xz/">xz</a></td>
+<td>LZMA compression utilities</td>
+<td>5.2.4</td>
+</tr>
+<tr class="odd">
+<td><a href="https://fedorahosted.org/crontabs">crontab</a></td>
+<td>定时任务 Root crontab files used to schedule the execution of programs</td>
+<td>1.11</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="tree-树形浏览器" class="section level2">
+<h2>tree 树形浏览器</h2>
+<p>tree 文件系统树形浏览器</p>
+<pre class="bash"><code>sudo yum install -y tree</code></pre>
+<pre class="bash"><code>tree ~/.fonts</code></pre>
+<p>输出结果可以被 Markdown 语法接受</p>
+<pre class="markdown"><code>/home/xiangyun/.fonts/
+└── winfonts
+    ├── Arial_Bold_Italic.ttf
+    ├── Arial_Bold.ttf
+    ├── Arial_Italic.ttf
+    ├── Arial.ttf
+    ├── FangSong_GB2312.ttf
+    ├── KaiTi_GB2312.ttf
+    ├── SimHei.ttf
+    ├── SimSun.ttc
+    ├── Times_New_Roman_Bold_Italic.ttf
+    ├── Times_New_Roman_Bold.ttf
+    ├── Times_New_Roman_Italic.ttf
+    └── Times_New_Roman.ttf</code></pre>
+<pre><code>1 directory, 12 files</code></pre>
+</div>
+<div id="安装-fishzsh" class="section level2">
+<h2>安装 fish/zsh</h2>
+<pre class="bash"><code># 提供 chsh 命令
+sudo yum install -y util-linux-user 
+# 安装 fish
+sudo yum install -y fish
+# 安装 oh-my-fish
+curl -L https://get.oh-my.fish | fish
+# 安装使用 robbyrussell 主题
+omf install robbyrussell
+# 设置 fish 为默认 shell
+chsh -s /usr/bin/fish</code></pre>
+</div>
+<div id="安装软件" class="section level2">
+<h2>安装软件</h2>
+<pre class="bash"><code>sudo dnf install -y \
+  calibre inkscape optipng ImageMagick ghostscript texinfo \
+  texlive-pdfcrop texlive-dvisvgm texlive-dvips \
+  texlive-dvipng texlive-ctex texlive-fandol texlive-xetex \
+  texlive-framed texlive-titling \
+  tex-preview epstool texlive-alegreya texlive-sourcecodepro</code></pre>
+</div>
+<div id="删除内核" class="section level2">
+<h2>删除内核</h2>
+<pre class="bash"><code># 查看已安装的内核
+rpm -qa | grep kernel
+# 删除旧内核
+sudo yum remove kernel-3.10.0-693.el7.x86_64</code></pre>
+</div>
+<div id="linux-工具箱" class="section level2">
+<h2>Linux 工具箱</h2>
+<p>Linux 平台常用的工具</p>
+<table>
+<colgroup>
+<col width="11%" />
+<col width="47%" />
+<col width="40%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Package</th>
+<th align="left">Homepage</th>
+<th align="left">Version</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">sed</td>
+<td align="left"><a href="https://www.gnu.org/software/sed/" class="uri">https://www.gnu.org/software/sed/</a></td>
+<td align="left">4.4-2</td>
+</tr>
+<tr class="even">
+<td align="left">gawk</td>
+<td align="left"><a href="http://www.gnu.org/software/gawk/" class="uri">http://www.gnu.org/software/gawk/</a></td>
+<td align="left">1:4.1.4+dfsg-1build1</td>
+</tr>
+<tr class="odd">
+<td align="left">grep</td>
+<td align="left"><a href="http://www.gnu.org/software/grep/" class="uri">http://www.gnu.org/software/grep/</a></td>
+<td align="left">3.1-2</td>
+</tr>
+<tr class="even">
+<td align="left">perl</td>
+<td align="left"><a href="http://dev.perl.org/perl5/" class="uri">http://dev.perl.org/perl5/</a></td>
+<td align="left">5.26.1-6ubuntu0.2</td>
+</tr>
+<tr class="odd">
+<td align="left">gnupg2</td>
+<td align="left"><a href="https://www.gnupg.org/" class="uri">https://www.gnupg.org/</a></td>
+<td align="left">2.2.4-1ubuntu1.1</td>
+</tr>
+<tr class="even">
+<td align="left">vim</td>
+<td align="left"><a href="https://vim.sourceforge.io/" class="uri">https://vim.sourceforge.io/</a></td>
+<td align="left">2:8.0.1453-1ubuntu1</td>
+</tr>
+<tr class="odd">
+<td align="left">zip</td>
+<td align="left"><a href="http://www.info-zip.org/Zip.html" class="uri">http://www.info-zip.org/Zip.html</a></td>
+<td align="left">3.0-11build1</td>
+</tr>
+<tr class="even">
+<td align="left">curl</td>
+<td align="left"><a href="http://curl.haxx.se" class="uri">http://curl.haxx.se</a></td>
+<td align="left">7.58.0-2ubuntu3.5</td>
+</tr>
+<tr class="odd">
+<td align="left">make</td>
+<td align="left"><a href="http://www.gnu.org/software/make/" class="uri">http://www.gnu.org/software/make/</a></td>
+<td align="left">4.1-9.1ubuntu1</td>
+</tr>
+<tr class="even">
+<td align="left">firewalld</td>
+<td align="left"><a href="http://www.firewalld.org/" class="uri">http://www.firewalld.org/</a></td>
+<td align="left">0.4.4.6-1</td>
+</tr>
+<tr class="odd">
+<td align="left">ghostscript</td>
+<td align="left"><a href="https://www.ghostscript.com/" class="uri">https://www.ghostscript.com/</a></td>
+<td align="left">9.26~dfsg+0-0ubuntu0.18.04.1</td>
+</tr>
+<tr class="even">
+<td align="left">imagemagick</td>
+<td align="left"><a href="http://www.imagemagick.org/" class="uri">http://www.imagemagick.org/</a></td>
+<td align="left">8:6.9.7.4+dfsg-16ubuntu6.4</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><a href="https://www.gnu.org/software/coreutils/tee">tee</a> 将标准输入复制到每个指定文件，并显示到标准输出。</li>
+<li><a href="https://www.netfilter.org/">iptables</a> IP 信息包过滤系统</li>
+</ul>
+</div>
+<div id="安装-tlmgr" class="section level2">
+<h2>安装 tlmgr</h2>
+<p>下载解压 install-tl-unx.tar.gz</p>
+<pre class="bash"><code>wget https://mirrors.tuna.tsinghua.edu.cn/CTAN/systems/texlive/tlnet/install-tl-unx.tar.gz
+tar -xzf install-tl-unx.tar.gz</code></pre>
+<p>安装</p>
+<pre class="bash"><code>sudo ./install-tl-20181217/install-tl</code></pre>
+<p>注意选择最小安装，即只安装包管理器 tlmgr （大约6M）</p>
+<pre><code>======================&gt; TeX Live installation procedure &lt;=====================
+
+======&gt;   Letters/digits in &lt;angle brackets&gt; indicate   &lt;=======
+======&gt;   menu items for actions or customizations      &lt;=======
+
+ Detected platform: GNU/Linux on x86_64
+
+ &lt;B&gt; set binary platforms: 1 out of 17
+
+ &lt;S&gt; set installation scheme: scheme-infraonly
+
+ &lt;C&gt; set installation collections:
+     0 collections out of 41, disk space required: 6 MB
+
+ &lt;D&gt; set directories:
+   TEXDIR (the main TeX directory):
+     /usr/local/texlive/2018
+   TEXMFLOCAL (directory for site-wide local files):
+     /usr/local/texlive/texmf-local
+   TEXMFSYSVAR (directory for variable and automatically generated data):
+     /usr/local/texlive/2018/texmf-var
+   TEXMFSYSCONFIG (directory for local config):
+     /usr/local/texlive/2018/texmf-config
+   TEXMFVAR (personal directory for variable and automatically generated data):
+     ~/.texlive2018/texmf-var
+   TEXMFCONFIG (personal directory for local config):
+     ~/.texlive2018/texmf-config
+   TEXMFHOME (directory for user-specific files):
+     ~/texmf
+
+ &lt;O&gt; options:
+   [ ] use letter size instead of A4 by default
+   [X] allow execution of restricted list of programs via \write18
+   [X] create all format files
+   [X] install macro/font doc tree
+   [X] install macro/font source tree
+   [ ] create symlinks to standard directories
+
+ &lt;V&gt; set up for portable installation
+
+Actions:
+ &lt;I&gt; start installation to hard disk
+ &lt;P&gt; save installation profile to &#39;texlive.profile&#39; and exit
+ &lt;H&gt; help
+ &lt;Q&gt; quit
+
+Enter command: I
+Installing to: /usr/local/texlive/2018
+Installing [1/7, time/total: ??:??/??:??]: hyphen-base [22k]
+Installing [2/7, time/total: 00:00/00:00]: kpathsea [1149k]
+Installing [3/7, time/total: 00:01/00:01]: kpathsea.x86_64-linux [47k]
+Installing [4/7, time/total: 00:01/00:01]: tetex [583k]
+Installing [5/7, time/total: 00:01/00:01]: tetex.x86_64-linux [1k]
+Installing [6/7, time/total: 00:01/00:01]: texlive.infra [394k]
+Installing [7/7, time/total: 00:02/00:02]: texlive.infra.x86_64-linux [146k]
+Time used for installing the packages: 00:02
+running mktexlsr /usr/local/texlive/2018/texmf-dist ...
+mktexlsr: Updating /usr/local/texlive/2018/texmf-dist/ls-R...
+mktexlsr: Done.
+writing fmtutil.cnf to /usr/local/texlive/2018/texmf-dist/web2c/fmtutil.cnf
+writing updmap.cfg to /usr/local/texlive/2018/texmf-dist/web2c/updmap.cfg
+writing language.dat to /usr/local/texlive/2018/texmf-var/tex/generic/config/language.dat
+writing language.def to /usr/local/texlive/2018/texmf-var/tex/generic/config/language.def
+writing language.dat.lua to /usr/local/texlive/2018/texmf-var/tex/generic/config/language.dat.lua
+running mktexlsr /usr/local/texlive/2018/texmf-var /usr/local/texlive/2018/texmf-config /usr/local/texlive/2018/texmf-dist ...
+mktexlsr: Updating /usr/local/texlive/2018/texmf-config/ls-R...
+mktexlsr: Updating /usr/local/texlive/2018/texmf-dist/ls-R...
+mktexlsr: Updating /usr/local/texlive/2018/texmf-var/ls-R...
+mktexlsr: Done.
+running updmap-sys --nohash ...done
+re-running mktexlsr /usr/local/texlive/2018/texmf-var /usr/local/texlive/2018/texmf-config ...
+mktexlsr: Updating /usr/local/texlive/2018/texmf-config/ls-R...
+mktexlsr: Updating /usr/local/texlive/2018/texmf-var/ls-R...
+mktexlsr: Done.
+pre-generating all format files, be patient...
+running fmtutil-sys --no-error-if-no-engine=luajittex,mfluajit --no-strict --all ...done
+running package-specific postactions
+finished with package-specific postactions
+
+
+Welcome to TeX Live!
+
+
+See /usr/local/texlive/2018/index.html for links to documentation.
+The TeX Live web site (http://tug.org/texlive/) contains any updates and
+corrections. TeX Live is a joint project of the TeX user groups around the
+world; please consider supporting it by joining the group best for you. The
+list of groups is available on the web at http://tug.org/usergroups.html.
+
+
+Add /usr/local/texlive/2018/texmf-dist/doc/man to MANPATH.
+Add /usr/local/texlive/2018/texmf-dist/doc/info to INFOPATH.
+Most importantly, add /usr/local/texlive/2018/bin/x86_64-linux
+to your PATH for current and future sessions.
+Logfile: /usr/local/texlive/2018/install-tl.log</code></pre>
+<p>在 <code>.zshrc</code> 或者 <code>.bashrc</code> 文件中添加路径</p>
+<pre><code># TeXLive
+PATH=&quot;/usr/local/texlive/2018/bin/x86_64-linux:$PATH&quot;
+export PATH
+
+export MANPATH=${MANPATH}:/usr/local/texlive/2018/texmf-dist/doc/man
+export INFOPATH=${INFOPATH}:/usr/local/texlive/2018/texmf-dist/doc/info</code></pre>
+<p>此时 tlmgr 可以在终端中工作了</p>
+<pre class="bash"><code>tlmgr search --file --global upquote.sty</code></pre>
+<pre><code>tlmgr: package repository http://mirrors.tuna.tsinghua.edu.cn/CTAN/systems/texlive/tlnet (verified)
+upquote:
+        texmf-dist/tex/latex/upquote/upquote.sty</code></pre>
+</div>
+</div>
+<div id="rstudio-server-相关" class="section level1">
+<h1>RStudio Server 相关</h1>
+<div id="安装-rstudio-server" class="section level2">
+<h2>安装 RStudio Server</h2>
+<pre class="bash"><code>curl -fLo rstudio-server-rhel-1.3.1073-x86_64.rpm https://download2.rstudio.org/server/centos8/x86_64/rstudio-server-rhel-1.3.1073-x86_64.rpm
+
+gpg --keyserver keys.gnupg.net --recv-keys 3F32EE77E331692F
+gpg --export --armor 3F32EE77E331692F &gt; rstudio-signing.key 
+sudo rpm --import rstudio-signing.key  
+rpm -K rstudio-server-rhel-1.3.1073-x86_64.rpm
+
+sudo dnf install -y rstudio-server-rhel-1.3.1073-x86_64.rpm</code></pre>
+<p>输出如下表示验证成功</p>
+<pre><code>rstudio-server-rhel-1.3.1073-x86_64.rpm: digests signatures 确定</code></pre>
+</div>
+<div id="更新-pandoc-版本" class="section level2">
+<h2>更新 Pandoc 版本</h2>
+<p>替换掉 RStudio Server 自带的低版本，RStudio 1.3 自带 Pandoc 2.7.3</p>
+<pre class="bash"><code>tar -xzf pandoc-2.10.1-linux-amd64.tar.gz 
+sudo cp pandoc-2.10.1/bin/* /usr/lib/rstudio-server/bin/pandoc/
+echo &quot;PATH=/usr/local/lib/rstudio-server/bin/pandoc:$PATH; export PATH&quot; | tee -a ~/.bashrc</code></pre>
+</div>
+</div>
+<div id="配置-r-环境" class="section level1">
+<h1>配置 R 环境</h1>
+<pre class="bash"><code># 查看 R-devel 依赖
+sudo dnf builddep R-devel
+# 安装 R 及其依赖
+dnf install -y R git R-littler R-littler-examples \
+   openssl-devel libssh2-devel libgit2-devel \
+   libxml2-devel libcurl-devel
+# 快捷方式
+ln -s /usr/lib64/R/library/littler/examples/install.r /usr/bin/install.r 
+ln -s /usr/lib64/R/library/littler/examples/install2.r /usr/bin/install2.r
+ln -s /usr/lib64/R/library/littler/examples/installGithub.r /usr/bin/installGithub.r 
+ln -s /usr/lib64/R/library/littler/examples/testInstalled.r /usr/bin/testInstalled.r
+
+# 配置 R 英文环境
+echo &quot;LANG=en_US.UTF-8&quot; &gt;&gt; /usr/lib64/R/etc/Renviron.site
+# 配置系统英文环境
+echo &quot;export LC_ALL=en_US.UTF-8&quot;  &gt;&gt; /etc/profile
+echo &quot;export LANG=en_US.UTF-8&quot;  &gt;&gt; /etc/profile
+
+# R 配置文件
+sudo touch /usr/lib64/R/etc/Rprofile.site
+sudo mkdir -p /usr/lib64/R/site-library
+sudo chown -R $(whoami):$(whoami) /usr/lib64/R/library /usr/share/doc /usr/lib64/R/site-library /usr/lib64/R/etc/Rprofile.site
+
+# https://github.com/r-lib/devtools/issues/2084
+echo &quot;.libPaths(c(&#39;/usr/lib64/R/site-library&#39;,&#39;/usr/lib64/R/library&#39;))&quot; | tee -a  /usr/lib64/R/etc/Rprofile.site
+
+Rscript -e &#39;x &lt;- file.path(R.home(&quot;doc&quot;), &quot;html&quot;); if (!file.exists(x)) {dir.create(x, recursive=TRUE); file.copy(system.file(&quot;html/R.css&quot;, package=&quot;stats&quot;), x)}&#39;
+# CRAN 镜像地址
+echo &quot;options(repos = c(CRAN = &#39;https://mirrors.tuna.tsinghua.edu.cn/CRAN&#39;), download.file.method = &#39;libcurl&#39;)&quot; | tee -a  /usr/lib64/R/etc/Rprofile.site</code></pre>
+<div id="编辑安全策略" class="section level2">
+<h2>编辑安全策略</h2>
+<p>在 CentOS 8.x 上安装 RStudio Server 时，遇到如下错误，需要编辑策略 Security-Enhanced Linux （访问控制安全策略机制）</p>
+<pre><code> ERROR system error 13 (Permission denied); OCCURRED AT: rstudio::core::Error 
+ 
+ rstudio::core::system::launchChildProcess(std::__cxx11::string, std::__cxx11::string, rstudio::core::system::ProcessConfig, rstudio::core::system::ProcessConfigFilter, PidType*)
+ 
+ /var/lib/jenkins/workspace/IDE/open-source-pipeline/v1.2-patch/src/cpp/core/system/PosixSystem.cpp:2152; 
+ 
+ LOGGED FROM: rstudio::core::Error rstudio::core::system::launchChildProcess(std::__cxx11::string, std::__cxx11::string, rstudio::core::system::ProcessConfigFilter, PidType*) 
+ 
+ /var/lib/jenkins/workspace/IDE/open-source-pipeline/v1.2-patch/src/cpp/core/system/PosixSystem.cpp:2153</code></pre>
+<p>运行命令 <code>sestatus</code> 查看情况，修改策略配置文件</p>
+<pre class="bash"><code>sudo vi /etc/sysconfig/selinux</code></pre>
+<p>将 <code>SELinux=enforcing</code> 改为 <code>SELinux=disabled</code>，改完之后，重启，运行命令 <code>sestatus</code>，看是否生效</p>
+<blockquote>
+<p>详见解决办法 <a href="https://community.rstudio.com/t/rserver-1692-error-system-error-13-permission-denied/46972/10" class="uri">https://community.rstudio.com/t/rserver-1692-error-system-error-13-permission-denied/46972/10</a></p>
+</blockquote>
+</div>
+<div id="配置防火墙" class="section level2">
+<h2>配置防火墙</h2>
+<p>开辟网络访问端口，比如 8282，准备分配给 RStudio Server</p>
+<pre class="bash"><code>sudo firewall-cmd --zone=public --add-port=8282/tcp --permanent
+sudo firewall-cmd --reload</code></pre>
+</div>
+<div id="修改默认配置" class="section level2">
+<h2>修改默认配置</h2>
+<pre class="bash"><code>sudo chown -R $(whoami):$(whoami) /etc/rstudio/rserver.conf /etc/rstudio/rsession.conf
+# 默认的 R 路径 /usr/bin/R
+echo &quot;rsession-which-r=/usr/bin/R&quot; &gt;&gt; /etc/rstudio/rserver.conf 
+echo &quot;www-port=8282&quot; &gt;&gt; /etc/rstudio/rserver.conf 
+echo &quot;r-cran-repos=https://mirrors.tuna.tsinghua.edu.cn/CRAN/&quot; &gt;&gt; /etc/rstudio/rsession.conf
+
+# 重启 rstudio-server 服务
+sudo rstudio-server restart</code></pre>
+<p>然后就可以访问 <a href="http://192.168.58.5:8282" class="uri">http://192.168.58.5:8282</a></p>
+</div>
+</div>
+<div id="系统安装" class="section level1">
+<h1>系统安装</h1>
+<p>安装 Fedora 29, CentOS 7, OpenSUSE 15, Ubuntu 18.04</p>
+<div id="安装-fedora-29" class="section level2">
+<h2>安装 Fedora 29</h2>
+<p>开机进入安装界面后，首先选择安装过程中使用的语言，这里选择英语</p>
+<div class="figure">
+<img src="img/fedora/01.png" alt="" />
+<p class="caption">选择系统语言</p>
+</div>
+<div class="figure">
+<img src="img/fedora/02.png" alt="" />
+<p class="caption">启用网络连接</p>
+</div>
+<div class="figure">
+<img src="img/fedora/03.png" alt="" />
+<p class="caption">选择最小安装</p>
+</div>
+<div class="figure">
+<img src="img/fedora/04.png" alt="" />
+<p class="caption">完成各项配置</p>
+</div>
+<div class="figure">
+<img src="img/fedora/05.png" alt="" />
+<p class="caption">等待安装直到完成</p>
+</div>
+<p>当我们往 Linux 系统输入第一个含有管理员权限的命令后，会提示如下一段话</p>
+<pre><code>[xiangyun@localhost ~]$ sudo dnf update
+
+我们信任您已经从系统管理员那里了解了日常注意事项。
+总结起来无外乎这三点：
+
+    #1) 尊重别人的隐私。
+    #2) 输入前要先考虑(后果和风险)。
+    #3) 权力越大，责任越大。
+
+[sudo] xiangyun 的密码：</code></pre>
+</div>
+<div id="安装-centos-7" class="section level2">
+<h2>安装 CentOS 7</h2>
+<ol style="list-style-type: decimal">
+<li><p>下载 <a href="https://mirrors.tuna.tsinghua.edu.cn/centos/8/isos/x86_64/CentOS-8-x86_64-1905-boot.iso">CentOS 8 minimal 版本 ISO</a></p></li>
+<li><p>填写在线安装的网络地址
+<a href="https://mirrors.ustc.edu.cn/centos/8/BaseOS/x86_64/os/" class="uri">https://mirrors.ustc.edu.cn/centos/8/BaseOS/x86_64/os/</a></p></li>
+<li><p>CentOS 8 源帮助 <a href="https://mirrors.ustc.edu.cn/help/centos.html" class="uri">https://mirrors.ustc.edu.cn/help/centos.html</a></p>
+<pre class="bash"><code>sudo mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
+touch CentOS-Base.repo
+vi CentOS-Base.repo
+sudo cp CentOS-Base.repo /etc/yum.repos.d/
+sudo yum makecache</code></pre></li>
+<li><p>配置网络后，重启网络</p>
+<pre class="bash"><code>sudo nmcli c reload</code></pre></li>
+</ol>
+<div class="figure">
+<img src="img/centos/01-choose-english.png" alt="" />
+<p class="caption">选择界面语言</p>
+</div>
+<p>可以看到还有警告提示，需要配置网络连接、远程镜像位置、系统安装位置</p>
+<div class="figure">
+<img src="img/centos/02-network-00.png" alt="" />
+<p class="caption">网络设置</p>
+</div>
+<p>默认情况下 enpOs3 没有启用</p>
+<p><img src="img/centos/02-network-01.png" /></p>
+<p>我们把它开启</p>
+<p><img src="img/centos/02-network-02.png" /></p>
+<p>类似地，把 enpOs8 也开启</p>
+<p><img src="img/centos/02-network-03.png" /></p>
+<p>此时远程镜像位置还没有配置，选择就近的系统安装源，如清华</p>
+<p><img src="img/centos/03-installation-source.png" /></p>
+<div class="figure">
+<img src="img/centos/04-minimal-install.png" alt="" />
+<p class="caption">选择最小安装</p>
+</div>
+<div class="figure">
+<img src="img/centos/05-installation-destination.png" alt="" />
+<p class="caption">选择安装位置</p>
+</div>
+<div class="figure">
+<img src="img/centos/06-settings-down.png" alt="" />
+<p class="caption">完成各项安装配置</p>
+</div>
+<div class="figure">
+<img src="img/centos/07-start-installation.png" alt="" />
+<p class="caption">需要创建用户</p>
+</div>
+<div class="figure">
+<img src="img/centos/08-root.png" alt="" />
+<p class="caption">设置 Root 账户登陆密码</p>
+</div>
+<div class="figure">
+<img src="img/centos/08-admin-create.png" alt="" />
+<p class="caption">创建普通账户</p>
+</div>
+<div class="figure">
+<img src="img/centos/09-user-create.png" alt="" />
+<p class="caption">将该用户设置为管理员权限</p>
+</div>
+<div class="figure">
+<img src="img/centos/10-accounts-down.png" alt="" />
+<p class="caption">完成用户账户创建</p>
+</div>
+<div class="figure">
+<img src="img/centos/11-installation-finish-reboot.png" alt="" />
+<p class="caption">等待安装，直到完成</p>
+</div>
+<div class="figure">
+<img src="img/centos/12-start-os.png" alt="" />
+<p class="caption">重启，选择第一项进入系统</p>
+</div>
+<blockquote>
+<p>配置网络</p>
+</blockquote>
+<div class="figure">
+<img src="img/centos/13-configure-network.png" alt="" />
+<p class="caption">获取 IP 地址</p>
+</div>
+<p><code>ONBOOT=no</code> 设置为 <code>ONBOOT=yes</code></p>
+<p><img src="img/centos/14-onboot-yes.png" /></p>
+<blockquote>
+<p>PuTTY 登陆远程虚拟机</p>
+</blockquote>
+<div class="figure">
+<img src="img/centos/15-setup-putty.png" alt="" />
+<p class="caption">将获得的 IP 输入 PuTTY</p>
+</div>
+<p>第一次连接虚拟机中的操作系统， PuTTY 会有安全提示，选择是，登陆进去</p>
+<p><img src="img/centos/16-putty-security.png" /></p>
+</div>
+<div id="安装-opensuse" class="section level2">
+<h2>安装 OpenSUSE</h2>
+<p>开机进入安装界面后，选择时区</p>
+<div class="figure"><span style="display:block;" id="fig:opensuse-timezone"></span>
+<img src="img/opensuse/opensuse-timezone.png" alt="" />
+<p class="caption">图 1: openSUSE 选择时区</p>
+</div>
+<p>选择安装服务器版本</p>
+<div class="figure"><span style="display:block;" id="fig:opensuse-server"></span>
+<img src="img/opensuse/opensuse-server.png" alt="" />
+<p class="caption">图 2:  openSUSE 服务器版本</p>
+</div>
+<p>即将安装的软件</p>
+<div class="figure"><span style="display:block;" id="fig:opensuse-software"></span>
+<img src="img/opensuse/opensuse-software.png" alt="" />
+<p class="caption">图 3:  openSUSE 选择安装软件</p>
+</div>
+<p>创建管理员用户账户</p>
+<div class="figure"><span style="display:block;" id="fig:opensuse-user"></span>
+<img src="img/opensuse/opensuse-user.png" alt="" />
+<p class="caption">图 4:  openSUSE 用户账户</p>
+</div>
+</div>
+<div id="安装-ubuntu" class="section level2">
+<h2>安装 Ubuntu</h2>
+<p>开机进入安装界面后，首先选择安装过程中使用的语言，这里选择英语</p>
+<div class="figure">
+<img src="img/ubuntu/01.png" alt="" />
+<p class="caption">选择语言</p>
+</div>
+<div class="figure">
+<img src="img/ubuntu/02.png" alt="" />
+<p class="caption">选择键盘布局</p>
+</div>
+<div class="figure">
+<img src="img/ubuntu/03.png" alt="" />
+<p class="caption">安装 Ubuntu</p>
+</div>
+<div class="figure">
+<img src="img/ubuntu/04.png" alt="" />
+<p class="caption">配置网络连接</p>
+</div>
+<p>是否配置代理，选择否</p>
+<div class="figure">
+<img src="img/ubuntu/05.png" alt="" />
+<p class="caption">配置代理</p>
+</div>
+<div class="figure">
+<img src="img/ubuntu/06.png" alt="" />
+<p class="caption">配置远程镜像位置</p>
+</div>
+<div class="figure">
+<img src="img/ubuntu/07.png" alt="" />
+<p class="caption">文件系统设置</p>
+</div>
+<div class="figure">
+<img src="img/ubuntu/08.png" alt="" />
+<p class="caption">VBox 指定的磁盘</p>
+</div>
+<div class="figure">
+<img src="img/ubuntu/09.png" alt="" />
+<p class="caption">确认磁盘的设置</p>
+</div>
+<p>再次确认磁盘的设置，一旦确认就会开始格式化磁盘，不可逆转</p>
+<div class="figure">
+<img src="img/ubuntu/10.png" alt="" />
+<p class="caption">磁盘设置</p>
+</div>
+<div class="figure">
+<img src="img/ubuntu/11.png" alt="" />
+<p class="caption">用户管理员账户配置</p>
+</div>
+<div class="figure">
+<img src="img/ubuntu/12.png" alt="" />
+<p class="caption">导入 SSH 密钥</p>
+</div>
+<div class="figure">
+<img src="img/ubuntu/13.png" alt="" />
+<p class="caption">服务器配置</p>
+</div>
+<div class="figure">
+<img src="img/ubuntu/14.png" alt="" />
+<p class="caption">等待安装系统</p>
+</div>
+<div class="figure">
+<img src="img/ubuntu/15.png" alt="" />
+<p class="caption">系统安装完成</p>
+</div>
+</div>
+</div>
