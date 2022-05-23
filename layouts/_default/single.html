@@ -8,9 +8,25 @@
     {{ end }}
 
     <h1 class="article-title">{{ .Title }}</h1>
-
+    {{ if .Params.author }}      
+      <h3 class="article-author">{{ .Params.author }}</h3>
+    {{ end }}
+    
+    {{ if .Params.categories }}
+      <span class="article-metadata">分类:
+      {{ range $i, $e := .Params.categories }}{{ if $i }}, {{ end }}{{ $e }}{{ end }}
+      </span>
+      <br>
+    {{ end }}
+    {{ if .Params.tags }}
+      <span class="article-metadata">标签:
+      {{ range $i, $e := .Params.tags }}{{ if $i }}, {{ end }}{{ $e }}{{ end }}
+      </span>
+      <br>
+    {{ end }} 
+    
     {{ if eq .Section "post" }}
-    <span class="article-date">{{ .Date.Format "2006-01-02" }}</span>
+    <span class="article-date">首发于: {{ .Date.Format "2006/01/02" }}</span>
     {{ end }}
 
     <div class="article-content">
