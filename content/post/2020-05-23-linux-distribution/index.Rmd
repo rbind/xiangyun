@@ -1,6 +1,6 @@
 ---
 title: 那些年追过的 Linux 发行版
-date: '2022-05-23'
+date: '2020-05-23'
 author: 黄湘云
 slug: linux-distribution
 categories:
