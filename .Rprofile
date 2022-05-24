@@ -3,7 +3,7 @@ if (file.exists("~/.Rprofile")) sys.source("~/.Rprofile", envir = environment())
 options(
   blogdown.author = "黄湘云", 
   blogdown.warn.future = FALSE,
-  blogdown.method = 'markdown',
+  blogdown.method = 'html',
   digits = 4, formatR.indent = 2, 
   blogdown.yaml.empty = FALSE, 
   blogdown.rename_file = TRUE,
