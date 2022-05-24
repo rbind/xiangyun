@@ -1,0 +1,253 @@
+---
+title: 动画制作与 Plotly Python
+date: "2022-02-02"
+slug: plotly-python-animations
+categories:
+  - 统计图形
+tags:
+  - Python 语言
+  - 动画制作
+  - 专题地图
+  - 气泡图
+output:
+  blogdown::html_page:
+    toc: true
+link-citations: true
+bibliography:
+  - refer.bib
+description: "plotly.js 是一款功能非常全面的开源数据可视化库，目前 Github 上的星赞超过 14K。图形种类非常丰富，仅地图制作就涵盖了热力图、专题地图、飞线图、散点图、气泡图等常用的图形，且支持调用 MapBox 地图服务用作底图。"
+---
+
+```{css}
+#| echo: false
+.modebar {
+  display: none !important;
+}
+```
+
+```{r}
+#| label: setup
+#| echo: false
+knitr::opts_chunk$set(
+  python.reticulate = TRUE,
+  comment = "#",
+  cache = TRUE,
+  echo = TRUE,
+  collapse = TRUE
+)
+Sys.setenv(RETICULATE_PYTHON="/opt/.virtualenvs/r-tensorflow/bin/python")
+Sys.setenv(RETICULATE_PYTHON_ENV="/opt/.virtualenvs/r-tensorflow")
+```
+
+# plotly 动画
+
+[plotly.js](https://github.com/plotly/plotly.js) 是一款功能非常全面的开源数据可视化库，目前 Github 上的星赞超过 14K。图形种类非常丰富，仅地图制作就涵盖了热力图、专题地图、飞线图、散点图、气泡图等常用的图形，且支持调用 MapBox 地图服务用作底图。相比较于 R 版[@Sievert2020]，Python 版 [plotly.py](https://github.com/plotly/plotly.py) 几乎与上游 JS 版同步更新，功能更加全面，BUG 也少，模块依赖也少，接口也好用些。本文图形和动画全部用 Python 版 plotly 制作。
+
+## 气泡动画
+
+plotly 内置了著名的 gapminder 数据集，如下：
+
+```{python}
+import plotly.express as px
+df = px.data.gapminder()
+df.head(6)
+```
+
+相比于 R 包 **gapminder** 内置的数据集，Python 版新加了一列 `iso_alpha`。
+
+```{python}
+import plotly.express as px
+
+df = px.data.gapminder()
+px.scatter(
+    df,
+    # 横轴
+    x="gdpPercap",
+    # 纵轴
+    y="lifeExp",
+    # 动画帧
+    animation_frame="year",
+    # 动画分组
+    animation_group="country",
+    # 气泡大小映射到总人口
+    size="pop",
+    # 颜色映射到地区/大洲
+    color="continent",
+    # 悬浮
+    hover_name="country",
+    # 图形主题
+    template="none",
+    # 横轴坐标取对数
+    log_x=True,
+    size_max=55,
+    # 横轴范围
+    range_x=[100, 100000],
+    # 纵轴范围
+    range_y=[25, 90],
+    # 动画标题
+    title = "各国人均寿命与人均GDP关系演变",
+    # 设置横纵坐标轴标题
+    labels={
+        "gdpPercap": "人均 GDP (美元)",
+        "lifeExp": "人均寿命 (岁)",
+        "year": "年份",
+        "continent": "大洲",
+        "country": "国家",
+        "pop": "人口总数"
+    },
+    # 调用来自 colorbrewer 的 Set2 调色板
+    color_discrete_sequence=px.colors.colorbrewer.Set2
+)
+```
+
+类似 **ggplot2** 包的主题设置，Plotly Express 也是支持 自定义[风格样式](https://plotly.com/python/styling-plotly-express/)的，其中[图形主题](https://plotly.com/python/templates/) 最为方便快捷。默认主题为 `plotly`，可用的有：
+
+```{python}
+import plotly.io as pio
+pio.templates
+```
+
+只需将 `template="none"` 替换为以上任意一种，即可获得不一样的效果。
+
+```{python}
+import plotly.express as px
+df = px.data.gapminder()
+px.scatter(
+    df,
+    # 横轴
+    x="gdpPercap",
+    # 纵轴
+    y="lifeExp",
+    # 动画帧
+    animation_frame="year",
+    # 动画分组
+    animation_group="country",
+    # 气泡大小映射到总人口
+    size="pop",
+    # 颜色映射到地区/大洲
+    color="continent",
+    # 悬浮
+    hover_name="country",
+    # 图形主题
+    template="ggplot2",
+    # 横轴坐标取对数
+    log_x=True,
+    size_max=55,
+    # 横轴范围
+    range_x=[100, 100000],
+    # 纵轴范围
+    range_y=[25, 90],
+    # 动画标题
+    title = "各国人均寿命与人均GDP关系演变",
+    # 设置横纵坐标轴标题
+    labels={
+        "gdpPercap": "人均 GDP (美元)",
+        "lifeExp": "人均寿命 (岁)",
+        "year": "年份",
+        "continent": "大洲",
+        "country": "国家",
+        "pop": "人口总数"
+    },
+    # 调用来自 colorbrewer 的 Set2 调色板
+    color_discrete_sequence=px.colors.colorbrewer.Set2
+)
+```
+
+除了主题模版，plotly 模块还内置了很多调色板，比如家喻户晓的 [colorbrewer 调色板](https://colorbrewer2.org/)，见下图。
+
+```{python}
+import plotly.express as px
+fig = px.colors.colorbrewer.swatches()
+fig.show()
+```
+
+
+## 地图动画
+
+参考 plotly 官网 [choropleth map](https://plotly.com/python/choropleth-maps/)
+
+```{python}
+import plotly.express as px
+# 提取 2007 年的数据
+df = px.data.gapminder().query("year == 2007")
+# 2007 年世界平均寿命
+avg_lifeExp = (df["lifeExp"] * df["pop"]).sum() / df["pop"].sum()
+# 绘制地区分布图
+px.choropleth(
+    df,
+    locations="iso_alpha",
+    color="lifeExp",
+    color_continuous_scale=px.colors.diverging.BrBG,
+    color_continuous_midpoint=avg_lifeExp,
+    title="2007 年世界平均寿命 %.1f（岁）" % avg_lifeExp,
+    labels={
+        "iso_alpha": "国家编码",
+        "lifeExp": "人均寿命 (岁)"
+    }
+)
+```
+
+与气泡动画类似，只需指定 `animation_frame` 和 `animation_group` 的参数值，就可以生成动画。
+
+```{python}
+import plotly.express as px
+df = px.data.gapminder()
+px.choropleth(
+    df,
+    locations="iso_alpha",
+    color="lifeExp",
+    # 动画帧
+    animation_frame="year",
+    # 动画分组
+    animation_group="country",
+    # 悬浮提示
+    hover_name="country", 
+    color_continuous_scale=px.colors.sequential.Viridis,
+)
+```
+
+
+# 运行环境
+
+本文是在 RStudio IDE 内用 R Markdown 编辑的，用 **blogdown** 构建网站，[Hugo](https://github.com/gohugoio/hugo) 渲染 knitr 之后的 Markdown 文件，得益于 **blogdown** 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：
+
+```{r}
+#| echo: true
+#| message: false
+xfun::session_info(packages = c(
+  "knitr", "rmarkdown", "blogdown", "reticulate"
+), dependencies = FALSE)
+```
+
+本文用 [virtualenv](https://github.com/pypa/virtualenv) 创建虚拟 Python 环境，安装 plotly 模块 5.5.0 版本。 
+
+```{bash}
+#| eval: false
+## 安装 virtualenv
+brew install virtualenv
+## 准备虚拟环境存放地址
+sudo mkdir -p /opt/.virtualenvs/r-tensorflow
+sudo chown -R $(whoami):staff /opt/.virtualenvs/r-tensorflow
+## 方便后续复用
+export RETICULATE_PYTHON_ENV=/opt/.virtualenvs/r-tensorflow
+## 创建虚拟环境
+virtualenv -p /usr/local/bin/python3 $RETICULATE_PYTHON_ENV
+## 激活虚拟环境
+source $RETICULATE_PYTHON_ENV/bin/activate
+```
+
+最后，在文件 `~/.Rprofile` 里设置环境变量 `RETICULATE_PYTHON` 和 `RETICULATE_PYTHON_ENV`，这样， **reticulate** 包就能发现和使用它了。
+
+```{r}
+#| eval: false
+Sys.setenv(RETICULATE_PYTHON="/usr/local/bin/python3")
+Sys.setenv(RETICULATE_PYTHON_ENV="/opt/.virtualenvs/r-tensorflow")
+```
+
+本文 Python 运行环境如下：
+
+```{r}
+reticulate::py_config()
+```
+
+# 参考文献
