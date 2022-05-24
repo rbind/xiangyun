@@ -252,14 +252,27 @@ terra::plot(china_map,
 
 ## OpenStreetMap 地图
 
-本节主要采用 **leaflet** 包[@leaflet]绘制交互地图，**leaflet** 包调用的地图数据服务来自 OpenStreetMap 由 OpenStreetMap 基金会（OSMF）采用开放数据共享开放数据库许可协议（ODbL）授权，详见[协议文件内容](https://www.openstreetmap.org/copyright)。
+![(\#fig:leaflet-logo) leaflet](img/leaflet.svg){.full}
+
+本节主要采用 **leaflet** 包[@leaflet]绘制交互地图，**leaflet** 包默认调用的地图数据服务来自 OpenStreetMap。**leaflet** 包的 `leaflet::addTiles()` 函数默认提供了开放街道瓦片地图服务，
+[**leafletCN**](https://github.com/Lchiffon/leafletCN) 包的 `leafletCN::amap()` 函数封装了高德瓦片地图服务的 URL 模版。实际上，只要提供瓦片服务的 URL 模版，就可以将 leaflet 服务替换成任意其他地图服务。如图\@ref(fig:google-tile)在谷歌地图上展示「中国矿业大学（北京）」学院路校区。
+
+```{r}
+#| eval: false
+# 谷歌瓦片地图服务
+library(leaflet)
+leaflet() |>
+  addTiles(urlTemplate = "https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}") |>
+  setView(116.347817690225, 39.997202126977, zoom = 16) |>
+  addMarkers(116.347817690225, 39.997202126977)
+```
+
+![(\#fig:google-tile) 谷歌瓦片地图](img/google-tile.png){.full}
+
 
 ## 高德地图
 
 **leafletCN**[@leafletCN] 包内置一部分中国省、市边界地图数据，支持调用高德瓦片地图服务，提供部分合规的中国地图，核心函数是 `geojsonMap()`，它封装了 GeoJSON 格式的地图数据和绘图功能，更多定制参考`leaflet::leaflet()`。
-
-
-[**leafletCN**](https://github.com/Lchiffon/leafletCN) 包函数 `leafletCN::amap()` 封装了高德瓦片地图服务的接口，**leaflet** 包函数 `leaflet::addTiles()` 默认提供了开放街道瓦片地图服务，只要符合瓦片服务的模版格式，就可以将 leaflet 服务替换成任意其他地图服务。
 
 只要数据包含的一列区域名称和地图数据能映射上，就可以绘制出图\@ref(fig:china-leafletcn)，图中数据是随机生成的，调色板采用 `RdBu`，将连续的数据分段，每段对应一个色块。 
 

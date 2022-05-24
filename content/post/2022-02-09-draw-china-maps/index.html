@@ -349,13 +349,27 @@ china_map
 <h1>瓦片地图</h1>
 <div id="openstreetmap-地图" class="section level2">
 <h2>OpenStreetMap 地图</h2>
-<p>本节主要采用 <strong>leaflet</strong> 包<span class="citation">(<a href="#ref-leaflet" role="doc-biblioref">Cheng, Karambelkar, and Xie 2022</a>)</span>绘制交互地图，<strong>leaflet</strong> 包调用的地图数据服务来自 OpenStreetMap 由 OpenStreetMap 基金会（OSMF）采用开放数据共享开放数据库许可协议（ODbL）授权，详见<a href="https://www.openstreetmap.org/copyright">协议文件内容</a>。</p>
+<div class="figure"><span style="display:block;" id="fig:leaflet-logo"></span>
+<img src="img/leaflet.svg" class="full" alt="" />
+<p class="caption">图 10:  leaflet</p>
+</div>
+<p>本节主要采用 <strong>leaflet</strong> 包<span class="citation">(<a href="#ref-leaflet" role="doc-biblioref">Cheng, Karambelkar, and Xie 2022</a>)</span>绘制交互地图，<strong>leaflet</strong> 包默认调用的地图数据服务来自 OpenStreetMap。<strong>leaflet</strong> 包的 <code>leaflet::addTiles()</code> 函数默认提供了开放街道瓦片地图服务，
+<a href="https://github.com/Lchiffon/leafletCN"><strong>leafletCN</strong></a> 包的 <code>leafletCN::amap()</code> 函数封装了高德瓦片地图服务的 URL 模版。实际上，只要提供瓦片服务的 URL 模版，就可以将 leaflet 服务替换成任意其他地图服务。如图<a href="#fig:google-tile">11</a>在谷歌地图上展示「中国矿业大学（北京）」学院路校区。</p>
+<pre class="r"><code># 谷歌瓦片地图服务
+library(leaflet)
+leaflet() |&gt;
+  addTiles(urlTemplate = &quot;https://mt1.google.com/vt/lyrs=m&amp;x={x}&amp;y={y}&amp;z={z}&quot;) |&gt;
+  setView(116.347817690225, 39.997202126977, zoom = 16) |&gt;
+  addMarkers(116.347817690225, 39.997202126977)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:google-tile"></span>
+<img src="img/google-tile.png" class="full" alt="" />
+<p class="caption">图 11:  谷歌瓦片地图</p>
+</div>
 </div>
 <div id="高德地图" class="section level2">
 <h2>高德地图</h2>
 <p><strong>leafletCN</strong><span class="citation">(<a href="#ref-leafletCN" role="doc-biblioref">Lang 2017</a>)</span> 包内置一部分中国省、市边界地图数据，支持调用高德瓦片地图服务，提供部分合规的中国地图，核心函数是 <code>geojsonMap()</code>，它封装了 GeoJSON 格式的地图数据和绘图功能，更多定制参考<code>leaflet::leaflet()</code>。</p>
-<p><a href="https://github.com/Lchiffon/leafletCN"><strong>leafletCN</strong></a> 包函数 <code>leafletCN::amap()</code> 封装了高德瓦片地图服务的接口，<strong>leaflet</strong> 包函数 <code>leaflet::addTiles()</code> 默认提供了开放街道瓦片地图服务，只要符合瓦片服务的模版格式，就可以将 leaflet 服务替换成任意其他地图服务。</p>
-<p>只要数据包含的一列区域名称和地图数据能映射上，就可以绘制出图<a href="#fig:china-leafletcn">10</a>，图中数据是随机生成的，调色板采用 <code>RdBu</code>，将连续的数据分段，每段对应一个色块。</p>
+<p>只要数据包含的一列区域名称和地图数据能映射上，就可以绘制出图<a href="#fig:china-leafletcn">12</a>，图中数据是随机生成的，调色板采用 <code>RdBu</code>，将连续的数据分段，每段对应一个色块。</p>
 <pre class="r"><code>library(leaflet)
 library(leafletCN) # 提供 geojsonMap 函数
 dat &lt;- data.frame(name = regionNames(&quot;china&quot;), value = runif(34))
@@ -363,27 +377,27 @@ dat &lt;- data.frame(name = regionNames(&quot;china&quot;), value = runif(34))
 geojsonMap(dat, mapName = &quot;china&quot;, palette = &quot;RdBu&quot;, colorMethod = &quot;bin&quot;)</code></pre>
 <div class="figure"><span style="display:block;" id="fig:china-leafletcn"></span>
 <img src="img/china-leafletcn.png" class="full" alt="" />
-<p class="caption">图 10:  交互地图数据可视化</p>
+<p class="caption">图 12:  交互地图数据可视化</p>
 </div>
-<p>绘制某个省份、直辖市、地级市的数据，图<a href="#fig:china-beijing">11</a>和图<a href="#fig:china-shaoyang">12</a>分别展示北京市、邵阳市下各个区县的数据。不难发现，<strong>leafletCN</strong> 包内置的地图边界和名称等数据尚未更新，下图<a href="#fig:china-beijing">11</a>还是崇文、宣武区，实际它们已经合并至东、西城区，图<a href="#fig:china-shaoyang">12</a>还是邵东县，实际已经升级为邵东市，是由邵阳市代管的县级市。</p>
+<p>绘制某个省份、直辖市、地级市的数据，图<a href="#fig:china-beijing">13</a>和图<a href="#fig:china-shaoyang">14</a>分别展示北京市、邵阳市下各个区县的数据。不难发现，<strong>leafletCN</strong> 包内置的地图边界和名称等数据尚未更新，下图<a href="#fig:china-beijing">13</a>还是崇文、宣武区，实际它们已经合并至东、西城区，图<a href="#fig:china-shaoyang">14</a>还是邵东县，实际已经升级为邵东市，是由邵阳市代管的县级市。</p>
 <pre class="r"><code>dat &lt;- data.frame(name = regionNames(&quot;北京&quot;), value = runif(18))
 geojsonMap(dat, mapName = &quot;北京&quot;, palette = &quot;RdBu&quot;, colorMethod = &quot;bin&quot;)</code></pre>
 <div class="figure"><span style="display:block;" id="fig:china-beijing"></span>
 <img src="img/china-beijing.png" class="full" alt="" />
-<p class="caption">图 11:  北京地区</p>
+<p class="caption">图 13:  北京地区</p>
 </div>
 <pre class="r"><code>dat &lt;- data.frame(name = regionNames(&quot;邵阳&quot;), value = runif(12))
 geojsonMap(dat, mapName = &quot;邵阳&quot;, palette = &quot;RdBu&quot;, colorMethod = &quot;bin&quot;)</code></pre>
 <div class="figure"><span style="display:block;" id="fig:china-shaoyang"></span>
 <img src="img/china-shaoyang.png" class="full" alt="" />
-<p class="caption">图 12:  邵阳地区</p>
+<p class="caption">图 14:  邵阳地区</p>
 </div>
-<p>可见，市和区县级地图边界数据是存在问题的，省级边界地图数据配合高德提供的背景地图数据是基本可用。一个更可靠的方式是不要使用此边界数据，只使用高德地图，以气泡图代替，类似图<a href="#fig:bubble-map">13</a>，要点是需要准备各个区县级以上城市的经纬度坐标，并且和高德地图采用的坐标系是一致的，这样气泡的位置和地图上显示的城市名称是基本重合的。</p>
+<p>可见，市和区县级地图边界数据是存在问题的，省级边界地图数据配合高德提供的背景地图数据是基本可用。一个更可靠的方式是不要使用此边界数据，只使用高德地图，以气泡图代替，类似图<a href="#fig:bubble-map">15</a>，要点是需要准备各个区县级以上城市的经纬度坐标，并且和高德地图采用的坐标系是一致的，这样气泡的位置和地图上显示的城市名称是基本重合的。</p>
 <div class="figure"><span style="display:block;" id="fig:bubble-map"></span>
 <img src="img/bubble-map.png" class="full" alt="" />
-<p class="caption">图 13:  部分区县级城市的气泡散点图</p>
+<p class="caption">图 15:  部分区县级城市的气泡散点图</p>
 </div>
-<p>另一个解决办法的使用<a href="https://datav.aliyun.com/portal/school/atlas/area_selector">阿里 DataV 数据可视化平台</a>开放出来的地图数据，它来自<a href="https://lbs.amap.com/api/webservice/guide/api/district">高德开放平台</a>。下载到本地保存为文件<code>邵阳市.json</code>，检查后，发现地图数据的参考系是 WGS 84，这和 OpenStreetMap 所要求的坐标系正好一致，下面就采用 <strong>leaflet</strong> 包来绘制。以邵阳市地区的数据为例，从<a href="https://www.shaoyang.gov.cn/sytjj/tjsj/rlist.shtml">邵阳市统计局</a>发布的统计年鉴获取2010年、2015年和2020年邵阳市各个区县的人口数（单位：万人）。邵阳市各个区县近5年和近10年的人口增长率，如图<a href="#fig:shaoyang-pop">14</a>所示，邵东市近5年的人口呈<strong>负增长</strong>，笔者在图上还补充了很多数据信息，供读者参考。如果能够收集到全国所有区县级城市的人口数据，还可以发现中国各个经济带的地域差异，沿海内陆差异，南北差异等一系列有用的信息，如洞悉人口流动的方向。</p>
+<p>另一个解决办法的使用<a href="https://datav.aliyun.com/portal/school/atlas/area_selector">阿里 DataV 数据可视化平台</a>开放出来的地图数据，它来自<a href="https://lbs.amap.com/api/webservice/guide/api/district">高德开放平台</a>。下载到本地保存为文件<code>邵阳市.json</code>，检查后，发现地图数据的参考系是 WGS 84，这和 OpenStreetMap 所要求的坐标系正好一致，下面就采用 <strong>leaflet</strong> 包来绘制。以邵阳市地区的数据为例，从<a href="https://www.shaoyang.gov.cn/sytjj/tjsj/rlist.shtml">邵阳市统计局</a>发布的统计年鉴获取2010年、2015年和2020年邵阳市各个区县的人口数（单位：万人）。邵阳市各个区县近5年和近10年的人口增长率，如图<a href="#fig:shaoyang-pop">16</a>所示，邵东市近5年的人口呈<strong>负增长</strong>，笔者在图上还补充了很多数据信息，供读者参考。如果能够收集到全国所有区县级城市的人口数据，还可以发现中国各个经济带的地域差异，沿海内陆差异，南北差异等一系列有用的信息，如洞悉人口流动的方向。</p>
 <pre class="r"><code>library(leaflet)
 library(sf)
 # 读取 GeoJSON 格式的多边形矢量地图数据
@@ -454,7 +468,7 @@ leaflet(shaoyang) |&gt;
   addScaleBar(position = &quot;bottomleft&quot;)</code></pre>
 <div class="figure"><span style="display:block;" id="fig:shaoyang-pop"></span>
 <img src="img/shaoyang-pop.png" class="full" alt="" />
-<p class="caption">图 14: 邵阳市各个区县人口增长率</p>
+<p class="caption">图 16: 邵阳市各个区县人口增长率</p>
 </div>
 <p>收集全国各个区县的数据指标后，需要先将每个市的区县级地图数据合并，然后以各个区县的国家行政编码作为唯一主键，将数据指标和地图数据合并，再映射到地图上，一张信息量更为丰富的专题地图就画出来了。首先下载各省各地级市区县级地图数据，为方便管理和使用，仍然按省组织，文件存储目录如下：</p>
 <pre><code>data
@@ -479,7 +493,7 @@ plot(china_map[&quot;name&quot;], main = &quot;&quot;)</code></pre>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:city-antv-base"></span>
 <img src="{{< blogdown/postref >}}index_files/figure-html/city-antv-base-1.png" alt="两省四市区县级地图数据" width="672" />
 <p class="caption">
-图 15: 两省四市区县级地图数据
+图 17: 两省四市区县级地图数据
 </p>
 </div>
 <p>也可用 <strong>ggplot2</strong> 包来绘制</p>
@@ -489,7 +503,7 @@ ggplot(data = china_map) +
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:city-antv-ggplot2"></span>
 <img src="{{< blogdown/postref >}}index_files/figure-html/city-antv-ggplot2-1.png" alt="使用 ggplot2 绘制两省四市区县级地图" width="576" />
 <p class="caption">
-图 16: 使用 ggplot2 绘制两省四市区县级地图
+图 18: 使用 ggplot2 绘制两省四市区县级地图
 </p>
 </div>
 </div>
@@ -512,7 +526,7 @@ hchinamap(
 )</code></pre>
 <div class="figure"><span style="display:block;" id="fig:china-hchinamap"></span>
 <img src="img/china-hchinamap.png" class="full" alt="" />
-<p class="caption">图 17:  中国地图数据</p>
+<p class="caption">图 19:  中国地图数据</p>
 </div>
 </div>
 </div>
