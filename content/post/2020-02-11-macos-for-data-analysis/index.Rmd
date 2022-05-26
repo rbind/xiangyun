@@ -95,8 +95,7 @@ brew install --cask calibre lyx
 tinytex::tlmgr_install(c('palatino', 'babel-english', 'mathpazo'))
 ```
 
-# R 包安装
-
+# R 和 R 包
 
 
 ## R 和 RStudio 软件
@@ -129,6 +128,49 @@ brew install v8
 brew install apache-arrow
 brew pin apache-arrow 
 ```
+
+## R 包与 X11
+
+MacOS 从源码安装 R 软件时，配置需要指定 X11 相关库和头文件。
+
+```bash
+../source/configure --prefix=/Users/xiangyun/R-devel \
+  --x-libraries=/opt/X11/lib/ --x-includes=/opt/X11/include \
+  --enable-R-shlib --enable-memory-profiling
+```
+
+参考 SO 帖子[配置 X11](https://stackoverflow.com/questions/32207012)，先安装 [XQuartz](https://www.xquartz.org/)，再从源码安装 **rgl** 包，需要指定 X11 相关文件的路径，以便编译安装时发现。
+
+```{r,eval=FALSE}
+install.packages(
+  pkgs = "rgl", type = "source",
+  configure.args = c(
+    "--x-libraries=/opt/X11/lib/",
+    "--x-includes=/opt/X11/include"
+  )
+)
+```
+
+如果不从源码编译就只能通过网页查看 3D 图形效果。**rgl** 包支持 WebGL 输出，特别是当环境不支持 OpenGL 的时候，比如在 Github Action 上使用 **rgl** 生成三维图形。
+
+```{r}
+#| eval: false
+## 加载 rgl 
+library(rgl)
+## 准备启用 WebGL 
+knitr::knit_hooks$set(webgl = rgl::hook_webgl)
+## 详见帮助文档 rgl::hook_webgl
+options(rgl.printRglwidget = TRUE)
+options(rgl.useNULL = TRUE)
+```
+
+添加代码块运行控制选项 `webgl=TRUE`，运行示例：
+
+```{r}
+#| eval: false
+example("plot3d", "rgl")
+```
+
 
 ## R 包与 Orca
 

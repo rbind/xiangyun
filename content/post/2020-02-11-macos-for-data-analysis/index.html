@@ -27,9 +27,10 @@ description: "软件环境配置是个既麻烦又耗时的苦力活，笔者曾
 <li><a href="#代码编辑" id="toc-代码编辑">代码编辑</a></li>
 <li><a href="#文本编辑" id="toc-文本编辑">文本编辑</a></li>
 </ul></li>
-<li><a href="#r-包安装" id="toc-r-包安装">R 包安装</a>
+<li><a href="#r-和-r-包" id="toc-r-和-r-包">R 和 R 包</a>
 <ul>
 <li><a href="#r-和-rstudio-软件" id="toc-r-和-rstudio-软件">R 和 RStudio 软件</a></li>
+<li><a href="#r-包与-x11" id="toc-r-包与-x11">R 包与 X11</a></li>
 <li><a href="#r-包与-orca" id="toc-r-包与-orca">R 包与 Orca</a></li>
 <li><a href="#r-包与-phantomjs" id="toc-r-包与-phantomjs">R 包与 PhantomJS</a></li>
 <li><a href="#r-包与-openmp" id="toc-r-包与-openmp">R 包与 OpenMP</a></li>
@@ -106,8 +107,8 @@ brew install --cask calibre lyx</code></pre>
 <pre class="r"><code>tinytex::tlmgr_install(c(&#39;palatino&#39;, &#39;babel-english&#39;, &#39;mathpazo&#39;))</code></pre>
 </div>
 </div>
-<div id="r-包安装" class="section level1">
-<h1>R 包安装</h1>
+<div id="r-和-r-包" class="section level1">
+<h1>R 和 R 包</h1>
 <div id="r-和-rstudio-软件" class="section level2">
 <h2>R 和 RStudio 软件</h2>
 <pre class="bash"><code>brew install --cask r xquartz
@@ -122,6 +123,31 @@ brew install v8</code></pre>
 <p>安装完 apache-arrow 后，固定下来</p>
 <pre class="bash"><code>brew install apache-arrow
 brew pin apache-arrow </code></pre>
+</div>
+<div id="r-包与-x11" class="section level2">
+<h2>R 包与 X11</h2>
+<p>MacOS 从源码安装 R 软件时，配置需要指定 X11 相关库和头文件。</p>
+<pre class="bash"><code>../source/configure --prefix=/Users/xiangyun/R-devel \
+  --x-libraries=/opt/X11/lib/ --x-includes=/opt/X11/include \
+  --enable-R-shlib --enable-memory-profiling</code></pre>
+<p>参考 SO 帖子<a href="https://stackoverflow.com/questions/32207012">配置 X11</a>，先安装 <a href="https://www.xquartz.org/">XQuartz</a>，再从源码安装 <strong>rgl</strong> 包，需要指定 X11 相关文件的路径，以便编译安装时发现。</p>
+<pre class="r"><code>install.packages(
+  pkgs = &quot;rgl&quot;, type = &quot;source&quot;,
+  configure.args = c(
+    &quot;--x-libraries=/opt/X11/lib/&quot;,
+    &quot;--x-includes=/opt/X11/include&quot;
+  )
+)</code></pre>
+<p>如果不从源码编译就只能通过网页查看 3D 图形效果。<strong>rgl</strong> 包支持 WebGL 输出，特别是当环境不支持 OpenGL 的时候，比如在 Github Action 上使用 <strong>rgl</strong> 生成三维图形。</p>
+<pre class="r"><code>## 加载 rgl 
+library(rgl)
+## 准备启用 WebGL 
+knitr::knit_hooks$set(webgl = rgl::hook_webgl)
+## 详见帮助文档 rgl::hook_webgl
+options(rgl.printRglwidget = TRUE)
+options(rgl.useNULL = TRUE)</code></pre>
+<p>添加代码块运行控制选项 <code>webgl=TRUE</code>，运行示例：</p>
+<pre class="r"><code>example(&quot;plot3d&quot;, &quot;rgl&quot;)</code></pre>
 </div>
 <div id="r-包与-orca" class="section level2">
 <h2>R 包与 Orca</h2>
