@@ -24,6 +24,7 @@ description: "软件环境配置是个既麻烦又耗时的苦力活，笔者曾
 </ul></li>
 <li><a href="#绘图软件" id="toc-绘图软件">绘图软件</a>
 <ul>
+<li><a href="#gifski" id="toc-gifski">Gifski</a></li>
 <li><a href="#gnuplot" id="toc-gnuplot">gnuplot</a></li>
 </ul></li>
 <li><a href="#python-虚拟环境" id="toc-python-虚拟环境">Python 虚拟环境</a>
@@ -94,6 +95,59 @@ brew install --cask tableau </code></pre>
 </div>
 <div id="绘图软件" class="section level1">
 <h1>绘图软件</h1>
+<div id="gifski" class="section level2">
+<h2>Gifski</h2>
+<p>安装 <a href="https://www.rust-lang.org/">Rust 软件</a> 以及 <a href="https://gif.ski/">Gifski</a> 转化器，它可将视频、图片文件转化为 GIF 动图，且转化效率和质量非常高。</p>
+<ol style="list-style-type: decimal">
+<li><p>安装 Rust 库 gifski</p>
+<pre class="bash"><code># 安装 rust
+brew install rust
+# 安装 gifski 库
+cargo install gifski</code></pre>
+<p>在 <code>~/.cargo/config</code> 里配置就近的镜像地址加快<a href="https://github.com/nabijaczleweli/cargo-update">cargo</a>下载速度，下面配置的是上海交通大学 Linux 用户组 (SJTUG) 维护的<a href="https://mirrors.sjtug.sjtu.edu.cn/">镜像站点</a>。</p>
+<pre><code>[source.crates-io]
+replace-with = &quot;sjtu&quot;
+
+[source.sjtu]
+registry = &quot;https://mirrors.sjtug.sjtu.edu.cn/git/crates.io-index&quot;</code></pre>
+<p>将路径 <code>~/.cargo/bin</code> 添加到 PATH 变量里，接着就可以直接使用 gifski 命令行工具了，它有几个参数，如下：</p>
+<pre class="bash"><code>gifski --help</code></pre>
+<pre><code>## gifski 1.6.4
+## https://gif.ski by Kornel Lesiński
+## 
+## USAGE:
+##     gifski [OPTIONS] &lt;FILE&gt;... --output &lt;a.gif&gt;
+## 
+## OPTIONS:
+##     -o, --output &lt;a.gif&gt;      Destination file to write to; &quot;-&quot; means stdout
+##     -r, --fps &lt;num&gt;           Frame rate of animation. If using PNG files as 
+##                               input, this means the speed, as all frames are 
+##                               kept. If video is used, it will be resampled to 
+##                               this constant rate by dropping and/or duplicating 
+##                               frames [default: 20]
+##         --fast-forward &lt;x&gt;    Multiply speed of video by a factor
+##                               (no effect when using images as input) [default: 1]
+##         --fast                3 times faster encoding, but 10% lower quality and 
+##                               larger file size
+##     -Q, --quality &lt;1-100&gt;     Lower quality may give smaller file [default: 90]
+##     -W, --width &lt;px&gt;          Maximum width.
+##                               By default anims are limited to about 800x600
+##     -H, --height &lt;px&gt;         Maximum height (stretches if the width is also set)
+##         --nosort              Use files exactly in the order given, rather than 
+##                               sorted
+##     -q, --quiet               Do not display anything on standard output/console
+##         --repeat &lt;num&gt;        Number of times the animation is repeated (-1 none, 0 forever or &lt;value&gt; repetitions
+##     -h, --help                Prints help information
+##     -V, --version             Prints version information
+## 
+## ARGS:
+##     &lt;FILE&gt;...    one video file supported by FFmpeg, or multiple PNG image files</code></pre>
+<p>帮助文档非常简单，就不翻译了，举个例子，下面将一段视频 <code>INPUT.mov</code> 转化为 GIF 动图 <code>OUTPUT.gif</code>。</p>
+<pre class="bash"><code>gifski -W 800 -H 600 INPUT.mov -o OUTPUT.gif</code></pre></li>
+<li><p>安装 gifski 软件</p>
+<pre class="bash"><code>brew install gifski</code></pre></li>
+</ol>
+</div>
 <div id="gnuplot" class="section level2">
 <h2>gnuplot</h2>
 <p><a href="http://www.gnuplot.info/">gnuplot</a> 是开源的绘图软件，不像 gimp，它是命令行驱动。</p>

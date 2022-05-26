@@ -120,6 +120,49 @@ brew install --cask tableau
 
 # 绘图软件 
 
+## Gifski
+
+安装 [Rust 软件](https://www.rust-lang.org/) 以及 [Gifski](https://gif.ski/) 转化器，它可将视频、图片文件转化为 GIF 动图，且转化效率和质量非常高。 
+
+1.  安装 Rust 库 gifski 
+
+    ```bash
+    # 安装 rust
+    brew install rust
+    # 安装 gifski 库
+    cargo install gifski
+    ```
+
+    在 `~/.cargo/config` 里配置就近的镜像地址加快[cargo](https://github.com/nabijaczleweli/cargo-update)下载速度，下面配置的是上海交通大学 Linux 用户组 (SJTUG)  维护的[镜像站点](https://mirrors.sjtug.sjtu.edu.cn/)。
+    
+    ```
+    [source.crates-io]
+    replace-with = "sjtu"
+    
+    [source.sjtu]
+    registry = "https://mirrors.sjtug.sjtu.edu.cn/git/crates.io-index"
+    ```
+    
+    将路径 `~/.cargo/bin` 添加到 PATH 变量里，接着就可以直接使用 gifski 命令行工具了，它有几个参数，如下：
+    
+    ```{bash}
+    gifski --help
+    ```
+
+
+    帮助文档非常简单，就不翻译了，举个例子，下面将一段视频 `INPUT.mov` 转化为 GIF 动图 `OUTPUT.gif`。
+    
+    ```bash
+    gifski -W 800 -H 600 INPUT.mov -o OUTPUT.gif
+    ```
+
+1.  安装 gifski 软件
+
+    ```bash
+    brew install gifski
+    ```
+
+
 ## gnuplot
 
 [gnuplot](http://www.gnuplot.info/) 是开源的绘图软件，不像 gimp，它是命令行驱动。
