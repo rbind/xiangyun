@@ -21,11 +21,12 @@ description: "plotly.js 是一款功能非常全面的开源数据可视化库�
 
 <div id="TOC">
 <ul>
-<li><a href="#plotly-动画" id="toc-plotly-动画">plotly 动画</a>
+<li><a href="#plotly-python" id="toc-plotly-python">Plotly Python</a>
 <ul>
 <li><a href="#气泡动画" id="toc-气泡动画">气泡动画</a></li>
 <li><a href="#地图动画" id="toc-地图动画">地图动画</a></li>
 </ul></li>
+<li><a href="#plotly-r" id="toc-plotly-r">Plotly R</a></li>
 <li><a href="#运行环境" id="toc-运行环境">运行环境</a></li>
 <li><a href="#参考文献" id="toc-参考文献">参考文献</a></li>
 </ul>
@@ -36,8 +37,8 @@ description: "plotly.js 是一款功能非常全面的开源数据可视化库�
   display: none !important;
 }
 </style>
-<div id="plotly-动画" class="section level1">
-<h1>plotly 动画</h1>
+<div id="plotly-python" class="section level1">
+<h1>Plotly Python</h1>
 <p><a href="https://github.com/plotly/plotly.js">plotly.js</a> 是一款功能非常全面的开源数据可视化库，目前 Github 上的星赞超过 14K。图形种类非常丰富，仅地图制作就涵盖了热力图、专题地图、飞线图、散点图、气泡图等常用的图形，且支持调用 MapBox 地图服务用作底图。相比较于 R 版<span class="citation">(<a href="#ref-Sievert2020" role="doc-biblioref">Sievert 2020</a>)</span>，Python 版 <a href="https://github.com/plotly/plotly.py">plotly.py</a> 几乎与上游 JS 版同步更新，功能更加全面，BUG 也少，模块依赖也少，接口也好用些。本文图形和动画全部用 Python 版 plotly 制作。</p>
 <div id="气泡动画" class="section level2">
 <h2>气泡动画</h2>
@@ -213,6 +214,160 @@ px.choropleth(
                             Plotly.animate('2c313c5f-4b45-43a0-ac1c-82670263516b', null);
                         })                };                            </script>        </div>
 </div>
+</div>
+<div id="plotly-r" class="section level1">
+<h1>Plotly R</h1>
+<p>下面采用 Carson Sievert 开发的 <a href="https://github.com/plotly/plotly.R">plotly</a> 包<span class="citation">(<a href="#ref-Sievert2020" role="doc-biblioref">Sievert 2020</a>)</span>制作网页动画，仍是以 gapminder 数据集为例，示例修改自 plotly 官网的 <a href="https://plotly.com/r/animations/">动画示例</a>。关于 plotly 以及绘制散点图的介绍，见前文<a href="/2021/11/interactive-web-graphics/">交互式网页图形与 R 语言</a>，此处不再赘述。</p>
+<pre class="r"><code>library(gapminder)
+library(plotly)
+plot_ly(
+  data = gapminder,
+  # 横轴
+  x = ~gdpPercap,
+  # 纵轴
+  y = ~lifeExp,
+  # 气泡大小
+  size = ~pop,
+  fill = ~&quot;&quot;,
+  # 分组配色
+  color = ~continent,
+  # 时间变量
+  frame = ~year,
+  # 悬浮提示
+  text = ~ paste0(
+    &quot;年份：&quot;, year, &quot;&lt;br&gt;&quot;,
+    &quot;国家：&quot;, country, &quot;&lt;br&gt;&quot;,
+    &quot;人口总数：&quot;, round(pop / 10^6, 2), &quot;百万&quot;, &quot;&lt;br&gt;&quot;,
+    &quot;人均 GDP：&quot;, round(gdpPercap), &quot;美元&quot;, &quot;&lt;br&gt;&quot;,
+    &quot;预期寿命：&quot;, round(lifeExp), &quot;岁&quot;
+  ),
+  hoverinfo = &quot;text&quot;,
+  type = &quot;scatter&quot;,
+  mode = &quot;markers&quot;,
+  marker = list(
+    symbol = &quot;circle&quot;,
+    sizemode = &quot;diameter&quot;,
+    line = list(width = 2, color = &quot;#FFFFFF&quot;),
+    opacity = 0.8
+  )
+) |&gt;
+  layout(
+    xaxis = list(
+      type = &quot;log&quot;, title = &quot;人均 GDP（美元）&quot;
+    ),
+    yaxis = list(title = &quot;预期寿命（年）&quot;),
+    legend = list(title = list(text = &quot;&lt;b&gt; 大洲 &lt;/b&gt;&quot;))
+  ) |&gt;
+  animation_opts(
+    # 帧与帧之间播放的时间间隔，包含转场时间
+    frame = 1000, 
+    # 转场的效果
+    easing = &quot;linear&quot;, 
+    redraw = FALSE,
+    # 动画帧与帧之间转场的时间间隔，单位毫秒
+    transition = 1000,
+    mode = &quot;immediate&quot;
+  ) |&gt;
+  animation_slider(
+    currentvalue = list(
+      prefix = &quot;年份 &quot;,
+      xanchor = &quot;right&quot;,
+      font = list(color = &quot;gray&quot;, size = 30)
+    )
+  ) |&gt;
+  # 下面的参数会传递给 layout.updatemenus 的 button 对象
+  animation_button(
+    # 按钮位置
+    x = 0, xanchor = &quot;right&quot;,
+    y = -0.3, yanchor = &quot;bottom&quot;,
+    visible = TRUE, # 显示播放按钮
+    label = &quot;播放&quot;, # 按钮文本
+    # bgcolor = &quot;#5b89f7&quot;, # 按钮背景色
+    font = list(color = &quot;orange&quot;)# 文本颜色
+  ) |&gt;
+  config(
+    # 去掉图片右上角工具条
+    displayModeBar = FALSE
+  )</code></pre>
+<div class="figure"><span style="display:block;" id="fig:gapminder-plotly"></span>
+<video src="https://user-images.githubusercontent.com/12031874/145713395-5f692a24-e4b7-4900-94f2-bc0a4911ac28.mov" class="full" controls=""><a href="https://user-images.githubusercontent.com/12031874/145713395-5f692a24-e4b7-4900-94f2-bc0a4911ac28.mov"></a></video>
+<p class="caption">图 1:  plotly 制作网页动画</p>
+</div>
+<p>在上图的制作过程中，有几点值得一提：</p>
+<ol style="list-style-type: decimal">
+<li><p>如图 <a href="#fig:gapminder-plotly">1</a> 所示，相比于 <strong>echarts4r</strong>， 气泡即使有重叠和覆盖，只要鼠标悬浮其上，就能显示被覆盖的 tooltip。</p></li>
+<li><p>读者看到 <code>plot_ly(fill = ~"",...)</code> 可能会奇怪，为什么参数 <code>fill</code> 的值是空字符串？这应该是 plotly 的 R 包或 JS 库的问题，不加会有很多警告：</p>
+<pre><code>`line.width` does not currently support multiple values.</code></pre>
+<p>笔者是参考<a href="https://stackoverflow.com/questions/52692760/">SO</a>的帖子加上的。</p></li>
+<li><p>动画控制参数 <code>animation_opts()</code>，详见 Plotly <a href="https://github.com/plotly/plotly.js/blob/master/src/plots/animation_attributes.js">动画属性</a>，结合此帮助文档，可知参数 <code>easing</code> 除了上面的取值 <code>linear</code>，还有很多，全部参数值见表<a href="#tab:easing">1</a>。</p>
+<table>
+<caption><span id="tab:easing">表 1: </span>动画转场特效</caption>
+<colgroup>
+<col width="15%" />
+<col width="14%" />
+<col width="17%" />
+<col width="19%" />
+<col width="15%" />
+<col width="17%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td align="left">linear</td>
+<td align="left">quad</td>
+<td align="left">cubic</td>
+<td align="left">sin</td>
+<td align="left">exp</td>
+<td align="left">circle</td>
+</tr>
+<tr class="even">
+<td align="left">elastic</td>
+<td align="left">back</td>
+<td align="left">bounce</td>
+<td align="left">linear-in</td>
+<td align="left">quad-in</td>
+<td align="left">cubic-in</td>
+</tr>
+<tr class="odd">
+<td align="left">sin-in</td>
+<td align="left">exp-in</td>
+<td align="left">circle-in</td>
+<td align="left">elastic-in</td>
+<td align="left">back-in</td>
+<td align="left">bounce-in</td>
+</tr>
+<tr class="even">
+<td align="left">linear-out</td>
+<td align="left">quad-out</td>
+<td align="left">cubic-out</td>
+<td align="left">sin-out</td>
+<td align="left">exp-out</td>
+<td align="left">circle-out</td>
+</tr>
+<tr class="odd">
+<td align="left">elastic-out</td>
+<td align="left">back-out</td>
+<td align="left">bounce-out</td>
+<td align="left">linear-in-out</td>
+<td align="left">quad-in-out</td>
+<td align="left">cubic-in-out</td>
+</tr>
+<tr class="even">
+<td align="left">sin-in-out</td>
+<td align="left">exp-in-out</td>
+<td align="left">circle-in-out</td>
+<td align="left">elastic-in-out</td>
+<td align="left">back-in-out</td>
+<td align="left">bounce-in-out</td>
+</tr>
+</tbody>
+</table>
+<p><code>animation_opts()</code> 的其它默认参数设置见 <code>plotly:::animation_opts_defaults()</code>。</p></li>
+<li><p>动画播放和暂停的控制按钮一直有问题，即点击播放后，按钮不会切换为暂停按钮，点击暂停后也不能恢复，详见 plotly 包的 Github <a href="https://github.com/plotly/plotly.R/issues/1207">问题贴</a>。然而，Python 版的 plotly 模块制作此<a href="https://plotly.com/python/animations/">动画</a>，一切正常，代码也紧凑很多。</p></li>
+<li><p>添加如下 CSS 可以去掉图形右上角烦人的工具条。</p>
+<pre class="css"><code>.modebar {
+  display: none !important;
+}</code></pre></li>
+</ol>
 </div>
 <div id="运行环境" class="section level1">
 <h1>运行环境</h1>

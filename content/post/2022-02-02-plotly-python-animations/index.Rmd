@@ -39,7 +39,7 @@ Sys.setenv(RETICULATE_PYTHON="/opt/.virtualenvs/r-tensorflow/bin/python")
 Sys.setenv(RETICULATE_PYTHON_ENV="/opt/.virtualenvs/r-tensorflow")
 ```
 
-# plotly 动画
+# Plotly Python
 
 [plotly.js](https://github.com/plotly/plotly.js) 是一款功能非常全面的开源数据可视化库，目前 Github 上的星赞超过 14K。图形种类非常丰富，仅地图制作就涵盖了热力图、专题地图、飞线图、散点图、气泡图等常用的图形，且支持调用 MapBox 地图服务用作底图。相比较于 R 版[@Sievert2020]，Python 版 [plotly.py](https://github.com/plotly/plotly.py) 几乎与上游 JS 版同步更新，功能更加全面，BUG 也少，模块依赖也少，接口也好用些。本文图形和动画全部用 Python 版 plotly 制作。
 
@@ -205,6 +205,139 @@ px.choropleth(
     color_continuous_scale=px.colors.sequential.Viridis,
 )
 ```
+
+
+
+
+# Plotly R
+
+下面采用 Carson Sievert 开发的 [plotly](https://github.com/plotly/plotly.R) 包[@Sievert2020]制作网页动画，仍是以 gapminder 数据集为例，示例修改自 plotly 官网的 [动画示例](https://plotly.com/r/animations/)。关于 plotly 以及绘制散点图的介绍，见前文[交互式网页图形与 R 语言](/2021/11/interactive-web-graphics/)，此处不再赘述。
+
+
+
+```{r}
+#| eval: false
+library(gapminder)
+library(plotly)
+plot_ly(
+  data = gapminder,
+  # 横轴
+  x = ~gdpPercap,
+  # 纵轴
+  y = ~lifeExp,
+  # 气泡大小
+  size = ~pop,
+  fill = ~"",
+  # 分组配色
+  color = ~continent,
+  # 时间变量
+  frame = ~year,
+  # 悬浮提示
+  text = ~ paste0(
+    "年份：", year, "<br>",
+    "国家：", country, "<br>",
+    "人口总数：", round(pop / 10^6, 2), "百万", "<br>",
+    "人均 GDP：", round(gdpPercap), "美元", "<br>",
+    "预期寿命：", round(lifeExp), "岁"
+  ),
+  hoverinfo = "text",
+  type = "scatter",
+  mode = "markers",
+  marker = list(
+    symbol = "circle",
+    sizemode = "diameter",
+    line = list(width = 2, color = "#FFFFFF"),
+    opacity = 0.8
+  )
+) |>
+  layout(
+    xaxis = list(
+      type = "log", title = "人均 GDP（美元）"
+    ),
+    yaxis = list(title = "预期寿命（年）"),
+    legend = list(title = list(text = "<b> 大洲 </b>"))
+  ) |>
+  animation_opts(
+    # 帧与帧之间播放的时间间隔，包含转场时间
+    frame = 1000, 
+    # 转场的效果
+    easing = "linear", 
+    redraw = FALSE,
+    # 动画帧与帧之间转场的时间间隔，单位毫秒
+    transition = 1000,
+    mode = "immediate"
+  ) |>
+  animation_slider(
+    currentvalue = list(
+      prefix = "年份 ",
+      xanchor = "right",
+      font = list(color = "gray", size = 30)
+    )
+  ) |>
+  # 下面的参数会传递给 layout.updatemenus 的 button 对象
+  animation_button(
+    # 按钮位置
+    x = 0, xanchor = "right",
+    y = -0.3, yanchor = "bottom",
+    visible = TRUE, # 显示播放按钮
+    label = "播放", # 按钮文本
+    # bgcolor = "#5b89f7", # 按钮背景色
+    font = list(color = "orange")# 文本颜色
+  ) |>
+  config(
+    # 去掉图片右上角工具条
+    displayModeBar = FALSE
+  )
+```
+
+![(\#fig:gapminder-plotly) plotly 制作网页动画](https://user-images.githubusercontent.com/12031874/145713395-5f692a24-e4b7-4900-94f2-bc0a4911ac28.mov){.full}
+
+在上图的制作过程中，有几点值得一提：
+
+1.  如图 \@ref(fig:gapminder-plotly) 所示，相比于 **echarts4r**， 气泡即使有重叠和覆盖，只要鼠标悬浮其上，就能显示被覆盖的 tooltip。
+
+1.  读者看到 `plot_ly(fill = ~"",...)` 可能会奇怪，为什么参数 `fill` 的值是空字符串？这应该是 plotly 的 R 包或 JS 库的问题，不加会有很多警告：
+
+    ```
+    `line.width` does not currently support multiple values.
+    ```
+
+    笔者是参考[SO](https://stackoverflow.com/questions/52692760/)的帖子加上的。
+
+1.  动画控制参数 `animation_opts()`，详见 Plotly [动画属性](https://github.com/plotly/plotly.js/blob/master/src/plots/animation_attributes.js)，结合此帮助文档，可知参数 `easing` 除了上面的取值 `linear`，还有很多，全部参数值见表\@ref(tab:easing)。
+
+    ```{r easing}
+    #| echo: false
+    # 或者 plotly:::easingOpts()
+    easing <- c(
+      "linear", "quad", "cubic", "sin",
+      "exp", "circle", "elastic", "back", "bounce",
+      "linear-in", "quad-in", "cubic-in",
+      "sin-in", "exp-in", "circle-in", "elastic-in",
+      "back-in", "bounce-in", "linear-out",
+      "quad-out", "cubic-out", "sin-out",
+      "exp-out", "circle-out",
+      "elastic-out", "back-out",
+      "bounce-out", "linear-in-out",
+      "quad-in-out", "cubic-in-out",
+      "sin-in-out", "exp-in-out",
+      "circle-in-out", "elastic-in-out",
+      "back-in-out", "bounce-in-out"
+    )
+    knitr::kable(x = matrix(easing, byrow = TRUE, ncol = 6), caption = "动画转场特效")
+    ```
+
+    `animation_opts()` 的其它默认参数设置见 `plotly:::animation_opts_defaults()`。
+
+1.  动画播放和暂停的控制按钮一直有问题，即点击播放后，按钮不会切换为暂停按钮，点击暂停后也不能恢复，详见 plotly 包的 Github [问题贴](https://github.com/plotly/plotly.R/issues/1207)。然而，Python 版的 plotly 模块制作此[动画](https://plotly.com/python/animations/)，一切正常，代码也紧凑很多。
+
+1.  添加如下 CSS 可以去掉图形右上角烦人的工具条。
+
+    ```css
+    .modebar {
+      display: none !important;
+    }
+    ```
 
 
 # 运行环境
