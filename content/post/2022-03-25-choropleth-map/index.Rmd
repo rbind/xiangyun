@@ -1219,7 +1219,6 @@ mtext(
 #| fig.height: 6.562
 #| fig.align: "center"
 #| fig.showtext: true
-#| warning: false
 #| echo: false
 library(sf)
 # 加载一些必要的绘图包
@@ -1241,17 +1240,21 @@ nc_bi_map <- ggplot() +
     data = nc_bi_data, aes(fill = bi_class),
     color = "gray80", size = 0.05, show.legend = FALSE
   ) +
-  bi_scale_fill(pal = "DkViolet", dim = 3) +
+  bi_scale_fill(pal = "DkViolet2", dim = 3) +
   labs(
     title = "2015-2019 年度北卡罗来纳州各社区家庭年收入和白人占比的空间相关性",
     caption = "数据源：美国人口调查局"
   ) +
   theme_void() +
   theme(plot.title = element_text(hjust = 0.5))
+
+# 要求 biscale 版本 >= 1.0.0
 # 创建图例数据
 nc_bi_leg_data <- data.frame(expand.grid(x = 3:1, y = 3:1),
-  bi_fill = biscale:::pal_dkviolet(n = 3)
+  bi_fill = biscale::bi_pal(pal = "DkViolet2", dim = 3, preview = FALSE)
 )
+
+# 绘制二元图例的函数 bi_legend 不支持中文，因此改其源代码
 # 创建图例瓦片
 nc_bi_leg <- ggplot(
   data = nc_bi_leg_data,
