@@ -1,0 +1,416 @@
+---
+title: 空间数据分析与 R 语言
+author: 黄湘云
+date: '2024-04-20'
+slug: spatial-data-analysis
+categories:
+  - 统计模型
+tags:
+  - 纵向数据分析
+  - 广义估计方程
+  - 空间随机过程
+  - 地统计学
+  - 克里金插值
+  - 数据可视化
+  - 交互式图形
+  - 轨迹分析
+  - 房价分析
+  - 深圳房价
+  - 供需分析
+  - sp
+  - gstat
+toc: true
+draft: true
+thumbnail: /img/logo/gdal.svg
+link-citations: true
+bibliography: 
+  - refer.bib
+  - packages.bib
+description: "本文以四个真实数据为背景，介绍空间点数据、轨迹数据和区域数据的分析、建模和可视化。地统计学方法分析城市地表土壤重金属污染状况，空间点模式统计方法分析北京出租车轨迹，加权地理神经网络分析美国波士顿和中国深圳房价，时空统计方法分析近40年中日美区县级人口增长率。"
+---
+
+```{css, echo=FALSE}
+.sidebar {
+  border: 1px solid #ccc;
+}
+
+.rmdwarn {
+  border: 1px solid #EA4335;
+}
+
+.rmdnote {
+  border: 1px solid #FBBC05;
+}
+
+.rmdtip {
+  border: 1px solid #34A853;
+}
+
+.sidebar, .rmdwarn, .rmdnote, .rmdtip {
+  border-left-width: 5px;
+  border-radius: 5px;
+  padding: 1em;
+  margin: 1em 0;
+}
+
+div.rmdwarn::before, div.rmdnote::before, div.rmdtip::before {
+  display: block;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-bottom: 0.25em;
+}
+
+div.rmdwarn::before {
+  content: "警告";
+  color: #EA4335;
+}
+
+div.rmdnote::before {
+  content: "注意";
+  color: #FBBC05;
+}
+
+div.rmdtip::before {
+  content: "提示";
+  color: #34A853;
+}
+
+.rmdinfo {
+  border: 1px solid #ccc;
+  border-left-width: 5px;
+  border-radius: 5px;
+  padding: 1em;
+  margin: 1em 0;
+}
+div.rmdinfo::before {
+  content: "声明";
+  color: block;
+  display: block;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-bottom: 0.25em;
+}
+
+figure {
+  text-align: center;
+}
+
+div.img {
+  text-align: center;
+  display: block; 
+  margin-left: auto; 
+  margin-right: auto;
+}
+```
+
+
+::: rmdinfo
+本文引用的所有信息均为公开信息，仅代表作者本人观点，与就职单位无关。
+:::
+
+
+
+# 概览
+
+在地统计分析方面，比较流行的 R 包有 **gstat** [@Pebesma2004] 包，**geoR** 包， **geoRglm** 包[@geoRglm2002]和 **PrevMap** 包[@PrevMap2017]等，而点过程分析方面，**splance** 包和 **spatstat** 包[@Baddeley2005]。
+
+空间和时空点模式分析《Statistical Analysis of Spatial and Spatio-Temporal Point Patterns》[@Diggle2013]
+
+本文以 **sp** 包 [@Pebesma2005] 内置的 meuse 数据集为例介绍空间数据分析、建模的过程。主要使用的 R 包有 **sp** 包 和 **gstat** 包，继续围绕 sp 空间数据进行介绍，一方面 sp 的生态非常成熟，完全迁移到 **sf** 包 [@Pebesma2018] 为核心的生态尚需要时日；另一方面，笔者也在摸索学习过程中，以空间统计为重，以后可以再将本文的代码升级到 **sf** 为核心的生态。
+
+
+本文主要的参考材料来自[**sp**](https://github.com/edzer/sp/)包 的[帮助文档](https://edzer.github.io/sp/) 和 [**gstat**](https://github.com/r-spatial/gstat/) 包的[帮助文档](https://edzer.github.io/sp/)，
+以及三本参考书籍《Model-based Geostatistics》[@Diggle2007] 和《Applied spatial data analysis with R》[@Bivand2013]，
+最后一本是《lattice: Multivariate Data Visualization with R》[@Sarkar2008]，供绘制图形时，充当查询手册。
+
+
+
+# 软件准备
+
+
+```{r setup, include=FALSE, eval=FALSE}
+library(sf) # 矢量数据
+library(rgeoda) # 空间分析
+library(lwgeom)
+library(stars) # 栅格数据
+library(sp)
+library(grid)
+library(lattice)
+library(rasterVis) # 栅格数据
+library(moveVis) # 轨迹数据
+
+library(gstat) # 地统计
+library(spacetime) # 时空统计
+library(lme4)
+library(glmmTMB) # 广义混合效应模型
+
+library(mapsf) # 绘图
+# library(tidycensus) # 美国人口普查局 https://github.com/walkerke/tidycensus
+# https://walker-data.com/census-r/
+# 此数据 API 接口未受 Census Bureau 认证
+library(ggplot2)
+library(ggnewscale)
+# library(patchwork)
+library(cowplot)
+
+library(FRK) # 固定秩克里金
+library(surveillance) # 流行病学
+library(trajectories) # 轨迹分析
+
+library(MASS) # 空间统计
+library(cmdstanr) # 贝叶斯统计
+library(bayesplot)
+# 贝叶斯集成嵌套拉普拉斯近似算法
+library(INLA, lib.loc = "~/Documents/R-packages")
+library(rgeoda)
+```
+```{r,eval=FALSE,echo=FALSE}
+library(sf)
+library(terra) # 栅格数据
+library(lattice)
+library(latticeExtra) # Lattice
+# library(raster)  # 栅格数据
+library(stars)
+library(nlme) # 非线性混合效应
+library(mgcv) # 广义可加模型
+```
+```{r,eval=FALSE,echo=FALSE}
+library(spatstat) # 空间点模式
+```
+```{r,eval=FALSE,echo=FALSE}
+library(spaMM)
+library(PrevMap)
+```
+```{r,echo=FALSE}
+# 控制输出的宽度
+options(width = 69)
+```
+
+```{r}
+#| eval: false
+library(Matrix)
+library(lme4)
+library(FRK)
+library(foreach)
+library(parallel)
+library(INLA, lib.loc = "~/Documents/R-packages")
+```
+
+```{r, eval=FALSE}
+# 空间点数据处理、分析
+library(sp)
+library(sf)
+library(gstat)
+library(lattice)
+library(mapsf)
+library(maptiles)
+# 栅格数据处理
+library(raster)
+library(rasterVis)
+library(stars)
+# 设置 WebGL 渲染
+options(rgl.useNULL = TRUE)
+options(rgl.printRglwidget = TRUE)
+library(rgl)
+```
+
+
+# 广义估计方程
+
+```{r}
+library(gee)
+```
+
+```{r}
+library(MASS)
+
+data(OME)
+```
+
+
+```{r}
+fm <- gee(cbind(Correct, Trials - Correct) ~ Loud + Age + OME,
+  id = ID,
+  data = OME, family = binomial, corstr = "exchangeable"
+)
+```
+
+corstr 相关性结构的设定
+
+
+
+```{r}
+summary(fm)
+```
+
+
+
+# 广义线性模型 {#chap:models}
+
+```{r}
+# 除了这里加载的 R 包，其它都从命名空间导入
+# library(nlme)
+library(MASS)
+# library(mgcv)
+# library(Rcpp)
+# library(Matrix)
+# library(ggplot2)
+# library(survival)
+# library(glmmTMB)
+# library(glmnet)
+# library(brms)
+# library(faraway) # 需要安装
+# 空间数据
+# library(sp)
+# library(sf)
+# library(rstan)
+# 用 coef(summary(fit)) 替代 broom::tidy(fit) 
+# 给出 brms 或者 rstan 的等价表述，但是不在正文中运行其代码
+# library(brms) # 函数 s 和 t2 实际就是 mgcv 中的 s 和 t2
+# 调用其它 R 包采用命名空间导入的方式
+# 如 rstanarm::stan_glm brms::brm lme4::glmer
+```
+
+线性混合效应 Linear Mixed Models 和广义线性混合效应模型 Generalized Linear Mixed Models，本文主要目的是给出不同算法对应的不同 R 包的实现及其比较，模型参数估计的方法及其算法实现细节将在以后的文章中再谈。
+
+本章的结构应该是数据驱动的方式，统计思维为脉络。每个模型下都给出案例，每个案例都有分析建模过程，模型有多种实现方式的时候，给出模型比较。关于复杂统计模型，要更加注意和机器学习领域的算法的联系，如可加模型和 boosting，贝叶斯推理和概率图模型，贝叶斯网络和马尔科夫随机场。
+
+
+
+二项 GLM
+
+```{r beetle-data}
+## Beetle Data (Page 78)
+dose <- c(1.6907, 1.7242, 1.7552, 1.7842, 1.8113, 1.8369, 1.861, 1.8839)
+x <- c(6, 13, 18, 28, 52, 53, 61, 60)
+n <- c(59, 60, 62, 56, 63, 59, 62, 60)
+dead <- cbind(x, n - x)
+summary(glm(dead ~ dose, family = binomial(link = logit)))
+summary(glm(dead ~ dose, family = binomial(link = probit)))
+summary(z <- glm(dead ~ dose, family = binomial(link = cloglog)))
+anova(z, update(z, dead ~ dose - 1))
+```
+
+泊松 GLM
+
+```{r tumour-data}
+## Tumour Data (Page 92)
+counts <- c(22, 2, 10, 16, 54, 115, 19, 33, 73, 11, 17, 28)
+type <- gl(4, 3, 12, labels = c("freckle", "superficial", "nodular", "indeterminate"))
+site <- gl(3, 1, 12, labels = c("head/neck", "trunk", "extremities"))
+data.frame(counts, type, site)
+summary(z <- glm(counts ~ type + site, family = poisson()))
+```
+
+
+```{r}
+## Randomized Controlled Trial (Page 93)
+counts <- c(18, 17, 15, 20, 10, 20, 25, 13, 12)
+outcome <- gl(3, 1, length(counts))
+treatment <- gl(3, 3)
+summary(z <- glm(counts ~ outcome + treatment, family = poisson()))
+```
+
+
+```{r}
+## Peptic Ulcers and Blood Groups
+counts <- c(579, 4219, 911, 4578, 246, 3775, 361, 4532, 291, 5261, 396, 6598)
+group <- gl(2, 1, 12, labels = c("cases", "controls"))
+blood <- gl(2, 2, 12, labels = c("A", "O"))
+city <- gl(3, 4, 12, labels = c("London", "Manchester", "Newcastle"))
+cbind(group, blood, city, counts) # gives internal codes for the factors
+
+summary(z1 <- glm(counts ~ group * (city + blood), family = poisson()))
+summary(z2 <- glm(counts ~ group * city + blood, family = poisson()),
+  correlation = TRUE
+)
+anova(z2, z1, test = "Chisq")
+```
+
+## 多元线性回归 {#sec:mlm}
+
+> 多重多元线性回归 Multivariate Multiple Linear Regression 和一般线性模型 General Linear Models
+
+在外文文献中多元线性回归是指响应变量有多个，即 Multivariate Linear Regression，多重线性回归是指协变量有多个，即 Multiple Linear Regression [@car2019]
+
+
+模型公式中偏移项 `offset()` 的解释见统计之都论坛帖 <https://d.cosx.org/d/420881>
+
+详见 R 语言 [17407号 Bug 报告](https://bugs.r-project.org/bugzilla/show_bug.cgi?id=17407)
+
+```{r mlm-mtcars-lm}
+# 多重多元线性回归
+data(mtcars)
+fit_mlm <- lm(cbind(mpg, qsec) ~ 1,
+  data = mtcars,
+  offset = cbind(wt, wt * 2)
+)
+summary(fit_mlm)
+```
+
+### brms
+
+```{r mlm-mtcars-brms, message=FALSE}
+# 等价于
+library(Rcpp)
+bf_mpg <- brms::bf(mpg ~ 1 + offset(wt))
+bf_qsec <- brms::bf(qsec ~ 1 + offset(wt * 2))
+fit_mlm_brms <- brms::brm(bf_mpg + bf_qsec + brms::set_rescor(TRUE),
+  data = mtcars, refresh = 0
+)
+summary(fit_mlm_brms)
+```
+
+::: sidebar
+从线性回归过渡到一般线性模型，开始淡化回归的含义，线性回归中“回归”的本意如何，线性模型中“线性”的含义又是如何？从线性回归到线性模型强调的重点开始转移，前者是回归，后者是线性，因为后续紧接着扩展到广义线性模型 GLM、 广义可加模型 GAM、 线性混合效应模型 LMM、 广义线性混合效应模型 GLMM、 广义可加混合效应模型 GAMM
+:::
+
+
+### 美国大选 {#subsec:nes96}
+
+考虑用内置的 R 包自带的数据集替换掉
+
+1996 年美国大选数据，存在有序的分类变量，多项逻辑回归
+
+```{r}
+# Julian Faraway 的书 Extending the Linear Model with R
+data(nes96, package = "faraway")
+
+party <- nes96$PID
+levels(party) <- c(
+  "Democrat", "Democrat", "Independent",
+  "Independent", "Independent", "Republican", "Republican"
+)
+inca <- c(
+  1.5, 4, 6, 8, 9.5, 10.5, 11.5, 12.5, 13.5, 14.5, 16, 18.5, 21, 23.5,
+  27.5, 32.5, 37.5, 42.5, 47.5, 55, 67.5, 82.5, 97.5, 115
+)
+income <- inca[unclass(nes96$income)]
+rnes96 <- data.frame(party, income, education = nes96$educ, age = nes96$age)
+summary(rnes96)
+```
+
+多项逻辑回归
+
+```{r}
+fit_rnes96_mass <- MASS::polr(party ~ age + education + income, data = rnes96)
+
+fit_rnes96_nnet <- nnet::multinom(party ~ age + education + income, data = rnes96, trace = FALSE)
+```
+
+# 环境信息
+
+在 RStudio IDE 内编辑本文的 R Markdown 源文件，用 **blogdown** [@Xie2017] 构建网站，[Hugo](https://github.com/gohugoio/hugo) 渲染 **knitr** 之后的 Markdown 文件，得益于 **blogdown** 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：
+
+```{r}
+xfun::session_info(packages = c(
+  "knitr", "rmarkdown", "blogdown",
+  "sp", "gstat", "lattice"
+), dependencies = FALSE)
+```
+
+
+# 参考文献
+
+1. [Uber Movement dataset : playing with spatial data](https://bookdown.org/clement_san/uber_movement/)
+
