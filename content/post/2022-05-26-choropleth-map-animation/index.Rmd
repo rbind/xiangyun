@@ -1,5 +1,5 @@
 ---
-title: 动态地区分布图
+title: R 语言制作地区分布图及其动画
 date: "2022-05-26"
 author: "黄湘云"
 slug: choropleth-map-animation
@@ -82,7 +82,7 @@ knitr::opts_chunk$set(
 
 1. **gifski** 包[@gifski]：将一张张静态图片合成 GIF 动图，**gganimate** 包和 **tmap** 包都需要它来导出 GIF 动图。
 
-1. **gganimate** 包[@gganimate]：提供一套动态图形语法，动画制作代码与 **ggplot2** 衔接得如丝般顺滑。
+1. **gganimate** 包[@gganimate]：提供一套动态图形语法，动画制作与 **ggplot2** 绘图衔接得如丝般顺滑。
 
 1. **tmap** 包[@Tennekes2018]：用来制作地区分布图，导出 GIF 动画，尽管功能远不止于此。
 
@@ -315,7 +315,7 @@ ggplot(data = usa_voting_df, aes(long, lat, group = subregion)) +
 
 **maps** 包内置的美国州级地图数据不包含阿拉斯加和夏威夷，因此，要从美国人口调查局获取完整的新版地图数据。
 
-开发的 **tigris** 包封装了地图数据的下载接口，下面获取 2019 年发布的比例尺为 1:20,000,000 的州级地图数据，并将阿拉斯加州、夏威夷群岛和波多黎各适当移动至连续的 48 州下方。
+[Kyle Walker](https://walker-data.com/) 开发的 **tigris** 包封装了地图数据的下载接口，下面获取 2019 年发布的比例尺为 1:20,000,000 的州级地图数据，并将阿拉斯加州、夏威夷群岛和波多黎各适当移动至连续的 48 州下方。
 
 ```{r}
 #| eval: false
@@ -335,7 +335,7 @@ us_state_map <- readRDS(file = "data/us_state_map.rds")
 us_state_map
 ```
 
-地图数据的坐标参考系是 [USA Contiguous Albers Equal Area Conic](https://epsg.io/102003)，感兴趣读者可以点开网页链接了解技术细节。一个州可能有多个独立的地区，比如夏威夷群岛，因此 Geometry 类型是 MULTIPOLYGON 而不是简单的 POLYGON。 NAME 列表示各州或领地名称。图 \@ref(fig:usa-state-map) 是这份地图数据的效果图，图中阿拉斯加以一定比例缩小了，而夏威夷和波多黎各以一定比例放大了。
+地图数据的坐标参考系是 [USA Contiguous Albers Equal Area Conic](https://epsg.io/102003)，感兴趣读者可以点开网页链接了解技术细节。一个州可能有多个独立的地区，比如夏威夷群岛，因此 Geometry 类型是 MULTIPOLYGON 而不是简单的 POLYGON。NAME 列表示各州或领地名称。图 \@ref(fig:usa-state-map) 是这份地图数据的效果图，图中阿拉斯加以一定比例缩小了，而夏威夷和波多黎各以一定比例放大了。
 
 ```{r usa-state-map}
 #| fig.cap: "美国州级地图"
@@ -409,7 +409,7 @@ ggplot() +
 
 # 动画制作
 
-本节介绍两种动画形式 GIF 动画和 Web 动画，在上一节介绍的地区分布图基础上，让地图动起来，连续展示 共和党在 31 次美国大选中的得票率分布。
+本节介绍两种动画形式 GIF 动画和 Web 动画，在上一节介绍的地区分布图基础上，让地图动起来，连续展示共和党在 31 次美国大选中的得票率分布。
 
 ## GIF 动画
 
@@ -417,7 +417,7 @@ GIF 动图是一种制作起来非常简单的动画，其实质是将一张张�
 
 ### gganimate 包
 
-Thomas Lin Pedersen 从 David Robinson 接手维护**gganimate**后，大刀阔斧地开发，试图打造一套动态图形语法「A Grammar of Animated Graphics」，让 [**gganimate**](https://github.com/thomasp85/gganimate) 和 **ggplot2** 无缝衔接。与之前类似，首先对数据做些准备操作：
+[Thomas Lin Pedersen](https://www.data-imaginist.com/) 从 [David Robinson](http://varianceexplained.org/) 接手维护**gganimate**后，大刀阔斧地开发，试图打造一套动态图形语法「A Grammar of Animated Graphics」，让 [**gganimate**](https://github.com/thomasp85/gganimate) 和 **ggplot2** 无缝衔接。与之前类似，首先对数据做些准备操作：
 
 ```{r}
 # 将历届大选数据与地图数据合并
@@ -538,7 +538,7 @@ tm_shape(usa_voting_map_1976) +
     legend.outside.size = 0.15, # 图例占宽度
     legend.format = list(text.separator = "~"), # 图例中文本分割线
     outer.margins = 0, # 取消外边空
-    asp = 0, 
+    asp = 0, # 图形横纵比根据设备定
     frame = FALSE # 取消边框
   )
 ```
@@ -617,9 +617,9 @@ tmap_animation(usa_voting_anim,
 
 ### echarts4r 包
 
-[**echarts4r**](https://github.com/JohnCoene/echarts4r)[@echarts4r] 是 [Apache ECharts](https://echarts.apache.org/en/) 的 R 语言接口，截止写作时间，R 包内置的 Apache ECharts JS 库更新到 5.2.2 版本。**echarts4r** 包目前已经支持了很多 Apache ECharts 的功能，一篇入门到应用文章参见[《echarts4r: 从入门到应用》](https://cosx.org/2021/12/introduction-to-echarts4r/)，本节的地图动画算是原文暂未涉及的一个应用例子。
+[**echarts4r**](https://github.com/JohnCoene/echarts4r)[@echarts4r] 是 JavaScript 库 [Apache ECharts](https://echarts.apache.org/en/) 的 R 语言接口，截止写作时间，R 包内置的 Apache ECharts 更新到 **5.2.2** 版本。**echarts4r** 包目前已经支持了很多 Apache ECharts 的功能，一篇入门到应用文章参见[《echarts4r: 从入门到应用》](https://cosx.org/2021/12/introduction-to-echarts4r/)，本节的地图动画算是原文暂未涉及的一个应用例子。
 
-制作交互式的地图动画之前，从 Github 下载 [**echarts4r.maps**](https://github.com/JohnCoene/echarts4r.maps) 包，它内置一份 GeoJSON 格式的美国州级地图数据。
+在制作交互式的地图动画之前，从 Github 下载 [**echarts4r.maps**](https://github.com/JohnCoene/echarts4r.maps) 包，它内置一份 GeoJSON 格式的美国州级地图数据。
 
 ```{r}
 #| eval: false
@@ -669,7 +669,7 @@ us_votes_repub |>
 
 - 地图底图：**echarts4r.maps** 包内置的 [GeoJSON](https://geojson.org/) 格式[美国州级地图](https://raw.githubusercontent.com/JohnCoene/echarts4r.maps/master/inst/USA.json)。
 
-- 坐标投影：相比于前面展示的动画，图\@ref(fig:votes-repub-echarts4r)采用的地图投影不一样，却是真实反应区域面积大小的。目前 **echarts4r** 还不支持其它投影，读者定制需要引入第三方 JS 库 [d3-geo](https://github.com/d3/d3-geo)。
+- 坐标投影：相比于前面展示的动画，图\@ref(fig:votes-repub-echarts4r)采用的地图投影不一样，是反映区域面积大小的。目前 **echarts4r** 还不支持其它投影，读者定制需要引入第三方 JavaScript 库 [d3-geo](https://github.com/d3/d3-geo) 和 [d3-array](https://github.com/d3/d3-array)。
 
 - 数据映射：注意地图数据中州名 name 字段格式，比如阿拉斯加州是 `Alaska` 而不是 `alaska`，这个用于匹配观测数据中的 `state_name` 列。
 
@@ -764,8 +764,8 @@ us_votes_repub |>
     -  数据及类型的**查看**：`head()` 和 `str()`，查看美国大选共和党得票率数据。
     -  数据类型的**转化**操作：`as.data.frame()` 将矩阵类型转化为数据框类型。
     -  新增列的**变换**操作：`within()` 新增两列州名。
-    -  数据结构的**变形**操作：`reshape()` 将原「宽格式」数据转化为「长格式」数据。
-    -  部分数据的**筛选**操作：`subset()` 筛选 1976 年的美国大选数据。
+    -  数据结构的**重塑**操作：`reshape()` 将原「宽格式」数据转化为「长格式」数据。
+    -  **筛选**部分数据的操作：`subset()` 筛选 1976 年的美国大选数据。
     -  两个数据的**关联**操作：`merge()` 将得票率数据以左关联的方式合并到地图数据上。
     -  按指定列的**排序**操作：`order()` 恢复地图数据原来的顺序。
 
@@ -783,10 +783,10 @@ us_votes_repub |>
     -  Web 动画：**echarts4r** 包的[动画示例](https://echarts4r.john-coene.com/articles/timeline.html)比较简单，定制一些内容需要多参考[时间轴配置项手册](https://echarts.apache.org/zh/option.html#timeline)，**echarts4r** 暂不支持自定义坐标投影。
 
 
-总的来说，比较复杂的还是在于数据操作上，地图数据和观测数据的整洁、完整情况直接决定了制作的复杂度。
+总的来说，比较复杂的还是在数据操作上，地图数据和观测数据的整洁、完整情况决定了制作地图动画的复杂度。就地图制作来说，要求了解的 R 语言技术是比较全面的，基本涵盖了常用的数据操作方法和 **ggplot2** 做 数据可视化的全过程。
 
 
-更多好玩又有挑战的案例见笔者发布在统计之都主站的文章[《地区分布图及其应用》](https://cosx.org/2022/05/choropleth-map/)，更多地理数据可视化作品见网站[Dataviz Inspiration](https://www.dataviz-inspiration.com/)。
+更多好玩又有挑战的案例见笔者发布在统计之都主站的文章[《地区分布图及其应用》](https://cosx.org/2022/05/choropleth-map/)，更多地理数据可视化作品见网站 [Dataviz Inspiration](https://www.dataviz-inspiration.com/)。
 
 
 # 运行环境

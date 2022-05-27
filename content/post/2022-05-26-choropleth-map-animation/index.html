@@ -1,5 +1,5 @@
 ---
-title: 动态地区分布图
+title: R 语言制作地区分布图及其动画
 date: "2022-05-26"
 author: "黄湘云"
 slug: choropleth-map-animation
@@ -25,11 +25,11 @@ bibliography:
 description: "本文面向初学者从零开始制作动态地区分布图，首先介绍 maps 包内置的美国历届大选中共和党在各州的得票率数据，以及一系列必要数据操作，接着介绍 ggplot2 绘制静态地区分布图的过程，然后分别以 gganimate 和 tmap 制作 GIF 动画，最后以 echarts4r 制作 Web 版动画。"
 ---
 
-<script src="https://627337e5340bb70009928835--physicist-ralph-51373.netlify.app/2022/03/scihub-traffic-analysis/index_files/htmlwidgets/htmlwidgets.js"></script>
-<script src="https://627337e5340bb70009928835--physicist-ralph-51373.netlify.app/2022/03/scihub-traffic-analysis/index_files/echarts4r/echarts-en.min.js"></script>
-<script src="https://627337e5340bb70009928835--physicist-ralph-51373.netlify.app/2022/03/scihub-traffic-analysis/index_files/echarts4r/ecStat.min.js"></script>
-<script src="https://627337e5340bb70009928835--physicist-ralph-51373.netlify.app/2022/03/scihub-traffic-analysis/index_files/echarts4r/dataTool.min.js"></script>
-<script src="https://627337e5340bb70009928835--physicist-ralph-51373.netlify.app/2022/03/scihub-traffic-analysis/index_files/echarts4r-binding/echarts4r.js"></script>
+<script src="{{< blogdown/postref >}}index_files/htmlwidgets/htmlwidgets.js"></script>
+<script src="{{< blogdown/postref >}}index_files/echarts4r/echarts-en.min.js"></script>
+<script src="{{< blogdown/postref >}}index_files/echarts4r/ecStat.min.js"></script>
+<script src="{{< blogdown/postref >}}index_files/echarts4r/dataTool.min.js"></script>
+<script src="{{< blogdown/postref >}}index_files/echarts4r-binding/echarts4r.js"></script>
 
 <div id="TOC">
 <ul>
@@ -90,7 +90,7 @@ div.img {
 <li><p><strong>tigris</strong> 包<span class="citation">(<a href="#ref-tigris" role="doc-biblioref">Walker 2022</a>)</span>：获取和处理美国人口调查局发布的州级多边形边界地图数据。</p></li>
 <li><p><strong>sf</strong> 包<span class="citation">(<a href="#ref-Pebesma2018" role="doc-biblioref">Pebesma 2018</a>)</span>：读取和处理空间数据，并支撑 <strong>ggplot2</strong> 包制作地图。</p></li>
 <li><p><strong>gifski</strong> 包<span class="citation">(<a href="#ref-gifski" role="doc-biblioref">Ooms 2022</a>)</span>：将一张张静态图片合成 GIF 动图，<strong>gganimate</strong> 包和 <strong>tmap</strong> 包都需要它来导出 GIF 动图。</p></li>
-<li><p><strong>gganimate</strong> 包<span class="citation">(<a href="#ref-gganimate" role="doc-biblioref">Pedersen and Robinson 2020</a>)</span>：提供一套动态图形语法，动画制作代码与 <strong>ggplot2</strong> 衔接得如丝般顺滑。</p></li>
+<li><p><strong>gganimate</strong> 包<span class="citation">(<a href="#ref-gganimate" role="doc-biblioref">Pedersen and Robinson 2020</a>)</span>：提供一套动态图形语法，动画制作与 <strong>ggplot2</strong> 绘图衔接得如丝般顺滑。</p></li>
 <li><p><strong>tmap</strong> 包<span class="citation">(<a href="#ref-Tennekes2018" role="doc-biblioref">Tennekes 2018</a>)</span>：用来制作地区分布图，导出 GIF 动画，尽管功能远不止于此。</p></li>
 <li><p><strong>echarts4r</strong> 包<span class="citation">(<a href="#ref-echarts4r" role="doc-biblioref">Coene 2022</a>)</span>：用来制作地区分布图，生成 Web 动画。</p></li>
 </ol>
@@ -280,7 +280,7 @@ usa_voting_df &lt;- merge(
 </details>
 <p>实际上，1976 年的大选，共和党在阿拉斯加和夏威夷是有得票数据的，因 <strong>maps</strong> 包内置的 state 地图数据集缺少这两个州，所以上图 <a href="#fig:votes-repub-map">4</a> 未能展示。另外，图中还缺少北纬/南纬、东经/西经的方向指示。因此，接下来采用 <strong>sf</strong> 包加强的 <strong>ggplot2</strong> 来制作更加完善的地图。</p>
 <p><strong>maps</strong> 包内置的美国州级地图数据不包含阿拉斯加和夏威夷，因此，要从美国人口调查局获取完整的新版地图数据。</p>
-<p>开发的 <strong>tigris</strong> 包封装了地图数据的下载接口，下面获取 2019 年发布的比例尺为 1:20,000,000 的州级地图数据，并将阿拉斯加州、夏威夷群岛和波多黎各适当移动至连续的 48 州下方。</p>
+<p><a href="https://walker-data.com/">Kyle Walker</a> 开发的 <strong>tigris</strong> 包封装了地图数据的下载接口，下面获取 2019 年发布的比例尺为 1:20,000,000 的州级地图数据，并将阿拉斯加州、夏威夷群岛和波多黎各适当移动至连续的 48 州下方。</p>
 <pre class="r"><code>us_state_map &lt;- tigris::states(cb = T, year = 2019, resolution = &quot;20m&quot;, class = &quot;sf&quot;)
 # 移动离岸的地区
 us_state_map &lt;- tigris::shift_geometry(us_state_map, geoid_column = &quot;GEOID&quot;, position = &quot;below&quot;)</code></pre>
@@ -314,7 +314,7 @@ us_state_map &lt;- tigris::shift_geometry(us_state_map, geoid_column = &quot;GEO
 # 8  2.031e+10 MULTIPOLYGON (((-2066285 -2...
 # 9  2.373e+09 MULTIPOLYGON (((571925 -842...
 # 10 4.420e+09 MULTIPOLYGON (((939223 -230...</code></pre>
-<p>地图数据的坐标参考系是 <a href="https://epsg.io/102003">USA Contiguous Albers Equal Area Conic</a>，感兴趣读者可以点开网页链接了解技术细节。一个州可能有多个独立的地区，比如夏威夷群岛，因此 Geometry 类型是 MULTIPOLYGON 而不是简单的 POLYGON。 NAME 列表示各州或领地名称。图 <a href="#fig:usa-state-map">5</a> 是这份地图数据的效果图，图中阿拉斯加以一定比例缩小了，而夏威夷和波多黎各以一定比例放大了。</p>
+<p>地图数据的坐标参考系是 <a href="https://epsg.io/102003">USA Contiguous Albers Equal Area Conic</a>，感兴趣读者可以点开网页链接了解技术细节。一个州可能有多个独立的地区，比如夏威夷群岛，因此 Geometry 类型是 MULTIPOLYGON 而不是简单的 POLYGON。NAME 列表示各州或领地名称。图 <a href="#fig:usa-state-map">5</a> 是这份地图数据的效果图，图中阿拉斯加以一定比例缩小了，而夏威夷和波多黎各以一定比例放大了。</p>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:usa-state-map"></span>
 <img src="{{< blogdown/postref >}}index_files/figure-html/usa-state-map-1.png" alt="美国州级地图" width="672" />
 <p class="caption">
@@ -367,13 +367,13 @@ us_state_map &lt;- tigris::shift_geometry(us_state_map, geoid_column = &quot;GEO
 </div>
 <div id="动画制作" class="section level1">
 <h1>动画制作</h1>
-<p>本节介绍两种动画形式 GIF 动画和 Web 动画，在上一节介绍的地区分布图基础上，让地图动起来，连续展示 共和党在 31 次美国大选中的得票率分布。</p>
+<p>本节介绍两种动画形式 GIF 动画和 Web 动画，在上一节介绍的地区分布图基础上，让地图动起来，连续展示共和党在 31 次美国大选中的得票率分布。</p>
 <div id="gif-动画" class="section level2">
 <h2>GIF 动画</h2>
 <p>GIF 动图是一种制作起来非常简单的动画，其实质是将一张张静态图片以适当顺序连续播放，因人眼视觉残留带来连续的效果。下面介绍 R 语言社区两个非常流行的制作 GIF 动图的扩展包：<strong>gganimate</strong> 包和 <strong>tmap</strong> 包。</p>
 <div id="gganimate-包" class="section level3">
 <h3>gganimate 包</h3>
-<p>Thomas Lin Pedersen 从 David Robinson 接手维护<strong>gganimate</strong>后，大刀阔斧地开发，试图打造一套动态图形语法「A Grammar of Animated Graphics」，让 <a href="https://github.com/thomasp85/gganimate"><strong>gganimate</strong></a> 和 <strong>ggplot2</strong> 无缝衔接。与之前类似，首先对数据做些准备操作：</p>
+<p><a href="https://www.data-imaginist.com/">Thomas Lin Pedersen</a> 从 <a href="http://varianceexplained.org/">David Robinson</a> 接手维护<strong>gganimate</strong>后，大刀阔斧地开发，试图打造一套动态图形语法「A Grammar of Animated Graphics」，让 <a href="https://github.com/thomasp85/gganimate"><strong>gganimate</strong></a> 和 <strong>ggplot2</strong> 无缝衔接。与之前类似，首先对数据做些准备操作：</p>
 <pre class="r"><code># 将历届大选数据与地图数据合并
 usa_voting_map &lt;- merge(
   x = us_state_map,
@@ -472,7 +472,7 @@ tm_shape(usa_voting_map_1976) +
     legend.outside.size = 0.15, # 图例占宽度
     legend.format = list(text.separator = &quot;~&quot;), # 图例中文本分割线
     outer.margins = 0, # 取消外边空
-    asp = 0, 
+    asp = 0, # 图形横纵比根据设备定
     frame = FALSE # 取消边框
   )</code></pre>
 </details>
@@ -530,8 +530,8 @@ tmap_animation(usa_voting_anim,
 <h2>Web 动画</h2>
 <div id="echarts4r-包" class="section level3">
 <h3>echarts4r 包</h3>
-<p><a href="https://github.com/JohnCoene/echarts4r"><strong>echarts4r</strong></a><span class="citation">(<a href="#ref-echarts4r" role="doc-biblioref">Coene 2022</a>)</span> 是 <a href="https://echarts.apache.org/en/">Apache ECharts</a> 的 R 语言接口，截止写作时间，R 包内置的 Apache ECharts JS 库更新到 5.2.2 版本。<strong>echarts4r</strong> 包目前已经支持了很多 Apache ECharts 的功能，一篇入门到应用文章参见<a href="https://cosx.org/2021/12/introduction-to-echarts4r/">《echarts4r: 从入门到应用》</a>，本节的地图动画算是原文暂未涉及的一个应用例子。</p>
-<p>制作交互式的地图动画之前，从 Github 下载 <a href="https://github.com/JohnCoene/echarts4r.maps"><strong>echarts4r.maps</strong></a> 包，它内置一份 GeoJSON 格式的美国州级地图数据。</p>
+<p><a href="https://github.com/JohnCoene/echarts4r"><strong>echarts4r</strong></a><span class="citation">(<a href="#ref-echarts4r" role="doc-biblioref">Coene 2022</a>)</span> 是 JavaScript 库 <a href="https://echarts.apache.org/en/">Apache ECharts</a> 的 R 语言接口，截止写作时间，R 包内置的 Apache ECharts 更新到 <strong>5.2.2</strong> 版本。<strong>echarts4r</strong> 包目前已经支持了很多 Apache ECharts 的功能，一篇入门到应用文章参见<a href="https://cosx.org/2021/12/introduction-to-echarts4r/">《echarts4r: 从入门到应用》</a>，本节的地图动画算是原文暂未涉及的一个应用例子。</p>
+<p>在制作交互式的地图动画之前，从 Github 下载 <a href="https://github.com/JohnCoene/echarts4r.maps"><strong>echarts4r.maps</strong></a> 包，它内置一份 GeoJSON 格式的美国州级地图数据。</p>
 <pre class="r"><code>remotes::install_github(&#39;JohnCoene/echarts4r.maps&#39;)</code></pre>
 <p>图<a href="#fig:votes-repub-echarts4r-draft">10</a> 展示 1856-1976 年美国历届大选中，共和党在各州的得票率变化情况。</p>
 <pre class="r"><code>library(echarts4r)
@@ -567,7 +567,7 @@ us_votes_repub |&gt;
 <li><p>视觉映射：修改视觉映射上下两端文本，使用红蓝对撞的调色板，置于左下方。有点体现共和党和民主党对垒的意思。</p></li>
 <li><p>主副标题：在图形上方添加动画标题、左下方说明数据来源。在动画场景下，用 <code>e_timeline_serie()</code> 实现，非动画场景下，可用 <code>e_title()</code> 实现。</p></li>
 <li><p>地图底图：<strong>echarts4r.maps</strong> 包内置的 <a href="https://geojson.org/">GeoJSON</a> 格式<a href="https://raw.githubusercontent.com/JohnCoene/echarts4r.maps/master/inst/USA.json">美国州级地图</a>。</p></li>
-<li><p>坐标投影：相比于前面展示的动画，图<a href="#fig:votes-repub-echarts4r">11</a>采用的地图投影不一样，却是真实反应区域面积大小的。目前 <strong>echarts4r</strong> 还不支持其它投影，读者定制需要引入第三方 JS 库 <a href="https://github.com/d3/d3-geo">d3-geo</a>。</p></li>
+<li><p>坐标投影：相比于前面展示的动画，图<a href="#fig:votes-repub-echarts4r">11</a>采用的地图投影不一样，是反映区域面积大小的。目前 <strong>echarts4r</strong> 还不支持其它投影，读者定制需要引入第三方 JavaScript 库 <a href="https://github.com/d3/d3-geo">d3-geo</a> 和 <a href="https://github.com/d3/d3-array">d3-array</a>。</p></li>
 <li><p>数据映射：注意地图数据中州名 name 字段格式，比如阿拉斯加州是 <code>Alaska</code> 而不是 <code>alaska</code>，这个用于匹配观测数据中的 <code>state_name</code> 列。</p></li>
 <li><p>动画播放：设置自动播放动画，播放间隔为 1s。</p></li>
 </ul>
@@ -656,8 +656,8 @@ us_votes_repub |&gt;
 <li>数据及类型的<strong>查看</strong>：<code>head()</code> 和 <code>str()</code>，查看美国大选共和党得票率数据。</li>
 <li>数据类型的<strong>转化</strong>操作：<code>as.data.frame()</code> 将矩阵类型转化为数据框类型。</li>
 <li>新增列的<strong>变换</strong>操作：<code>within()</code> 新增两列州名。</li>
-<li>数据结构的<strong>变形</strong>操作：<code>reshape()</code> 将原「宽格式」数据转化为「长格式」数据。</li>
-<li>部分数据的<strong>筛选</strong>操作：<code>subset()</code> 筛选 1976 年的美国大选数据。</li>
+<li>数据结构的<strong>重塑</strong>操作：<code>reshape()</code> 将原「宽格式」数据转化为「长格式」数据。</li>
+<li><strong>筛选</strong>部分数据的操作：<code>subset()</code> 筛选 1976 年的美国大选数据。</li>
 <li>两个数据的<strong>关联</strong>操作：<code>merge()</code> 将得票率数据以左关联的方式合并到地图数据上。</li>
 <li>按指定列的<strong>排序</strong>操作：<code>order()</code> 恢复地图数据原来的顺序。</li>
 </ul></li>
@@ -675,8 +675,8 @@ us_votes_repub |&gt;
 <li>Web 动画：<strong>echarts4r</strong> 包的<a href="https://echarts4r.john-coene.com/articles/timeline.html">动画示例</a>比较简单，定制一些内容需要多参考<a href="https://echarts.apache.org/zh/option.html#timeline">时间轴配置项手册</a>，<strong>echarts4r</strong> 暂不支持自定义坐标投影。</li>
 </ul></li>
 </ol>
-<p>总的来说，比较复杂的还是在于数据操作上，地图数据和观测数据的整洁、完整情况直接决定了制作的复杂度。</p>
-<p>更多好玩又有挑战的案例见笔者发布在统计之都主站的文章<a href="https://cosx.org/2022/05/choropleth-map/">《地区分布图及其应用》</a>，更多地理数据可视化作品见网站<a href="https://www.dataviz-inspiration.com/">Dataviz Inspiration</a>。</p>
+<p>总的来说，比较复杂的还是在数据操作上，地图数据和观测数据的整洁、完整情况决定了制作地图动画的复杂度。就地图制作来说，要求了解的 R 语言技术是比较全面的，基本涵盖了常用的数据操作方法和 <strong>ggplot2</strong> 做 数据可视化的全过程。</p>
+<p>更多好玩又有挑战的案例见笔者发布在统计之都主站的文章<a href="https://cosx.org/2022/05/choropleth-map/">《地区分布图及其应用》</a>，更多地理数据可视化作品见网站 <a href="https://www.dataviz-inspiration.com/">Dataviz Inspiration</a>。</p>
 </div>
 <div id="运行环境" class="section level1">
 <h1>运行环境</h1>
