@@ -752,84 +752,6 @@ us_votes_repub |>
 ```
 </details>
 
----
-
-> **2022-05-28 更新博客内容：**
-
-Web 动画图\@ref(fig:votes-repub-echarts4r) 的坐标投影方式改为以美国为中心的阿尔伯斯等面积圆锥投影，和前面美国人口调查局发布的多边形地图数据采用一样的坐标参考系，效果如图\@ref(fig:votes-repub-echarts4r-geo)。具体实现如下：
-
-- Apache ECharts 在 5.3.0 版本后，支持设置不同的坐标投影，目前 John Coene 已将 **echarts4r** 包内置的 JavaScript 库更新至最新稳定版本 5.3.2，**echarts4r** 包也已更新至 0.4.4 版本，读者可从 CRAN 下载安装。
-
-- 借助 `htmlwidgets::prependContent()` 引入 D3 系列的地理投影库 [d3-geo](https://github.com/d3/d3-geo)实现[阿尔伯斯等面积圆锥投影](https://github.com/d3/d3-geo#geoAlbersUsa)，阿拉斯加州移至连续 48 州左下方，面积缩小为原来的 0.35 倍，看起来和美国中部一些州差不多大了，移动夏威夷的位置，面积不变。
-
-- 制作过程中，参考了 Apache ECharts 官网给的[示例](https://echarts.apache.org/examples/zh/editor.html?c=map-usa-projection)和[帮助文档](https://echarts.apache.org/en/option.html#series-map.projection)，同时感谢 John Coene 提供的支持和帮助。
-
-```{r}
-#| label: votes-repub-echarts4r-geo
-#| fig.cap: "1856-1976 年美国历届大选中共和党在各州的得票率"
-#| fig.align: "center"
-#| echo: false
-us_votes_repub |>
-  group_by(year) |>
-  e_charts(x = state_name, timeline = TRUE) |>
-  em_map(map = "USA") |>
-  e_map(
-    serie = repub_prop, map = "USA", name = "得票率（%）",
-    projection = list(
-      project = htmlwidgets::JS("function(point) {return projection(point);}"),
-      unproject = htmlwidgets::JS("function(point) {return projection.invert(point);}")
-    )
-  ) |>
-  e_visual_map(
-    serie = repub_prop,
-    left = 40,
-    bottom = 20,
-    text = c("高", "低"),
-    inRange = list(
-      color = RColorBrewer::brewer.pal(n = 11, name = "RdBu")
-    )
-  ) |>
-  htmlwidgets::prependContent(
-    htmltools::tags$script(src = "https://fastly.jsdelivr.net/npm/d3-array")
-  ) |>
-  htmlwidgets::prependContent(
-    htmltools::tags$script(src = "https://fastly.jsdelivr.net/npm/d3-geo")
-  ) |>
-  htmlwidgets::prependContent(
-    htmltools::tags$script("const projection = d3.geoAlbersUsa();")
-  ) |> 
-  e_tooltip() |> 
-  e_timeline_opts(
-    autoPlay = TRUE,    # 自动播放
-    show = TRUE,        # 展示时间轴
-    playInterval = 1000 # 转场时间
-  ) |>
-  e_timeline_serie(title = lapply(
-    unique(us_votes_repub$year),
-    function(year) {
-      list(
-        text = paste(year, "年共和党在各州的得票率"),
-        subtext = "数据源：maps 包内置数据集 votes.repub",
-        sublink = "https://cran.r-project.org/package=maps/",
-        left = "center",
-        subtextStyle = list(
-          color = "rgb(170, 170, 170, 0.5)",
-          fontWeight = "bolder"
-        )
-      )
-    }
-  ), index = 1)
-```
-
-
-<details>
-<p><summary> 点击显示或隐藏代码 </summary></p>
-```{r}
-#| ref.label: votes-repub-echarts4r-geo
-#| eval: false
-#| echo: true
-```
-</details>
 
 
 # 本文小结
@@ -882,6 +804,86 @@ xfun::session_info(packages = c(
   "sf", "tigris", "tmap", "gifski"
 ), dependencies = FALSE)
 ```
+
+
+---
+
+> **2022-05-28 更新**
+
+Web 动画图\@ref(fig:votes-repub-echarts4r) 的坐标投影方式改为以美国为中心的阿尔伯斯等面积圆锥投影，和前面美国人口调查局发布的多边形地图数据采用一样的坐标参考系，效果如图\@ref(fig:votes-repub-echarts4r-geo)。具体实现如下：
+
+- Apache ECharts 在 5.3.0 版本后，支持设置不同的坐标投影，目前 John Coene 已将 **echarts4r** 包内置的 JavaScript 库更新至最新稳定版本 5.3.2，**echarts4r** 包也已更新至 0.4.4 版本，读者可从 CRAN 下载安装。
+
+- 借助 `htmlwidgets::prependContent()` 引入 D3 系列的地理投影库 [d3-geo](https://github.com/d3/d3-geo)实现[阿尔伯斯等面积圆锥投影](https://github.com/d3/d3-geo#geoAlbersUsa)，阿拉斯加州移至连续 48 州左下方，面积缩小为原来的 0.35 倍，看起来和美国中部一些州差不多大了，移动夏威夷的位置，面积不变。
+
+- 制作过程中，参考了 Apache ECharts 官网给的[示例](https://echarts.apache.org/examples/zh/editor.html?c=map-usa-projection)和[帮助文档](https://echarts.apache.org/en/option.html#series-map.projection)，同时感谢 John Coene 提供的支持和帮助。
+
+```{r}
+#| label: votes-repub-echarts4r-geo
+#| fig.cap: "1856-1976 年美国历届大选中共和党在各州的得票率"
+#| fig.align: "center"
+#| echo: false
+us_votes_repub |>
+  group_by(year) |>
+  e_charts(x = state_name, timeline = TRUE) |>
+  em_map(map = "USA") |>
+  e_map(
+    serie = repub_prop, map = "USA", name = "得票率（%）",
+    projection = list(
+      project = htmlwidgets::JS("function(point) {return projection(point);}"),
+      unproject = htmlwidgets::JS("function(point) {return projection.invert(point);}")
+    )
+  ) |>
+  e_visual_map(
+    serie = repub_prop,
+    left = 40,     # 组件与左侧的距离
+    bottom = 20,   # 组件与下侧的距离
+    text = c("高", "低"),
+    inRange = list(
+      color = RColorBrewer::brewer.pal(n = 11, name = "RdBu")
+    )
+  ) |>
+  htmlwidgets::prependContent(
+    htmltools::tags$script(src = "https://fastly.jsdelivr.net/npm/d3-array")
+  ) |>
+  htmlwidgets::prependContent(
+    htmltools::tags$script(src = "https://fastly.jsdelivr.net/npm/d3-geo")
+  ) |>
+  htmlwidgets::prependContent(
+    htmltools::tags$script("const projection = d3.geoAlbersUsa();")
+  ) |> 
+  e_tooltip() |> 
+  e_timeline_opts(
+    autoPlay = TRUE,    # 自动播放
+    show = TRUE,        # 展示时间轴
+    playInterval = 1000 # 转场时间
+  ) |>
+  e_timeline_serie(title = lapply(
+    unique(us_votes_repub$year),
+    function(year) {
+      list(
+        text = paste(year, "年共和党在各州的得票率"),
+        subtext = "数据源：maps 包内置数据集 votes.repub",
+        sublink = "https://cran.r-project.org/package=maps/",
+        left = "center",
+        subtextStyle = list(
+          color = "rgb(170, 170, 170, 0.5)",
+          fontWeight = "bolder"
+        )
+      )
+    }
+  ), index = 1)
+```
+
+
+<details>
+<p><summary> 点击显示或隐藏代码 </summary></p>
+```{r}
+#| ref.label: votes-repub-echarts4r-geo
+#| eval: false
+#| echo: true
+```
+</details>
 
 
 # 参考文献
