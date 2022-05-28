@@ -337,7 +337,8 @@ us_state_map
 
 地图数据的坐标参考系是 [USA Contiguous Albers Equal Area Conic](https://epsg.io/102003)，感兴趣读者可以点开网页链接了解技术细节。一个州可能有多个独立的地区，比如夏威夷群岛，因此 Geometry 类型是 MULTIPOLYGON 而不是简单的 POLYGON。NAME 列表示各州或领地名称。图 \@ref(fig:usa-state-map) 是这份地图数据的效果图，图中阿拉斯加以一定比例缩小了，而夏威夷和波多黎各以一定比例放大了。
 
-```{r usa-state-map}
+```{r}
+#| label: usa-state-map
 #| fig.cap: "美国州级地图"
 #| echo: false
 #| fig.align: "center"
@@ -751,7 +752,82 @@ us_votes_repub |>
 ```
 </details>
 
+---
 
+> **2022-05-28 更新博客内容：**
+
+Web 动画图\@ref(fig:votes-repub-echarts4r) 的坐标投影方式改为以美国为中心的阿尔伯斯等面积圆锥投影，和前面美国人口调查局发布的多边形地图数据采用一样的坐标参考系，效果如图\@ref(fig:votes-repub-echarts4r-geo)。具体实现如下：
+
+- 借助 `htmlwidgets::prependContent()` 引入 D3 系列的地理投影库 [d3-geo](https://github.com/d3/d3-geo)实现[阿尔伯斯等面积圆锥投影](https://github.com/d3/d3-geo#geoAlbersUsa)，阿拉斯加州移至连续 48 州左下方，面积缩小为原来的 0.35 倍，看起来和美国中部一些州差不多大了，移动夏威夷的位置，面积不变。
+
+- John Coene 将 **echarts4r** 包内置的 JavaScript 库 Apache ECharts 更新至当前最新版本 5.3.2，R 包暂未正式发布至 CRAN，读者需要安装开发版 **echarts4r** 包来使用此新特性。制作过程中，参考了 Apache ECharts 官网给的[示例](https://echarts.apache.org/examples/zh/editor.html?c=map-usa-projection)，感谢 John Coene 提供的支持和帮助。
+
+```{r}
+#| label: votes-repub-echarts4r-geo
+#| fig.cap: "1856-1976 年美国历届大选中共和党在各州的得票率"
+#| fig.align: "center"
+#| echo: false
+us_votes_repub |>
+  group_by(year) |>
+  e_charts(x = state_name, timeline = TRUE) |>
+  em_map(map = "USA") |>
+  e_map(
+    serie = repub_prop, map = "USA", name = "得票率（%）",
+    projection = list(
+      project = htmlwidgets::JS("function(point) {return projection(point);}"),
+      unproject = htmlwidgets::JS("function(point) {return projection.invert(point);}")
+    )
+  ) |>
+  e_visual_map(
+    serie = repub_prop,
+    left = 40,
+    bottom = 20,
+    text = c("高", "低"),
+    inRange = list(
+      color = RColorBrewer::brewer.pal(n = 11, name = "RdBu")
+    )
+  ) |>
+  htmlwidgets::prependContent(
+    htmltools::tags$script(src = "https://fastly.jsdelivr.net/npm/d3-array")
+  ) |>
+  htmlwidgets::prependContent(
+    htmltools::tags$script(src = "https://fastly.jsdelivr.net/npm/d3-geo")
+  ) |>
+  htmlwidgets::prependContent(
+    htmltools::tags$script("const projection = d3.geoAlbersUsa();")
+  ) |> 
+  e_tooltip() |> 
+  e_timeline_opts(
+    autoPlay = TRUE,    # 自动播放
+    show = TRUE,        # 展示时间轴
+    playInterval = 1000 # 转场时间
+  ) |>
+  e_timeline_serie(title = lapply(
+    unique(us_votes_repub$year),
+    function(year) {
+      list(
+        text = paste(year, "年共和党在各州的得票率"),
+        subtext = "数据源：maps 包内置数据集 votes.repub",
+        sublink = "https://cran.r-project.org/package=maps/",
+        left = "center",
+        subtextStyle = list(
+          color = "rgb(170, 170, 170, 0.5)",
+          fontWeight = "bolder"
+        )
+      )
+    }
+  ), index = 1)
+```
+
+
+<details>
+<p><summary> 点击显示或隐藏代码 </summary></p>
+```{r}
+#| ref.label: votes-repub-echarts4r-geo
+#| eval: false
+#| echo: true
+```
+</details>
 
 
 # 本文小结
@@ -783,7 +859,7 @@ us_votes_repub |>
     -  Web 动画：**echarts4r** 包的[动画示例](https://echarts4r.john-coene.com/articles/timeline.html)比较简单，定制一些内容需要多参考[时间轴配置项手册](https://echarts.apache.org/zh/option.html#timeline)，**echarts4r** 暂不支持自定义坐标投影。
 
 
-总的来说，比较复杂的还是在数据操作上，地图数据和观测数据的整洁、完整情况决定了制作地图动画的复杂度。就地图制作来说，要求了解的 R 语言技术是比较全面的，基本涵盖了常用的数据操作方法和 **ggplot2** 做 数据可视化的全过程。
+总的来说，比较复杂的还是在数据操作上，地图数据和观测数据的整洁、完整情况决定了制作地图动画的复杂度。就地图制作来说，要求了解的 R 语言技术是比较全面的，基本涵盖了常用的数据操作方法和 **ggplot2** 做数据可视化的全过程，制作 Web 动图还需要继续了解 **echart4r** 包。
 
 
 更多好玩又有挑战的案例见笔者发布在统计之都主站的文章[《地区分布图及其应用》](https://cosx.org/2022/05/choropleth-map/)，更多地理数据可视化作品见网站 [Dataviz Inspiration](https://www.dataviz-inspiration.com/)。
