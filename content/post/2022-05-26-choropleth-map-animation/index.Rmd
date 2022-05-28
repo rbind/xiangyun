@@ -758,9 +758,11 @@ us_votes_repub |>
 
 Web 动画图\@ref(fig:votes-repub-echarts4r) 的坐标投影方式改为以美国为中心的阿尔伯斯等面积圆锥投影，和前面美国人口调查局发布的多边形地图数据采用一样的坐标参考系，效果如图\@ref(fig:votes-repub-echarts4r-geo)。具体实现如下：
 
+- Apache ECharts 在 5.3.0 版本后，支持设置不同的坐标投影，目前 John Coene 已将 **echarts4r** 包内置的 JavaScript 库更新至最新稳定版本 5.3.2，**echarts4r** 包也已更新至 0.4.4 版本，读者可从 CRAN 下载安装。
+
 - 借助 `htmlwidgets::prependContent()` 引入 D3 系列的地理投影库 [d3-geo](https://github.com/d3/d3-geo)实现[阿尔伯斯等面积圆锥投影](https://github.com/d3/d3-geo#geoAlbersUsa)，阿拉斯加州移至连续 48 州左下方，面积缩小为原来的 0.35 倍，看起来和美国中部一些州差不多大了，移动夏威夷的位置，面积不变。
 
-- John Coene 将 **echarts4r** 包内置的 JavaScript 库 Apache ECharts 更新至当前最新版本 5.3.2，R 包暂未正式发布至 CRAN，读者需要安装开发版 **echarts4r** 包来使用此新特性。制作过程中，参考了 Apache ECharts 官网给的[示例](https://echarts.apache.org/examples/zh/editor.html?c=map-usa-projection)，感谢 John Coene 提供的支持和帮助。
+- 制作过程中，参考了 Apache ECharts 官网给的[示例](https://echarts.apache.org/examples/zh/editor.html?c=map-usa-projection)和[帮助文档](https://echarts.apache.org/en/option.html#series-map.projection)，同时感谢 John Coene 提供的支持和帮助。
 
 ```{r}
 #| label: votes-repub-echarts4r-geo
