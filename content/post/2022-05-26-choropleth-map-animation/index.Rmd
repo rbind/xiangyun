@@ -82,11 +82,16 @@ knitr::opts_chunk$set(
 
 1. **gifski** 包[@gifski]：将一张张静态图片合成 GIF 动图，**gganimate** 包和 **tmap** 包都需要它来导出 GIF 动图。
 
+1. **showtext** 包[@Qiu2015]：用 **tmap** 包制作含中文的 GIF 动画，需要**showtext** 包的支持。
+
+1. **ragg** 包[@ragg]：用 **gganimate** 包制作含中文的 GIF 动画，需要 **ragg** 包的支持，**showtext** 包暂不支持此场景。
+
 1. **gganimate** 包[@gganimate]：提供一套动态图形语法，动画制作与 **ggplot2** 绘图衔接得如丝般顺滑。
 
 1. **tmap** 包[@Tennekes2018]：用来制作地区分布图，导出 GIF 动画，尽管功能远不止于此。
 
 1. **echarts4r** 包[@echarts4r]：用来制作地区分布图，生成 Web 动画。
+
 
 
 # 地图制作
@@ -303,7 +308,7 @@ ggplot(data = usa_voting_df, aes(long, lat, group = subregion)) +
 ```
 
 <details>
-<summary> 点击显示或隐藏代码 </summary>
+<summary> 显示代码 </summary>
 ```{r}
 #| ref.label: votes-repub-map
 #| eval: false
@@ -360,8 +365,7 @@ usa_voting_map_1976 <- merge(
 )
 ```
 
-在 sf 包的加持下，地理图层 `geom_sf()` 可以替代 `geom_map()`，坐标图层 `coord_sf()` 可以替代 `coord_map()`。
-整个绘图的过程极大地简化下来了，核心部分只有两行，如下：
+在 sf 包的加持下，地理几何图层 `geom_sf()` 可以替代 `geom_map()`，坐标投影图层 `coord_sf()` 可以替代 `coord_map()`。整个绘图的过程极大地简化下来了，核心部分只有两行，如下：
 
 ```{r}
 #| echo: true
@@ -399,7 +403,7 @@ ggplot() +
 ```
 
 <details>
-<p><summary> 点击显示或隐藏代码 </summary></p>
+<p><summary> 显示代码 </summary></p>
 ```{r}
 #| ref.label: votes-repub-sf
 #| eval: false
@@ -418,7 +422,7 @@ GIF 动图是一种制作起来非常简单的动画，其实质是将一张张�
 
 ### gganimate 包
 
-[Thomas Lin Pedersen](https://www.data-imaginist.com/) 从 [David Robinson](http://varianceexplained.org/) 接手维护**gganimate**后，大刀阔斧地开发，试图打造一套动态图形语法「A Grammar of Animated Graphics」，让 [**gganimate**](https://github.com/thomasp85/gganimate) 和 **ggplot2** 无缝衔接。与之前类似，首先对数据做些准备操作：
+[Thomas Lin Pedersen](https://www.data-imaginist.com/) 从 [David Robinson](http://varianceexplained.org/) 接手维护**gganimate**后，大刀阔斧地开发，试图打造一套动态图形语法「A Grammar of Animated Graphics」，让 [**gganimate**](https://github.com/thomasp85/gganimate) 和 **ggplot2** 无缝衔接。与之前类似，先做些数据准备的操作：
 
 ```{r}
 # 将历届大选数据与地图数据合并
@@ -435,15 +439,15 @@ usa_voting_map <- subset(x = usa_voting_map, subset = !is.na(year))
 usa_voting_map$year <- as.integer(usa_voting_map$year)
 ```
 
-从 1856 年到 1976 年，美国共经历 31 次大选，设置总帧数 31，每秒播放 1 帧。
+从 1856 年到 1976 年，美国共经历 31 次大选，设置总帧数 31，每秒播放 1 帧，最终生成逐帧动画。
 
 ```{r}
 options(gganimate.nframes = 31, gganimate.fps = 1)
 ```
 
-[Gifski](https://gif.ski/) 是一个制作 GIF 动图的 Rust 库，[Jeroen Ooms](https://github.com/jeroen) 将其引入 R 语言社区，开发了同名的 R 语言接口 [**gifski**](https://github.com/r-rust/gifski) 包，**gganimate** 制作 GIF 动图或 MP4 格式视频都是调用 **gifski** 包做合成。
+[Gifski](https://gif.ski/) 是一个制作 GIF 动图的 Rust 库，[Jeroen Ooms](https://github.com/jeroen) 将其引入 R 语言社区，开发了同名的 R 包 [**gifski**](https://github.com/r-rust/gifski)，它用于合成 GIF 动图或 MP4 格式视频。
 
-从 **ggplot2** 绘制的静态图形到 **gganimate** 制作 GIF 动图，只需一行代码，指定时间变量。
+将 **ggplot2** 制作的静态图形转化为 **gganimate** 制作的 GIF 动图，只需再加一行代码，指定转场的时间变量。
 
 ```{r}
 #| eval: false
@@ -458,6 +462,8 @@ transition_time(year)
 #| fig.cap: "1856-1976年共和党在各州的得票率"
 #| fig.width: 6
 #| fig.height: 4.5
+#| dev: "ragg_png"
+#| fig.align: "center"
 #| cache: true
 #| echo: false
 library(gganimate)
@@ -469,18 +475,21 @@ ggplot() +
   ) +
   theme_minimal() +
   theme(
-    plot.title = element_text(size = 26, face = "bold", color = "red3"),
+    plot.title = element_text(
+      size = 16, face = "bold",
+      color = "red3", family = "Noto Serif CJK SC"
+    ),
     legend.position = "bottom"
   ) +
   labs(
-    title = "Voting Republican in {frame_time}",
+    title = "{frame_time} 年美国大选共和党得票率",
     x = "", y = "", fill = ""
   ) +
   transition_time(year)
 ```
 
 <details>
-<p><summary> 点击显示或隐藏代码 </summary></p>
+<p><summary> 显示代码 </summary></p>
 ```{r}
 #| ref.label: votes-repub-gganimate
 #| eval: false
@@ -490,11 +499,11 @@ ggplot() +
 
 GIF 动图制作过程中有几点需要注意：
 
-1.  调整总帧数和帧率，在图\@ref(fig:votes-repub-gganimate)基础上添加过渡效果，需要额外安装 **transformr** 包，它是通过中间差值的方式实现的。
+1.  调整总帧数和帧率，在图\@ref(fig:votes-repub-gganimate)基础上添加过渡效果，需要额外安装 **transformr** 包，它是通过插值的方式实现中间过渡状态的。
 
 1.  GIF 动图\@ref(fig:votes-repub-gganimate) 是逐年逐帧显示得票率分布，不需要添加过渡效果，美国大选每四年一届，插值后会很奇怪，但可以调整帧率，即每秒播放的地图分布图的幅数。
 
-1.  **showtext** 包支持在 **ggplot2** 绘制的图形中 添加中文字体，但是不支持 **gganimate** 包的动画场景。
+1.  **showtext** 包支持在 **ggplot2** 绘制的图形中添加中文字体，但是不支持 **gganimate** 包的动画制作场景。因此，安装 **ragg** 包，在生成 GIF 图\@ref(fig:votes-repub-gganimate)的代码块选项中，图形设备设置为 `dev = "ragg_png"`。为操作系统安装 [Noto Serif CJK SC 字体](https://github.com/googlefonts/noto-cjk)，并设置为图中标题字体。
 
 1. 在标题处添加了年份，这样就知道每一帧动画对应的大选之年。
 
@@ -503,12 +512,12 @@ GIF 动图制作过程中有几点需要注意：
 
 [**tmap**](https://github.com/r-tmap/tmap) 包功能丰富，支持多种图形展示各种空间数据，如比例符号图（Proportional symbol map）、地区分布图（Choropleth map）、等值线图（Isopleth or contour map）、分类图（Categorical map）、核密度图（Kernel density map）和变形图（Cartogram）等，支持网页展示交互地图、导出高质量图片，借助 **gifski** 包支持导出时空 GIF 动画等，还可在于 Shiny 应用中交互展示空间数据。
 
-本小节了参考《Geocomputation with R》[@Lovelace2022]第 9 章第 3 节[动态地图](https://geocompr.robinlovelace.net/adv-map.html#animated-maps)内容
-制作 GIF 动态地图。**tmap** 制作地图的代码风格和 **ggplot2** 的图形语法非常类似。
+本小节参考了《Geocomputation with R》[@Lovelace2022]第 9 章第 3 节[动态地图](https://geocompr.robinlovelace.net/adv-map.html#animated-maps)的内容来制作 GIF 动态地图。**tmap** 制作地图的代码风格和 **ggplot2** 非常类似，相信理解起来不难。
 
 ```{r}
 #| label: votes-repub-tmap
 #| fig.cap: "1976年共和党在各州的得票率"
+#| fig.align: "center"
 #| fig.width: 11
 #| fig.height: 8
 #| cache: true
@@ -545,7 +554,7 @@ tm_shape(usa_voting_map_1976) +
 ```
 
 <details>
-<p><summary> 点击显示或隐藏代码 </summary></p>
+<p><summary> 显示代码 </summary></p>
 ```{r}
 #| ref.label: votes-repub-tmap
 #| eval: false
@@ -575,8 +584,10 @@ tmap_animation(usa_voting_anim,
 
 其中，参数 `height` 和 `width` 分别表示图片的长和宽（以像素计），`delay` 参数表示两帧画面转场的时间间隔（以 1/100 秒计），`delay = 50` 意味着间隔时间为 0.2 秒。
 
+![(\#fig:usa-voting-tmap-anim)1856-1976年共和党在各州的得票率](img/usa_voting_anim.gif){.full}
+
 <details>
-<p><summary> 点击显示或隐藏代码 </summary></p>
+<p><summary> 显示代码 </summary></p>
 ```{r}
 #| eval: false
 #| fig.showtext: true
@@ -611,14 +622,12 @@ tmap_animation(usa_voting_anim,
 ```
 </details>
 
-![(\#fig:usa-voting-tmap-anim)1856-1976年共和党在各州的得票率](img/usa_voting_anim.gif){.full}
-
 
 ## Web 动画
 
 ### echarts4r 包
 
-[**echarts4r**](https://github.com/JohnCoene/echarts4r)[@echarts4r] 是 JavaScript 库 [Apache ECharts](https://echarts.apache.org/en/) 的 R 语言接口，截止写作时间，R 包内置的 Apache ECharts 更新到 **5.2.2** 版本。**echarts4r** 包目前已经支持了很多 Apache ECharts 的功能，一篇入门到应用文章参见[《echarts4r: 从入门到应用》](https://cosx.org/2021/12/introduction-to-echarts4r/)，本节的地图动画算是原文暂未涉及的一个应用例子。
+[**echarts4r**](https://github.com/JohnCoene/echarts4r)[@echarts4r] 是 JavaScript 库 [Apache ECharts](https://echarts.apache.org/en/) 的 R 语言接口，截止写作时间，R 包内置的 Apache ECharts 更新到 **5.2.2** 版本。**echarts4r** 包目前已经支持了很多 Apache ECharts 的功能，一篇写给初学者的入门文章参见[《echarts4r: 从入门到应用》](https://cosx.org/2021/12/introduction-to-echarts4r/)，本节的地图动画是原文暂未涉及的应用案例。
 
 在制作交互式的地图动画之前，从 Github 下载 [**echarts4r.maps**](https://github.com/JohnCoene/echarts4r.maps) 包，它内置一份 GeoJSON 格式的美国州级地图数据。
 
@@ -645,7 +654,7 @@ us_votes_repub |>
   e_tooltip()
 ```
 
-在上图的制作过程中，还可以定制一些内容：
+在上图的制作的基础上，还可以定制一些内容：
 
 - 悬浮提示：仍然采用默认的样式，读者可定制一番。稍注意的是在表达百分比时，JS 函数 `Math.round()` 会 四舍五入抹去小数点，要想保留两位小数，需要做一点变换 `Math.round(params.value * 100) / 100`。
 
@@ -670,13 +679,13 @@ us_votes_repub |>
 
 - 地图底图：**echarts4r.maps** 包内置的 [GeoJSON](https://geojson.org/) 格式[美国州级地图](https://raw.githubusercontent.com/JohnCoene/echarts4r.maps/master/inst/USA.json)。
 
-- 坐标投影：相比于前面展示的动画，图\@ref(fig:votes-repub-echarts4r)采用的地图投影不一样，是反映区域面积大小的。目前 **echarts4r** 还不支持其它投影，读者定制需要引入第三方 JavaScript 库 [d3-geo](https://github.com/d3/d3-geo) 和 [d3-array](https://github.com/d3/d3-array)。
+- 坐标投影：相比于前面展示的动画，最终效果图\@ref(fig:votes-repub-echarts4r)采用的坐标投影不一样，它是反映实际区域面积大小的。目前 **echarts4r** 还不支持其它投影，读者定制需要引入第三方 JavaScript 库 [d3-geo](https://github.com/d3/d3-geo) 和 [d3-array](https://github.com/d3/d3-array)。
 
-- 数据映射：注意地图数据中州名 name 字段格式，比如阿拉斯加州是 `Alaska` 而不是 `alaska`，这个用于匹配观测数据中的 `state_name` 列。
+- 数据映射：注意地图数据中州名 name 字段格式，阿拉斯加州是 `Alaska` 而不是 `alaska`，这个用于匹配观测数据中的 `state_name` 列。
 
 - 动画播放：设置自动播放动画，播放间隔为 1s。
 
-最终效果如图\@ref(fig:votes-repub-echarts4r)，笔者不了解美国的情况，仅从图\@ref(fig:votes-repub-echarts4r)不难看出，共和党在北方比较受欢迎。
+仅从图\@ref(fig:votes-repub-echarts4r)不难看出，共和党在北方比较受欢迎。
 
 ```{r}
 #| label: votes-repub-echarts4r
@@ -744,7 +753,7 @@ us_votes_repub |>
 ```
 
 <details>
-<p><summary> 点击显示或隐藏代码 </summary></p>
+<p><summary> 显示代码 </summary></p>
 ```{r}
 #| ref.label: votes-repub-echarts4r
 #| eval: false
@@ -877,7 +886,7 @@ us_votes_repub |>
 
 
 <details>
-<p><summary> 点击显示或隐藏代码 </summary></p>
+<p><summary> 显示代码 </summary></p>
 ```{r}
 #| ref.label: votes-repub-echarts4r-geo
 #| eval: false
