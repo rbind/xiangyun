@@ -656,7 +656,7 @@ us_votes_repub |>
 
 在上图的制作的基础上，还可以定制一些内容：
 
-- 悬浮提示：仍然采用默认的样式，读者可定制一番。稍注意的是在表达百分比时，JS 函数 `Math.round()` 会 四舍五入抹去小数点，要想保留两位小数，需要做一点变换 `Math.round(params.value * 100) / 100`。
+- 悬浮提示：仍然采用默认的样式，读者可定制一番。稍注意的是在表达百分比时，JS 函数 `Math.round()` 会四舍五入抹去小数点，要想保留两位小数，需要做一点变换 `Math.round(params.value * 100) / 100`。
 
     ```{r}
     #| eval: false
@@ -672,6 +672,27 @@ us_votes_repub |>
       ")
     )
     ```
+
+    百分数处理参考 [SO 帖子](https://stackoverflow.com/questions/11832914/)，自定义悬浮提示参考[SO 帖子](https://stackoverflow.com/questions/50554304/)。JS 代码中 `params.name` 对应 `e_map()` 函数的 `name` 参数值，`params.value` 对应 `serie` 参数值。但是在气泡图中，有点不一样，以 R 内置的数据集 mtcars 为例，`params.name` 对应 `bind`，`params.value[0]` 对应 `x`， `params.value[1]` 对应 `serie` ，`params.value[2]` 对应 `size`。不同的图形有不同的对应情况，详见 Apache ECharts [官方文档](https://echarts.apache.org/en/option.html#tooltip.formatter)。
+    
+    ```{r}
+    mtcars |>
+      tibble::rownames_to_column("model") |>
+      group_by(cyl) |> 
+      e_charts(x = wt) |>
+      e_scatter(serie = mpg, size = qsec, bind = model) |>
+      e_tooltip(formatter = htmlwidgets::JS("
+              function(params) {
+                  return (
+                      '<strong>' + params.name + '</strong>' +
+                      '<br />wt: ' + params.value[0] +
+                      '<br />mpg: ' + params.value[1] +
+                      '<br />qsec: ' + params.value[2]
+                  )
+              }
+              "))
+    ```
+    
 
 - 视觉映射：修改视觉映射上下两端文本，使用红蓝对撞的调色板，置于左下方。有点体现共和党和民主党对垒的意思。
 
