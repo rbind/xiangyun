@@ -23,6 +23,13 @@ description: "plotly.js 是一款功能非常全面的开源数据可视化库�
 .modebar {
   display: none !important;
 }
+.sidebar {
+  border: 1px solid #ccc;
+  border-left-width: 5px;
+  border-radius: 5px;
+  padding: 1em;
+  margin: 1em 0;
+}
 ```
 
 ```{r}
@@ -41,7 +48,100 @@ Sys.setenv(RETICULATE_PYTHON_ENV="/opt/.virtualenvs/r-tensorflow")
 
 # Plotly Python
 
-[plotly.js](https://github.com/plotly/plotly.js) 是一款功能非常全面的开源数据可视化库，目前 Github 上的星赞超过 14K。图形种类非常丰富，仅地图制作就涵盖了热力图、专题地图、飞线图、散点图、气泡图等常用的图形，且支持调用 MapBox 地图服务用作底图。相比较于 R 版[@Sievert2020]，Python 版 [plotly.py](https://github.com/plotly/plotly.py) 几乎与上游 JS 版同步更新，功能更加全面，BUG 也少，模块依赖也少，接口也好用些。本文图形和动画全部用 Python 版 plotly 制作。
+[plotly.js](https://github.com/plotly/plotly.js) 是一款功能非常全面的开源数据可视化库，目前 Github 上的星赞超过 14K。图形种类非常丰富，仅地图制作就涵盖了热力图、专题地图、飞线图、散点图、气泡图等常用的图形，且支持调用 MapBox 地图服务用作底图。相比较于 R 版[@Sievert2020]，Python 版 [plotly.py](https://github.com/plotly/plotly.py) 几乎与上游 JS 版同步更新，功能更加全面，BUG 也少，模块依赖也少，接口也好用些。本文图形和动画主要用 Python 版 plotly 制作。
+
+
+## 散点图 {#scatter}
+
+目前，Plotly 的高级绘图子模块 express 支持**35** 种常见图形，各图形参数[见此](https://github.com/plotly/plotly.py/blob/master/packages/python/plotly/plotly/express/_chart_types.py)，帮助文档[见此](https://plotly.com/python/plotly-express/)。
+
+- Basics: scatter, line, area, bar, funnel, timeline
+- Part-of-Whole: pie, sunburst, treemap, icicle, funnel_area
+- 1D Distributions: histogram, box, violin, strip, ecdf
+- 2D Distributions: density_heatmap, density_contour
+- Matrix or Image Input: imshow
+- 3-Dimensional: scatter_3d, line_3d
+- Multidimensional: scatter_matrix, parallel_coordinates, parallel_categories
+- Tile Maps: scatter_mapbox, line_mapbox, choropleth_mapbox, density_mapbox
+- Outline Maps: scatter_geo, line_geo, choropleth
+- Polar Charts: scatter_polar, line_polar, bar_polar
+- Ternary Charts: scatter_ternary, line_ternary
+
+```{r}
+#| eval: false
+#| echo: true
+c(
+  "scatter", "density_contour", "density_heatmap",
+  "line", "area", "bar", "timeline", "histogram",
+  "histogram", "violin", "box", "strip", "scatter_3d",
+  "line_3d", "scatter_ternary", "line_ternary",
+  "scatter_polar", "line_polar", "bar_polar", "choropleth",
+  "scatter_geo", "line_geo", "scatter_mapbox",
+  "choropleth_mapbox", "density_mapbox", "line_mapbox",
+  "scatter_matrix", "parallel_coordinates",
+  "parallel_categories", "pie", "sunburst", "treemap",
+  "icicle", "funnel", "funnel_area"
+)
+```
+
+express 支持快速地绘制图形，使用接口类似 R 语言，从 R 语言切换过来简单，和统计模型结合的非常好，以分组线性回归散点图为例。
+
+```{python}
+#| label: python-plotly
+#| fig.cap: "鸢尾花分类散点图"
+import plotly.express as px
+
+px.scatter(
+    px.data.iris(),
+    x="sepal_width",
+    y="sepal_length",
+    color="species",
+    trendline="ols",
+    template="simple_white",
+    labels={
+        "sepal_length": "Sepal Length (cm)",
+        "sepal_width": "Sepal Width (cm)",
+        "species": "Species of Iris",
+    },
+    title="Edgar Anderson's Iris Data",
+    color_discrete_sequence=px.colors.qualitative.Set2
+)
+```
+
+导出图形非常简单，保存绘图对象，然后调函数 `write_image()` 导出即可。
+
+```{python}
+#| eval: false
+import plotly.express as px
+fig = px.scatter(
+    px.data.iris(),
+    x="sepal_width",
+    y="sepal_length",
+    color="species",
+    trendline="ols",
+    template="simple_white",
+    labels={
+        "sepal_length": "Sepal Length (cm)",
+        "sepal_width": "Sepal Width (cm)",
+        "species": "Species of Iris",
+    },
+    title="Edgar Anderson's Iris Data",
+    color_discrete_sequence=px.colors.qualitative.Set2,
+)
+fig.write_image("img/iris.png", engine="kaleido")
+fig.write_image("img/iris.pdf", engine="kaleido")
+fig.write_image("img/iris.svg", engine="kaleido")
+```
+
+支持导出多种格式，且导出的图片效果很好，如图\@ref(fig:export-iris)所示。
+
+```{r}
+#| label: export-iris
+#| echo: false
+#| fig.cap: "Plotly 导出高质量的图片"
+#| out.width: "75%"
+knitr::include_graphics(path = "img/iris.svg")
+```
 
 ## 气泡动画
 
@@ -211,6 +311,12 @@ px.choropleth(
 
 # Plotly R
 
+
+::: sidebar
+不能同时使用 Python 版和 R 版的 Plotly.js 库，因为版本不一致产生冲突，而不能显示图形。
+:::
+
+
 下面采用 Carson Sievert 开发的 [plotly](https://github.com/plotly/plotly.R) 包[@Sievert2020]制作网页动画，仍是以 gapminder 数据集为例，示例修改自 plotly 官网的 [动画示例](https://plotly.com/r/animations/)。关于 plotly 以及绘制散点图的介绍，见前文[交互式网页图形与 R 语言](/2021/11/interactive-web-graphics/)，此处不再赘述。
 
 
@@ -352,7 +458,7 @@ xfun::session_info(packages = c(
 ), dependencies = FALSE)
 ```
 
-本文用 [virtualenv](https://github.com/pypa/virtualenv) 创建虚拟 Python 环境，安装 plotly 模块 5.5.0 版本。 
+本文用 [virtualenv](https://github.com/pypa/virtualenv) 创建虚拟 Python 环境，安装 plotly 模块 5.5.0 版本，还安装 kaleido （导出图形）和 statsmodels （线性回归）模块。 
 
 ```{bash}
 #| eval: false
