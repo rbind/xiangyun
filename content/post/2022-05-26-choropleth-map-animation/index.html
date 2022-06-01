@@ -96,6 +96,12 @@ div.img {
 <li><p><strong>tmap</strong> 包<span class="citation">(<a href="#ref-Tennekes2018" role="doc-biblioref">Tennekes 2018</a>)</span>：用来制作地区分布图，导出 GIF 动画，尽管功能远不止于此。</p></li>
 <li><p><strong>echarts4r</strong> 包<span class="citation">(<a href="#ref-echarts4r" role="doc-biblioref">Coene 2022</a>)</span>：用来制作地区分布图，生成 Web 动画。</p></li>
 </ol>
+<p>读者可以通过下面的代码一次性把上面的 R 包都安装上：</p>
+<pre class="r"><code>install.packages(c(
+  &quot;maps&quot;, &quot;mapproj&quot;, &quot;ggplot2&quot;, &quot;tigris&quot;,
+  &quot;sf&quot;, &quot;gifski&quot;, &quot;showtext&quot;, &quot;ragg&quot;, 
+  &quot;gganimate&quot;, &quot;tmap&quot;, &quot;echarts4r&quot;
+))</code></pre>
 </div>
 <div id="地图制作" class="section level1">
 <h1>地图制作</h1>
@@ -705,7 +711,7 @@ us_votes_repub |&gt;
 <pre class="r"><code>xfun::session_info(packages = c(
   &quot;knitr&quot;, &quot;rmarkdown&quot;, &quot;blogdown&quot;,
   &quot;ggplot2&quot;, &quot;gganimate&quot;, &quot;echarts4r&quot;,
-  &quot;maps&quot;, &quot;mapproj&quot;, &quot;showtext&quot;, 
+  &quot;maps&quot;, &quot;mapproj&quot;, &quot;showtext&quot;, &quot;ragg&quot;,
   &quot;sf&quot;, &quot;tigris&quot;, &quot;tmap&quot;, &quot;gifski&quot;
 ), dependencies = FALSE)
 # R version 4.2.0 (2022-04-22)
@@ -717,8 +723,8 @@ us_votes_repub |&gt;
 # Package version:
 #   blogdown_1.10   echarts4r_0.4.4 gganimate_1.0.7 ggplot2_3.3.6  
 #   gifski_1.6.6-1  knitr_1.39      mapproj_1.2.8   maps_3.4.0     
-#   rmarkdown_2.14  sf_1.0-7        showtext_0.9-5  tigris_1.6     
-#   tmap_3.3-3     
+#   ragg_1.2.2      rmarkdown_2.14  sf_1.0-7        showtext_0.9-5 
+#   tigris_1.6      tmap_3.3-3     
 # 
 # Pandoc version: 2.18
 # 

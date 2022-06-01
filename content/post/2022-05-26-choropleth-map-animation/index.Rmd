@@ -92,7 +92,17 @@ knitr::opts_chunk$set(
 
 1. **echarts4r** 包[@echarts4r]：用来制作地区分布图，生成 Web 动画。
 
+读者可以通过下面的代码一次性把上面的 R 包都安装上：
 
+```{r}
+#| eval: false
+#| echo: true
+install.packages(c(
+  "maps", "mapproj", "ggplot2", "tigris",
+  "sf", "gifski", "showtext", "ragg", 
+  "gganimate", "tmap", "echarts4r"
+))
+```
 
 # 地图制作
 
@@ -830,7 +840,7 @@ us_votes_repub |>
 xfun::session_info(packages = c(
   "knitr", "rmarkdown", "blogdown",
   "ggplot2", "gganimate", "echarts4r",
-  "maps", "mapproj", "showtext", 
+  "maps", "mapproj", "showtext", "ragg",
   "sf", "tigris", "tmap", "gifski"
 ), dependencies = FALSE)
 ```
