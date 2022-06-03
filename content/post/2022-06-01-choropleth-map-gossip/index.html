@@ -45,15 +45,16 @@ description: "有的文章关注单个小功能、小模块地逐一介绍，非
 <li><a href="#此-filter-非彼-filter" id="toc-此-filter-非彼-filter">此 filter 非彼 filter</a></li>
 <li><a href="#经验总结-1" id="toc-经验总结-1">经验总结</a></li>
 </ul></li>
-<li><a href="#也谈写作历程" id="toc-也谈写作历程">也谈写作历程</a>
+<li><a href="#review" id="toc-review">也谈写作历程</a>
 <ul>
-<li><a href="#预期目标" id="toc-预期目标">预期目标</a></li>
-<li><a href="#内容设想" id="toc-内容设想">内容设想</a></li>
-<li><a href="#读者反馈" id="toc-读者反馈">读者反馈</a></li>
-<li><a href="#评审反馈" id="toc-评审反馈">评审反馈</a></li>
+<li><a href="#target" id="toc-target">预期目标</a></li>
+<li><a href="#plan" id="toc-plan">内容设想</a></li>
+<li><a href="#reader-feedback" id="toc-reader-feedback">读者反馈</a></li>
+<li><a href="#reviewer-feedback" id="toc-reviewer-feedback">评审反馈</a></li>
+<li><a href="#review-briefly" id="toc-review-briefly">简要回顾</a></li>
 </ul></li>
-<li><a href="#环境信息" id="toc-环境信息">环境信息</a></li>
-<li><a href="#参考文献" id="toc-参考文献">参考文献</a></li>
+<li><a href="#sessioninfo" id="toc-sessioninfo">环境信息</a></li>
+<li><a href="#refer" id="toc-refer">参考文献</a></li>
 </ul>
 </div>
 
@@ -592,14 +593,14 @@ dat</code></pre>
 <p>处理数百 GB 乃至 TB 级的海量数据，聚合计算通常都是由写 SQL 完成的，不太可能直接用 R 语言或 Python 语言去处理，什么牛逼的工具包都不行！SQL 聚合计算后得到的数据集就 KB 或 MB级，大约几千，几万或几十万，即使遇到几百万条记录，也是用 SQL 再按需聚合。只在最后，为了可视化和分析建模，对 SQL 查询后的数据做各种适应性变换，这变形重塑的数据操作是最常见的，也是最复杂的，并且在SQL中实现复杂而在R中非常简单。用户最大的痛点是非常难记住 reshape（变形） 的到底是谁，长变宽还是宽变长。R 语言社区陆续出现一些工具，从 <code>reshape()</code> 函数到 <strong>reshape</strong> 包<span class="citation">(<a href="#ref-Wickham2007" role="doc-biblioref">Wickham 2007</a>)</span>，再到 <strong>reshape2</strong> 包，再到 <strong>tidyr</strong> 包<span class="citation">(<a href="#ref-tidyr" role="doc-biblioref">Wickham and Girlich 2022</a>)</span>，一路折腾，还是应该回归到出发点来看待 <code>reshape()</code> 函数，其实不缺工具，就缺一些深入浅出、喜闻乐见、通俗易懂的文档介绍和广告宣传。</p>
 </div>
 </div>
-<div id="也谈写作历程" class="section level1">
+<div id="review" class="section level1">
 <h1>也谈写作历程</h1>
 <p>《地区分布图及其应用》创作过程中经历了很多重要的节点：<a href="https://d.cosx.org/d/422907">起心动念</a>、选择方向、设定目标、收集数据、数据探查、数据分析、文章写作、完成初稿、<a href="https://d.cosx.org/d/423119">收集反馈</a>、初次修改、<a href="https://github.com/cosname/cosx.org/pull/1027">正式投稿</a>、评审反馈、反复修改、最终发布、交流反馈等。从起心动念到本《番外篇》发出止，历时正好<strong>四</strong>个月。当然不是四个月都干这么一件事，只是想把这个事情的来龙去脉都讲清楚，对整个事情做一些回顾，争取总结一些经验教训。</p>
-<div id="预期目标" class="section level2">
+<div id="target" class="section level2">
 <h2>预期目标</h2>
 <p>就这篇《地区分布图及其应用》来说，大方向的选择没有太多犹疑。研究生阶段学习<a href="https://en.wikipedia.org/wiki/Geostatistics">「地统计学」</a>（Geostatistics），以空间广义线性混合效应模型在空间点数据（Point-referenced data or Geostatistics data）的分析和建模为主，属于空间数据分析的内容<span class="citation">(<a href="#ref-Banerjee2016" role="doc-biblioref">Banerjee 2016</a>)</span>。遗憾的是为了自己的学业无暇他顾，更别说空间统计是如何在现实世界应用的。前沿的论文搜集了很多，也根据学业需要读了不少，虽做了粗糙的分类，但是缺乏精细的组织和整理，最后，没能将一篇综述写出来，有点可惜。去年末开始捡时空统计的内容，重新捡起来和新学知识花费的时间是差不多的，三年过去，重读空间统计，有不一样的体会。有更多的目的性，要完成一篇文章，要熟悉几个方面的东西，比如空间区域数据（Areal data）及其可视化和分析等，同时也为了兴趣，也为了职业规划，也为了给软件工具栏目投稿。</p>
 </div>
-<div id="内容设想" class="section level2">
+<div id="plan" class="section level2">
 <h2>内容设想</h2>
 <p>文章《地区分布图及其应用》最初的设想：</p>
 <ol style="list-style-type: decimal">
@@ -616,7 +617,7 @@ dat</code></pre>
 </ol></li>
 </ol>
 </div>
-<div id="读者反馈" class="section level2">
+<div id="reader-feedback" class="section level2">
 <h2>读者反馈</h2>
 <p>在探查年龄调整的癌症死亡率指标的计算过程时，发现美国人口的年龄结构数据，美国老年人口比例从 1940 年的 10% 左右增加到 2000 年的 15% 左右，60 年时间才增加 5% 左右，惊呆了！因此，写下了这一段内容，不过有些发散了，最终作罢。</p>
 <blockquote>
@@ -657,12 +658,39 @@ dat</code></pre>
 <p>最后，建议尽量寻求来源权威可靠的第一手材料，对手头现有的材料有追根溯源和交叉验证的热情。数据操作的过程应满足可重复性的基本要求，以便检查分析过程和结论。度量指标需要围绕专题分析的目标，并结合实际背景选择合适的维度拆解。借助统计工具分析隐藏数据中的深层规律，科学定量地刻画，并将规律用领域语言表达，最后，结合软件工具选用恰当的图形准确呈现，直观定性地表达降低沟通成本，快速形成决策建议，乃至落地推广。</p>
 </blockquote>
 </div>
-<div id="评审反馈" class="section level2">
+<div id="reviewer-feedback" class="section level2">
 <h2>评审反馈</h2>
 <p>感谢<a href="https://lijinzhang.com/">Lijing Zhang</a>抽空来审稿，提供许多建设性的<a href="https://github.com/cosname/cosx.org/pull/1027#pullrequestreview-964306791">修改意见</a>，丰富了北卡州家庭年收入的数据分析和解读，以及很多重要的写作细节。评审阶段完成 <strong>68</strong> 次提交，合并入统计之都主分支后还有 <strong>3</strong> 次提交，最后，文章质量得到极大的改善，其间<a href="https://yihui.org/">Yihui Xie</a>提供很多技术支持，特别是插入全宽图片和优化图片大小方面，在此一并表示感谢。</p>
 </div>
+<div id="review-briefly" class="section level2">
+<h2>简要回顾</h2>
+<p>下面以时间为轴，简要回顾：</p>
+<ol style="list-style-type: decimal">
+<li><p>2022-02-02 起心动念，已有些思考和准备。</p></li>
+<li><p>2022-04-09 开始数据获取、探查、分析和展示。</p></li>
+<li><p>2022-04-14 开始写作，完成大部分数据分析和探查。</p></li>
+<li><p>2022-04-20 完成<a href="https://xiangyun.rbind.io/2022/04/choropleth-map/">专题地图及其应用</a>的初稿，发布在个人博客。</p></li>
+<li><p>2022-04-22 在论坛发帖<a href="https://d.cosx.org/d/423119">专题地图及其应用</a>。</p></li>
+<li><p>2022-04-23 给主站提交<a href="https://github.com/cosname/cosx.org/pull/1027">PR</a>。</p></li>
+<li><p>2022-04-27 邀请到审稿人<a href="https://lijinzhang.com/">Lijing Zhang</a>。</p></li>
+<li><p>2022-04-30 收到坛友 yuanfan 反馈，回复反馈。</p></li>
+<li><p>2022-05-01 收到坛友 lovebluesky 反馈，回复反馈。</p></li>
+<li><p>2022-05-02 根据坛友们反馈，完成 PR 修改。</p></li>
+<li><p>2022-05-06 审稿人给出修改建议。</p></li>
+<li><p>2022-05-10 完成第一轮修改。</p></li>
+<li><p>2022-05-10 审稿人给出修改建议。</p></li>
+<li><p>2022-05-10 完成第二轮修改。</p></li>
+<li><p>2022-05-17 完成主站文章编辑，合并入主库。</p></li>
+</ol>
+<hr />
+<ol style="list-style-type: decimal">
+<li><p>2022-05-28 完成<a href="/2022/05/choropleth-map-animation/">《R 语言制作地区分布图及其动画》</a>。</p></li>
+<li><p>2022-06-02 完成<a href="/2022/06/choropleth-map-gossip/">《地区分布图及其应用》番外篇</a>。</p></li>
+</ol>
+<p>写作修改期间，多件事并行，比如还参与审稿和编辑文章<a href="https://github.com/cosname/cosx.org/pull/1019">《探索定西市的 Sci-Hub 流量之谜》</a>。</p>
 </div>
-<div id="环境信息" class="section level1">
+</div>
+<div id="sessioninfo" class="section level1">
 <h1>环境信息</h1>
 <p>本文是在 RStudio IDE 内用 R Markdown 编辑的，用 <strong>blogdown</strong> 构建网站，<a href="https://github.com/gohugoio/hugo">Hugo</a> 渲染 knitr 之后的 Markdown 文件，得益于 <strong>blogdown</strong> 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：</p>
 <pre class="r"><code>xfun::session_info(packages = c(
@@ -686,7 +714,7 @@ dat</code></pre>
 ## 
 ## Hugo version: 0.98.0</code></pre>
 </div>
-<div id="参考文献" class="section level1 unnumbered">
+<div id="refer" class="section level1 unnumbered">
 <h1>参考文献</h1>
 <div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-Anselin2019" class="csl-entry">
