@@ -730,7 +730,7 @@ china_usa_pop <- within(china_usa_pop, {
 })
 ```
 
-
+::: {.full-width}
 ```{r}
 #| label: population-age-structure
 #| fig.width: 12
@@ -754,6 +754,7 @@ ggplot(data = china_usa_pop_sub, aes(x = pop, y = age, fill = sex)) +
   facet_wrap(vars(year, name), scales = "free_x", nrow = 2) +
   theme_void(base_size = 13)
 ```
+:::
 
 Jesse Piburn 开发的[**wbstats**](https://github.com/gshs-ornl/wbstats) 包 [@wbstats] 封装了世界银行开放的数据 API，本文通过 **wbstats** 包获取中国 1960 年至今的人口总量数据。如图\@ref(fig:china-pop-trend)所示，笔者不便解释，请大家直接看图，注意波峰波谷，联系时代背景，总量、变化、变化率结合看。
 
@@ -776,10 +777,12 @@ world_pop <- wbstats::wb(
 saveRDS(world_pop, file = "wb_world_pop.rds")
 ```
 
+
 ::: {.full-width}
 ```{r}
 #| label: china-pop-trend
-#| fig.cap: "1960-2020 年中国人口总量变化、变化率"
+#| fig.align: "center"
+#| fig.cap: "1960-2020 年中国人口总量、变化、变化率"
 #| fig.showtext: true
 #| fig.width: 15
 #| fig.height: 5
@@ -833,6 +836,7 @@ p3 <- ggplot(data = china_pop3, aes(x = date, y = yoy_rate)) +
 p1 + p2 + p3
 ```
 :::
+
 
 > 简单数据校验（补充）：美国人口调查局和世界银行的数据交叉验证，与中国国家统计局发布的年鉴再校验。以美国 2020 年的人口数为例，累加各个年龄段和性别的人口数，比较接近[2020 年美国人口普查数字](https://www.census.gov/newsroom/press-releases/2020/2020-demographic-analysis-estimates/2020-demographic-analysis-estimates-chinese-simplified.html)---332,601,000（下限330,730,000，上限335,514,000）。根据谷歌搜索，来自世界银行的美国人口数字是 3.295 亿。本文主要是看看趋势，只要量级不差就行。根据中国国家统计局发布的第七次全国人口普查数据，2021 年的中国人口数量达到 14.1178 亿，数据是一致的。
 
