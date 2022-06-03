@@ -644,9 +644,18 @@ tidyverse [大主教](https://d.cosx.org/d/421573-hugodown/4)在 Mango Solutions
 ## 读者反馈 {#reader-feedback}
 
 
+> Statistik ist stillstehende geschichte, Geschichte ist fortlanfende statistik.  
+统计学是静态的历史，历史是动态的统计学。
+> 
+> --- August Ludwing von Schlözer (1735-1809) 国势学派代表人物**斯勒滋**
+
+
 在探查年龄调整的癌症死亡率指标的计算过程时，发现美国人口的年龄结构数据，美国老年人口比例从 1940 年的 10% 左右增加到 2000 年的 15% 左右，60 年时间才增加 5% 左右，惊呆了！因此，写下了这一段内容，不过有些发散了，最终作罢。
 
 > 纵观过去，美国是没有老龄化现象的，惊不惊讶，意不意外！笔者初看有点意外，想了会儿又觉得是情理之中。有些基本问题无论从前还是未来，无论发达国家还是发展中国家，都要给出自己的解法。笔者不准备讨论与国家政策相关的敏感话题，仅推荐一本正儿八经的人物传记---现代统计学家《Neyman》[@Reid1982]，有相应中译版《耐曼》[@Yao1985]，里面给出了一些线索。
+笔者英文水平有限，看的是中文版，推荐有条件的读者尝试看英文版，应该会舒服得多。《Neyman》书中多次提及另一本卡尔·皮尔逊（Karl Person）的著作《The Grammar of Science》[@Person1911]，也有中译本《科学的规范》[@Person1998]，值得一读。众所周知，耐曼在波兰和英国时期和爱根·皮尔逊（E. S. Person）在假设检验和置信区间理论方面有大量合作，一起奠定了统计学严格的数学基础。耐曼的早期工作从卡尔·皮尔逊时代开始，研究了大量实际问题，所以，了解一些生活中实在的具体问题，就不会被 N-P 引理折磨了。于我个人而言，毕业以后，第一阶段应用，从书中来到工作中去，第二阶段理论，从工作中来到书中去。我的第一阶段正在进行中，第二阶段不知道什么时候开始。
+
+原文表 1 对应的美国人口年龄结构，如图\@ref(fig:us-pop-structure)所示，数据来自美国国家癌症研究所。
 
 ```{r}
 #| label: us-pop-structure
@@ -699,18 +708,153 @@ ggplot(data = us_std_pop_reshape, aes(x = Year, y = Pop / 1000000)) +
   )
 ```
 
-> 笔者英文水平有限，看的是中文版，推荐有条件的读者尝试看英文版，应该会舒服得多。《Neyman》书中多次提及另一本卡尔·皮尔逊（Karl Person）的著作《The Grammar of Science》[@Person1911]，也有中译本《科学的规范》[@Person1998]，值得一读。众所周知，耐曼在波兰和英国时期和爱根·皮尔逊（E. S. Person）在假设检验和置信区间理论方面有大量合作，一起奠定了统计学严格的数学基础。耐曼的早期工作从卡尔·皮尔逊时代开始，研究了大量实际问题，所以，了解一些生活中实在的具体问题，就不会被 N-P 引理折磨了。于我个人而言，毕业以后，第一阶段应用，从书中来到工作中去，第二阶段理论，从工作中来到书中去。我的第一阶段正在进行中，第二阶段不知道什么时候开始。
+Kyle Walker 开发的 R 包 [**idbr**](https://github.com/walkerke/idbr)[@idbr]封装了美国人口调查局[国际数据库 API](https://www.census.gov/data/developers/data-sets/international-database.html)，这里使用 **idbr** 包再补充一个来自美国人口调查局的数据。国际数据库提供 1990 年至今分年龄、性别的历史人口数据，并周期性更新。如图\@ref(fig:population-age-structure)所示，从 1990 年至 2020 年，短短 30 年时间，以现在的人口发展趋势，即将迎来金字塔向倒金字塔的大逆转，惊奇于中国老龄化速度，某些人称之为「未富先衰」！2021 年 5 月中国国家统计局发布第七次人口普查结果，发布后仅三周，中共中央政治局会议宣布，改变现有人口控制政策，允许一对夫妇生育三个子女。而美国又是如何保持人口年龄结构稳定？从2010年到2020年，老年人口比例缩小，青年人口突然增加，或与移民政策有关。
+
+```{r}
+#| eval: false
+#| echo: false
+
+## 下载数据
+library(idbr)
+dat <- get_idb(c("US", "China"),
+  year = 1960:2030,
+  sex = c("male", "female")
+)
+```
+```{r}
+#| echo: false
+
+china_usa_pop <- readRDS(file = "data/idbr_china_usa.rds")
+china_usa_pop <- within(china_usa_pop, {
+  pop = ifelse(sex == "Male", -pop, pop)
+})
+```
+
+::: {.full-width}
+```{r}
+#| label: population-age-structure
+#| fig.width: 12
+#| fig.height: 10
+#| fig.cap: "1990、2000、2010 和 2020 年中美两国人口年龄结构对比，图中灰色三条背景虚线分别代表 20 岁、40 岁和 60 岁"
+#| echo: false
+#| fig.align: "center"
+
+china_usa_pop_sub <- subset(
+  x = china_usa_pop,
+  subset = year %in% c(1990, 2000, 2010, 2020)
+)
+
+ggplot(data = china_usa_pop_sub, aes(x = pop, y = age, fill = sex)) +
+  geom_hline(
+    yintercept = c(20, 40, 60), colour = I("gray80"),
+    size = 1, linetype = 2
+  ) +
+  geom_col() +
+  scale_y_discrete(drop = FALSE) +
+  facet_wrap(vars(year, name), scales = "free_x", nrow = 2) +
+  theme_void(base_size = 13)
+```
+:::
+
+Jesse Piburn 开发的[**wbstats**](https://github.com/gshs-ornl/wbstats) 包 [@wbstats] 封装了世界银行开放的数据 API，本文通过 **wbstats** 包获取中国 1960 年至今的人口总量数据。如图\@ref(fig:china-pop-trend)所示，笔者不便解释，请大家直接看图，注意波峰波谷，联系时代背景，总量、变化、变化率结合看。
+
+```{r}
+#| eval: false
+#| echo: false
+
+library(wbstats)
+# 只有 1960 年至今的数据
+world_pop <- wbstats::wb(
+  indicator = c(
+    "SP.DYN.LE00.IN", # 预期寿命
+    "NY.GDP.PCAP.CD", # 人均 GDP
+    "SP.POP.TOTL" # 人口总数
+  ),
+  country = "countries_only", 
+  startdate = 1960, enddate = 2021
+)
+# 保存
+saveRDS(world_pop, file = "wb_world_pop.rds")
+```
+
+
+::: {.full-width}
+```{r}
+#| label: china-pop-trend
+#| fig.align: "center"
+#| fig.cap: "1960-2020 年中国人口总量、变化、变化率"
+#| fig.showtext: true
+#| fig.width: 15
+#| fig.height: 5
+#| echo: false
+
+# 准备数据
+world_pop <- readRDS(file = "data/wb_world_pop.rds")
+# 加载 data.table 包
+library(data.table)
+# 转化类型
+world_pop <- as.data.table(world_pop)
+# 1960-2020 年中国人口总量的变化
+china_pop <- world_pop[country == "China" & indicator == "Population, total"]
+# 数据重塑：长格式转宽格式
+china_pop2 <- reshape(
+  data = china_pop,
+  v.names = "value",
+  idvar = c("date", "country"),
+  timevar = "indicator",
+  varying = "pop",
+  direction = "wide"
+)
+# 计算年增长率
+china_pop3 <- china_pop2[, date := as.integer(date)
+                         ][order(date)
+                           ][, yoy := pop - shift(pop, 1)
+                             ][, yoy_rate := (pop - shift(pop, 1)) / shift(pop, 1)]
+
+library(patchwork)
+library(ggplot2)
+p1 <- ggplot(data = china_pop3, aes(x = date, y = pop / 10^8)) +
+  geom_line() +
+  scale_y_continuous(n.breaks = 10) +
+  scale_x_continuous(n.breaks = 10) +
+  labs(x = "年份", y = "人口总数（亿）", title = "中国人口总量变化（1960-2020）") +
+  theme_minimal(base_size = 13)
+
+p2 <- ggplot(data = china_pop3, aes(x = date, y = yoy / 10^6)) +
+  geom_line(na.rm = T) +
+  scale_y_continuous(n.breaks = 10) +
+  scale_x_continuous(n.breaks = 10) +
+  labs(x = "年份", y = "人口数（百万）", title = "中国人口增减量（1960-2020）") +
+  theme_minimal(base_size = 13)
+
+p3 <- ggplot(data = china_pop3, aes(x = date, y = yoy_rate)) +
+  geom_line(na.rm = T) +
+  scale_y_continuous(labels = scales::label_percent(), n.breaks = 10) +
+  scale_x_continuous(n.breaks = 10) +
+  labs(x = "年份", y = "年增长率（%）", title = "中国人口增减率（1960-2020）") +
+  theme_minimal(base_size = 13)
+p1 + p2 + p3
+```
+:::
+
+
+> 简单数据校验（补充）：美国人口调查局和世界银行的数据交叉验证，与中国国家统计局发布的年鉴再校验。以美国 2020 年的人口数为例，累加各个年龄段和性别的人口数，比较接近[2020 年美国人口普查数字](https://www.census.gov/newsroom/press-releases/2020/2020-demographic-analysis-estimates/2020-demographic-analysis-estimates-chinese-simplified.html)---332,601,000（下限330,730,000，上限335,514,000）。根据谷歌搜索，来自世界银行的美国人口数字是 3.295 亿。本文主要是看看趋势，只要量级不差就行。根据中国国家统计局发布的第七次全国人口普查数据，2021 年的中国人口数量达到 14.1178 亿，数据是一致的。
+
+
+---
 
 原文中另一个重要但没有谈的内容是坐标投影，正确的绘图姿势里是必须要交代的，原文在北卡州社区级家庭年收入分析中以提示形式插入了如下一段，后又删除，笔者考虑是过于强调细节。
 
 > **sf** 包内置的北卡州郡级地图数据集 `nc.gpkg` 坐标参考系为 [`EPSG:4267`](https://epsg.io/4267)，而通常使用的 **leaflet** 包[@leaflet]和 **mapdeck** 包[@mapdeck]需要地图数据集转化到 [`EPSG:4326`](https://epsg.io/4326)，其细微差别详见 Hiroaki Yutani 的博客 [@Yutani2018]。若使用国内的 Web 地图服务，一般需要地图数据转化到[火星坐标系](https://en.wikipedia.org/wiki/Restrictions_on_geographic_data_in_China)，其间会存在一定的[漂移](https://gis.stackexchange.com/questions/234202)。
 
+---
 
 原文在 R 包依赖引入上比较谨慎，稳定高效地把活干了比什么都好，也趁此机会吐槽了一把 tidyverse ，见下文。应坛友的建议，此举可能伤害文章的内容，引起不必要的争论，因此，最终作罢。尽管 **dplyr** 及其 **tidyverse** 家族可能通过直接或间接的方式影响文章的可重复性，笔者也忍了，躲在一边静静地看 **tidyverse** 的粉丝们与他（她）们的教主一起共振。
 
 
 > 在写作过程中查找了不少材料，发现一个事实，即使在空间统计领域，崇拜 **tidyverse** [@Wickham2019]的人也对 Base R 充满敌视，措辞非常严厉。笔者曾请教 **tidycensus** 包作者[一些问题](https://github.com/walkerke/tidycensus/issues/439)，尽管问题本身和 Base R 没有太多关系，但人家会毫无理由地严厉地批评 `base::merge()` 而后推荐 `dplyr::left_join()`，读者遇到此类问题，请辩证地看待。据笔者深入了解，**sf** 及整个空间数据处理的基础框架都没有偏向 **tidyverse** 的意思，Edzer J. Pebesma 在 RStudio 2019 年会上的报告 --- [Spatial data science in the Tidyverse](https://resources.rstudio.com/rstudio-conf-2019/spatial-data-science-in-the-tidyverse) --- 被很多人当作 **sf** 生态偏向 **tidyverse** 的标志。**sf** 是中立的，最初支持 Base R 数据操作和统计作图，后来支持部分净土操作，实际上 **data.table** [@Dowle2021]也将在[下个版本](https://github.com/Rdatatable/data.table/pull/5224)更好地支持 **sf** 的空间数据类型。此外，若将本文中的代码替换为[净土代码](https://yihui.org/cn/2019/07/tidy-noise/)，将引入很多的 R 包依赖，并在不久的将来有丧失可重复性的风险。
 
+---
 
 原文列出了一些未直接引用但有价值的材料，部分已经被笔者吸收，无法一一体现在文章中，毕竟需要取舍，否则，容易陷入汪洋大海，没了方向。感兴趣的读者看看这些拓展材料。
 
@@ -720,9 +864,13 @@ ggplot(data = us_std_pop_reshape, aes(x = Year, y = Pop / 1000000)) +
 -   Edzer Pebesma 在历年 useR! 大会上的材料，如[2016年](https://edzer.github.io/UseR2016/)、[2017年](https://edzer.github.io/UseR2017/)、[2019年](https://github.com/edzer/UseR2019)、[2020年](https://edzer.github.io/UseR2020/)、[2021年](https://edzer.github.io/UseR2021/)。
 -   Edzer Pebesma 和 Roger Bivand 合著的书籍[《Spatial Data Science with applications in R》](https://www.r-spatial.org/book) 架起了理论到应用的桥梁，详细阐述了空间数据科学的基本概念和统计方法，R 语言在空间统计生态的过去、现在和未来。
 
+---
+
 结合最近三年在平台型部门的工作，培养了一些商业分析思维，也学习了一些产品战略课程，还看了几本历史书，听了几场名人讲座，研读了几个商业案例，就**膨胀**了，在文章初版的「未来展望」中说了下面一段话，引来了不少[有意思的讨论](https://d.cosx.org/d/423119/14)。
 
 > **区域经济方面**，改革开放40多年，最显著的变化就是城市化，大量人口进城，以互联网技术为基础，围绕吃穿住行、教育发展和休闲娱乐，餐饮外卖行业，新零售行业，房地产行业，出行行业，教育培训行业，以及休闲娱乐行业，互联网横向在各行各业渗透，纵向从一二线城市到三四五线城市下沉。大数据、互联网、人工智能等新技术极大地推动智慧城市规划和建设。「以经济建设为中心，一百年不动摇」必将在下一个四十年为城市发展持续注入动力。这就是当今中国社会最大的因。围绕此核心分析总体概况，从时间（趋势）、空间（地域）两个维度，拆解分析人群、行业变化，相信可以据此理解已经发生的、正在发生的和将要发生的一系列事情，而衡量中国城市化进程最直接的结果指标是中国城镇化率。
+
+---
 
 笔者在癌症死亡率那个数据上，开头想当然地认为对数据集可以一查到底，像美国人口调查局发布的数据那样，只要愿意挖，想弄多清楚就可以弄多清楚，结果却是**没有弄清楚**！拿人家的二手数据做分析和处理，遇到种种数据问题。自己都不清楚的数据，分析起来就没有底气了，更不好给别人解释。有鉴于此，整个项目过程中，在数据获取、数据探查、数据展示、数据分析和数据解读等方面遇到的坑，告诉我如下的血泪教训。原文省略了很多背后的细节，写这些略显突兀，因而也删掉了，本文倒是以 **ggplot2** + **maps** 制作地区分布图为例略作了部分说明。
 
@@ -790,7 +938,8 @@ ggplot(data = us_std_pop_reshape, aes(x = Year, y = Pop / 1000000)) +
 xfun::session_info(packages = c(
   "knitr", "rmarkdown", "blogdown",
   "ggplot2", "data.table", "lattice", "latticeExtra",
-  "maps", "mapproj", "ragg", "colorspace"
+  "maps", "mapproj", "ragg", "colorspace",
+  "wbstats", "idbr", "patchwork"
 ), dependencies = FALSE)
 ```
 
