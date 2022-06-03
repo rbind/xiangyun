@@ -384,15 +384,27 @@ us_cancer_rates <- within(us_cancer_rates, {
 })
 ```
 
+为什么文章《地区分布图及其应用》没有出现图\@ref(fig:ggplot2-maps)的缺失情况？因为用的是原始数据集 USCancerRates 的行名做匹配，且看路易斯安那州的情况：
+
+```{r}
+#| echo: true
+#| out.lines: 10
+
+# 篇幅所限仅展示部分数据
+subset(x = USCancerRates, subset = state == "Louisiana", select = c("state", "county"))
+```
+
+像这样的数据情况，除非你有很好的数据探查工具，否则，在初始的数据探查阶段很难发现，更不会一开始就进行**行级别**的**细粒度**探查，数据可视化可以帮助我们了解数据质量，好的数据探查工具可以帮助我们提效，比如 @Cheng2015 用带图形用户界面的工具 可视化探索数据缺失情况。
+
 
 ## 经验总结
 
 
-1.  行政区划的名称在不同的体系下各有一套，美国人口调查局官方发布一套，美国国家癌症研究所发布癌症死亡率数据带一套， R 包 **maps** 二次加工一套，**ggplot2** 包在 **maps** 包基础上三次加工，又是一套，这种层层加工将地理单元的唯一编码 GEO_ID / [FIPS](https://en.wikipedia.org/wiki/Federal_Information_Processing_Standards) 丢掉了，导致数据上难以关联准确，**数据一致性**丢失了，最终导致数据处理、分析和应用变复杂甚至不可行了。
+1.  行政区划的名称在不同的体系下各有一套，美国人口调查局官方发布一套，美国国家癌症研究所发布癌症死亡率数据带一套， R 包 **maps** 二次加工一套，**ggplot2** 包在 **maps** 包基础上三次加工，又是一套，这种层层加工将地理单元的唯一编码 [GEO_ID](https://www.census.gov/programs-surveys/geography/guidance/geo-identifiers.html) （Geographic Identifiers，地理单元标识，简称 GEO_ID）/ [FIPS](https://en.wikipedia.org/wiki/Federal_Information_Processing_Standards)（**F**ederal **I**nformation **P**rocessing **S**tandards，联邦信息处理标准，简称 FIPS） 丢掉了，导致数据上难以关联准确，**数据一致性**丢失了，最终导致数据处理、分析和应用变复杂甚至不可行了。
 
 1.  行政区划的名称、辖区范围为适应社会经济发展做调整，国内每年行政区域的名称都有一些更改，比如撤县划市，区县、村镇、、街道合并等等，越靠近基层的行政单元更改的量越大。此外，在历史上，很多西方国家，调查统计人口、土地等基本国情的数据在各教区、教会、教堂，很多洗礼、结婚、丧葬由当地的牧师主持，教权影响力甚至大于政权 [@Chen1987]。
 
-1.  在文章[《地区分布图及其应用》](https://cosx.org/2022/05/choropleth-map/)中，地图数据的获取从 **maps** 包到 **usmapdata** 包[@usmapdata]，再到 2019 年美国人口调查局，已经出现一些小问题。仔细比对不同数据源绘制的地图，观察地图的角角落落会发现路易斯安那州有些问题。**maps** 包和 **latticeExtra** 包绘图共用一份地图数据，它们地图上每个郡的数据是一样，而较新的地图数据，郡名称和 2003 年时可能有所不同。因此，地图数据的年份最好和观测数据采纳的一致，观测数据中关于地理单元，最好使用 GEO_ID/FIPS 之类的国家统一编码。
+1.  在文章[《地区分布图及其应用》](https://cosx.org/2022/05/choropleth-map/)中，地图数据的获取从 **maps** 包到 **usmapdata** 包[@usmapdata]，再到 2019 年美国人口调查局，已经出现一些小问题。不同数据源或方法绘制的地图，仔细观察角角落落会发现路易斯安那州有些问题。**maps** 包和 **latticeExtra** 包绘图共用一份地图数据，它们地图上每个郡的数据是一样，而较新的地图数据，郡名称和 2003 年时可能有所不同。因此，地图数据的年份最好和观测数据采纳的一致，观测数据中关于地理单元，最好使用 GEO_ID/FIPS 之类的国家统一编码。
 
 1.  [《R Graphics Cookbook》](https://r-graphics.org/recipe-miscgraph-choropleth)[@Chang2018]第二版仍然在介绍 **ggplot2** 包组合 **maps** 包制作地图的方法。[《ggplot2: Elegant Graphics for Data Analysis》](https://ggplot2-book.org/maps.html)[@Wickham2022]在最新的第三版中开始考虑到制作地图的准确性问题，并大篇幅介绍 **sf** 包。 **lattice** 包[@Sarkar2008]及其生态扩展包 **latticeExtra** 稳定成熟，[没啥要改的了](https://github.com/deepayan/lattice/issues/11)，内置的一些风格主题，效果也不错，比如经济学人杂志主题。
 
@@ -446,7 +458,7 @@ us_cancer_rates <- within(us_cancer_rates, {
 > --- 梦然·《少年》
 
 
-Base R 是指 R 软件正常运行所必须的一组 R 包集合，共有 14 个 R 包。
+Base R 是指 R 软件正常运行所必须的一组 R 包集合，共有 14 个 R 包，[R 核心团队](https://www.r-project.org/foundation/members.html)负责长期维护和开发。
 
 ```{r}
 #| echo: false
@@ -511,18 +523,17 @@ Base R 定义了基础的数据类型，最常见的要数 vector 向量、 data
 1.  新增/改变列 `within()`
 1.  按列分组排序 `order()`
 1.  按列分组聚合 `aggregate()`
-1.  重塑数据形状 `reshape()`
-1.  数据关联合并 `merge()`
+1.  数据形状重塑 `reshape()`
+1.  数据关联合并 `merge()`/`rbind()`
 
 其它常用的辅助数据操作函数有：
 
-1.  数据记录查重 `duplicated()`
-1.  数据记录替换 `replace()`
+1.  数据查重替换 `duplicated()` / `replace()`
 1.  数据记录完整性 `complete.cases()`
-1.  判空、缺值等 `is.na()` / `is.nan()`
-1.  其它辅助函数，如 `vapply()` / `tapply()`/ `lapply()` 等
+1.  判空、缺失值 `is.na()` / `is.nan()` / `is.integer()` 等
+1.  向量化操作函数，如 `vapply()` / `tapply()`/ `lapply()` 等
 
-熟悉这些函数的方式就是找个真实数据集，做一番数据分析，几乎可以肯定的是会使用到上面大部分函数，比如本文以及笔者之前发布的[《地区分布图及其应用》](/2022/04/choropleth-map/)、[《R 语言制作地区分布图及其动画》](/2022/05/choropleth-map-animation/)等，再比如 Deepayan Sarkar 的博文[Analysis of COVID-19 Mortality](https://deepayan.github.io/covid-19/deaths.html)。
+熟悉这些函数的方式就是找个真实数据集，做一番数据分析，几乎可以肯定会使用以上大部分函数，举例来说，本文以及之前发布的[《地区分布图及其应用》](/2022/04/choropleth-map/)、[《R 语言制作地区分布图及其动画》](/2022/05/choropleth-map-animation/)等。
 
 统计之都论坛每隔几天就有数据操作相关的问题冒出来，比如：
 
@@ -552,7 +563,7 @@ x = 1:10
 filter(x, filter = c(2/3, 1/6, 1/6), sides = 1)
 ```
 
-下面以分组计算移动平均为例介绍 filter 的妙用，毕竟时间序列平滑还是很常用的。
+下面以分组计算移动平均为例介绍函数 `filter()` 的妙用，毕竟时间序列平滑还是很常用的。
 
 ```{r}
 # 按某列分组对另一列移动平均
@@ -626,7 +637,7 @@ tidyverse [大主教](https://d.cosx.org/d/421573-hugodown/4)在 Mango Solutions
 
     1.  地图数据获取上，有现成的 R 包 **tidycensus**，本来是很简单的事， 因[神奇的网络问题](https://d.cosx.org/d/422985)，走了不少弯路，不过，最终装了 Docker，拉了基于 Ubuntu 的[容器镜像](https://github.com/rocker-org/rocker-versioned2)，还是[把路趟直了](https://github.com/cosname/cosx.org/pull/1027/commits/efb3673ebb3ed3215f0ded636efeadebb41952cf)。
 
-    1.  《地区分布图及其应用》的初稿在数据解读方面做得很不好，更可笑的是家庭收入是月收入还是年收入都没搞清楚，足见数据背景知识的匮乏。好在数据整理的过程都有代码，重读指标含义，搜罗网上的材料，一对比就清楚了，顺带挖了一下美国人口调查局发布的指标体系的存储结构，后来，又看了世界银行的数据 API 接口和美国人口调查局发布的其它数据 API 接口，指标体系都是按照某种形式的「长格式」存储。
+    1.  《地区分布图及其应用》的初稿在数据解读方面做得很不好，更可笑的是家庭收入是月收入还是年收入都没搞清楚，足见数据背景知识的匮乏。好在数据整理的过程都有代码，重读指标含义，搜罗网上的材料，一对比就清楚了，顺带挖了一下美国人口调查局发布的指标体系的存储结构，后来，又看了世界银行的[数据 API](https://datahelpdesk.worldbank.org/knowledgebase/articles/889392-about-the-indicators-api-documentation)和美国人口调查局发布的[其它数据 API](https://www.census.gov/data/developers/data-sets/international-database.html)，指标体系都是按照某种形式的「长格式」存储。
 
 
 

@@ -408,13 +408,28 @@ grep(&quot;louisiana&quot;, x = county_map$names, value = T)</code></pre>
   # 既要去掉 county 又要去掉 parish 还要去掉什么呢？
   county &lt;- gsub(pattern = &quot;( county)|( parish)&quot;, replacement = &quot;&quot;, x = county)
 })</code></pre>
+<p>为什么文章《地区分布图及其应用》没有出现图<a href="#fig:ggplot2-maps">2</a>的缺失情况？因为用的是原始数据集 USCancerRates 的行名做匹配，且看路易斯安那州的情况：</p>
+<pre class="r"><code># 篇幅所限仅展示部分数据
+subset(x = USCancerRates, subset = state == &quot;Louisiana&quot;, select = c(&quot;state&quot;, &quot;county&quot;))</code></pre>
+<pre><code>##                                   state                      county
+## louisiana,richland            Louisiana             Richland Parish
+## louisiana,madison             Louisiana              Madison Parish
+## louisiana,de soto             Louisiana              De Soto Parish
+## louisiana,st bernard          Louisiana          St. Bernard Parish
+## louisiana,washington          Louisiana           Washington Parish
+## louisiana,avoyelles           Louisiana            Avoyelles Parish
+## louisiana,st john the baptist Louisiana St. John the Baptist Parish
+## louisiana,st martin           Louisiana           St. Martin Parish
+## louisiana,jackson             Louisiana              Jackson Parish
+....</code></pre>
+<p>像这样的数据情况，除非你有很好的数据探查工具，否则，在初始的数据探查阶段很难发现，更不会一开始就进行<strong>行级别</strong>的<strong>细粒度</strong>探查，数据可视化可以帮助我们了解数据质量，好的数据探查工具可以帮助我们提效，比如 <span class="citation">X. Cheng, Cook, and Hofmann (<a href="#ref-Cheng2015" role="doc-biblioref">2015</a>)</span> 用带图形用户界面的工具 可视化探索数据缺失情况。</p>
 </div>
 <div id="经验总结" class="section level2">
 <h2>经验总结</h2>
 <ol style="list-style-type: decimal">
-<li><p>行政区划的名称在不同的体系下各有一套，美国人口调查局官方发布一套，美国国家癌症研究所发布癌症死亡率数据带一套， R 包 <strong>maps</strong> 二次加工一套，<strong>ggplot2</strong> 包在 <strong>maps</strong> 包基础上三次加工，又是一套，这种层层加工将地理单元的唯一编码 GEO_ID / <a href="https://en.wikipedia.org/wiki/Federal_Information_Processing_Standards">FIPS</a> 丢掉了，导致数据上难以关联准确，<strong>数据一致性</strong>丢失了，最终导致数据处理、分析和应用变复杂甚至不可行了。</p></li>
+<li><p>行政区划的名称在不同的体系下各有一套，美国人口调查局官方发布一套，美国国家癌症研究所发布癌症死亡率数据带一套， R 包 <strong>maps</strong> 二次加工一套，<strong>ggplot2</strong> 包在 <strong>maps</strong> 包基础上三次加工，又是一套，这种层层加工将地理单元的唯一编码 <a href="https://www.census.gov/programs-surveys/geography/guidance/geo-identifiers.html">GEO_ID</a> （Geographic Identifiers，地理单元标识，简称 GEO_ID）/ <a href="https://en.wikipedia.org/wiki/Federal_Information_Processing_Standards">FIPS</a>（<strong>F</strong>ederal <strong>I</strong>nformation <strong>P</strong>rocessing <strong>S</strong>tandards，联邦信息处理标准，简称 FIPS） 丢掉了，导致数据上难以关联准确，<strong>数据一致性</strong>丢失了，最终导致数据处理、分析和应用变复杂甚至不可行了。</p></li>
 <li><p>行政区划的名称、辖区范围为适应社会经济发展做调整，国内每年行政区域的名称都有一些更改，比如撤县划市，区县、村镇、、街道合并等等，越靠近基层的行政单元更改的量越大。此外，在历史上，很多西方国家，调查统计人口、土地等基本国情的数据在各教区、教会、教堂，很多洗礼、结婚、丧葬由当地的牧师主持，教权影响力甚至大于政权 <span class="citation">(<a href="#ref-Chen1987" role="doc-biblioref">陈善林 and 张浙 1987</a>)</span>。</p></li>
-<li><p>在文章<a href="https://cosx.org/2022/05/choropleth-map/">《地区分布图及其应用》</a>中，地图数据的获取从 <strong>maps</strong> 包到 <strong>usmapdata</strong> 包<span class="citation">(<a href="#ref-usmapdata" role="doc-biblioref">Di Lorenzo 2022</a>)</span>，再到 2019 年美国人口调查局，已经出现一些小问题。仔细比对不同数据源绘制的地图，观察地图的角角落落会发现路易斯安那州有些问题。<strong>maps</strong> 包和 <strong>latticeExtra</strong> 包绘图共用一份地图数据，它们地图上每个郡的数据是一样，而较新的地图数据，郡名称和 2003 年时可能有所不同。因此，地图数据的年份最好和观测数据采纳的一致，观测数据中关于地理单元，最好使用 GEO_ID/FIPS 之类的国家统一编码。</p></li>
+<li><p>在文章<a href="https://cosx.org/2022/05/choropleth-map/">《地区分布图及其应用》</a>中，地图数据的获取从 <strong>maps</strong> 包到 <strong>usmapdata</strong> 包<span class="citation">(<a href="#ref-usmapdata" role="doc-biblioref">Di Lorenzo 2022</a>)</span>，再到 2019 年美国人口调查局，已经出现一些小问题。不同数据源或方法绘制的地图，仔细观察角角落落会发现路易斯安那州有些问题。<strong>maps</strong> 包和 <strong>latticeExtra</strong> 包绘图共用一份地图数据，它们地图上每个郡的数据是一样，而较新的地图数据，郡名称和 2003 年时可能有所不同。因此，地图数据的年份最好和观测数据采纳的一致，观测数据中关于地理单元，最好使用 GEO_ID/FIPS 之类的国家统一编码。</p></li>
 <li><p><a href="https://r-graphics.org/recipe-miscgraph-choropleth">《R Graphics Cookbook》</a><span class="citation">(<a href="#ref-Chang2018" role="doc-biblioref">Chang 2018</a>)</span>第二版仍然在介绍 <strong>ggplot2</strong> 包组合 <strong>maps</strong> 包制作地图的方法。<a href="https://ggplot2-book.org/maps.html">《ggplot2: Elegant Graphics for Data Analysis》</a><span class="citation">(<a href="#ref-Wickham2022" role="doc-biblioref">Wickham 2022</a>)</span>在最新的第三版中开始考虑到制作地图的准确性问题，并大篇幅介绍 <strong>sf</strong> 包。 <strong>lattice</strong> 包<span class="citation">(<a href="#ref-Sarkar2008" role="doc-biblioref">Sarkar 2008</a>)</span>及其生态扩展包 <strong>latticeExtra</strong> 稳定成熟，<a href="https://github.com/deepayan/lattice/issues/11">没啥要改的了</a>，内置的一些风格主题，效果也不错，比如经济学人杂志主题。</p>
 <div class="full-width">
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:sunspot-year"></span>
@@ -445,7 +460,7 @@ grep(&quot;louisiana&quot;, x = county_map$names, value = T)</code></pre>
 种在心中信念丝毫未减</p>
 <p>— 梦然·《少年》</p>
 </blockquote>
-<p>Base R 是指 R 软件正常运行所必须的一组 R 包集合，共有 14 个 R 包。</p>
+<p>Base R 是指 R 软件正常运行所必须的一组 R 包集合，共有 14 个 R 包，<a href="https://www.r-project.org/foundation/members.html">R 核心团队</a>负责长期维护和开发。</p>
 <pre><code> [1] &quot;base&quot;      &quot;tools&quot;     &quot;utils&quot;     &quot;grDevices&quot; &quot;graphics&quot;  &quot;stats&quot;    
  [7] &quot;datasets&quot;  &quot;methods&quot;   &quot;grid&quot;      &quot;splines&quot;   &quot;stats4&quot;    &quot;tcltk&quot;    
 [13] &quot;compiler&quot;  &quot;parallel&quot; </code></pre>
@@ -498,18 +513,17 @@ reshape(
 <li>新增/改变列 <code>within()</code></li>
 <li>按列分组排序 <code>order()</code></li>
 <li>按列分组聚合 <code>aggregate()</code></li>
-<li>重塑数据形状 <code>reshape()</code></li>
-<li>数据关联合并 <code>merge()</code></li>
+<li>数据形状重塑 <code>reshape()</code></li>
+<li>数据关联合并 <code>merge()</code>/<code>rbind()</code></li>
 </ol>
 <p>其它常用的辅助数据操作函数有：</p>
 <ol style="list-style-type: decimal">
-<li>数据记录查重 <code>duplicated()</code></li>
-<li>数据记录替换 <code>replace()</code></li>
+<li>数据查重替换 <code>duplicated()</code> / <code>replace()</code></li>
 <li>数据记录完整性 <code>complete.cases()</code></li>
-<li>判空、缺值等 <code>is.na()</code> / <code>is.nan()</code></li>
-<li>其它辅助函数，如 <code>vapply()</code> / <code>tapply()</code>/ <code>lapply()</code> 等</li>
+<li>判空、缺失值 <code>is.na()</code> / <code>is.nan()</code> / <code>is.integer()</code> 等</li>
+<li>向量化操作函数，如 <code>vapply()</code> / <code>tapply()</code>/ <code>lapply()</code> 等</li>
 </ol>
-<p>熟悉这些函数的方式就是找个真实数据集，做一番数据分析，几乎可以肯定的是会使用到上面大部分函数，比如本文以及笔者之前发布的<a href="/2022/04/choropleth-map/">《地区分布图及其应用》</a>、<a href="/2022/05/choropleth-map-animation/">《R 语言制作地区分布图及其动画》</a>等，再比如 Deepayan Sarkar 的博文<a href="https://deepayan.github.io/covid-19/deaths.html">Analysis of COVID-19 Mortality</a>。</p>
+<p>熟悉这些函数的方式就是找个真实数据集，做一番数据分析，几乎可以肯定会使用以上大部分函数，举例来说，本文以及之前发布的<a href="/2022/04/choropleth-map/">《地区分布图及其应用》</a>、<a href="/2022/05/choropleth-map-animation/">《R 语言制作地区分布图及其动画》</a>等。</p>
 <p>统计之都论坛每隔几天就有数据操作相关的问题冒出来，比如：</p>
 <ul>
 <li><a href="https://d.cosx.org/d/420763">Base R 数据操作的一致性问题</a></li>
@@ -537,7 +551,7 @@ filter(x, filter = c(2/3, 1/6, 1/6), sides = 1)</code></pre>
 ## End = 10 
 ## Frequency = 1 
 ##  [1]  NA  NA 2.5 3.5 4.5 5.5 6.5 7.5 8.5 9.5</code></pre>
-<p>下面以分组计算移动平均为例介绍 filter 的妙用，毕竟时间序列平滑还是很常用的。</p>
+<p>下面以分组计算移动平均为例介绍函数 <code>filter()</code> 的妙用，毕竟时间序列平滑还是很常用的。</p>
 <pre class="r"><code># 按某列分组对另一列移动平均
 library(data.table)
 dat &lt;- data.table(x = 1:12, y = rep(c(&quot;a&quot;, &quot;b&quot;), each = 3))
@@ -598,7 +612,7 @@ dat</code></pre>
 <li><p>用 <strong>latticeExtra</strong> 包制作地区分布图，为了加上州级边界线等细节，像只八爪章鱼在网上各种找材料，虽不想啃 Deepayan Sarkar 的书《Lattice: Multivariate Data Visualization with R》<span class="citation">(<a href="#ref-Sarkar2008" role="doc-biblioref">Sarkar 2008</a>)</span>，但要从整体上了解 Lattice 的轮廓，还是只有靠这本书。</p></li>
 <li><p>为了代码稳定性、文章可重复性，有自信和能力避免任何和 <strong>dplyr</strong> 相关的代码，但项目时间上又有所延长。此外，文章合并入主站仓库没几天，<strong>ggplot2</strong> 的衍生包 <strong>biscale</strong> 包发布<a href="https://chris-prener.github.io/biscale/">重大版本 1.0.0</a>，二元地区分布图的代码<a href="https://github.com/cosname/cosx.org/commit/e4346a56eb36c861b449dbb233796c078f81df7b">不得不升级一下</a>。</p></li>
 <li><p>地图数据获取上，有现成的 R 包 <strong>tidycensus</strong>，本来是很简单的事， 因<a href="https://d.cosx.org/d/422985">神奇的网络问题</a>，走了不少弯路，不过，最终装了 Docker，拉了基于 Ubuntu 的<a href="https://github.com/rocker-org/rocker-versioned2">容器镜像</a>，还是<a href="https://github.com/cosname/cosx.org/pull/1027/commits/efb3673ebb3ed3215f0ded636efeadebb41952cf">把路趟直了</a>。</p></li>
-<li><p>《地区分布图及其应用》的初稿在数据解读方面做得很不好，更可笑的是家庭收入是月收入还是年收入都没搞清楚，足见数据背景知识的匮乏。好在数据整理的过程都有代码，重读指标含义，搜罗网上的材料，一对比就清楚了，顺带挖了一下美国人口调查局发布的指标体系的存储结构，后来，又看了世界银行的数据 API 接口和美国人口调查局发布的其它数据 API 接口，指标体系都是按照某种形式的「长格式」存储。</p></li>
+<li><p>《地区分布图及其应用》的初稿在数据解读方面做得很不好，更可笑的是家庭收入是月收入还是年收入都没搞清楚，足见数据背景知识的匮乏。好在数据整理的过程都有代码，重读指标含义，搜罗网上的材料，一对比就清楚了，顺带挖了一下美国人口调查局发布的指标体系的存储结构，后来，又看了世界银行的<a href="https://datahelpdesk.worldbank.org/knowledgebase/articles/889392-about-the-indicators-api-documentation">数据 API</a>和美国人口调查局发布的<a href="https://www.census.gov/data/developers/data-sets/international-database.html">其它数据 API</a>，指标体系都是按照某种形式的「长格式」存储。</p></li>
 </ol></li>
 </ol>
 </div>
@@ -619,7 +633,7 @@ dat</code></pre>
 </blockquote>
 <p>原文中另一个重要但没有谈的内容是坐标投影，正确的绘图姿势里是必须要交代的，原文在北卡州社区级家庭年收入分析中以提示形式插入了如下一段，后又删除，笔者考虑是过于强调细节。</p>
 <blockquote>
-<p><strong>sf</strong> 包内置的北卡州郡级地图数据集 <code>nc.gpkg</code> 坐标参考系为 <a href="https://epsg.io/4267"><code>EPSG:4267</code></a>，而通常使用的 <strong>leaflet</strong> 包<span class="citation">(<a href="#ref-leaflet" role="doc-biblioref">Cheng, Karambelkar, and Xie 2022</a>)</span>和 <strong>mapdeck</strong> 包<span class="citation">(<a href="#ref-mapdeck" role="doc-biblioref">Cooley 2020</a>)</span>需要地图数据集转化到 <a href="https://epsg.io/4326"><code>EPSG:4326</code></a>，其细微差别详见 Hiroaki Yutani 的博客 <span class="citation">(<a href="#ref-Yutani2018" role="doc-biblioref">Yutani 2018</a>)</span>。若使用国内的 Web 地图服务，一般需要地图数据转化到<a href="https://en.wikipedia.org/wiki/Restrictions_on_geographic_data_in_China">火星坐标系</a>，其间会存在一定的<a href="https://gis.stackexchange.com/questions/234202">漂移</a>。</p>
+<p><strong>sf</strong> 包内置的北卡州郡级地图数据集 <code>nc.gpkg</code> 坐标参考系为 <a href="https://epsg.io/4267"><code>EPSG:4267</code></a>，而通常使用的 <strong>leaflet</strong> 包<span class="citation">(<a href="#ref-leaflet" role="doc-biblioref">J. Cheng, Karambelkar, and Xie 2022</a>)</span>和 <strong>mapdeck</strong> 包<span class="citation">(<a href="#ref-mapdeck" role="doc-biblioref">Cooley 2020</a>)</span>需要地图数据集转化到 <a href="https://epsg.io/4326"><code>EPSG:4326</code></a>，其细微差别详见 Hiroaki Yutani 的博客 <span class="citation">(<a href="#ref-Yutani2018" role="doc-biblioref">Yutani 2018</a>)</span>。若使用国内的 Web 地图服务，一般需要地图数据转化到<a href="https://en.wikipedia.org/wiki/Restrictions_on_geographic_data_in_China">火星坐标系</a>，其间会存在一定的<a href="https://gis.stackexchange.com/questions/234202">漂移</a>。</p>
 </blockquote>
 <p>原文在 R 包依赖引入上比较谨慎，稳定高效地把活干了比什么都好，也趁此机会吐槽了一把 tidyverse ，见下文。应坛友的建议，此举可能伤害文章的内容，引起不必要的争论，因此，最终作罢。尽管 <strong>dplyr</strong> 及其 <strong>tidyverse</strong> 家族可能通过直接或间接的方式影响文章的可重复性，笔者也忍了，躲在一边静静地看 <strong>tidyverse</strong> 的粉丝们与他（她）们的教主一起共振。</p>
 <blockquote>
@@ -689,6 +703,9 @@ Chang, Winston. 2018. <em>R Graphics Cookbook</em>. 2nd ed. O’Reilly Media. <a
 </div>
 <div id="ref-leaflet" class="csl-entry">
 Cheng, Joe, Bhaskar Karambelkar, and Yihui Xie. 2022. <em>Leaflet: Create Interactive Web Maps with the JavaScript Leaflet Library</em>. <a href="https://rstudio.github.io/leaflet/">https://rstudio.github.io/leaflet/</a>.
+</div>
+<div id="ref-Cheng2015" class="csl-entry">
+Cheng, Xiaoyue, Dianne Cook, and Heike Hofmann. 2015. <span>“Visually Exploring Missing Values in Multivariable Data Using a Graphical User Interface.”</span> <em>Journal of Statistical Software</em> 68 (6): 1–23. <a href="https://doi.org/10.18637/jss.v068.i06">https://doi.org/10.18637/jss.v068.i06</a>.
 </div>
 <div id="ref-mapdeck" class="csl-entry">
 Cooley, David. 2020. <em>Mapdeck: Interactive Maps Using ’Mapbox GL JS’ and ’Deck.gl’</em>. <a href="https://CRAN.R-project.org/package=mapdeck">https://CRAN.R-project.org/package=mapdeck</a>.
