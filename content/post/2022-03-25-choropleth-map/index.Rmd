@@ -23,6 +23,7 @@ output:
   blogdown::html_page:
     toc: true
 link-citations: true
+math: true
 bibliography: 
   - refer.bib
 forum_id: 423119

@@ -22,6 +22,7 @@ tags:
   - sp
   - raster
 toc: true
+math: true
 link-citations: true
 thumbnail: /img/maps-in-r/usmap-statex77.png
 bibliography: 

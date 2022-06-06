@@ -33,6 +33,8 @@ paginate = 9
     highlightjsTheme = "github"
     fontawesomeVersion = "4.7.0"
     fontawesomeCDN = "//cdnjs.cloudflare.com/ajax/libs"
+    MathJaxVersion = "2.7.5"
+    MathJaxCDN = "//cdnjs.cloudflare.com/ajax/libs"
 
 [markup]
     [markup.goldmark.renderer]

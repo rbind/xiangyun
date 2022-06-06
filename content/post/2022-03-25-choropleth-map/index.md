@@ -17,6 +17,7 @@ tags:
   - sf
   - ggplot2
 link-citations: true
+math: true
 bibliography: 
   - refer.bib
 toc: true

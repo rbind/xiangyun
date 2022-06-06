@@ -7,6 +7,7 @@ categories:
 tags: [随机数,统计检验,模拟]
 slug: random-number-generation
 meta_extra: 审稿：郎大为、边蓓蕾；编辑：吴佳萍
+math: true
 forum_id: 419212
 ---
 

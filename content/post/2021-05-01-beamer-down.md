@@ -3,6 +3,7 @@ title: R Markdown 制作 beamer 幻灯片
 author: 黄湘云
 date: '2021-05-01'
 slug: beamer-down
+math: true
 categories:
   - 统计软件
 tags:

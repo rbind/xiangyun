@@ -12,7 +12,7 @@ tags:
   - tidyr
   - Base R
 toc: true
-draft: true
+math: true
 link-citations: true
 bibliography: 
   - refer.bib
