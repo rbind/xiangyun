@@ -21,7 +21,9 @@ forum_id: 419212
 
 # 随机数生成
 
-讲随机数发生器，不得不提及一个名为Mersenne Twister（简称MT）的发生器，它的周期长达`$2^{19937}-1$`， 现在是R 、Octave 和Matlab 等软件（较新版本）的默认随机数发生器^[现在，R、Octave和Matlab这些软件没有单纯用借位相减算法来产生随机数，1995年后，Matlab使用延迟斐波那契和移位寄存器的组合发生器，直到2007年，Matlab推出7.4版本的时候才采用MT发生器。]。 
+讲随机数发生器，不得不提及一个名为Mersenne Twister（简称MT）的发生器，它的周期长达`$2^{19937}-1$`， 现在是R 、Octave 和Matlab 等软件（较新版本）的默认随机数发生器[^3]。 
+
+[^3]: 现在，R、Octave和Matlab这些软件没有单纯用借位相减算法来产生随机数，1995年后，Matlab使用延迟斐波那契和移位寄存器的组合发生器，直到2007年，Matlab推出7.4版本的时候才采用MT发生器。
 
 Matlab通过内置的rng函数指定不同的发生器，其中包括1995年Matlab采用George Marsaglia 在1991年提出的借位减（subtract with borrow，简称SWB）发生器。在Matlab中，设置如下命令可指定发生器及其状态，其中1234是随机数种子，指定发生器的状态，目的是重复实验结果，v5uniform是发生器的名字。
 
@@ -31,15 +33,18 @@ rng(1234, 'v5uniform')
 
 Octave通过内置的rand函数指定发生器的不同状态，为获取相同的两组随机数，state参数得设置一样，如1234（你也可以设置为别的值）。Octave已经放弃了老版本内置的发生器，找不到命令去指定早期的发生器，这个和Matlab不一样。
 
-```octave
+```matlab
 rand ('state',1234)
 rand(1,5)
-
+```
+```
    0.9664535   0.4407326   0.0074915   0.9109760   0.9392690
-
+```
+```matlab
 rand ('state',1234)
 rand(1,5)
-
+```
+```
    0.9664535   0.4407326   0.0074915   0.9109760   0.9392690
 ```
 
@@ -75,6 +80,7 @@ SWB发生器中“借位相减”步骤是指序列的第`$i$`个随机数`$z_{i
 下面关于随机数生成的效率和后面的统计检验，都以生成`$2^{24}$`个为基准，是1600多万个，取这么多，一方面为了比较编程语言实现的发生器产生随机数的效率，另一方面是后面的游程检验需要比较大的样本量。
 
 Matlab内置的发生器及大部分的函数，底层实现都是C或者Fortran，MathWorks创始人[Cleve B. Moler](https://www.wikiwand.com/en/Cleve_Moler)是数值分析领域著名的LINPACK和EISPACK包的作者之一，他当年做了很多优化和封装，进而推出Matlab，只要是调用内置函数，效率不会比C差，自己写的含有循环、判断等语句的代码，性能就因人而异了，对大多数人来说，性能要比C低。这里比较Matlab内置SWB发生器（就当作是C语言实现的好了）和用Matlab重写的SWB发生器的效率，代码如下：
+
 ```matlab
 % matlab code
 tic % 大约几秒
@@ -82,7 +88,8 @@ rng(1234, 'v5uniform') % 调用SWB发生器
 x = rand(1,2^24);
 toc
 ```
-```octave
+
+```matlab
 % octave code
 id = tic % 时间耗费大约一小时
 randtx('state',0)
@@ -90,10 +97,14 @@ x = randtx(1,2^24);
 toc (id)
 ```
 [randtx](https://www.mathworks.com/moler/chapters.html)不是Matlab和Octave内置的函数，而是Cleve B. Moler基于Matlab实现的SWB发生器，也是100多行包含嵌套循环等语句的Matlab代码打包的函数，上面的代码运行时间差异之大也就不难理解了，为了能在Octave上跑，我做了少量修改，Octave软件版本为4.2.1，安装Octave时，Blas选择OpenBlas，为了后续检验，在获得随机数后，将其保存到磁盘文件 random\_number.mat
-```octave
+
+```matlab
 save -mat random_number.mat x 
 ```
-R，Octave，Matlab和Python内置的发生器都是MT发生器，与之实现有关的数学库，也是Blas，虽然有开源和进一步优化的商业版本之分，但是矩阵乘法，向量乘法之类运算的效率也就半斤八两，Julia语言官网给出了一个[标准测试](https://julialang.org/)^[在官网的High-Performance JIT Compiler部分]。
+
+R，Octave，Matlab和Python内置的发生器都是MT发生器，与之实现有关的数学库，也是Blas，虽然有开源和进一步优化的商业版本之分，但是矩阵乘法，向量乘法之类运算的效率也就半斤八两，Julia语言官网给出了一个[标准测试](https://julialang.org/)[^1]。
+
+[^1]: 在官网的High-Performance JIT Compiler部分
 
 ![不同语言性能](https://user-images.githubusercontent.com/7221728/27332940-9f31c516-55f6-11e7-963d-93005dab94b4.png)
 <p style="text-align: center;">不同语言的性能表现（C语言在算法中的表现为基准，时间记为1.0）</p>
@@ -327,7 +338,9 @@ print(integrate(sin(a*t)/t, (t, 0, oo)))
 \end{equation*}
 $$`
 
-稍为好点，但是还是有一大块看不懂，那个绝对值里是什么^[Python的符号计算模块sympy功能比较全，但是化简比较弱，导致结果理解起来不是很方便，比如式子的第一行，看似当`$0<x<2$`时，`$p_{2}(x)=x$`是错的，正确的范围应该是`$0<x<1$`，其实for后面的函数 `$polar\_lift()$`要求参数大于`$0$`，这样就没问题了，建议多撸一撸[sympy官方文档](http://docs.sympy.org/latest/index.html?v=20170321095755)。]？还是不要纠结了，路远坑多，慢走不送啊！话说要是计算`$p_2(x)$`密度函数里的积分，
+[^2]: Python的符号计算模块sympy功能比较全，但是化简比较弱，导致结果理解起来不是很方便，比如式子的第一行，看似当`$0<x<2$`时，`$p_{2}(x)=x$`是错的，正确的范围应该是`$0<x<1$`，其实for后面的函数 `$polar\_lift()$`要求参数大于`$0$`，这样就没问题了，建议多撸一撸[sympy官方文档](http://docs.sympy.org/latest/index.html?v=20170321095755)。
+
+稍为好点，但是还是有一大块看不懂，那个绝对值里是什么？[^2]还是不要纠结了，路远坑多，慢走不送啊！话说要是计算`$p_2(x)$`密度函数里的积分，
 
 ```python
 from sympy import * 
