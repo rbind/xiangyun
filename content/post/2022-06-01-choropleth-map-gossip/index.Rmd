@@ -17,6 +17,7 @@ output:
   blogdown::html_page:
     toc: true
 link-citations: true
+math: true
 bibliography: 
   - refer.bib
 description: "有的文章关注单个小功能、小模块地逐一介绍，非常类似某些 R 包的帮助文档，而有的需要企业级探索和实践，这就需要踩坑填坑，多方对比，总结经验，摸索出一条好实现、好维护、好效果的路。"

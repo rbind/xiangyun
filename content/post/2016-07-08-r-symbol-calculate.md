@@ -9,6 +9,7 @@ tags:
   - 优化计算
   - 自动微分
 slug: r-symbol-calculate
+math: true
 ---
 
 > 最早发布在统计之都主站 <https://cosx.org/2016/07/r-symbol-calculate> 目前文章介绍的技术内容有待更新，比如 [Ryacas](https://github.com/r-cas/ryacas) 已经进行了革命新的更新
