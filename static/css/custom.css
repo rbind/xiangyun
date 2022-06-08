@@ -1,5 +1,9 @@
 .content {
   max-width: 800px;
+  background-color: white;
+}
+body { 
+  background-color: white; 
 }
 .article-author {
   font-size: 25px;
