@@ -154,26 +154,26 @@ years <- lapply(unique(gapminder_df$year), function(x) {
 # })
 # 图中悬浮提示仅包含各国的预期寿命
 # e_add_nested 设置气泡的颜色
-gapminder_df |> 
-  group_by(year)  |> 
-  e_charts(x = gdpPercap, timeline = TRUE)  |> 
+gapminder_df |>
+  group_by(year) |>
+  e_charts(x = gdpPercap, timeline = TRUE) |>
   e_scatter(
     serie = lifeExp, size = pop, bind = country,
     symbol_size = 5, name = ""
-  )  |> 
-  e_add_nested("itemStyle", color)  |> 
+  ) |>
+  e_add_nested("itemStyle", color) |>
   e_y_axis(
     min = 20, max = 85, nameGap = 30,
     name = "Life Exp", nameLocation = "center"
-  )  |> 
+  ) |>
   e_x_axis(
     type = "log", min = 100, max = 100000,
     nameGap = 30, name = "GDP / Cap", nameLocation = "center"
-  )  |> 
-  e_timeline_serie(title = titles)  |> 
-  e_timeline_serie(title = years, index = 2)  |> 
-  e_timeline_opts(playInterval = 1000)  |> 
-  e_grid(bottom = 100)  |> 
+  ) |>
+  e_timeline_serie(title = titles) |>
+  e_timeline_serie(title = years, index = 2) |>
+  e_timeline_opts(playInterval = 1000) |>
+  e_grid(bottom = 100) |>
   e_tooltip()
 ```
 
@@ -196,6 +196,7 @@ gapminder_df |>
 #| cache: true
 #| echo: false
 
+library(ggplot2)
 library(gganimate)
 ggplot(gapminder, aes(gdpPercap, lifeExp, size = pop, colour = country)) +
   geom_point(alpha = 0.7, show.legend = FALSE) +
@@ -293,12 +294,12 @@ R 包 **gapminder** 内置的数据集**摘录**自网站 <https://www.gapminder
 # 从世界银行数据库获取宏观经济数据
 wb_world_indicator <- wbstats::wb_data(
   indicator = c(
-    "SL.UEM.TOTL",  # 失业人数 Number of people unemployed
+    "SL.UEM.TOTL", # 失业人数 Number of people unemployed
     "SL.UEM.TOTL.ZS", # 失业率 Unemployed (%) (modeled ILO estimate)
     "SL.UEM.TOTL.NE.ZS", # 失业率 Unemployed (%) national estimate
-    
+
     "NY.GDP.PCAP.KD.ZG", # 人均 GDP 增速
-    "NY.GDP.MKTP.CD",# GDP 总量
+    "NY.GDP.MKTP.CD", # GDP 总量
     "NY.GDP.MKTP.KD.ZG", # GDP 增速
 
     "FP.CPI.TOTL", # 消费价格指数（以 2010 年为对比基数 100）
@@ -554,9 +555,10 @@ ggplot(
   geom_density(position = "stack", colour = "white", na.rm = TRUE, alpha = 0.7) +
   scale_fill_brewer(palette = "Set1") +
   scale_x_log10(
-    labels = scales::label_dollar(), 
+    labels = scales::label_dollar(),
     limits = c(50, 300000),
-    minor_breaks = mb) +
+    minor_breaks = mb
+  ) +
   labs(
     x = "人均 GDP", y = "国家数量", fill = "区域"
   ) +
@@ -571,7 +573,7 @@ ggplot(
 相信大家对「二八定律」不陌生，简单讲就是 20% 的人口占有全世界 80% 的财富，在经济社会等领域广泛存在。下面根据世界银行的数据，简单统计一下：
 
 ```{r}
-aggregate(wb_hans_2001, cbind(NY.GDP.PCAP.CD, SP.POP.TOTL) ~income_level, sum, na.rm = TRUE)
+aggregate(wb_hans_2001, cbind(NY.GDP.PCAP.CD, SP.POP.TOTL) ~ income_level, sum, na.rm = TRUE)
 ```
 
 贫穷的低收入国家和中低收入国家占有世界的财富比例为 3.619% 而人口占比为 46.27%。即近一半的人口占有的财富不足 4%。而高收入国家占有的财富比例为 87.6%，相应的人口占比为 17.34%，即不需要 20% 的人口就远远占据了 80% 的财富，比二八更狠！
@@ -823,7 +825,7 @@ wb_hans |>
     # params.name 取自 bind 变量
     formatter = htmlwidgets::JS("
       function(params) {
-        if(params.value) {
+        if(params.value[0]) {
           return('国家: <strong>' + params.name + '</strong>' +
                  '<br />人均 GDP: ' + Math.round(params.value[0]) + '美元' +
                  '<br />人均寿命: ' + Math.round(params.value[1]) + '岁' +
@@ -831,6 +833,7 @@ wb_hans |>
         } else {
           return('');
         }
+        return('');
       }
     ")
   ) |>
@@ -919,7 +922,7 @@ wb_hans |>
 
 1.  动画里，大气泡覆盖小气泡，尽管设置了透明度，可以看到小气泡的位置，但是鼠标悬浮在小气泡上时，无法显示小气泡上的悬浮文本，这很有可能是 Apache ECharts 的问题，因为官方示例也有此[问题](https://echarts.apache.org/examples/zh/editor.html?c=scatter-life-expectancy-timeline)。一种可能的缓解办法是把数据集按人口总数切分成两块，先画大气泡，再画小气泡，笔者没有尝试。
 
-1.  鼠标落在时间轴上，悬浮提示包含整个自定义 `e_tooltip()` 内容，这是有问题的，笔者还没找到解决办法。
+1.  鼠标落在时间轴上，悬浮提示包含整个自定义 `e_tooltip()` 内容，这是有问题的，感谢 John Coene 提供[解决办法](https://github.com/JohnCoene/echarts4r/issues/433)。
 
 ::: sidebar
 笔者之前尝试过将人均 GDP / 预期寿命数据映射到地图上，制作地理可视化动画，如图\@ref(fig:wb-hans-life)所示，它补充了各个国家的空间位置信息，相比于之前的区域变量更加直观，虽只能展示一个数据指标，却可以展示任意时间点的空间分布。笔者建议在展示数据的时候，不妨同时提供多种展示形式，读者可任意选择指标、图形去探索、分析。
@@ -998,7 +1001,7 @@ wb_hans |>
 ```
 
 ::: sidebar
-在世界银行的数据集里，俄罗斯联邦的国家名称记录为 Russian Federation，而在 **echarts4r** 包内置的世界地图数据集里，俄罗斯联邦的国家名称 Russia，要加上这个国家的数据，需要做一下数据转化，实际上，还不止俄罗斯。一个比较好的方式是用**国家代码**（如 [ISO3](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3)）关联经济社会数据和地图数据。
+在世界银行的数据集里，俄罗斯联邦的国家名称记录为 Russian Federation，而在 **echarts4r** 包内置的[世界地图数据集](https://github.com/JohnCoene/echarts4r/blob/master/inst/htmlwidgets/lib/echarts-4.8.0/world.js)里，俄罗斯联邦的国家名称 Russia，要加上这个国家的数据，需要做一下数据转化，实际上，还不止俄罗斯。一个比较好的方式是用**国家代码**（如 [ISO3](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3)）关联经济社会数据和地图数据。
 :::
 
 <details>
@@ -1025,6 +1028,8 @@ wb_hans2 <- within(wb_hans, {
   country <- ifelse(country == "Egypt, Arab Rep.", "Egypt", country)
   country <- ifelse(country == "Iran, Islamic Rep.", "Iran", country)
   country <- ifelse(country == "Yemen, Rep.", "Yemen", country)
+  country <- ifelse(country == "Korea, Dem. People's Rep.", "Dem. Rep. Korea", country)
+  country <- ifelse(country == "Korea, Rep.", "Korea", country)
 })
 
 wb_hans2 |>
@@ -1111,7 +1116,7 @@ Python 的 [plotly](https://github.com/plotly/plotly.py) 模块功能比 **echar
 xfun::session_info(packages = c(
   "knitr", "rmarkdown", "blogdown",
   "echarts4r", "gganimate", "ggplot2",
-  "ggridges", "ragg", "showtext", 
+  "ggridges", "ragg", "showtext",
   "wbstats", "gapminder", "ggrepel"
 ), dependencies = FALSE)
 ```
