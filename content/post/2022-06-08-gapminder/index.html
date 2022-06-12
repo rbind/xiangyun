@@ -94,13 +94,80 @@ div.img {
 <embed src="img/WorldHealth2001.pdf" style="width:100.0%" height="625" />
 <p class="caption">图 1:  汉斯用气泡图描述儿童存活率（健康）与人均 GDP （金钱） 的关系</p>
 </div>
-<p>数据可视化在数据科学中扮演数据探索、展示和交流的关键角色，动态图形包含的信息更加丰富，在合适的数据集和应用场景上，说不定还能像汉斯那样收到奇效。<a href="/2022/02/plotly-python-animations/">《动画制作与 Plotly Python》</a> 曾用 <a href="https://github.com/plotly/plotly.py">plotly</a> 尝试复现汉斯展示的动态气泡图，描述数据间的<strong>关系</strong>变化。<a href="/2022/05/choropleth-map-animation">《R 语言制作地区分布图及其动画》</a>曾分别使用 <strong>gganimate</strong> 包和 <strong>echart4r</strong> 包来制作关于<a href="https://en.wikipedia.org/wiki/Choropleth_map">地区分布图</a>的 GIF 动画和 Web 动画，用动画描述数据的<strong>空间</strong>分布变化。</p>
+<p>数据可视化在数据科学中扮演数据探索、展示和交流的重要角色，动态图形包含的信息更加丰富，在合适的数据集和应用场景上，说不定还能像汉斯那样收到奇效。<a href="/2022/02/plotly-python-animations/">《动画制作与 Plotly Python》</a> 曾用 <a href="https://github.com/plotly/plotly.py">plotly</a> 尝试复现汉斯展示的动态气泡图，描述数据间的<strong>关系</strong>变化。<a href="/2022/05/choropleth-map-animation">《R 语言制作地区分布图及其动画》</a>曾分别使用 <strong>gganimate</strong> 包和 <strong>echart4r</strong> 包来制作关于<a href="https://en.wikipedia.org/wiki/Choropleth_map">地区分布图</a>的 GIF 动画和 Web 动画，用动画描述数据的<strong>空间</strong>分布变化。</p>
 <details>
 <p>
 <summary>
 点击显示或隐藏代码
 </summary>
 </p>
+<pre class="r"><code>library(echarts4r)
+# 提供数据
+data(&quot;gapminder&quot;, package = &quot;gapminder&quot;)
+# 带国家名称的颜色值向量 Named Vectors
+data(&quot;country_colors&quot;, package = &quot;gapminder&quot;)
+# country_colors 命名向量转化为数据框
+country_colors_df &lt;- stack(country_colors)
+# 重命名列
+colnames(country_colors_df) &lt;- c(&quot;color&quot;, &quot;country&quot;)
+# 每个 country 指定颜色值
+gapminder_df &lt;- merge(
+  x = gapminder, y = country_colors_df,
+  by = &quot;country&quot;, all.x = TRUE, sort = FALSE
+)
+# 标题
+titles &lt;- lapply(unique(gapminder_df$year), function(x) {
+  list(
+    text = &quot;Gapminder&quot;,
+    left = &quot;center&quot;
+  )
+})
+# 背景年份数字
+years &lt;- lapply(unique(gapminder_df$year), function(x) {
+  list(
+    subtext = x,
+    left = &quot;center&quot;,
+    top = &quot;center&quot;,
+    z = 0,
+    subtextStyle = list(
+      fontSize = 100,
+      color = &quot;rgb(170, 170, 170, 0.5)&quot;,
+      fontWeight = &quot;bolder&quot;
+    )
+  )
+})
+
+# 根据 continent 列添加一列颜色值，各大洲和颜色的对应关系可自定义
+# gapminder &lt;- within(gapminder, {
+#   color &lt;- factor(
+#     continent,
+#     levels = c(&quot;Asia&quot;, &quot;Africa&quot;, &quot;Americas&quot;, &quot;Europe&quot;, &quot;Oceania&quot;),
+#     labels = RColorBrewer::brewer.pal(n = 5, name = &quot;Spectral&quot;)
+#   )
+# })
+# 图中悬浮提示仅包含各国的预期寿命
+# e_add_nested 设置气泡的颜色
+gapminder_df |&gt;
+  group_by(year) |&gt;
+  e_charts(x = gdpPercap, timeline = TRUE) |&gt;
+  e_scatter(
+    serie = lifeExp, size = pop, bind = country,
+    symbol_size = 5, name = &quot;&quot;
+  ) |&gt;
+  e_add_nested(&quot;itemStyle&quot;, color) |&gt;
+  e_y_axis(
+    min = 20, max = 85, nameGap = 30,
+    name = &quot;Life Exp&quot;, nameLocation = &quot;center&quot;
+  ) |&gt;
+  e_x_axis(
+    type = &quot;log&quot;, min = 100, max = 100000,
+    nameGap = 30, name = &quot;GDP / Cap&quot;, nameLocation = &quot;center&quot;
+  ) |&gt;
+  e_timeline_serie(title = titles) |&gt;
+  e_timeline_serie(title = years, index = 2) |&gt;
+  e_timeline_opts(playInterval = 1000) |&gt;
+  e_grid(bottom = 100) |&gt;
+  e_tooltip()</code></pre>
 </details>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:gapminder-echarts4r"></span>
 <div id="htmlwidget-1" style="width:100%;height:500px;" class="echarts4r html-widget"></div>
