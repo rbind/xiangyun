@@ -539,7 +539,7 @@ GDP 和人均 GDP 指标是官媒宣传最多的，各国希望营造一个橄�
 
 ```{r}
 #| label: hans-density
-#| fig.cap: "2002 年世界人均 GDP 的分布"
+#| fig.cap: "2001 年世界人均 GDP 的分布"
 #| fig.showtext: true
 #| fig.align: "center"
 #| echo: false
@@ -713,50 +713,104 @@ ggplot(
 ## 预期寿命与人均 GDP 的关系
 
 
-GIF 动图的好处是便携，但没有暂停键，只有重复播放。下面用 **echarts4r** 包制作面向网页展示的动态气泡图，随时暂停和播放，还可回看，点击具体的气泡还可查看数据细节。交互式动态图的好处就是多，不过，制作起来也麻烦一些。一些常用的技术细节在另一篇文章[《R 语言制作地区分布图及其动画》](/2022/05/choropleth-map-animation/)制作Web 动画部分介绍过了。下面捡几个重点介绍，其一添加动画标题和水印背景，这可以让读者更加醒目地看到当前状态，用 `e_timeline_serie()` 配置一些时间线组件的参数，参数是一个嵌套的列表结构，非常适合用 Base R 自带的函数 `lapply()` 来实现。
+GIF 动图的好处是便携，但没有暂停键，只有重复播放。下面用 **echarts4r** 包制作面向网页展示的动态气泡图，随时暂停和播放，还可回看，点击具体的气泡还可查看数据细节。交互式动态图的好处就是多，不过，制作起来也麻烦一些。一些常用的技术细节在另一篇文章[《R 语言制作地区分布图及其动画》](/2022/05/choropleth-map-animation/)制作Web 动画部分介绍过了。下面捡几个重点介绍：
 
-```{r}
-library(echarts4r)
-# 去掉不完整的数据集
-wb_hans <- wb_hans[complete.cases(wb_hans), ]
-# 准备动画标题
-titles <- lapply(unique(wb_hans$date), FUN = function(x) {
-  list(
-    text = paste(x, "年寿命与人均GDP关系", sep = ""),
-    left = "center"
-  )
-})
-# 准备动画背景文字
-years <- lapply(unique(wb_hans$date), FUN = function(x) {
-  list(
-    subtext = x,
-    left = "center",
-    top = "center",
-    z = 0,
-    subtextStyle = list(
-      fontSize = 100,
-      color = "rgb(170, 170, 170, 0.5)",
-      fontWeight = "bolder"
-    )
-  )
-})
-```
 
-其二用颜色填充各个气泡，在 wb_hans 数据集上添加一列 color，根据国家所在的区域分配不同的颜色，颜色取自 **RColorBrewer** 包内置的 Spectral 调色板。各区域和颜色的对应关系可自定义，调整 `levels` 或 `labels` 里面的顺序即可，读者也可调用其它调色板。
+1.  有了之前的经验，快速制作一个带时间轴的气泡图\@ref(fig:wb-hans-timeline)是不难的，这就相当于有了图形主体内容。
+    
+    ```{r}
+    #| label: wb-hans-timeline
+    #| fig.cap: "预期寿命与人均 GDP 的关系变化"
+    #| echo: true
+    
+    # 去掉不完整的数据记录
+    wb_hans <- wb_hans[complete.cases(wb_hans), ]
+    library(echarts4r)
+    wb_hans |>
+      group_by(date) |>
+      # 横轴是人均 GDP
+      e_charts(x = NY.GDP.PCAP.CD, timeline = TRUE) |>
+      e_scatter(
+        # 纵轴是人均寿命（预期寿命）
+        serie = SP.DYN.LE00.IN,
+        # 气泡大小表示人口总数
+        size = SP.POP.TOTL,
+        # 国家名称
+        bind = country,
+        # 气泡的样式
+        symbol = "circle",
+        # 气泡大小的 base 参照值
+        symbol_size = 5,
+        # 设置气泡的透明度，缓解重叠现象
+        itemStyle = list(opacity = 0.8),
+        # 用于tooltip的显示，legend 的图例筛选
+        name = "Gapminder"
+      ) |>
+      e_x_axis(
+        # 设置横轴为对数尺度，默认以10为底
+        type = "log",
+        min = 10, max = 100000
+      ) |>
+      e_y_axis(
+        min = 20, max = 90
+      ) |>
+      e_tooltip()
+    ```
 
-```{r}
-wb_hans <- within(wb_hans, {
-  color <- factor(
-    region,
-    levels = c(
-      "East Asia & Pacific", "Europe & Central Asia",
-      "Latin America & Caribbean", "Middle East & North Africa",
-      "North America", "South Asia", "Sub-Saharan Africa"
-    ),
-    labels = RColorBrewer::brewer.pal(n = 7, name = "Spectral")
-  )
-})
-```
+1.  在 **echarts4r** 包提供的函数 `group_by()` 里传入多个变量无法实现分组效果，它只支持传入一个变量，用作动画的时间帧变量，具体情况详见**echarts4r**的[Issue 报告](https://github.com/JohnCoene/echarts4r/issues/435)。[苏玮](https://github.com/swsoyee)在统计之都论坛提供一个[解决办法](https://d.cosx.org/d/422311) --- 添加函数 `e_add_nested()` 修改 [itemStyle](https://echarts.apache.org/zh/option.html#series-scatter.itemStyle) 。只需在 wb_hans 数据集上添加一列 `color`， 根据国家所在的区域指定各个气泡的颜色。颜色取自 **RColorBrewer** 包内置的 Spectral 调色板，各区域和颜色的对应关系可自定义，调整 `levels` 或 `labels` 里面的顺序即可，读者也可调用其它调色板。
+
+    ```{r}
+    wb_hans <- within(wb_hans, {
+      color <- factor(
+        region,
+        levels = c(
+          "East Asia & Pacific", "Europe & Central Asia",
+          "Latin America & Caribbean", "Middle East & North Africa",
+          "North America", "South Asia", "Sub-Saharan Africa"
+        ),
+        labels = RColorBrewer::brewer.pal(n = 7, name = "Spectral")
+      )
+    })
+    ```
+
+1.  添加动画标题和水印背景，这可以让读者更加醒目地看到当前状态。用 `e_timeline_serie()` 配置一些时间线组件的参数，参数是一个嵌套的列表结构，非常适合用 Base R 自带的函数 `lapply()` 来实现。值得注意，对照 Apache ECharts [时间线](https://echarts.apache.org/zh/option.html#timeline) 组件的帮助文档，**echarts4r** 有的参数名称和 Apache ECharts 略微不同，函数 `e_timeline_opts()` 的 `axis_type` 对应 `axisType`，`e_timeline_serie()` 的 `index` 对应 `currentIndex`。
+
+    
+    ```{r}
+    # 准备动画标题
+    titles <- lapply(unique(wb_hans$date), FUN = function(x) {
+      list(
+        text = paste(x, "年寿命与人均GDP关系", sep = ""),
+        left = "center"
+      )
+    })
+    # 准备动画背景文字
+    years <- lapply(unique(wb_hans$date), FUN = function(x) {
+      list(
+        subtext = x,
+        left = "center",
+        top = "center",
+        z = 0,
+        subtextStyle = list(
+          fontSize = 100,
+          color = "rgb(170, 170, 170, 0.5)",
+          fontWeight = "bolder"
+        )
+      )
+    })
+    ```
+
+1.  参照[坐标轴文档](https://echarts.apache.org/zh/option.html#xAxis.minorTick)设置次刻度线，`splitNumber` 参数控制次刻度线分割数。图中设为 10，次刻度线由疏到密，这是对数函数决定的。
+
+    ```{r}
+    # 100 至 1000 的对数刻度
+    log(seq(from = 100, to = 1000, by = 100), base = 10)
+    # 1000 至 10000 的对数刻度
+    log(seq(from = 1000, to = 10000, by = 1000), base = 10)
+    ```
+
+1.  定制气泡的悬浮提示影响了时间轴的悬浮提示。鼠标落在时间轴上，悬浮提示包含整个自定义 `e_tooltip()` 内容，这是有问题的，应当只有 `params.value[0]` 有值时悬浮提示才有内容，感谢 John Coene 提供[解决办法](https://github.com/JohnCoene/echarts4r/issues/433)。
+
 
 准备工作就绪后，绘制动画，效果如图\@ref(fig:respect-gapminder)。
 
@@ -855,78 +909,13 @@ wb_hans |>
   e_grid(bottom = 100)
 ```
 
-最后，补充几个细节点：
 
-1.  快速制作一个带时间轴的气泡图\@ref(fig:wb-hans-timeline)是不难的，这就相当于图形主体内容都有了。
 
-    <details><summary> 点击显示或隐藏代码 </summary>
-    ```{r}
-    #| ref.label: wb-hans-timeline
-    #| eval: false
-    #| echo: true
-    ```
-    </details>
-    
-    ```{r}
-    #| label: wb-hans-timeline
-    #| fig.cap: "预期寿命与人均 GDP 的关系变化"
-    #| echo: false
-    
-    wb_hans |>
-      group_by(date) |>
-      # 横轴是人均 GDP
-      e_charts(x = NY.GDP.PCAP.CD, timeline = TRUE) |>
-      e_scatter(
-        # 纵轴是人均寿命（预期寿命）
-        serie = SP.DYN.LE00.IN,
-        # 气泡大小表示人口总数
-        size = SP.POP.TOTL,
-        # 国家名称
-        bind = country,
-        # 气泡的样式
-        symbol = "circle",
-        # 气泡大小的 base 参照值
-        symbol_size = 5,
-        # 设置气泡的透明度，缓解重叠现象
-        itemStyle = list(opacity = 0.8),
-        # 用于tooltip的显示，legend 的图例筛选
-        name = "Gapminder"
-      ) |>
-      e_x_axis(
-        # 设置横轴为对数尺度，默认以10为底
-        type = "log",
-        min = 10, max = 100000
-      ) |>
-      e_y_axis(
-        min = 20, max = 90
-      ) |>
-      e_tooltip()
-    ```
+动画\@ref(fig:respect-gapminder)里大气泡覆盖小气泡，设置透明度可以看到小气泡的位置，但是鼠标悬浮在小气泡上时，无法显示小气泡上的悬浮文本，这很有可能是 Apache ECharts 的问题，因为官方示例也有此[问题](https://echarts.apache.org/examples/zh/editor.html?c=scatter-life-expectancy-timeline)。一种可能的缓解办法是把数据集按人口总数切分成两块，先画大气泡，再画小气泡，笔者没有尝试。
 
-1.  **echarts4r** 包提供的 `group_by()` 函数只支持传入一个变量，用作动画的时间帧变量。如下方式传入多个变量也无法实现分组效果，上面的动画\@ref(fig:respect-gapminder)是通过添加函数 `e_add_nested()` 修改 [itemStyle](https://echarts.apache.org/zh/option.html#series-scatter.itemStyle) 实现的。这得感谢[苏玮](https://github.com/swsoyee)在论坛解答我关于 **echarts4r** 包的[使用问题](https://d.cosx.org/d/422311)。
 
-    ```{r}
-    #| eval: false
-    
-    wb_hans |>
-      group_by(date, region)
-    ```
+笔者之前尝试过将人均 GDP / 预期寿命数据映射到地图上，制作地理可视化动画，如图\@ref(fig:wb-hans-life)所示，它补充了各个国家的空间位置信息，相比于之前的区域变量更加直观，可以展示任意时间点的空间分布，但只能展示一个数据指标。笔者建议在展示数据的时候，不妨同时提供多种展示形式，读者可任意选择指标、图形去探索、分析。
 
-1.  对照 Apache ECharts [时间线](https://echarts.apache.org/zh/option.html#timeline) 组件的帮助文档，**echarts4r** 有的参数名称和 Apache ECharts 略微不同，函数 `e_timeline_opts()` 的 `axis_type` 对应 `axisType`，`e_timeline_serie()` 的 `index` 对应 `currentIndex`。
-
-1.  次刻度线设置的参照[坐标轴文档](https://echarts.apache.org/zh/option.html#xAxis.minorTick)，`splitNumber` 参数控制次刻度线分割数。图中设为 10，次刻度线由疏到密，这是对数函数决定的。
-
-    ```{r}
-    log(seq(from = 100, to = 1000, by = 100), base = 10)
-    ```
-
-1.  动画里，大气泡覆盖小气泡，尽管设置了透明度，可以看到小气泡的位置，但是鼠标悬浮在小气泡上时，无法显示小气泡上的悬浮文本，这很有可能是 Apache ECharts 的问题，因为官方示例也有此[问题](https://echarts.apache.org/examples/zh/editor.html?c=scatter-life-expectancy-timeline)。一种可能的缓解办法是把数据集按人口总数切分成两块，先画大气泡，再画小气泡，笔者没有尝试。
-
-1.  鼠标落在时间轴上，悬浮提示包含整个自定义 `e_tooltip()` 内容，这是有问题的，感谢 John Coene 提供[解决办法](https://github.com/JohnCoene/echarts4r/issues/433)。
-
-::: sidebar
-笔者之前尝试过将人均 GDP / 预期寿命数据映射到地图上，制作地理可视化动画，如图\@ref(fig:wb-hans-life)所示，它补充了各个国家的空间位置信息，相比于之前的区域变量更加直观，虽只能展示一个数据指标，却可以展示任意时间点的空间分布。笔者建议在展示数据的时候，不妨同时提供多种展示形式，读者可任意选择指标、图形去探索、分析。
-:::
 
 <details>
 <p><summary> 点击显示或隐藏代码 </summary></p>
@@ -1000,9 +989,9 @@ wb_hans |>
   )
 ```
 
-::: sidebar
-在世界银行的数据集里，俄罗斯联邦的国家名称记录为 Russian Federation，而在 **echarts4r** 包内置的[世界地图数据集](https://github.com/JohnCoene/echarts4r/blob/master/inst/htmlwidgets/lib/echarts-4.8.0/world.js)里，俄罗斯联邦的国家名称 Russia，要加上这个国家的数据，需要做一下数据转化，实际上，还不止俄罗斯。一个比较好的方式是用**国家代码**（如 [ISO3](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3)）关联经济社会数据和地图数据。
-:::
+
+在绘制地理动画过程中，注意到一个常见的数据问题：观测数据和地图数据不完全匹配。在世界银行的数据集里，俄罗斯联邦的国家名称记录为 Russian Federation，而在 **echarts4r** 包内置的[世界地图数据集](https://github.com/JohnCoene/echarts4r/blob/master/inst/htmlwidgets/lib/echarts-4.8.0/world.js)里，俄罗斯联邦的国家名称 Russia，要加上这个国家的数据，需要做一下数据转化，实际上，还不止俄罗斯。一个比较好的方式是用**国家代码**（如 [ISO3](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3)）关联经济社会数据和地图数据。
+
 
 <details>
 <p><summary> 点击显示或隐藏代码 </summary></p>
