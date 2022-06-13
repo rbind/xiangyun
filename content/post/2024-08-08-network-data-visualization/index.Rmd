@@ -26,21 +26,25 @@ description: "本文首先概览 R 语言在网络数据分析和可视化方面
 ---
 
 
-```{r setup, echo=FALSE}
-library(data.table)
+```{r}
+#| label: setup
+#| echo: false
+
 knitr::opts_chunk$set(
   comment = "#",
     error = FALSE,
      tidy = FALSE,
     cache = FALSE,
      echo = FALSE,
+  fig.align = "center",
  collapse = TRUE
 )
 # 控制输出的宽度
 options(width = 69)
 ```
 
-```{css, echo=FALSE}
+```{css}
+#| echo: false
 .sidebar {
   border: 1px solid #ccc;
 }
@@ -176,14 +180,15 @@ div.img {
 
 
 
-```{r network-deps}
+```{r}
+#| label: network-deps
 #| message: false
 #| echo: false
+
 # 获取 R 包元数据
 Sys.setenv(R_CRAN_WEB = "https://mirrors.tuna.tsinghua.edu.cn/CRAN")
 # 返回 data.frame
 pdb <- tools::CRAN_package_db()
-
 # CRAN 上的 R 包
 pkgs <- c(
   "igraph", "graphlayouts", "ggraph", "tidygraph",
@@ -192,12 +197,11 @@ pkgs <- c(
   "GGally", "sna", "network", "networkD3", 
   "Rgraphviz", "graph", "node2vec"
 )
-
 # Github 上的 R 包
 remote_pkgs = c('geomnet' = 'sctyner', 'ggnet' = 'briatte')
 # Bioconductor 上的 R 包
 bioc_pkgs = c("Rgraphviz", "graph")
-
+# 安装 BiocManager
 if (length(bioc_pkgs)) {
   if (!"BiocManager" %in% .packages(T)) install.packages("BiocManager")
 }
@@ -226,34 +230,20 @@ rmd_regexp <- paste("'(", paste(rmd_lib, collapse = "|"), ")'", sep = "")
 # 提取 R Shiny 应用使用的 R 包及其基本描述
 sub_pdb <- subset(
   x = pdb,
-  select = c("Package", "Title", "Maintainer", "URL", "License", "BugReports"),
+  select = c("Package", "Title", "Maintainer"),
   subset = Package %in% pkgs
 ) |>
   transform(Title = gsub("(\\\n)", " ", Title)) |>
   transform(Title = gsub(rmd_regexp, "\\1", Title)) |> 
   transform(Maintainer = gsub("<([^<>]*)>", "", Maintainer)) |> 
-  # transform(URL = gsub("(\\\n)", " ", URL)) |> 
-  # transform(URL = gsub(",", "", URL)) |> 
-  # transform(URL = ifelse(is.na(URL), BugReports, URL)) |> 
-  # transform(URL = ifelse(is.na(URL), sprintf("https://CRAN.R-project.org/package=%s", Package), URL)) |> 
   transform(Package = paste0("**", Package, "**", " ", "[@", Package, "]"))
 
 # 展示表格
-knitr::kable(sub_pdb[order(sub_pdb$Maintainer), 
-                     setdiff(colnames(sub_pdb), c("URL", "BugReports", "License"))],
+knitr::kable(sub_pdb,
   row.names = FALSE,
   caption = "网络分析的 R 包（排名不分先后）",
   col.names = c("R 包", "简介", "维护者")
 )
-```
-```{r write-bib, include=FALSE}
-# 保存 bib
-bib <- knitr::write_bib(
-  x = pkgs, file = NULL, prefix = ""
-)
-bib <- unlist(bib)
-bib <- gsub("(\\\n)", " ", bib)
-xfun::write_utf8(bib, "packages.bib")
 ```
 
 
@@ -265,7 +255,6 @@ xfun::write_utf8(bib, "packages.bib")
 
 # 网络分析基础
 
-![(\#fig:seven-bridges) 欧拉用图抽象的柯尼斯堡七桥](/img/seven-bridges.png){ width=65% }
 
 柯尼斯堡七桥图的数据以 igraph 数据类型整理收录在 **igraphdata** 包里，数据集名称就叫 Koenigsberg。**igraph** 包集图数据表示、计算和可视化于一体，功能十分丰富，如图\@ref(fig:koenigsberg)是用**igraph** 包画的。
 
@@ -292,7 +281,8 @@ plot(Koenigsberg)
 - **pkgDepTools** 包：快速制作 CRAN 上 R 包依赖关系图。
 
 ```{r}
-#| echo=TRUE
+#| echo: true
+
 if(!"BiocManager" %in% .packages(T)) install.packages("BiocManager")
 if(!"graph" %in% .packages(T)) BiocManager::install(pkgs = "graph")
 if(!"Rgraphviz" %in% .packages(T)) BiocManager::install(pkgs = "Rgraphviz")
