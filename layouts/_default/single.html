@@ -4,7 +4,7 @@
 
   <article class="article">
     {{ if eq .Section "post" }}
-    <span class="article-duration">预计阅读 {{ .ReadingTime }} 分钟</span>
+    <span class="article-duration">预计阅读 </span>
     {{ end }}
 
     <h1 class="article-title">{{ .Title }}</h1>
@@ -28,7 +28,7 @@
     {{ if eq .Section "post" }}
     <span class="article-date">日期: {{ .Date.Format "2006/01/02" }}</span>
     <br>
-    <span class="article-metadata">字数: 约 {{ .WordCount }} 字 </span>
+    <span class="article-metadata article-wordcount">字数: </span>
     {{ end }}
 
     <div class="article-content">

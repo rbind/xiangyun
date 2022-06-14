@@ -12,6 +12,9 @@
 </footer>
 
 </div>
+{{ if .IsPage }}
+<script src="{{ relURL "/js/wordcount.js" }}" defer></script>
+{{ end }}
 {{ partial "footer_highlightjs" . }}
 {{ partial "footer_mathjax" . }}
 {{ template "_internal/google_analytics.html" . }}
