@@ -994,7 +994,7 @@ wb_hans |>
 ```
 
 
-在绘制地理动画过程中，注意到一个常见的数据问题：观测数据和地图数据不完全匹配。在世界银行的数据集里，俄罗斯联邦的国家名称记录为 Russian Federation，而在 **echarts4r** 包内置的[世界地图数据集](https://github.com/JohnCoene/echarts4r/blob/master/inst/htmlwidgets/lib/echarts-4.8.0/world.js)里，俄罗斯联邦的国家名称 Russia，要加上这个国家的数据，需要做一下数据转化，实际上，还不止俄罗斯。一个比较好的方式是用**国家代码**（如 [ISO3](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3)）关联经济社会数据和地图数据。
+在绘制地理动画过程中，注意到一个常见的数据问题：观测数据和地图数据不完全匹配。在世界银行的数据集里，俄罗斯联邦的国家名称记录为 Russian Federation，而在 **echarts4r** 包内置的[世界地图数据集](https://github.com/JohnCoene/echarts4r/blob/master/inst/htmlwidgets/lib/echarts-4.8.0/world.js)里，俄罗斯联邦的国家名称 Russia，要加上这个国家的数据，需要做一下数据转化，实际上，还不止俄罗斯。一个比较好的方式是用**国家代码**（如 [ISO3](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3)）关联经济社会数据和地图数据，但是地图数据没有**ISO3**码，就做不了了。
 
 
 <details>
