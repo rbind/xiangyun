@@ -523,7 +523,7 @@ ggplot(
 </div>
 <div id="年世界各地区人均-gdp-分布图" class="section level2">
 <h2>2001 年世界各地区人均 GDP 分布图</h2>
-<p>GDP 和人均 GDP 指标是官媒宣传最多的，各国希望营造一个橄榄球状的收入结构。在上一节可以粗略看出人均 GDP 将各个国家划分为收入不同的群体，下面采用密度估计图展示全世界收入的分布。如图<a href="#fig:hans-density">6</a>所示，横轴表示人均 GDP，纵轴表示国家数量，不同区域的人均 GDP 的分布，世界总的人均 GDP 的分布都展示出来了，国家层面，收入阶层的划分非常清晰。撒哈拉以南的国家或地区集中在人均 500 美元左右的区间里，少量达到 5000 美元的，极少量达到 10000 美元的。</p>
+<p>GDP 和人均 GDP 指标是官媒宣传最多的，各国希望营造一个橄榄球状的收入结构。在上一节可以粗略看出人均 GDP 将各个国家划分为收入不同的群体，下面采用密度估计图展示全世界收入的分布。如图<a href="#fig:hans-density">6</a>所示，横轴表示人均 GDP，纵轴表示国家数量。不同区域的人均 GDP 的分布，世界总的人均 GDP 的分布都展示出来了，国家层面，收入阶层的划分非常清晰。撒哈拉以南的国家或地区集中在人均 500 美元左右的区间里，少量达到 5000 美元的，极少量达到 10000 美元的。</p>
 <details>
 <p>
 <summary>
@@ -556,6 +556,9 @@ ggplot(
 <p class="caption">
 图 6: 2001 年世界人均 GDP 的分布
 </p>
+</div>
+<div class="sidebar">
+<p>注意：图<a href="#fig:hans-density">6</a>纵轴是国家数量而不是概率密度，整个图是按各个区域的人均 GDP 分布累积起来的分布图，详细的理论解释见参考文献 <span class="citation">Pu and Kay (<a href="#ref-Pu2020" role="doc-biblioref">2020</a>)</span>。</p>
 </div>
 <p>相信大家对「二八定律」不陌生，简单讲就是 20% 的人口占有全世界 80% 的财富，在经济社会等领域广泛存在。下面根据世界银行的数据，简单统计一下：</p>
 <pre class="r"><code>aggregate(wb_hans_2001, cbind(NY.GDP.PCAP.CD * SP.POP.TOTL, NY.GDP.PCAP.CD, SP.POP.TOTL) ~ income_level, sum, na.rm = TRUE)
@@ -859,7 +862,7 @@ log(seq(from = 1000, to = 10000, by = 1000), base = 10)
 </p>
 </div>
 <p>动画<a href="#fig:respect-gapminder">10</a>里大气泡覆盖小气泡，设置透明度可以看到小气泡的位置，但是鼠标悬浮在小气泡上时，无法显示小气泡上的悬浮文本，这很有可能是 Apache ECharts 的问题，因为官方示例也有此<a href="https://echarts.apache.org/examples/zh/editor.html?c=scatter-life-expectancy-timeline">问题</a>。一种可能的缓解办法是把数据集按人口总数切分成两块，先画大气泡，再画小气泡，笔者没有尝试。</p>
-<p>笔者之前尝试过将人均 GDP / 预期寿命数据映射到地图上，制作地理可视化动画，如图<a href="#fig:wb-hans-life">11</a>所示，它补充了各个国家的空间位置信息，相比于之前的区域变量更加直观，可以展示任意时间点的空间分布，但只能展示一个数据指标。笔者建议在展示数据的时候，不妨同时提供多种展示形式，读者可任意选择指标、图形去探索、分析。</p>
+<p>笔者之前尝试过将人均 GDP / 预期寿命数据映射到地图上，制作地理可视化动画，如图<a href="#fig:wb-hans-life">11</a>所示，它补充了各个国家的空间位置信息，相比于之前的区域变量更加直观，可以展示任意时间点的空间分布，但只能展示一个数据指标。笔者建议在展示数据的时候，不妨同时提供多种展示形式，读者可任意选择指标、图形去探索、分析。比如追踪印度新冠疫情发展情况的<a href="https://www.covid19india.org/">网站</a>，提供比例符号地图（气泡图放在地图上）、地区分布图等，明细数据（表格）、空间分布（地图）、变化趋势（点线图）联动起来。</p>
 <details>
 <p>
 <summary>
@@ -1081,6 +1084,9 @@ Pedersen, Thomas Lin, and Maxim Shemanarev. 2022. <em><span class="nocase">ragg<
 </div>
 <div id="ref-wbstats" class="csl-entry">
 Piburn, Jesse. 2020. <em><span class="nocase">wbstats</span>: Programmatic Access to the World Bank API</em>. Oak Ridge, Tennessee: Oak Ridge National Laboratory. <a href="https://doi.org/10.11578/dc.20171025.1827">https://doi.org/10.11578/dc.20171025.1827</a>.
+</div>
+<div id="ref-Pu2020" class="csl-entry">
+Pu, Xiaoying, and Matthew Kay. 2020. <span>“A Probabilistic Grammar of Graphics.”</span> In <em>Proceedings of the 2020 <span>CHI</span> Conference on Human Factors in Computing Systems</em>. <span>ACM</span>. <a href="https://doi.org/10.1145/3313831.3376466">https://doi.org/10.1145/3313831.3376466</a>.
 </div>
 <div id="ref-Qiu2015" class="csl-entry">
 Qiu, Yixuan. 2015. <span>“<span class="nocase">showtext</span>: Using System Fonts in <span>R</span> Graphics.”</span> <em><span>The R Journal</span></em> 7 (1): 99–108. <a href="https://doi.org/10.32614/RJ-2015-008">https://doi.org/10.32614/RJ-2015-008</a>.
