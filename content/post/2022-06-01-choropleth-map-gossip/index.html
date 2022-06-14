@@ -119,7 +119,7 @@ blockquote > p:first-child {
 </div>
 <div id="又一绘图方案" class="section level1">
 <h1>又一绘图方案</h1>
-<p>在文章<a href="https://cosx.org/2022/05/choropleth-map/">《地区分布图及其应用》</a>的小结部分，留了一些尾巴，其中还有<strong>两种</strong>原文提及但未给出具体代码实现和详细介绍的绘图方案，本节介绍其中一种，即用 <strong>ggplot2</strong> 包和 <strong>maps</strong> 包绘制地区分布图。仍然以 <strong>latticeExtra</strong> 包<span class="citation">(<a href="#ref-latticeExtra" role="doc-biblioref">Sarkar and Andrews 2019</a>)</span>内置的美国各郡年平均癌症死亡率数据集 USCancerRates 为例，详细介绍制作整个地区分布图的过程。</p>
+<p>在文章<a href="https://cosx.org/2022/05/choropleth-map/">《地区分布图及其应用》</a>的小结部分，留了一些尾巴，其中还有<strong>两种</strong>原文提及但未给出具体代码实现和详细介绍的绘图方案，本节介绍其中一种，即用 <strong>ggplot2</strong> 包和 <strong>maps</strong> 包绘制地区分布图。仍然以 <strong>latticeExtra</strong> 包<span class="citation">(<a href="#ref-latticeExtra" role="doc-biblioref">Sarkar and Andrews 2019</a>)</span>内置的美国各郡年平均癌症死亡率数据集 USCancerRates 为例，详细介绍制作地区分布图的过程。</p>
 <div id="数据准备" class="section level2">
 <h2>数据准备</h2>
 <div id="观测数据" class="section level3">
