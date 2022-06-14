@@ -113,7 +113,7 @@ knitr::knit_hooks$set(output = local({
 # 又一绘图方案
 
 
-在文章[《地区分布图及其应用》](https://cosx.org/2022/05/choropleth-map/)的小结部分，留了一些尾巴，其中还有**两种**原文提及但未给出具体代码实现和详细介绍的绘图方案，本节介绍其中一种，即用 **ggplot2** 包和 **maps** 包绘制地区分布图。仍然以 **latticeExtra** 包[@latticeExtra]内置的美国各郡年平均癌症死亡率数据集 USCancerRates 为例，详细介绍制作整个地区分布图的过程。
+在文章[《地区分布图及其应用》](https://cosx.org/2022/05/choropleth-map/)的小结部分，留了一些尾巴，其中还有**两种**原文提及但未给出具体代码实现和详细介绍的绘图方案，本节介绍其中一种，即用 **ggplot2** 包和 **maps** 包绘制地区分布图。仍然以 **latticeExtra** 包[@latticeExtra]内置的美国各郡年平均癌症死亡率数据集 USCancerRates 为例，详细介绍制作地区分布图的过程。
 
 
 ## 数据准备
