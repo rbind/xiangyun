@@ -583,7 +583,18 @@ dat
 
 
 
-tidyverse [大主教](https://d.cosx.org/d/421573-hugodown/4)在 Mango Solutions 组织的一场活动中给了主题为[《Tidyverse: The **greatest** mistakes》](https://www.youtube.com/watch?v=vYwXMnC03I4)的报告，笔者认为本应是 「biggest」被换成了「greatest」，一字之差，天壤之别，还旁征博引，甚是有理！
+2019 年 tidyverse [大主教](https://d.cosx.org/d/421573-hugodown/4)在 Mango Solutions 组织的一场活动中给了主题为[《Tidyverse: The **greatest** mistakes》](https://www.youtube.com/watch?v=vYwXMnC03I4)的报告，笔者认为本应是 「biggest」被换成了「greatest」，一字之差，天壤之别，还旁征博引，甚是有理！[^hadley-mistakes]
+
+[^hadley-mistakes]: **2022年06月16日笔者更新**。2020 年大主教在 RStudio 大会上给了[《State of the Tidyverse》](https://www.rstudio.com/resources/rstudioconf-2020/state-of-the-tidyverse/)报告，总结了很多曾经犯过的错误：
+
+    1. Problem harder than we thought -- (too) many partial solutions
+    1. Too excited about the theory & cost-benefit ratio low for data scientists
+    1. Too much new vocabulary
+    1. Need better ways to get feedback without exposing to everyone
+    1. Need to more clearly indicate what is experimental
+    1. Tidyverse contributors growing
+    1. We messed up with tidy eval, but have learned from it
+    1. Keep an eye out for lifecycle badges to guide your function use
 
 
 > The cost of never making a mistake is very often never making a change at all. It's just too incredibly hard to be sure. [^1]  
@@ -594,10 +605,9 @@ tidyverse [大主教](https://d.cosx.org/d/421573-hugodown/4)在 Mango Solutions
 [^1]: <https://www.geepawhill.org/2019/07/16/try-different-not-harder/>
 
 
-过度[喧嚣](https://yihui.org/cn/2019/07/tidy-noise/)引来不少反抗，比如 [Norm Matloff](https://heather.cs.ucdavis.edu/matloff.html) 的 [An opinionated view of the Tidyverse "dialect" of the R language](https://github.com/matloff/TidyverseSkeptic)，Reece Goding 的 [Frustration: One Year With R](https://github.com/ReeceGoding/Frustration-One-Year-With-R)，[Dirk Eddelbuettel](https://dirk.eddelbuettel.com/) 等联合写的 [Lightweight is the right weight](https://www.tinyverse.org/) 等等，都是实名实据地反抗。我只谈一点，tidyverse 之风已经吹入 R 语言社区的角角落落，即使读者像我一样在代码里不显式地使用它，却不得不考虑它的影响，有时要写一些额外的代码来应付。
+过度[喧嚣](https://yihui.org/cn/2019/07/tidy-noise/)引来不少反抗，比如 [Norm Matloff](https://heather.cs.ucdavis.edu/matloff.html) 的 [An opinionated view of the Tidyverse "dialect" of the R language](https://github.com/matloff/TidyverseSkeptic)，Reece Goding 的 [Frustration: One Year With R](https://github.com/ReeceGoding/Frustration-One-Year-With-R)，[Dirk Eddelbuettel](https://dirk.eddelbuettel.com/) 等联合写的 [Lightweight is the right weight](https://www.tinyverse.org/) 等等，都是实名实据地反抗。我只谈一点，tidyverse 之风已经吹入 R 语言社区的角角落落，即使读者像我一样在代码里不显式地使用它，却不得不考虑它的影响，有时要写一些[额外的代码](https://github.com/rbind/xiangyun/blob/692f3d49729960b574148188815642b49b55927b/content/post/2022-06-01-choropleth-map-gossip/data/us_std_pop.R#L24)来应付。
 
 ![(\#fig:rebuttal) Base R vs data.table vs dplyr](img/rebuttal.jpg){ width=75% }
-
 
 关于数据操作，在不影响效率的情况下，笔者会优先选择 Base R 来做数据操作，若遇到小规模数据会考虑调用 **data.table** 来处理，若遇到大规模数据肯定是用 SQL 来处理，聚合完继续用 Base R 或 **data.table** 处理。工作几年下来，任凭窗外云卷云舒，在稳定和效率面前，我自岿然不动，看过不少[净土代码](https://yihui.org/cn/2019/07/tidy-noise/)，也写过一些，所知有限，不敢示人，常晓其大意，[换之以 Base R](https://d.cosx.org/d/423198/4)。
 

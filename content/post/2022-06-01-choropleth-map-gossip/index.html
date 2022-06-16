@@ -580,13 +580,13 @@ dat</code></pre>
 </div>
 <div id="经验总结-1" class="section level2">
 <h2>经验总结</h2>
-<p>tidyverse <a href="https://d.cosx.org/d/421573-hugodown/4">大主教</a>在 Mango Solutions 组织的一场活动中给了主题为<a href="https://www.youtube.com/watch?v=vYwXMnC03I4">《Tidyverse: The <strong>greatest</strong> mistakes》</a>的报告，笔者认为本应是 「biggest」被换成了「greatest」，一字之差，天壤之别，还旁征博引，甚是有理！</p>
+<p>2019 年 tidyverse <a href="https://d.cosx.org/d/421573-hugodown/4">大主教</a>在 Mango Solutions 组织的一场活动中给了主题为<a href="https://www.youtube.com/watch?v=vYwXMnC03I4">《Tidyverse: The <strong>greatest</strong> mistakes》</a>的报告，笔者认为本应是 「biggest」被换成了「greatest」，一字之差，天壤之别，还旁征博引，甚是有理！<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a></p>
 <blockquote>
-<p>The cost of never making a mistake is very often never making a change at all. It’s just too incredibly hard to be sure. <a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a><br />
+<p>The cost of never making a mistake is very often never making a change at all. It’s just too incredibly hard to be sure. <a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a><br />
 永不犯错的代价是一成不变。</p>
 <p>— GeePaW Hill</p>
 </blockquote>
-<p>过度<a href="https://yihui.org/cn/2019/07/tidy-noise/">喧嚣</a>引来不少反抗，比如 <a href="https://heather.cs.ucdavis.edu/matloff.html">Norm Matloff</a> 的 <a href="https://github.com/matloff/TidyverseSkeptic">An opinionated view of the Tidyverse “dialect” of the R language</a>，Reece Goding 的 <a href="https://github.com/ReeceGoding/Frustration-One-Year-With-R">Frustration: One Year With R</a>，<a href="https://dirk.eddelbuettel.com/">Dirk Eddelbuettel</a> 等联合写的 <a href="https://www.tinyverse.org/">Lightweight is the right weight</a> 等等，都是实名实据地反抗。我只谈一点，tidyverse 之风已经吹入 R 语言社区的角角落落，即使读者像我一样在代码里不显式地使用它，却不得不考虑它的影响，有时要写一些额外的代码来应付。</p>
+<p>过度<a href="https://yihui.org/cn/2019/07/tidy-noise/">喧嚣</a>引来不少反抗，比如 <a href="https://heather.cs.ucdavis.edu/matloff.html">Norm Matloff</a> 的 <a href="https://github.com/matloff/TidyverseSkeptic">An opinionated view of the Tidyverse “dialect” of the R language</a>，Reece Goding 的 <a href="https://github.com/ReeceGoding/Frustration-One-Year-With-R">Frustration: One Year With R</a>，<a href="https://dirk.eddelbuettel.com/">Dirk Eddelbuettel</a> 等联合写的 <a href="https://www.tinyverse.org/">Lightweight is the right weight</a> 等等，都是实名实据地反抗。我只谈一点，tidyverse 之风已经吹入 R 语言社区的角角落落，即使读者像我一样在代码里不显式地使用它，却不得不考虑它的影响，有时要写一些<a href="https://github.com/rbind/xiangyun/blob/692f3d49729960b574148188815642b49b55927b/content/post/2022-06-01-choropleth-map-gossip/data/us_std_pop.R#L24">额外的代码</a>来应付。</p>
 <div class="figure"><span style="display:block;" id="fig:rebuttal"></span>
 <img src="img/rebuttal.jpg" style="width:75.0%" alt="" />
 <p class="caption">图 5:  Base R vs data.table vs dplyr</p>
@@ -608,7 +608,7 @@ dat</code></pre>
 <ol style="list-style-type: decimal">
 <li><p>对我个人有足够的挑战，从头到尾地做一个稍大一点的数据项目，从找数据开始，看看自己是如何搞砸的，又是如何把它扶起来的，要经历怎样的痛苦挣扎。回过头来看，若对数据项目不感兴趣，极有可能半途而废。</p></li>
 <li><p>为了在实际工作中更有借鉴意义，特意找了两个真实数据集：美国癌症研究所发布的 1999-2003 年度各郡年平均癌症死亡率数据，美国人口调查局发布的 2015-2019 年度家庭年收入数据。第一个准备用来介绍数据可视化及相关实现问题；第二个准备用来介绍数据分析和数据解读过程。</p></li>
-<li><p>原计划一周完成写作，一周完成修改，实际做的过程中，发现屡屡超出预期，项目时间越拖越长。其实是项目管理的经验不足，不断改变项目的范围，下面列举一些具体事项：</p>
+<li><p>原计划一周完成写作，一周完成修改，实际做的过程中，发现屡屡超出预期，项目时间越拖越长，其实是项目管理的经验不足，不断改变项目的范围，下面列举一些具体事项：</p>
 <ol style="list-style-type: decimal">
 <li><p>癌症死亡率数据虽已存在于 <strong>latticeExtra</strong> 包，但数据质量、数据指标及其计算过程都未能介绍清楚，它的作用仅是用于展示制作地区分布图（Choropleth map）的函数 <code>mapplot()</code>。按照笔者一贯的写作风格，肯定要刨根问底的，特别是它包含的年龄调整的年平均癌症死亡率究竟是个什么死亡率？怎么年龄调整的？为什么这么调整？因此，在<a href="https://statecancerprofiles.cancer.gov/">美国国家癌症研究所</a>（National Cancer Institute，简称 NCI）网站上花了不少时间去搞计算过程和逻辑。笔者在网站上没有找到癌症死亡率的区间估计过程，心有不甘，就去<a href="https://www.cdc.gov/">美国疾控预防中心</a>（Centers for Disease Control and Prevention，简称 CDC）找线索，理由是癌症死亡率和新冠死亡率在分地域、性别、年龄调整等维度上，指标统计口径应该类似，果不其然，详见 CDC 发布的报告 <span class="citation">Jiaquan et al. (<a href="#ref-Xu2021" role="doc-biblioref">2021</a>)</span>，其技术细节相当复杂，笔者只是略懂就不再细说了。</p></li>
 <li><p>癌症死亡率数据在美国本土、阿拉斯加、夏威夷都有不少缺失，男、女死亡率数据各自有部分缺失，<strong>maps</strong> 包内置的美国郡级地图数据缺失阿拉斯加和夏威夷。为了完整的美国州、郡级地图数据，以及展示已有的全部癌症死亡率数据，就需要去找地图数据，这其实已经在和数据质量战斗了。本文前半部分重笔介绍 <strong>ggplot2</strong> 和 <strong>maps</strong> 包绘制地区分布图的过程，读者看完，想必已然明了。可以说，最初想的蛮好，实际上，并不简单，坑了自己一把。</p></li>
@@ -721,8 +721,6 @@ dat</code></pre>
 </ol>
 <p>写作修改期间，多件事并行，比如还参与审稿和编辑文章<a href="https://github.com/cosname/cosx.org/pull/1019">《探索定西市的 Sci-Hub 流量之谜》</a>。</p>
 </div>
-</div>
-
 <div id="results" class="section level2">
 <h2>一些收获</h2>
 <ol style="list-style-type: decimal">
@@ -732,7 +730,7 @@ dat</code></pre>
 <li><p>制定新的计划，将收获应用于新的实践，产生新的收获，刻意练习，持续迭代，直到熟练掌握项目管理和时间分配。</p></li>
 </ol>
 </div>
-
+</div>
 <div id="sessioninfo" class="section level1">
 <h1>环境信息</h1>
 <p>本文是在 RStudio IDE 内用 R Markdown 编辑的，用 <strong>blogdown</strong> 构建网站，<a href="https://github.com/gohugoio/hugo">Hugo</a> 渲染 knitr 之后的 Markdown 文件，得益于 <strong>blogdown</strong> 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：</p>
@@ -851,6 +849,18 @@ Yutani, Hiroaki. 2018. <span>“Plot <span class="nocase">geom_sf()</span> on <s
 <div class="footnotes footnotes-end-of-document">
 <hr />
 <ol>
-<li id="fn1"><p><a href="https://www.geepawhill.org/2019/07/16/try-different-not-harder/" class="uri">https://www.geepawhill.org/2019/07/16/try-different-not-harder/</a><a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn1"><p><strong>2022年06月16日笔者更新</strong>。2020 年大主教在 RStudio 大会上给了<a href="https://www.rstudio.com/resources/rstudioconf-2020/state-of-the-tidyverse/">《State of the Tidyverse》</a>报告，总结了很多曾经犯过的错误：</p>
+<ol style="list-style-type: decimal">
+<li>Problem harder than we thought – (too) many partial solutions</li>
+<li>Too excited about the theory &amp; cost-benefit ratio low for data scientists</li>
+<li>Too much new vocabulary</li>
+<li>Need better ways to get feedback without exposing to everyone</li>
+<li>Need to more clearly indicate what is experimental</li>
+<li>Tidyverse contributors growing</li>
+<li>We messed up with tidy eval, but have learned from it</li>
+<li>Keep an eye out for lifecycle badges to guide your function use</li>
+</ol>
+<a href="#fnref1" class="footnote-back">↩︎</a></li>
+<li id="fn2"><p><a href="https://www.geepawhill.org/2019/07/16/try-different-not-harder/" class="uri">https://www.geepawhill.org/2019/07/16/try-different-not-harder/</a><a href="#fnref2" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
