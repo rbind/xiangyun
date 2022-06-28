@@ -6,7 +6,7 @@ author: 黄湘云
 
 ## 个人简介
 
-2015-2018 年在 [中国矿业大学（北京）理学院](https://lxy.cumtb.edu.cn/) 攻读统计学方向的硕士学位，师从 [李再兴教授](https://lxy.cumtb.edu.cn/info/1067/1231.htm)，研究广义线性混合效应模型及其应用，研究兴趣包含统计计算、统计图形、混合模型 (mixed models)， 以及社交网络数据和空间数据分析。他是一个热爱开源，乐于分享的假 Geek。在中国最大的 R 语言中文社区 --- 统计之都任 [副主编](https://cosx.org/members/)，平时活跃于 ~~戏称全球最大的同性交友网站~~ [Github](https://github.com/XiangyunHuang) ，混迹于统计之都 [论坛](https://d.cosx.org/u/Cloud2016) 和 [爆栈网](https://stackoverflow.com)。
+2015-2018 年在[中国矿业大学（北京）理学院](https://lxy.cumtb.edu.cn/)攻读统计学方向的硕士学位，师从[李再兴教授](https://lxy.cumtb.edu.cn/info/1067/1231.htm)，研究广义线性混合效应模型及其应用，研究兴趣包含统计计算、统计图形、混合模型 (mixed models)， 以及社交网络数据和空间数据分析。他是一个热爱开源，乐于分享的假 Geek。在中国最大的 R 语言中文社区 --- 统计之都任[副主编](https://cosx.org/members/)，平时活跃于~~戏称全球最大的同性交友网站~~[Github](https://github.com/XiangyunHuang) ，混迹于统计之都[论坛](https://d.cosx.org/u/Cloud2016)和[爆栈网](https://stackoverflow.com)。
 
 ## 联系方式
 

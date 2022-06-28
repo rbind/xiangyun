@@ -1,6 +1,6 @@
 baseurl = "https://xiangyun.rbind.io/"
 languageCode = "zh-CN"
-title = "Xiangyun Huang"
+title = "Xiangyun Huang | 黄湘云"
 theme = "hugo-lithium"
 googleAnalytics = "UA-115387038-3"
 disqusShortname = "cloud2016"
@@ -18,6 +18,10 @@ paginate = 9
     name = "主页"
     url = "/"
     weight = 1
+[[menu.main]]
+    name = "博客"
+    url = "/post/"
+    weight = 2
 [[menu.main]]
     name = "关于"
     url = "/about/"
