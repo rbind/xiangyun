@@ -1,0 +1,28 @@
+---
+title: "黄湘云"
+---
+
+
+```{css}
+#| echo: false
+
+img {
+  border-radius: 8px;
+  width: 60%;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.caption {
+  text-align: center;
+}
+```
+
+
+![Do one thing and do it well.](img/me.jpeg)
+
+
+现任[统计之都](https://cosx.org/)软件工具栏目编辑，毕业于中国矿业大学（北京），多年 [R 语言](https://cran.r-project.org/)爱好者，与[赵鹏](https://pzhao.org/zh)、[谢益辉](https://yihui.org/)一起合著了[《现代统计图形》](https://msg2020.pzhao.org/)。
+
+
