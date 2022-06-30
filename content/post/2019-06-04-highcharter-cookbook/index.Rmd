@@ -1,0 +1,31 @@
+---
+title: highcharter 食谱
+author: 黄湘云
+date: '2019-06-04'
+slug: highcharter-cookbook
+categories:
+  - 统计图形
+tags:
+  - R 语言
+  - 数据可视化
+thumbnail: highcharter.svg
+description: "highcharter 是一个做交互式图形的 R 包，支持绘制常见的图形，唯一的缺点是接口难用、依赖很重。"
+---
+
+
+```{css}
+#| echo: false
+
+iframe {
+  width: 100%;
+}
+```
+
+
+```{r}
+#| label: iframe
+#| echo: false
+
+knitr::include_url(url = "https://xiangyunhuang.github.io/highcharter-cookbook/highcharter-cookbook", height = "1000px")
+```
+
