@@ -35,13 +35,13 @@ description: "在美国和日本的国家统计局官网，地区分布图用于
 
 <div id="TOC">
 <ul>
-<li><a href="#本文概览" id="toc-本文概览"><span class="toc-section-number">1</span> 本文概览</a></li>
-<li><a href="#单变量情形" id="toc-单变量情形"><span class="toc-section-number">2</span> 单变量情形</a>
+<li><a href="#motivation" id="toc-motivation"><span class="toc-section-number">1</span> 本文概览</a></li>
+<li><a href="#univariate-choropleth-maps" id="toc-univariate-choropleth-maps"><span class="toc-section-number">2</span> 单变量情形</a>
 <ul>
-<li><a href="#美国各郡的年平均癌症死亡率分布" id="toc-美国各郡的年平均癌症死亡率分布"><span class="toc-section-number">2.1</span> 美国各郡的年平均癌症死亡率分布</a>
+<li><a href="#usa-nci" id="toc-usa-nci"><span class="toc-section-number">2.1</span> 美国各郡的年平均癌症死亡率分布</a>
 <ul>
 <li><a href="#maps" id="toc-maps"><span class="toc-section-number">2.1.1</span> maps</a></li>
-<li><a href="#latticeextra" id="toc-latticeextra"><span class="toc-section-number">2.1.2</span> latticeExtra</a></li>
+<li><a href="#latticeExtra" id="toc-latticeExtra"><span class="toc-section-number">2.1.2</span> latticeExtra</a></li>
 <li><a href="#ggplot2" id="toc-ggplot2"><span class="toc-section-number">2.1.3</span> ggplot2</a></li>
 <li><a href="#tmap" id="toc-tmap"><span class="toc-section-number">2.1.4</span> tmap</a></li>
 <li><a href="#sf" id="toc-sf"><span class="toc-section-number">2.1.5</span> sf</a></li>
@@ -49,19 +49,19 @@ description: "在美国和日本的国家统计局官网，地区分布图用于
 <li><a href="#mapsf" id="toc-mapsf"><span class="toc-section-number">2.1.7</span> mapsf</a></li>
 </ul></li>
 </ul></li>
-<li><a href="#多变量情形" id="toc-多变量情形"><span class="toc-section-number">3</span> 多变量情形</a>
+<li><a href="#bivariate-choropleth-maps" id="toc-bivariate-choropleth-maps"><span class="toc-section-number">3</span> 多变量情形</a>
 <ul>
-<li><a href="#美国北卡州家庭年收入与白人占比的空间相关性" id="toc-美国北卡州家庭年收入与白人占比的空间相关性"><span class="toc-section-number">3.1</span> 美国北卡州家庭年收入与白人占比的空间相关性</a>
+<li><a href="#usa-census" id="toc-usa-census"><span class="toc-section-number">3.1</span> 美国北卡州家庭年收入与白人占比的空间相关性</a>
 <ul>
-<li><a href="#数据获取" id="toc-数据获取"><span class="toc-section-number">3.1.1</span> 数据获取</a></li>
-<li><a href="#数据探索" id="toc-数据探索"><span class="toc-section-number">3.1.2</span> 数据探索</a></li>
-<li><a href="#数据解读" id="toc-数据解读"><span class="toc-section-number">3.1.3</span> 数据解读</a></li>
+<li><a href="#census-access" id="toc-census-access"><span class="toc-section-number">3.1.1</span> 数据获取</a></li>
+<li><a href="#census-exploration" id="toc-census-exploration"><span class="toc-section-number">3.1.2</span> 数据探索</a></li>
+<li><a href="#census-explanation" id="toc-census-explanation"><span class="toc-section-number">3.1.3</span> 数据解读</a></li>
 </ul></li>
 </ul></li>
-<li><a href="#本文小结" id="toc-本文小结"><span class="toc-section-number">4</span> 本文小结</a></li>
-<li><a href="#未来展望" id="toc-未来展望"><span class="toc-section-number">5</span> 未来展望</a></li>
-<li><a href="#环境信息" id="toc-环境信息"><span class="toc-section-number">6</span> 环境信息</a></li>
-<li><a href="#参考文献" id="toc-参考文献">参考文献</a></li>
+<li><a href="#conclusion" id="toc-conclusion"><span class="toc-section-number">4</span> 本文小结</a></li>
+<li><a href="#discussion" id="toc-discussion"><span class="toc-section-number">5</span> 未来展望</a></li>
+<li><a href="#session" id="toc-session"><span class="toc-section-number">6</span> 环境信息</a></li>
+<li><a href="#refer" id="toc-refer"><span class="toc-section-number">7</span> 参考文献</a></li>
 </ul>
 </div>
 
@@ -180,7 +180,7 @@ div.csl-indent {
 <div class="rmdinfo">
 <p>本文引用的所有信息均为公开信息，仅代表作者本人观点，与就职单位无关。</p>
 </div>
-<div id="本文概览" class="section level1" number="1">
+<div id="motivation" class="section level1" number="1">
 <h1><span class="header-section-number">1</span> 本文概览</h1>
 <p>空间地理可视化的内容非常丰富，涉及空间坐标投影、操作空间数据、选择图形种类、选择绘图工具等。就图形种类而言，对标鼎鼎大名的收费 BI（Business Intelligence） 工具<a href="https://www.tableau.com/zh-cn/solutions/maps">Tableau</a>，至少包含最常见的面量图、比例符号地图、点分布图、流线图、蜘蛛图（飞线图）、热图。其中的「面量图」通常又叫专题地图、地区分布图、统计地图，英文一般为<a href="https://en.wikipedia.org/wiki/Choropleth_map">Choropleth map</a>，典型样例是基于统计年鉴的各类专题数据的地理可视化，国家地理信息公共服务平台提供了<a href="https://zhfw.tianditu.gov.cn/">专题图层服务</a>，可以快速地查看各个统计指标。在美国和日本的国家统计局官网，地区分布图用于展示各类指标<span class="citation">[<a href="#ref-Meyer1975" role="doc-biblioref">1</a>]</span>。衡量一个部门、一个业务、一个公司、一个行业，乃至一个国家都有一套金字塔式的指标体系，而国家每年发布的统计年鉴就包含一套衡量经济和社会发展情况的指标体系，涵盖人口、土地、生产、消费等等专题，省、市、区县以及自治区、州、县等各级地方统计局每年也会发布一份地方统计年鉴。</p>
 <p>接下来，本文分四个部分展开介绍地区分布图，分别是单变量情形、多变量情形、本文小结和未来展望。</p>
@@ -189,9 +189,9 @@ div.csl-indent {
 <p>本文小结部分给出了 7 种不同绘图方案间的关系和一些绘图经验，希望帮助读者加深理解和学习。</p>
 <p>未来展望部分从应用场景和绘图技术方面继续提供一些示例，供读者继续探索。</p>
 </div>
-<div id="单变量情形" class="section level1" number="2">
+<div id="univariate-choropleth-maps" class="section level1" number="2">
 <h1><span class="header-section-number">2</span> 单变量情形</h1>
-<div id="美国各郡的年平均癌症死亡率分布" class="section level2" number="2.1">
+<div id="usa-nci" class="section level2" number="2.1">
 <h2><span class="header-section-number">2.1</span> 美国各郡的年平均癌症死亡率分布</h2>
 <p>下面以 <a href="https://latticeextra.r-forge.r-project.org/"><strong>latticeExtra</strong> 包</a><span class="citation">[<a href="#ref-latticeExtra" role="doc-biblioref">2</a>]</span>内置的 USCancerRates 数据集为例介绍分面，同时展示多个观测指标的空间分布。USCancerRates 数据集来自<a href="https://statecancerprofiles.cancer.gov/">美国国家癌症研究所</a>（National Cancer Institute，简称 NCI）。根据1999-2003年的5年数据，分男女统计癌症年平均死亡率（单位十万分之一），这其中的癌症数是所有癌症种类之和。癌症死亡率根据2000年美国<a href="https://seer.cancer.gov/stdpopulations/stdpop.19ages.html">标准人口年龄分组</a>调整，分母人口数量由 NCI 根据普查的人口数调整，即将各年各个年龄段的普查人口数按照 2000 年的<strong>美国标准人口年龄分组</strong>换算。因<strong>latticeExtra</strong> 包没有提供数据集的加工过程，笔者结合 NCI 网站信息，对此数据指标的调整过程略加说明，这里面其实隐含很多的道理。</p>
 <p>人口数每年都会变的，为使各年数据指标可比，人口划分就保持一致，表<a href="#tab:us-std-pop">2.1</a> 展示 1940-2000 年各个年龄段（共19个年龄组）的标准人口数，各个年龄段的普查人口数换算成年龄调整的标准人口数，换算公式为：</p>
@@ -575,7 +575,7 @@ match(x = c(&quot;A&quot;, &quot;B&quot;), table = c(&quot;C&quot;, &quot;A&quot
 # [1]  2 NA</code></pre>
 <p>另外，<strong>maps</strong> 包内置的地图数据制作起来比较复杂，也很长时间没有更新了，笔者不推荐读者再从零开始构建 map 数据对象。<strong>sp</strong> 包<span class="citation">[<a href="#ref-Pebesma2005" role="doc-biblioref">13</a>]</span>发布后，<strong>maps</strong> 包支持将 Spatial 数据对象转为 map 数据对象，这相当于引入了 <strong>sp</strong> 包及其生态在空间数据获取和数据操作方面的能力<span class="citation">[<a href="#ref-Bivand2013" role="doc-biblioref">14</a>]</span>。目前，美国国家人口统计局已提供了历年的州、郡、普查级多个比例尺的行政区划地图数据，配合 <strong>sf</strong> 包<span class="citation">[<a href="#ref-Pebesma2018" role="doc-biblioref">6</a>]</span>，可以很好地解决地理可视化的背景底图问题。一些以前看起来很难的问题，随着时间变迁，技术革新，已经解决了。</p>
 </div>
-<div id="latticeextra" class="section level3" number="2.1.2">
+<div id="latticeExtra" class="section level3" number="2.1.2">
 <h3><span class="header-section-number">2.1.2</span> latticeExtra</h3>
 <p><strong>maps</strong> 包是基于 Base R 绘图系统的，以线和多边形为基础，辅以颜色填充，还没有任何分层绘图的概念，Deepayan Sarkar 将其引入新的 Trellis（栅格）图形系统，这就有了 <strong>latticeExtra</strong> 包 <span class="citation">[<a href="#ref-latticeExtra" role="doc-biblioref">2</a>]</span>，它是以 <strong>lattice</strong> 包<span class="citation">[<a href="#ref-Sarkar2008" role="doc-biblioref">15</a>]</span>为基础的，特别适合多元数据可视化，不管数据是「宽格式」还是「长格式」都能轻松应对，既保留了 Base R 那种精细操作图形元素的能力，也引入图层面板的概念。如图<a href="#fig:us-cancer-rates-lattice">2.3</a>，在代码形式上将所有的操作都集于一身，没有严格的分层绘图，保留更大的灵活性的代价是提升了复杂性。绘图主要步骤如下：</p>
 <ol style="list-style-type: decimal">
@@ -1047,12 +1047,12 @@ mf_credits(txt = &quot;数据源：美国国家癌症研究所&quot;, pos = &quo
 </div>
 </div>
 </div>
-<div id="多变量情形" class="section level1" number="3">
+<div id="bivariate-choropleth-maps" class="section level1" number="3">
 <h1><span class="header-section-number">3</span> 多变量情形</h1>
 <p><a href="https://en.wikipedia.org/wiki/Multivariate_map">多元地区分布图</a>用以同时展示两个具有空间相关性的变量，比如人均收入和预期寿命，房地产投资占比和城镇化率<span class="citation">[<a href="#ref-Meyer1975" role="doc-biblioref">1</a>]</span>。下面以美国北卡州家庭年收入与白人占比的空间相关性为例，在地区分布图上同时展示多个指标，除了用到 <strong>ggplot2</strong> 和 <strong>sf</strong> 包，还需 <a href="https://github.com/slu-openGIS/biscale"><strong>biscale</strong></a> <span class="citation">[<a href="#ref-Prener2020" role="doc-biblioref">20</a>]</span>和 <a href="https://github.com/wilkelab/cowplot"><strong>cowplot</strong></a> <span class="citation">[<a href="#ref-Wilke2020" role="doc-biblioref">21</a>]</span>两个包，前者构造多元变量分组，后者负责将图例和地图主体合并。R 社区最早的技术实现方案来自 Timo Grossenbacher 的博客<a href="https://timogrossenbacher.ch/2019/04/bivariate-maps-with-ggplot2-and-sf/">Bivariate maps with <strong>ggplot2</strong> and <strong>sf</strong></a>。</p>
-<div id="美国北卡州家庭年收入与白人占比的空间相关性" class="section level2" number="3.1">
+<div id="usa-census" class="section level2" number="3.1">
 <h2><span class="header-section-number">3.1</span> 美国北卡州家庭年收入与白人占比的空间相关性</h2>
-<div id="数据获取" class="section level3" number="3.1.1">
+<div id="census-access" class="section level3" number="3.1.1">
 <h3><span class="header-section-number">3.1.1</span> 数据获取</h3>
 <p>受上个癌症死亡率地区分布图的启发，除了郡级别，还有社区普查级别的地区分布图，以描述更加精细的空间区域数据分布，同时，这次直接从<a href="https://www.census.gov/">美国人口调查局</a>获取数据。数据来自 2015-2019 年度美国社区调查（American Community Survey，简称 ACS），每年约<strong>350</strong>万家庭的抽样，每年更新一次。本节使用的数据有：</p>
 <ol style="list-style-type: decimal">
@@ -1110,7 +1110,7 @@ View(acs_vars)</code></pre>
 <p>在数据库中以合理的形式存储数以万计的指标，或者说一个不断变化的指标体系，需要考虑易用性和可扩展性。一般是以「长格式」存储的，表头包含：国家、地区（州、郡、社区等）、日期（年、月、日等）、指标ID、数值、指标描述等。这样，新增指标可以直接在表后面追加，不会因新增指标而新增列，影响稳定性，必要时以国家、地区等作为分区键还可以加快查询速度。</p>
 </div>
 </div>
-<div id="数据探索" class="section level3" number="3.1.2">
+<div id="census-exploration" class="section level3" number="3.1.2">
 <h3><span class="header-section-number">3.1.2</span> 数据探索</h3>
 <blockquote>
 <p>The phenomenon external to an area of interest affects what goes on inside.</p>
@@ -1185,7 +1185,7 @@ nc_income_race_tract &lt;- within(nc_income_race_tract, {
 </div>
 </div>
 </div>
-<div id="数据解读" class="section level3" number="3.1.3">
+<div id="census-explanation" class="section level3" number="3.1.3">
 <h3><span class="header-section-number">3.1.3</span> 数据解读</h3>
 <p>继续社区级普查数据，先通过简单的线性模型粗估一下，家庭年收入和白人占比之间的关系：</p>
 <p><span class="math display">\[
@@ -1241,7 +1241,7 @@ summary(fit)
 </div>
 </div>
 </div>
-<div id="本文小结" class="section level1" number="4">
+<div id="conclusion" class="section level1" number="4">
 <h1><span class="header-section-number">4</span> 本文小结</h1>
 <p>本文以地区分布图为例，详细介绍 R 语言在绘制地区分布图中的探索和实践，读者可取其共性迁移至其它绘图场景。本文围绕 R 语言社区比较成熟的三套绘图工具 Base R、<strong>lattice</strong> 和 <strong>ggplot2</strong> 展开，它们代表三种绘图时的思考方式：</p>
 <ul>
@@ -1260,7 +1260,7 @@ summary(fit)
 <p><a href="https://github.com/r-tmap/tmap"><strong>tmap</strong></a> 类似 <a href="https://github.com/riatelab/mapsf"><strong>mapsf</strong></a>，相比而言，上游依赖很多，相应功能也多，其Github站点有丰富的介绍材料。另一方面，据笔者在 MacOS 和 Ubuntu 系统上测试图<a href="#fig:us-cancer-rates-tmap">2.8</a>，发现绘图性能很差，这应该和它内部将 sf 等数据对象转化为 sp 数据对象有关。<strong>sp</strong> 已是上一代产品，现有工具足以替代，因此，不再介绍， <span class="citation">[<a href="#ref-Pebesma2022" role="doc-biblioref">29</a>]</span> 推荐大家根据具体情况赶快迁移到新的空间数据工具箱 <strong>sf</strong>、<strong>stars</strong> <span class="citation">[<a href="#ref-stars" role="doc-biblioref">30</a>]</span> 或 <strong>terra</strong> <span class="citation">[<a href="#ref-terra" role="doc-biblioref">31</a>]</span>，已成历史的三个 R 包 — 空间几何计算 <strong>rgeos</strong> <span class="citation">[<a href="#ref-rgeos" role="doc-biblioref">32</a>]</span>、空间数据导入 <strong>rgdal</strong> <span class="citation">[<a href="#ref-rgdal" role="doc-biblioref">33</a>]</span>和空间数据操作 <strong>maptools</strong> <span class="citation">[<a href="#ref-maptools" role="doc-biblioref">34</a>]</span> 将于 <strong>2023</strong> 年底退休。</p>
 <p>据笔者了解<span class="citation">[<a href="#ref-Huang2022I" role="doc-biblioref">35</a>, <a href="#ref-Huang2022II" role="doc-biblioref">36</a>]</span>，R 语言社区也有不少 R 包可以绘制交互版的地区分布图，比如 <strong>leaflet</strong> 包<span class="citation">[<a href="#ref-leaflet" role="doc-biblioref">37</a>]</span>、<strong>mapdeck</strong> 包<span class="citation">[<a href="#ref-mapdeck" role="doc-biblioref">38</a>]</span>、<strong>plotly</strong> 包<span class="citation">[<a href="#ref-plotly" role="doc-biblioref">39</a>]</span>和 <strong>echarts4r</strong> 包<span class="citation">[<a href="#ref-echarts4r" role="doc-biblioref">40</a>]</span>等。配色是正文没有细谈的方面，在全文保持风格一致即可，若和数据背景相关就更好了。</p>
 </div>
-<div id="未来展望" class="section level1" number="5">
+<div id="discussion" class="section level1" number="5">
 <h1><span class="header-section-number">5</span> 未来展望</h1>
 <p>在单变量情形中，已用 <strong>7</strong> 种绘图方法展示美国各郡年平均癌症死亡率，还可以补充 <strong>ggplot2</strong> + <strong>ggspatial</strong> 和 <strong>ggplot2</strong> + <strong>maps</strong> 两种历史方法。</p>
 <p>在多变量情形中，对美国社区调查数据，还可以继续做一些拓展分析，比如：</p>
@@ -1300,7 +1300,7 @@ summary(fit)
 <p class="caption">图 5.4:  欧洲区域人口年龄结构</p>
 </div>
 </div>
-<div id="环境信息" class="section level1" number="6">
+<div id="session" class="section level1" number="6">
 <h1><span class="header-section-number">6</span> 环境信息</h1>
 <p>本文是在 RStudio IDE 内用 R Markdown 编辑的，用 <strong>blogdown</strong> <span class="citation">[<a href="#ref-blogdown" role="doc-biblioref">43</a>]</span> 构建网站，<a href="https://github.com/gohugoio/hugo">Hugo</a> 渲染 knitr 之后的 Markdown 文件，得益于 <strong>blogdown</strong> 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。点击本页面右上角「编辑本页」即可跳转至源文件，文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：</p>
 <pre class="r"><code>xfun::session_info(packages = c(
@@ -1330,8 +1330,8 @@ summary(fit)
 # 
 # Hugo version: 0.101.0</code></pre>
 </div>
-<div id="参考文献" class="section level1 unnumbered">
-<h1>参考文献</h1>
+<div id="refer" class="section level1" number="7">
+<h1><span class="header-section-number">7</span> 参考文献</h1>
 <div id="refs" class="references csl-bib-body">
 <div id="ref-Meyer1975" class="csl-entry">
 <div class="csl-left-margin">[1] </div><div class="csl-right-inline"><span class="smallcaps">Meyer</span>, M. A., <span class="smallcaps">Broome</span>, F. R. and <span class="smallcaps">Jr</span>, R. H. S. (1975). <a href="https://doi.org/10.1559/152304075784313250">Color statistical mapping by the <span>U</span>.<span>S</span>. <span>Bureau</span> of the <span>Census</span></a>. <em>The American Cartographer</em> <strong>2</strong> 101–17.</div>
