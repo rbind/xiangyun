@@ -16,10 +16,12 @@ tags:
 output:
   blogdown::html_page:
     toc: true
+    number_sections: true
 link-citations: true
 math: true
 bibliography: 
   - refer.bib
+csl: institute-of-mathematical-statistics.csl
 description: "有的文章关注单个小功能、小模块地逐一介绍，非常类似某些 R 包的帮助文档，而有的需要企业级探索和实践，这就需要踩坑填坑，多方对比，总结经验，摸索出一条好实现、好维护、好效果的路。"
 ---
 
@@ -43,11 +45,7 @@ description: "有的文章关注单个小功能、小模块地逐一介绍，非
   text-align: center;
 }
 
-figure {
-  text-align: center;
-}
-
-div.img {
+div.img, div.figure {
   text-align: center;
   display: block; 
   margin-left: auto; 
@@ -61,6 +59,32 @@ blockquote > p:first-child {
   text-align: inherit;
 }
 ```
+```{css}
+#| echo: false
+
+/* https://github.com/rstudio/bookdown/blob/main/inst/templates/default.html#L89-L113 */
+/* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left: 2em;
+  text-indent: -2em;
+}
+div.csl-left-margin {
+  min-width: 2em;
+  float: left;
+}
+div.csl-right-inline {
+  margin-left: 1em;
+  padding-left: 1em;
+}
+div.csl-indent {
+  margin-left: 1em;
+}
+```
+
 ```{r}
 #| label: setup
 #| echo: false
@@ -955,7 +979,6 @@ p1 + p2 + p3
 
 ```{r}
 #| echo: true
-#| message: false
 
 xfun::session_info(packages = c(
   "knitr", "rmarkdown", "blogdown",
@@ -966,3 +989,5 @@ xfun::session_info(packages = c(
 ```
 
 # 参考文献 {#refer}
+
+<div id="refs"></div>
