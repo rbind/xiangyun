@@ -22,11 +22,13 @@ tags:
 output:
   blogdown::html_page:
     toc: true
+    number_sections: true
 link-citations: true
 math: true
 bibliography: 
   - refer.bib
 forum_id: 423119
+csl: institute-of-mathematical-statistics.csl
 description: "在美国和日本的国家统计局官网，地区分布图用于展示各类指标。衡量一个部门、一个业务、一个公司、一个行业，乃至一个国家都有一套金字塔式的指标体系，而国家每年发布的统计年鉴就包含一套衡量经济和社会发展情况的指标体系，涵盖人口、土地、生产、消费等等专题，省、市、区县以及自治区、州、县等各级地方统计局每年也会发布一份地方统计年鉴。"
 ---
 
@@ -102,10 +104,6 @@ div.rmdinfo::before {
   text-align: center;
 }
 
-figure {
-  text-align: center;
-}
-
 div.img, div.figure {
   text-align: center;
   display: block; 
@@ -122,6 +120,31 @@ blockquote > p:first-child {
 
 .columns {
   display: flex;
+}
+```
+```{css}
+#| echo: false
+
+/* https://github.com/rstudio/bookdown/blob/main/inst/templates/default.html#L89-L113 */
+/* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left: 2em;
+  text-indent: -2em;
+}
+div.csl-left-margin {
+  min-width: 2em;
+  float: left;
+}
+div.csl-right-inline {
+  margin-left: 1em;
+  padding-left: 1em;
+}
+div.csl-indent {
+  margin-left: 1em;
 }
 ```
 
