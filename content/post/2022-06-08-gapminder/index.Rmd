@@ -14,11 +14,13 @@ tags:
 output:
   blogdown::html_page:
     toc: true
+    number_sections: true
 thumbnail: img/gganimate.svg
 link-citations: true
-mathjax: true
+math: true
 bibliography: 
   - packages.bib
+csl: institute-of-mathematical-statistics.csl
 description: "世界上没有两片相同的叶子，差异是始终存在的，统计上的显著性差异是需要从万千变化中筛选出来的。相比于理解变化，关注差异是容易的。"
 ---
 
@@ -42,18 +44,45 @@ description: "世界上没有两片相同的叶子，差异是始终存在的，
   text-align: center;
 }
 
-figure {
-  text-align: center;
-}
-
-div.img {
+div.img, div.figure {
   text-align: center;
   display: block; 
   margin-left: auto; 
   margin-right: auto;
 }
-```
 
+iframe {
+  text-align: center;
+  display: block;
+  margin: auto;
+  width: 90%;
+}
+```
+```{css}
+#| echo: false
+
+/* https://github.com/rstudio/bookdown/blob/main/inst/templates/default.html#L89-L113 */
+/* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left: 2em;
+  text-indent: -2em;
+}
+div.csl-left-margin {
+  min-width: 2em;
+  float: left;
+}
+div.csl-right-inline {
+  margin-left: 1em;
+  padding-left: 1em;
+}
+div.csl-indent {
+  margin-left: 1em;
+}
+```
 
 ```{r}
 #| label: setup
@@ -154,7 +183,7 @@ years <- lapply(unique(gapminder_df$year), function(x) {
 #   )
 # })
 # 图中悬浮提示仅包含各国的预期寿命
-# e_add_nested 设置气泡的颜色
+# 函数 e_add_nested 设置气泡的颜色
 gapminder_df |>
   group_by(year) |>
   e_charts(x = gdpPercap, timeline = TRUE) |>
@@ -213,7 +242,7 @@ ggplot(gapminder, aes(gdpPercap, lifeExp, size = pop, colour = country)) +
 ```
 
 
-本文要抛开一些工具内置的玩具数据集，无论是 R 包 **gapminder** 还是 Python 模块 **plotly**，从找数据开始，认真理解和复现汉斯的动画，只有这样才能掌握应用动画的精髓。气泡图作为散点图的升级版，动态气泡图又是气泡图的豪华升级版，描述数量关系及其变化的核心作用没有变。除了复现汉斯的动态气泡图，还要根据数据情况，选择一些其它可视化的方式，比如用密度曲线图描述数据的分布，用岭线图描述分布的变化，还可以用动态的密度曲线图复现汉斯的另一个关于世界收入分布的动画。因此，本文接下来分五个部分介绍：
+本文要抛开一些工具内置的玩具数据集，无论是来自 R 包 **gapminder** 还是 Python 模块 **plotly**，从找数据开始，认真理解和复现汉斯的动画，只有这样才能掌握应用动画的精髓。气泡图作为散点图的升级版，动态气泡图又是气泡图的豪华升级版，不管怎么升级，描述数量关系及其变化的核心作用没有变。本文除了复现汉斯的动态气泡图，还要根据数据情况，选择一些其它可视化的方式，比如用密度曲线图描述数据的分布，用岭线图描述分布的变化，用动态的密度曲线图描述世界收入分布的变化。因此，本文接下来分五个部分介绍：
 
 1.  软件准备：简要介绍本文涉及的数据获取、分析、处理和可视化所需要的一系列 R 包。
 
@@ -275,9 +304,6 @@ sysfonts::font_add(
 1. **gganimate** 包[@gganimate]：人均 GDP 与寿命关系的气泡图动画（GIF 版）。
 
 1. **echart4r** 包[@echarts4r]：人均 GDP 与寿命关系的气泡图动画（Web 版）。
-
-
-
 
 
 
@@ -1116,3 +1142,5 @@ xfun::session_info(packages = c(
 
 
 # 参考文献
+
+<div id="refs"></div>
