@@ -761,7 +761,7 @@ GIF 动图的好处是便携，但没有暂停键，只有重复播放。下面�
       # 横轴是人均 GDP
       e_charts(x = NY.GDP.PCAP.CD, timeline = TRUE) |>
       e_scatter(
-        # 纵轴是人均寿命（预期寿命）
+        # 纵轴是预期寿命
         serie = SP.DYN.LE00.IN,
         # 气泡大小表示人口总数
         size = SP.POP.TOTL,
@@ -864,7 +864,7 @@ wb_hans |>
   # 横轴是人均 GDP
   e_charts(x = NY.GDP.PCAP.CD, timeline = TRUE) |>
   e_scatter(
-    # 纵轴是人均寿命（预期寿命）
+    # 纵轴是预期寿命
     serie = SP.DYN.LE00.IN,
     # 气泡大小表示人口总数
     size = SP.POP.TOTL,
@@ -886,7 +886,7 @@ wb_hans |>
     # 纵轴标题到轴线的距离
     nameGap = 40,
     # 纵轴标题
-    name = "人均寿命",
+    name = "预期寿命",
     # 纵轴标题位置
     nameLocation = "center",
     # 纵轴标题样式
@@ -912,7 +912,7 @@ wb_hans |>
         if(params.value[0]) {
           return('国家: <strong>' + params.name + '</strong>' +
                  '<br />人均 GDP: ' + Math.round(params.value[0]) + '美元' +
-                 '<br />人均寿命: ' + Math.round(params.value[1]) + '岁' +
+                 '<br />预期寿命: ' + Math.round(params.value[1]) + '岁' +
                  '<br />人口总数: ' + Math.round(params.value[2] / 1000000 * 100) / 100 + '百万')
         } else {
           return('');
