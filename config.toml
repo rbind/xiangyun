@@ -10,9 +10,11 @@ footnotereturnlinkcontents = "↩"
 hasCJKLanguage = true
 enableEmoji = true
 paginate = 9
+rssLimit = 10
 
 [permalinks]
     post = "/:year/:month/:slug/"
+   daily = "/:year/:month/:slug/"
 
 [[menu.main]]
     name = "主页"
@@ -22,6 +24,10 @@ paginate = 9
     name = "博客"
     url = "/post/"
     weight = 2
+[[menu.main]]
+    name = "日志"
+    url = "/daily/"
+    weight = 3
 [[menu.main]]
     name = "关于"
     url = "/about/"
