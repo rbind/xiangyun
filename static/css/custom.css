@@ -1,5 +1,5 @@
 .content {
-  max-width: 800px;
+  max-width: 700px;
   background-color: white;
 }
 body { 
@@ -13,4 +13,125 @@ body {
 }
 .article-metadata {
   color: #ccc;
+}
+
+/* 说明、警告、注意、提示、声明*/
+div.sidebar {
+  border: 1px solid #ccc;
+}
+
+div.rmdwarn {
+  border: 1px solid #EA4335;
+}
+
+div.rmdnote {
+  border: 1px solid #FBBC05;
+}
+
+div.rmdtip {
+  border: 1px solid #34A853;
+}
+
+div.sidebar, div.rmdwarn, div.rmdnote, div.rmdtip {
+  border-left-width: 5px;
+  border-radius: 5px;
+  padding: 1em;
+  margin: 1em 0;
+}
+
+div.rmdwarn::before, div.rmdnote::before, div.rmdtip::before {
+  display: block;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-bottom: 0.25em;
+}
+
+div.rmdwarn::before {
+  content: "警告";
+  color: #EA4335;
+}
+
+div.rmdnote::before {
+  content: "注意";
+  color: #FBBC05;
+}
+
+div.rmdtip::before {
+  content: "提示";
+  color: #34A853;
+}
+
+div.rmdinfo {
+  border: 1px solid #ccc;
+  border-left-width: 5px;
+  border-radius: 5px;
+  padding: 1em;
+  margin: 1em 0;
+}
+div.rmdinfo::before {
+  content: "声明";
+  color: block;
+  display: block;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-bottom: 0.25em;
+}
+
+/* 全宽图片 */
+.full-width {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+}
+
+.full-width .caption {
+  text-align: center;
+}
+
+/* 图片居中 */
+div.img, div.figure {
+  text-align: center;
+  display: block; 
+  margin-left: auto; 
+  margin-right: auto;
+}
+
+/* 格言警句、诗词歌赋 */
+blockquote {
+  background: #f9f9f9;
+  border-left: 5px solid #ccc;
+  padding: 3px 1em 3px;
+}
+
+blockquote > p:last-child {
+  text-align: right;
+}
+blockquote > p:first-child {
+  text-align: inherit;
+}
+
+/* 双栏对比 */
+.columns {
+  display: flex;
+}
+
+/* https://github.com/rstudio/bookdown/blob/main/inst/templates/default.html#L89-L113 */
+/* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left: 2em;
+  text-indent: -2em;
+}
+div.csl-left-margin {
+  min-width: 2em;
+  float: left;
+}
+div.csl-right-inline {
+  margin-left: 1em;
+  padding-left: 1em;
+}
+div.csl-indent {
+  margin-left: 1em;
 }
