@@ -114,6 +114,24 @@ blockquote > p:first-child {
   display: flex;
 }
 
+/* Format the LaTeX symbol correctly (a higher up, e lower) */
+.latex span:nth-child(1) {
+  text-transform: uppercase;
+  font-size: 0.75em;
+  vertical-align: 0.28em;
+  margin-left: -0.48em;
+  margin-right: -0.15em;
+  line-height: 1ex;
+}
+
+.latex span:nth-child(2) {
+  text-transform: uppercase;
+  vertical-align: -0.5ex;
+  margin-left: -0.1667em;
+  margin-right: -0.125em;
+  line-height: 1ex;
+}
+
 /* https://github.com/rstudio/bookdown/blob/main/inst/templates/default.html#L89-L113 */
 /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
 div.csl-bib-body { }
