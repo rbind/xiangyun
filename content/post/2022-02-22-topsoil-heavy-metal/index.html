@@ -1,0 +1,280 @@
+---
+title: 地表土壤重金属污染分析
+author: 黄湘云
+date: '2022-02-22'
+slug: topsoil-heavy-metal
+categories:
+  - 统计应用
+tags:
+  - 空间数据
+  - 土壤分析
+  - 污染分析
+output:
+  blogdown::html_page:
+    toc: true
+thumbnail: img/elevation-cloud.png
+link-citations: true
+description: "数据可视化在数据探索分析中扮演了及其重要的角色，帮助了解数据的质量、分布和潜在规律，为建模和分析提供思路和假设。同时，又有助于阐述分析结果，交流分享。但要注意使用场景，切记过于花哨，引入一些不必要的炫酷手段，比如各种 3D 图，蜂窝图等。"
+---
+
+
+
+<p>数据来自 2011 年全国大学生数据<a href="http://www.mcm.edu.cn/html_cn/node/a1ffc4c5587c8a6f96eacefb8dbcc34e.html">建模竞赛 A 题</a>，下载数据到本地后，首先读取城市地形数据，即采样点的位置及所属功能区。功能区代码 1 对应「生活区」，2 对应「工业区」，3 对应「山区」，4 对应「交通区」和 5 对应「公园绿地区」。</p>
+<pre class="r"><code>library(readxl)
+# 采样点的城市地形数据
+dat1 &lt;- read_xls(
+  path = &quot;data/cumcm2011A附件_数据.xls&quot;,
+  col_names = TRUE, sheet = &quot;附件1&quot;, range = &quot;A3:E322&quot;
+)
+dat1
+# # A tibble: 319 × 5
+#     编号 `x(m)` `y(m)` `海拔(m)` 功能区
+#    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt;
+#  1     1     74    781         5      4
+#  2     2   1373    731        11      4
+#  3     3   1321   1791        28      4
+....</code></pre>
+<pre class="r"><code>library(tibble)
+tmp &lt;- tribble(
+  ~`功能区编号`, ~`功能区名称`,
+  1, &quot;生活区&quot;,
+  2, &quot;工业区&quot;,
+  3, &quot;山区&quot;,
+  4, &quot;交通区&quot;,
+  5, &quot;公园绿地区&quot;
+)
+# 合并数据
+dat2 &lt;- merge(x = dat1, y = tmp, by.x = &quot;功能区&quot;, by.y = &quot;功能区编号&quot;, sort = FALSE)
+dat2
+#     功能区 编号  x(m)  y(m) 海拔(m) 功能区名称
+# 1        4    1    74   781       5     交通区
+# 2        4    2  1373   731      11     交通区
+# 3        4    3  1321  1791      28     交通区
+# 4        4   44  8457  8991      21     交通区
+# 5        4    5  1049  2127      12     交通区
+....</code></pre>
+<p>读取地表土壤各种重金属浓度的数据，它在同一个Excel文件的另一个工作区里。</p>
+<pre class="r"><code># 土壤重金属浓度
+dat3 &lt;- read_xls(
+  path = &quot;data/cumcm2011A附件_数据.xls&quot;,
+  col_names = TRUE, sheet = &quot;附件2&quot;, range = &quot;A3:I322&quot;
+)
+# 篇幅所限，铅 Pb (μg/g) 和锌 Zn (μg/g) 两列未显示
+dat3
+# # A tibble: 319 × 9
+#     编号 `As (μg/g)` `Cd (ng/g)` `Cr (μg/g)` `Cu (μg/g)` `Hg (ng/g)` `Ni (μg/g)`
+#    &lt;dbl&gt;       &lt;dbl&gt;       &lt;dbl&gt;       &lt;dbl&gt;       &lt;dbl&gt;       &lt;dbl&gt;       &lt;dbl&gt;
+#  1     1        7.84        154.        44.3        20.6         266        18.2
+#  2     2        5.93        146.        45.0        22.5          86        17.2
+#  3     3        4.9         439.        29.1        64.6         109        10.6
+....</code></pre>
+<p>将采样点的地形数据和土壤重金属浓度数据合并在一起。</p>
+<pre class="r"><code>dat4 &lt;- merge(x = dat2, y = dat3, by.x = &quot;编号&quot;, by.y = &quot;编号&quot;, sort = TRUE)
+dat4
+#     编号 功能区  x(m)  y(m) 海拔(m) 功能区名称 As (μg/g) Cd (ng/g) Cr (μg/g) Cu (μg/g)
+# 1      1      4    74   781       5     交通区      7.84     153.8     44.31     20.56
+# 2      2      4  1373   731      11     交通区      5.93     146.2     45.05     22.51
+# 3      3      4  1321  1791      28     交通区      4.90     439.2     29.07     64.56
+# 4      4      2     0  1787       4     工业区      6.56     223.9     40.08     25.17
+# 5      5      4  1049  2127      12     交通区      6.35     525.2     59.35    117.53
+....</code></pre>
+<p>以上8种主要重金属元素的背景参考值如下：</p>
+<pre class="r"><code># 土壤重金属浓度的背景参考值
+dat5 &lt;- read_xls(
+  path = &quot;data/cumcm2011A附件_数据.xls&quot;,
+  col_names = TRUE, sheet = &quot;附件3&quot;, range = &quot;A3:D11&quot;
+)
+dat5
+# # A tibble: 8 × 4
+#   元素      平均值 标准偏差 范围    
+#   &lt;chr&gt;      &lt;dbl&gt;    &lt;dbl&gt; &lt;chr&gt;   
+# 1 As (μg/g)    3.6      0.9 1.8~5.4 
+# 2 Cd (ng/g)  130       30   70~190  
+# 3 Cr (μg/g)   31        9   13~49   
+# 4 Cu (μg/g)   13.2      3.6 6.0~20.4
+# 5 Hg (ng/g)   35        8   19~51   
+# 6 Ni (μg/g)   12.3      3.8 4.7~19.9
+# 7 Pb (μg/g)   31        6   19~43   
+# 8 Zn (μg/g)   69       14   41~97</code></pre>
+<p>既然提供了各重金属浓度的背景参考值，可以先将原浓度数据标准化。</p>
+<pre class="r"><code># 相比于 transform 函数 within 更友好一些，特别是在列名处理上
+# 详见 https://bugs.r-project.org/show_bug.cgi?id=17890
+dat6 &lt;- within(dat4, {
+  `As (μg/g)` &lt;- (`As (μg/g)` - 3.6) / 0.9
+  `Cd (ng/g)` &lt;- (`Cd (ng/g)` - 130) / 30
+  `Cr (μg/g)` &lt;- (`Cr (μg/g)` - 31) / 9
+  `Cu (μg/g)` &lt;- (`Cu (μg/g)` - 13.2) / 3.6
+  `Hg (ng/g)` &lt;- (`Hg (ng/g)` - 35) / 8
+  `Ni (μg/g)` &lt;- (`Ni (μg/g)` - 12.3) / 3.8
+  `Pb (μg/g)` &lt;- (`Pb (μg/g)` - 31) / 6
+  `Zn (μg/g)` &lt;- (`Zn (μg/g)` - 69) / 14
+})
+# 篇幅所限，仅展示部分列
+dat6
+#     编号 功能区  x(m)  y(m) 海拔(m) 功能区名称 As (μg/g) Cd (ng/g) Cr (μg/g) Cu (μg/g)
+# 1      1      4    74   781       5     交通区   4.71111   0.79333  1.478889   2.04444
+# 2      2      4  1373   731      11     交通区   2.58889   0.54000  1.561111   2.58611
+# 3      3      4  1321  1791      28     交通区   1.44444  10.30667 -0.214444  14.26667
+# 4      4      2     0  1787       4     工业区   3.28889   3.13000  1.008889   3.32500
+# 5      5      4  1049  2127      12     交通区   3.05556  13.17333  3.150000  28.98056
+....</code></pre>
+<p>为了方便后续数据处理和分析，重命名数据框各个列名。</p>
+<pre class="r"><code># 查看各个列名
+colnames(dat6)
+#  [1] &quot;编号&quot;       &quot;功能区&quot;     &quot;x(m)&quot;       &quot;y(m)&quot;       &quot;海拔(m)&quot;    &quot;功能区名称&quot;
+#  [7] &quot;As (μg/g)&quot;  &quot;Cd (ng/g)&quot;  &quot;Cr (μg/g)&quot;  &quot;Cu (μg/g)&quot;  &quot;Hg (ng/g)&quot;  &quot;Ni (μg/g)&quot; 
+# [13] &quot;Pb (μg/g)&quot;  &quot;Zn (μg/g)&quot;
+# 重命名各个列
+colnames(dat6) &lt;- c(
+  &quot;编号&quot;, &quot;功能区&quot;, &quot;x&quot;, &quot;y&quot;, &quot;海拔&quot;, &quot;功能区名称&quot;,
+  &quot;As&quot;, &quot;Cd&quot;, &quot;Cr&quot;, &quot;Cu&quot;, &quot;Hg&quot;, &quot;Ni&quot;, &quot;Pb&quot;, &quot;Zn&quot;
+)</code></pre>
+<pre class="r"><code># 调色板
+# RColorBrewer::brewer.pal(n = 5, name = &quot;Set2&quot;)
+# 查看颜色
+# RColorBrewer::display.brewer.pal(n = 5, name = &quot;Set2&quot;)
+colorize_factor &lt;- function(x) {
+  # 注意因子水平个数
+  scales::col_factor(palette = &quot;Set2&quot;, levels = unique(x))(x)
+}
+# 给每个功能区设置一个颜色
+dat6 &lt;- transform(dat6, color = colorize_factor(`功能区名称`))
+dat6
+#     编号 功能区     x     y 海拔 功能区名称       As       Cd        Cr        Cu
+# 1      1      4    74   781    5     交通区  4.71111  0.79333  1.478889   2.04444
+# 2      2      4  1373   731   11     交通区  2.58889  0.54000  1.561111   2.58611
+# 3      3      4  1321  1791   28     交通区  1.44444 10.30667 -0.214444  14.26667
+# 4      4      2     0  1787    4     工业区  3.28889  3.13000  1.008889   3.32500
+# 5      5      4  1049  2127   12     交通区  3.05556 13.17333  3.150000  28.98056
+....</code></pre>
+<p>查看各个功能区采样点的数量，以及各个功能区的配色。</p>
+<pre class="r"><code>aggregate(`编号` ~ color + `功能区名称`, data = dat6, FUN = function(x) length(unique(x)))
+#     color 功能区名称 编号
+# 1 #66C2A5     交通区  138
+# 2 #8DA0CB 公园绿地区   35
+# 3 #A6D854       山区   66
+# 4 #FC8D62     工业区   36
+# 5 #E78AC3     生活区   44</code></pre>
+<p>采样点在各个功能区的分布情况，如图<a href="#fig:elevation-cloud">1</a>所示，城市地势西南低东北高，西北边界主要分布工业区，交通连接城市各个功能区，东北方向主要是山区。</p>
+<pre class="r"><code>library(lattice)
+# 绘图涉及中文，调用 showtext 包处理
+library(showtext)
+showtext_auto()
+# 三维分组散点图
+cloud(`海拔` ~ x * y,
+  data = dat6, pch = 19,
+  col = dat6$color, # 散点颜色映射功能区
+  # z 轴标签旋转 90 度
+  scales = list(
+    arrows = FALSE, col = &quot;black&quot;,
+    z = list(rot = 90)
+  ),
+  key = list( # 制作图例
+    # space = &quot;right&quot;,
+    corner = c(1.0, 0.5), # 右侧居中
+    points = list(col = c(&quot;#66C2A5&quot;, &quot;#FC8D62&quot;, &quot;#8DA0CB&quot;, &quot;#E78AC3&quot;, &quot;#A6D854&quot;), pch = 19),
+    text = list(c(&quot;交通区&quot;, &quot;工业区&quot;, &quot;公园绿地区&quot;, &quot;生活区&quot;, &quot;山区&quot;))
+  ),
+  # 减少三维图形的边空
+  lattice.options = list(
+    layout.widths = list(
+      left.padding = list(x = -.6, units = &quot;inches&quot;),
+      right.padding = list(x = -1.0, units = &quot;inches&quot;)
+    ),
+    layout.heights = list(
+      bottom.padding = list(x = -.8, units = &quot;inches&quot;),
+      top.padding = list(x = -1.0, units = &quot;inches&quot;)
+    )
+  ),
+  # 设置坐标轴字体大小
+  par.settings = list(
+    axis.line = list(col = &quot;transparent&quot;),
+    fontsize = list(text = 15, points = 10)
+  ),
+  # 设置三维图的观察方位
+  screen = list(z = 30, x = -65, y = 0)
+)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:elevation-cloud"></span>
+<img src="img/elevation-cloud.png" class="full" alt="" />
+<p class="caption">图 1:  采样点在城市各个功能区的空间分布</p>
+</div>
+<p>接下来，根据此数据框 data.frame 类型构造空间数据类型 <strong>sp</strong> （对应 <strong>Sp</strong>atial 类），以便后续调用空间数据分析方法。</p>
+<pre class="r"><code>library(sp)
+coordinates(dat6) &lt;- ~ x + y
+summary(dat6)
+# Object of class SpatialPointsDataFrame
+# Coordinates:
+#   min   max
+# x   0 28654
+# y   0 18449
+# Is projected: NA 
+# proj4string : [NA]
+# Number of points: 319
+# Data attributes:
+#       编号           功能区          海拔        功能区名称              As        
+#  Min.   :  1.0   Min.   :1.00   Min.   :  0.0   Length:319         Min.   :-2.211  
+#  1st Qu.: 80.5   1st Qu.:2.50   1st Qu.: 14.0   Class :character   1st Qu.: 0.189  
+#  Median :160.0   Median :4.00   Median : 29.0   Mode  :character   Median : 1.900  
+#  Mean   :160.0   Mean   :3.26   Mean   : 42.5                      Mean   : 2.307  
+#  3rd Qu.:239.5   3rd Qu.:4.00   3rd Qu.: 55.5                      3rd Qu.: 3.522  
+#  Max.   :319.0   Max.   :5.00   Max.   :308.0                      Max.   :29.478  
+#        Cd              Cr              Cu              Hg               Ni       
+#  Min.   :-3.00   Min.   :-1.74   Min.   : -3.0   Min.   :  -3.3   Min.   :-2.11  
+#  1st Qu.: 0.62   1st Qu.: 0.31   1st Qu.:  1.6   1st Qu.:  -0.6   1st Qu.: 0.05  
+#  Median : 3.62   Median : 1.22   Median :  4.1   Median :   1.9   Median : 0.97  
+#  Mean   : 5.75   Mean   : 2.50   Mean   : 11.6   Mean   :  33.1   Mean   : 1.31  
+#  3rd Qu.: 7.97   3rd Qu.: 2.61   3rd Qu.: 11.1   3rd Qu.:   9.7   3rd Qu.: 1.97  
+#  Max.   :49.66   Max.   :98.87   Max.   :698.7   Max.   :1995.6   Max.   :34.26  
+#        Pb              Zn            color          
+#  Min.   :-1.89   Min.   : -2.58   Length:319        
+#  1st Qu.: 0.45   1st Qu.:  0.46   Class :character  
+#  Median : 2.47   Median :  2.67   Mode  :character  
+#  Mean   : 5.12   Mean   :  9.44                     
+#  3rd Qu.: 6.68   3rd Qu.:  9.11                     
+#  Max.   :73.58   Max.   :263.70</code></pre>
+<pre class="r"><code>spplot(dat6,
+  zcol = c(&quot;海拔&quot;),
+  main = &quot;&quot;,
+  as.table = TRUE, # 面板自左上开始
+  scales = list(
+    draw = TRUE, # 坐标轴刻度
+    # 去掉图形上边、右边多余的刻度线
+    x = list(alternating = 1, tck = c(1, 0)),
+    y = list(alternating = 1, tck = c(1, 0))
+  ),
+  colorkey = TRUE,
+  alpha = 0.7,
+  key.space = &quot;right&quot;
+)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:elevation-spplot"></span>
+<img src="img/elevation-spplot.png" class="full" alt="" />
+<p class="caption">图 2:  采样点在城市各个功能区的空间分布</p>
+</div>
+<p>由图<a href="#fig:elevation-spplot">2</a>不难看出，采样点的位置是以图中左下角的点为参照，城市整体上的地势是西南低东北高，城市中间间或有两座小山。</p>
+<pre class="r"><code>As &lt;- bubble(dat6, zcol = c(&quot;As&quot;), col = c(&quot;#4dac26&quot;, &quot;#d01c8b&quot;), fill = F, key.space = &quot;bottom&quot;)
+Cd &lt;- bubble(dat6, zcol = c(&quot;Cd&quot;), col = c(&quot;#4dac26&quot;, &quot;#d01c8b&quot;), fill = F, key.space = &quot;bottom&quot;)
+Cr &lt;- bubble(dat6, zcol = c(&quot;Cr&quot;), col = c(&quot;#4dac26&quot;, &quot;#d01c8b&quot;), fill = F, key.space = &quot;bottom&quot;)
+Cu &lt;- bubble(dat6, zcol = c(&quot;Cu&quot;), col = c(&quot;#4dac26&quot;, &quot;#d01c8b&quot;), fill = F, key.space = &quot;bottom&quot;)
+Hg &lt;- bubble(dat6, zcol = c(&quot;Hg&quot;), col = c(&quot;#4dac26&quot;, &quot;#d01c8b&quot;), fill = F, key.space = &quot;bottom&quot;)
+Ni &lt;- bubble(dat6, zcol = c(&quot;Ni&quot;), col = c(&quot;#4dac26&quot;, &quot;#d01c8b&quot;), fill = F, key.space = &quot;bottom&quot;)
+Pb &lt;- bubble(dat6, zcol = c(&quot;Pb&quot;), col = c(&quot;#4dac26&quot;, &quot;#d01c8b&quot;), fill = F, key.space = &quot;bottom&quot;)
+Zn &lt;- bubble(dat6, zcol = c(&quot;Zn&quot;), col = c(&quot;#4dac26&quot;, &quot;#d01c8b&quot;), fill = F, key.space = &quot;bottom&quot;)
+
+# 4 列 2 行，图按列
+print(As, split = c(1, 1, 4, 2), more = TRUE)
+print(Cd, split = c(1, 2, 4, 2), more = TRUE)
+print(Cr, split = c(2, 1, 4, 2), more = TRUE)
+print(Cu, split = c(2, 2, 4, 2), more = TRUE)
+print(Hg, split = c(3, 1, 4, 2), more = TRUE)
+print(Ni, split = c(3, 2, 4, 2), more = TRUE)
+print(Pb, split = c(4, 1, 4, 2), more = TRUE)
+print(Zn, split = c(4, 2, 4, 2), more = FALSE)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:heavy-metal-concentrations"></span>
+<img src="img/heavy-metal-concentrations.png" class="full" alt="" />
+<p class="caption">图 3:  地表土壤重金属浓度分布</p>
+</div>
+<p>图中，绿色气泡表示重金属浓度低于背景值，红色气泡反之，气泡大小对应不同区间的浓度值，根据浓度值数据的五个分位点划分区间，以砷 As 为例，浓度的分位点如下：</p>
+<pre class="r"><code>quantile(dat6$As)
+#      0%     25%     50%     75%    100% 
+# -2.2111  0.1889  1.9000  3.5222 29.4778</code></pre>
+<p>现在数据准备好了，通过上述探索，也有了基本的了解，接下来的问题是如何找到城市的重金属污染源？</p>
