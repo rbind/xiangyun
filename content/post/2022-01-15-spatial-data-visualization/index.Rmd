@@ -18,11 +18,13 @@ tags:
 output:
   blogdown::html_page:
     toc: true
-thumbnail: /img/maps-in-r/beijing-sf.png
+    number_sections: true
+thumbnail: img/beijing-sf.png
 link-citations: true
 bibliography: 
   - refer.bib
   - packages.bib
+csl: institute-of-mathematical-statistics.csl
 description: "数据可视化在数据探索分析中扮演了及其重要的角色，帮助了解数据的质量、分布和潜在规律，为建模和分析提供思路和假设。同时，又有助于阐述分析结果，交流分享。但要注意使用场景，切记过于花哨，引入一些不必要的炫酷手段，比如各种 3D 图，蜂窝图等。"
 ---
 
@@ -57,80 +59,6 @@ knitr::knit_hooks$set(output = local({
 options(width = 89)
 ```
 
-```{css, echo=FALSE}
-.sidebar {
-  border: 1px solid #ccc;
-}
-
-.rmdwarn {
-  border: 1px solid #EA4335;
-}
-
-.rmdnote {
-  border: 1px solid #FBBC05;
-}
-
-.rmdtip {
-  border: 1px solid #34A853;
-}
-
-.sidebar, .rmdwarn, .rmdnote, .rmdtip {
-  border-left-width: 5px;
-  border-radius: 5px;
-  padding: 1em;
-  margin: 1em 0;
-}
-
-div.rmdwarn::before, div.rmdnote::before, div.rmdtip::before {
-  display: block;
-  font-size: 1.1em;
-  font-weight: bold;
-  margin-bottom: 0.25em;
-}
-
-div.rmdwarn::before {
-  content: "警告";
-  color: #EA4335;
-}
-
-div.rmdnote::before {
-  content: "注意";
-  color: #FBBC05;
-}
-
-div.rmdtip::before {
-  content: "提示";
-  color: #34A853;
-}
-
-.rmdinfo {
-  border: 1px solid #ccc;
-  border-left-width: 5px;
-  border-radius: 5px;
-  padding: 1em;
-  margin: 1em 0;
-}
-div.rmdinfo::before {
-  content: "声明";
-  color: block;
-  display: block;
-  font-size: 1.1em;
-  font-weight: bold;
-  margin-bottom: 0.25em;
-}
-
-figure {
-  text-align: center;
-}
-
-div.img {
-  text-align: center;
-  display: block; 
-  margin-left: auto; 
-  margin-right: auto;
-}
-```
-
 ::: rmdinfo
 本文引用的所有信息均为公开信息，仅代表作者本人观点，与就职单位无关。
 :::
@@ -142,7 +70,7 @@ div.img {
 数据可视化在数据探索分析中扮演了极其重要的角色，帮助了解数据的质量、分布和潜在规律，为建模和分析提供思路和假设。同时，有助于阐述分析结果，交流分享。但要注意使用场景，切记过于花哨，引入一些不必要的炫酷手段，比如各种 3D 图，蜂窝图等。
 
 
-本文告诉读者如何在 R 语言中调用生活中常见的谷歌、必应、百度和高德等地图服务。介绍一些网址地位、地理编码和坐标转化的 R 包，为空间数据操作、可视化奠定基础。然后，介绍展示空间数据分布的常用图形及其R包实现，再重点介绍专题地图，并以不同 R 包的不同风格实现。最后，以两个实例简要阐述空间数据操作、分析、可视化的过程。
+本文告诉读者如何在 R 语言中调用生活中常见的谷歌、必应、百度和高德等地图服务。介绍一些网址地位、地理编码和坐标转化的 R 包，为空间数据操作、可视化奠定基础。然后，介绍展示空间数据分布的常用图形及其R包实现，再重点介绍专题地图，并以不同 R 包的不同风格实现。
 
 
 # 地图服务
@@ -1062,347 +990,7 @@ p4= ggplot() +
 ```
 
 
-
-# 邵东市房地产行业分析
-
-
-《爱情碟中谍》里宋丹丹说买房子最重要的是：Location、Location、Location（位置，位置，还是位置）！POI（Point of Interest 兴趣点）周围的商业价值，发展潜力，增值空间，如房子周边的学校、商场、交通，反映在时间距离、空间距离，最终体现在房价上。买房子、卖房子，中介和销售玩的就是**信息不对称**。如果能从不同层面，比如地区经济发展状况，和其它地区对比，和市内其它商圈对比，和其它楼盘房子对比，就可以做到不被轻易忽悠了。
-
-```{r,echo=FALSE}
-options(digits = 10)
-```
-```{r,eval=FALSE}
-library(httr)
-# 向高德地图 API 发 GET 请求
-GetCoord <- function(address = "仁为峰邵东壹号", city = "邵东市") {
-  tmp <- GET(
-    url = "https://restapi.amap.com/",
-    path = "v3/geocode/geo",
-    query = list(
-      # 原坐标，经纬度小数点后不得超过6位
-      address = address,
-      # 原坐标参考系，还支持 GPS 坐标，取值 'gps'
-      city = city,
-      # 返回数据格式，还支持 xml
-      output = "json",
-      # 高德地图 WEB 服务 API 访问令牌
-      key = Sys.getenv("AMAP_KEY")
-    )
-  )
-  as.numeric(strsplit(x = content(tmp)$geocodes[[1]]$location, split = ",")[[1]])
-}
-# 测试一下
-GetCoord(address = "仁为峰邵东壹号", city = "湖南省邵阳市邵东市")
-```
-```
-# [1] 111.751713  27.270619
-```
-
-接下来将函数向量化，以便批量解析地址，获取经纬度数据。可用 `Vectorize()` 函数实现，只需指定待向量化的参数向量。
-
-```{r,eval=FALSE}
-# 函数向量化
-GetCoordVec <- Vectorize(FUN = GetCoord, vectorize.args = c("address", "city"), USE.NAMES = F, SIMPLIFY = F)
-# 测试一下
-GetCoordVec(address = "仁为峰邵东壹号", city = "湖南省邵阳市邵东市")
-```
-
-首先准备各个楼盘和地址信息，有的提供楼盘就能比较好的定位，有的定位不行，可见高德的数据不是百分百准确的。实际上任何数据都别想百分百精确，一些楼盘可能是新开的，周围配套还未建立，高德数据未及时更新等。
-
-```{r,eval=FALSE}
-# 批量解析地址
-house <- c(
-  "中际城市森林", "仁为峰邵东壹号", "龙熙府邸",
-  "邦盛凤凰城（御玺）", "碧桂园·星钻", "泰丰城",
-  "中驰晨曦桐江府", "悦富时代广场", "横科·佳润国际",
-  "碧桂园·珑璟台", "中伟·国际公馆", "福星御景城",
-  "中翔·龙玺", "金裕名都", "横科·金泉华府", "富景鑫城"
-)
-# 地址来自安居客 App
-address <- paste0("湖南省邵阳市邵东市", c(
-  "中际城市森林", "仁为峰邵东壹号", "梨园路与金石路交汇处",
-  "邦盛凤凰城（御玺）", "绿汀大道与336省道交汇处", "泰丰城",
-  "中驰晨曦桐江府", "悦富时代广场", "公园路与新辉路交汇处",
-  "宋家塘梨园路168号", "建设北路与景秀路交互处", "福星御景城",
-  "中翔·龙玺", "金裕名都", "横科·金泉华府", "兴和大道与光大路交叉口"
-))
-```
-
-调用 `mapply()` 函数批量发送请求获取数据，返回的 list 列表数据对象，可用函数 `do.call()` 配合 `rbind()` 合并成 matrix 类型，再转为通用的 data.frame 类型。
-
-```{r,eval=FALSE}
-# 获取数据
-dat <- mapply(FUN = GetCoordVec, address = address, MoreArgs = list(city = "湖南省邵阳市邵东市"))
-# 整理数据
-dat2 <- do.call("rbind", dat)
-dat2 <- as.data.frame(dat2)
-colnames(dat2) <- c("long", "lat")
-dat2$house <- house
-```
-
-最后，调用 **leaflet** 包，将数据导入绘图函数即可。如图\@ref(fig:shaodong-house)所示，图中红点是邵东市各个在售楼盘的空间位置，仅考虑了安居客 App 的数据。
-
-```{r,eval=FALSE}
-library(leaflet)
-library(leafletCN)
-# 绘图
-leaflet(options = leafletOptions(
-  minZoom = 4, maxZoom = 18,
-  zoomControl = FALSE
-)) |>
-  setView(lng = mean(dat2$long), lat = mean(dat2$lat), zoom = 14) |>
-  leafletCN::amap() |>
-  addCircles(
-    data = dat2,
-    lng = ~long, lat = ~lat, label = ~house,
-    radius = 50, color = "red",
-    fillOpacity = 0.55, stroke = T, weight = 1
-  )
-```
-```{r,echo=FALSE}
-# getOption("digits")
-options(digits = 4)
-```
-
-
-![(\#fig:shaodong-house)邵东市各个楼盘的空间位置](img/shaodong-house.png){.full}
-
-值得注意的是「龙熙府邸」和「碧桂园珑璟台」的定位重合了，地理位置上，二者确实也接近。经过这一番使用，可见高德开放平台给的经纬度地址解析服务一般。
-
-图中信息比较丰富，简单说下：
-
-1. 各个楼盘在城市主干道昭阳大道、绿汀大道两侧排开。
-1. 高铁邵东站、国际商贸城、邦盛凤凰城地理位置价值依次降低，后者短期内发展不起来。
-1. 百富广场、邵东工业品市场、邵东市中医院、邵东一中属于老城区。
-1. 2019年邵东撤县划市，建设新城区，邵东高铁站开通，楼市炒贵族学校、区位优势，县政府推波助澜，房价已翻倍。
-1. 建设新城区，碧桂园等头部房企进场，对房价有推动作用，但整体上供给充足。
-
-
-另外，结合最近几年邵东市发布的统计年鉴数据，笔者了解到，邵东市最近几年人口增长为负，经济增长主要靠固定资产投资，换个说法，就是房地产投资。大城市各个行业，特别是产业互联网下沉战略促使三、四、五线城市消费升级，但是小城人民薪资待遇并没有升级，形成收入消费倒挂。因此，小城房地产价格近年猛增已到极限，没有足够配套建设，特别是没有大城市的高质量劳动力回流，城市发展会很慢。结合笔者对邵东市近年来人才引进政策、人力市场需求和薪资待遇的了解，特别是对公务员、中学教师、工程师等岗位的分析，对大城市高质量劳动力吸引不足，也承接不了。
-
-
-目前，邵东房价整体在 5000至6000，如果资金充裕，不用选，找最贵的房子买，大家都不傻，地段越好，价格越高。未来城市资源配套都往这集中，等着升值，当下越贵的房子未来升值空间也越高，这就是马太效应！2021年房价基本稳定，国家出台系列政策调控，国家若不出手，房地产就只剩下泡沫了，楼市也将迟早崩盘，这对邵东经济发展是致命的。
-
-
-# 地表土壤重金属污染分析
-
-数据来自 2011 年全国大学生数据[建模竞赛 A 题](http://www.mcm.edu.cn/html_cn/node/a1ffc4c5587c8a6f96eacefb8dbcc34e.html)，下载数据到本地后，首先读取城市地形数据，即采样点的位置及所属功能区。功能区代码 1 对应「生活区」，2 对应「工业区」，3 对应「山区」，4 对应「交通区」和 5 对应「公园绿地区」。
-
-```{r out.lines=6}
-library(readxl)
-# 采样点的城市地形数据
-dat1 <- read_xls(
-  path = "data/cumcm2011A附件_数据.xls",
-  col_names = TRUE, sheet = "附件1", range = "A3:E322"
-)
-dat1
-```
-
-
-```{r out.lines=6}
-library(tibble)
-tmp <- tribble(
-  ~`功能区编号`, ~`功能区名称`,
-  1, "生活区",
-  2, "工业区",
-  3, "山区",
-  4, "交通区",
-  5, "公园绿地区"
-)
-# 合并数据
-dat2 <- merge(x = dat1, y = tmp, by.x = "功能区", by.y = "功能区编号", sort = FALSE)
-dat2
-```
-
-读取地表土壤各种重金属浓度的数据，它在同一个Excel文件的另一个工作区里。
-
-```{r out.lines=6}
-# 土壤重金属浓度
-dat3 <- read_xls(
-  path = "data/cumcm2011A附件_数据.xls",
-  col_names = TRUE, sheet = "附件2", range = "A3:I322"
-)
-# 篇幅所限，铅 Pb (μg/g) 和锌 Zn (μg/g) 两列未显示
-dat3
-```
-
-将采样点的地形数据和土壤重金属浓度数据合并在一起。
-
-```{r out.lines=6}
-dat4 <- merge(x = dat2, y = dat3, by.x = "编号", by.y = "编号", sort = TRUE)
-dat4
-```
-
-以上8种主要重金属元素的背景参考值如下：
-
-```{r}
-# 土壤重金属浓度的背景参考值
-dat5 <- read_xls(
-  path = "data/cumcm2011A附件_数据.xls",
-  col_names = TRUE, sheet = "附件3", range = "A3:D11"
-)
-dat5
-```
-
-既然提供了各重金属浓度的背景参考值，可以先将原浓度数据标准化。
-
-```{r out.lines=6}
-# 相比于 transform 函数 within 更友好一些，特别是在列名处理上
-# 详见 https://bugs.r-project.org/show_bug.cgi?id=17890
-dat6 <- within(dat4, {
-  `As (μg/g)` <- (`As (μg/g)` - 3.6) / 0.9
-  `Cd (ng/g)` <- (`Cd (ng/g)` - 130) / 30
-  `Cr (μg/g)` <- (`Cr (μg/g)` - 31) / 9
-  `Cu (μg/g)` <- (`Cu (μg/g)` - 13.2) / 3.6
-  `Hg (ng/g)` <- (`Hg (ng/g)` - 35) / 8
-  `Ni (μg/g)` <- (`Ni (μg/g)` - 12.3) / 3.8
-  `Pb (μg/g)` <- (`Pb (μg/g)` - 31) / 6
-  `Zn (μg/g)` <- (`Zn (μg/g)` - 69) / 14
-})
-# 篇幅所限，仅展示部分列
-dat6
-```
-
-为了方便后续数据处理和分析，重命名数据框各个列名。
-
-```{r}
-# 查看各个列名
-colnames(dat6)
-# 重命名各个列
-colnames(dat6) <- c(
-  "编号", "功能区", "x", "y", "海拔", "功能区名称",
-  "As", "Cd", "Cr", "Cu", "Hg", "Ni", "Pb", "Zn"
-)
-```
-```{r out.lines=6}
-# 调色板
-# RColorBrewer::brewer.pal(n = 5, name = "Set2")
-# 查看颜色
-# RColorBrewer::display.brewer.pal(n = 5, name = "Set2")
-colorize_factor <- function(x) {
-  # 注意因子水平个数
-  scales::col_factor(palette = "Set2", levels = unique(x))(x)
-}
-# 给每个功能区设置一个颜色
-dat6 <- transform(dat6, color = colorize_factor(`功能区名称`))
-dat6
-```
-
-查看各个功能区采样点的数量，以及各个功能区的配色。
-
-```{r}
-aggregate(`编号` ~ color + `功能区名称`, data = dat6, FUN = function(x) length(unique(x)))
-```
-
-采样点在各个功能区的分布情况，如图\@ref(fig:elevation-cloud)所示，城市地势西南低东北高，西北边界主要分布工业区，交通连接城市各个功能区，东北方向主要是山区。
-
-```{r,eval=FALSE}
-library(lattice)
-# 绘图涉及中文，调用 showtext 包处理
-library(showtext)
-showtext_auto()
-# 三维分组散点图
-cloud(`海拔` ~ x * y,
-  data = dat6, pch = 19,
-  col = dat6$color, # 散点颜色映射功能区
-  # z 轴标签旋转 90 度
-  scales = list(
-    arrows = FALSE, col = "black",
-    z = list(rot = 90)
-  ),
-  key = list( # 制作图例
-    # space = "right",
-    corner = c(1.0, 0.5), # 右侧居中
-    points = list(col = c("#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#A6D854"), pch = 19),
-    text = list(c("交通区", "工业区", "公园绿地区", "生活区", "山区"))
-  ),
-  # 减少三维图形的边空
-  lattice.options = list(
-    layout.widths = list(
-      left.padding = list(x = -.6, units = "inches"),
-      right.padding = list(x = -1.0, units = "inches")
-    ),
-    layout.heights = list(
-      bottom.padding = list(x = -.8, units = "inches"),
-      top.padding = list(x = -1.0, units = "inches")
-    )
-  ),
-  # 设置坐标轴字体大小
-  par.settings = list(
-    axis.line = list(col = "transparent"),
-    fontsize = list(text = 15, points = 10)
-  ),
-  # 设置三维图的观察方位
-  screen = list(z = 30, x = -65, y = 0)
-)
-```
-
-![(\#fig:elevation-cloud) 采样点在城市各个功能区的空间分布](img/elevation-cloud.png){.full}
-
-接下来，根据此数据框 data.frame 类型构造空间数据类型 **sp** （对应 **Sp**atial 类），以便后续调用空间数据分析方法。
-
-```{r}
-library(sp)
-coordinates(dat6) <- ~ x + y
-summary(dat6)
-```
-```{r,eval=FALSE}
-spplot(dat6,
-  zcol = c("海拔"),
-  main = "",
-  as.table = TRUE, # 面板自左上开始
-  scales = list(
-    draw = TRUE, # 坐标轴刻度
-    # 去掉图形上边、右边多余的刻度线
-    x = list(alternating = 1, tck = c(1, 0)),
-    y = list(alternating = 1, tck = c(1, 0))
-  ),
-  colorkey = TRUE,
-  alpha = 0.7,
-  key.space = "right"
-)
-```
-
-![(\#fig:elevation-spplot) 采样点在城市各个功能区的空间分布](img/elevation-spplot.png){.full}
-
-
-由图\@ref(fig:elevation-spplot)不难看出，采样点的位置是以图中左下角的点为参照，城市整体上的地势是西南低东北高，城市中间间或有两座小山。
-
-
-```{r,eval=FALSE}
-As <- bubble(dat6, zcol = c("As"), col = c("#4dac26", "#d01c8b"), fill = F, key.space = "bottom")
-Cd <- bubble(dat6, zcol = c("Cd"), col = c("#4dac26", "#d01c8b"), fill = F, key.space = "bottom")
-Cr <- bubble(dat6, zcol = c("Cr"), col = c("#4dac26", "#d01c8b"), fill = F, key.space = "bottom")
-Cu <- bubble(dat6, zcol = c("Cu"), col = c("#4dac26", "#d01c8b"), fill = F, key.space = "bottom")
-Hg <- bubble(dat6, zcol = c("Hg"), col = c("#4dac26", "#d01c8b"), fill = F, key.space = "bottom")
-Ni <- bubble(dat6, zcol = c("Ni"), col = c("#4dac26", "#d01c8b"), fill = F, key.space = "bottom")
-Pb <- bubble(dat6, zcol = c("Pb"), col = c("#4dac26", "#d01c8b"), fill = F, key.space = "bottom")
-Zn <- bubble(dat6, zcol = c("Zn"), col = c("#4dac26", "#d01c8b"), fill = F, key.space = "bottom")
-
-# 4 列 2 行，图按列
-print(As, split = c(1, 1, 4, 2), more = TRUE)
-print(Cd, split = c(1, 2, 4, 2), more = TRUE)
-print(Cr, split = c(2, 1, 4, 2), more = TRUE)
-print(Cu, split = c(2, 2, 4, 2), more = TRUE)
-print(Hg, split = c(3, 1, 4, 2), more = TRUE)
-print(Ni, split = c(3, 2, 4, 2), more = TRUE)
-print(Pb, split = c(4, 1, 4, 2), more = TRUE)
-print(Zn, split = c(4, 2, 4, 2), more = FALSE)
-```
-
-
-![(\#fig:heavy-metal-concentrations) 地表土壤重金属浓度分布](img/heavy-metal-concentrations.png){.full}
-
-图中，绿色气泡表示重金属浓度低于背景值，红色气泡反之，气泡大小对应不同区间的浓度值，根据浓度值数据的五个分位点划分区间，以砷 As 为例，浓度的分位点如下：
-
-```{r}
-quantile(dat6$As)
-```
-
-现在数据准备好了，通过上述探索，也有了基本的了解，接下来的问题是如何找到城市的重金属污染源？
-
-
-# 本文小结
+# 本文小结 {#summary}
 
 
 空间数据最核心的概念还是几何元素的表示，关系及其应用。
@@ -1420,7 +1008,7 @@ R 语言社区在时空数据分析、可视化方面有很多工具，继 [**sp
 数据产品很多都基于 Web 呈现，交互式图形成为必须的组件，[**leaflet**](https://github.com/rstudio/leaflet) [@leaflet] 在交互式地理可视化方面是比较成熟的，中小规模数据集下，性能还不错。 [**mapdeck**](https://github.com/SymbolixAU/mapdeck) 包站在 [deck.gl](https://github.com/visgl/deck.gl) 的肩膀上渲染初具规模的空间数据毫无压力。[**mapview**](https://github.com/r-spatial/mapview) [@mapview]意在提供快速地交互式探索空间数据的能力，支持 **leaflet** 和 **mapdeck** 渲染方法。而[**mapedit**](https://github.com/r-spatial/mapedit) [@mapedit]提供空间数据交互式编辑能力。
 
 
-# 环境信息
+# 环境信息 {#session}
 
 在 RStudio IDE 内编辑本文的 R Markdown 源文件，用 **blogdown** [@Xie2017] 构建网站，[Hugo](https://github.com/gohugoio/hugo) 渲染 **knitr** 之后的 Markdown 文件，得益于 **blogdown** 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：
 
@@ -1458,4 +1046,6 @@ bib <- gsub("(\\\n)", " ", bib)
 xfun::write_utf8(bib, "packages.bib")
 ```
 
-# 参考文献
+# 参考文献 {#refer}
+
+<div id="refs"></div>

@@ -1,0 +1,106 @@
+---
+title: 邵东市房地产行业分析
+author: 黄湘云
+date: '2022-02-22'
+slug: shaodong-house
+categories:
+  - 统计应用
+tags:
+  - 空间数据
+  - 地图服务
+  - leaflet
+  - httr
+output:
+  blogdown::html_page:
+    toc: true
+thumbnail: img/shaodong-house.png
+link-citations: true
+description: "数据可视化在数据探索分析中扮演了及其重要的角色，帮助了解数据的质量、分布和潜在规律，为建模和分析提供思路和假设。同时，又有助于阐述分析结果，交流分享。但要注意使用场景，切记过于花哨，引入一些不必要的炫酷手段，比如各种 3D 图，蜂窝图等。"
+---
+
+
+
+<p>《爱情碟中谍》里宋丹丹说买房子最重要的是：Location、Location、Location（位置，位置，还是位置）！POI（Point of Interest 兴趣点）周围的商业价值，发展潜力，增值空间，如房子周边的学校、商场、交通，反映在时间距离、空间距离，最终体现在房价上。买房子、卖房子，中介和销售玩的就是<strong>信息不对称</strong>。如果能从不同层面，比如地区经济发展状况，和其它地区对比，和市内其它商圈对比，和其它楼盘房子对比，就可以做到不被轻易忽悠了。</p>
+<pre class="r"><code>library(httr)
+# 向高德地图 API 发 GET 请求
+GetCoord &lt;- function(address = &quot;仁为峰邵东壹号&quot;, city = &quot;邵东市&quot;) {
+  tmp &lt;- GET(
+    url = &quot;https://restapi.amap.com/&quot;,
+    path = &quot;v3/geocode/geo&quot;,
+    query = list(
+      # 原坐标，经纬度小数点后不得超过6位
+      address = address,
+      # 原坐标参考系，还支持 GPS 坐标，取值 &#39;gps&#39;
+      city = city,
+      # 返回数据格式，还支持 xml
+      output = &quot;json&quot;,
+      # 高德地图 WEB 服务 API 访问令牌
+      key = Sys.getenv(&quot;AMAP_KEY&quot;)
+    )
+  )
+  as.numeric(strsplit(x = content(tmp)$geocodes[[1]]$location, split = &quot;,&quot;)[[1]])
+}
+# 测试一下
+GetCoord(address = &quot;仁为峰邵东壹号&quot;, city = &quot;湖南省邵阳市邵东市&quot;)</code></pre>
+<pre><code># [1] 111.751713  27.270619</code></pre>
+<p>接下来将函数向量化，以便批量解析地址，获取经纬度数据。可用 <code>Vectorize()</code> 函数实现，只需指定待向量化的参数向量。</p>
+<pre class="r"><code># 函数向量化
+GetCoordVec &lt;- Vectorize(FUN = GetCoord, vectorize.args = c(&quot;address&quot;, &quot;city&quot;), USE.NAMES = F, SIMPLIFY = F)
+# 测试一下
+GetCoordVec(address = &quot;仁为峰邵东壹号&quot;, city = &quot;湖南省邵阳市邵东市&quot;)</code></pre>
+<p>首先准备各个楼盘和地址信息，有的提供楼盘就能比较好的定位，有的定位不行，可见高德的数据不是百分百准确的。实际上任何数据都别想百分百精确，一些楼盘可能是新开的，周围配套还未建立，高德数据未及时更新等。</p>
+<pre class="r"><code># 批量解析地址
+house &lt;- c(
+  &quot;中际城市森林&quot;, &quot;仁为峰邵东壹号&quot;, &quot;龙熙府邸&quot;,
+  &quot;邦盛凤凰城（御玺）&quot;, &quot;碧桂园·星钻&quot;, &quot;泰丰城&quot;,
+  &quot;中驰晨曦桐江府&quot;, &quot;悦富时代广场&quot;, &quot;横科·佳润国际&quot;,
+  &quot;碧桂园·珑璟台&quot;, &quot;中伟·国际公馆&quot;, &quot;福星御景城&quot;,
+  &quot;中翔·龙玺&quot;, &quot;金裕名都&quot;, &quot;横科·金泉华府&quot;, &quot;富景鑫城&quot;
+)
+# 地址来自安居客 App
+address &lt;- paste0(&quot;湖南省邵阳市邵东市&quot;, c(
+  &quot;中际城市森林&quot;, &quot;仁为峰邵东壹号&quot;, &quot;梨园路与金石路交汇处&quot;,
+  &quot;邦盛凤凰城（御玺）&quot;, &quot;绿汀大道与336省道交汇处&quot;, &quot;泰丰城&quot;,
+  &quot;中驰晨曦桐江府&quot;, &quot;悦富时代广场&quot;, &quot;公园路与新辉路交汇处&quot;,
+  &quot;宋家塘梨园路168号&quot;, &quot;建设北路与景秀路交互处&quot;, &quot;福星御景城&quot;,
+  &quot;中翔·龙玺&quot;, &quot;金裕名都&quot;, &quot;横科·金泉华府&quot;, &quot;兴和大道与光大路交叉口&quot;
+))</code></pre>
+<p>调用 <code>mapply()</code> 函数批量发送请求获取数据，返回的 list 列表数据对象，可用函数 <code>do.call()</code> 配合 <code>rbind()</code> 合并成 matrix 类型，再转为通用的 data.frame 类型。</p>
+<pre class="r"><code># 获取数据
+dat &lt;- mapply(FUN = GetCoordVec, address = address, MoreArgs = list(city = &quot;湖南省邵阳市邵东市&quot;))
+# 整理数据
+dat2 &lt;- do.call(&quot;rbind&quot;, dat)
+dat2 &lt;- as.data.frame(dat2)
+colnames(dat2) &lt;- c(&quot;long&quot;, &quot;lat&quot;)
+dat2$house &lt;- house</code></pre>
+<p>最后，调用 <strong>leaflet</strong> 包，将数据导入绘图函数即可。如图<a href="#fig:shaodong-house">1</a>所示，图中红点是邵东市各个在售楼盘的空间位置，仅考虑了安居客 App 的数据。</p>
+<pre class="r"><code>library(leaflet)
+library(leafletCN)
+# 绘图
+leaflet(options = leafletOptions(
+  minZoom = 4, maxZoom = 18,
+  zoomControl = FALSE
+)) |&gt;
+  setView(lng = mean(dat2$long), lat = mean(dat2$lat), zoom = 14) |&gt;
+  leafletCN::amap() |&gt;
+  addCircles(
+    data = dat2,
+    lng = ~long, lat = ~lat, label = ~house,
+    radius = 50, color = &quot;red&quot;,
+    fillOpacity = 0.55, stroke = T, weight = 1
+  )</code></pre>
+<div class="figure"><span style="display:block;" id="fig:shaodong-house"></span>
+<img src="img/shaodong-house.png" class="full" alt="" />
+<p class="caption">图 1: 邵东市各个楼盘的空间位置</p>
+</div>
+<p>值得注意的是「龙熙府邸」和「碧桂园珑璟台」的定位重合了，地理位置上，二者确实也接近。经过这一番使用，可见高德开放平台给的经纬度地址解析服务一般。</p>
+<p>图中信息比较丰富，简单说下：</p>
+<ol style="list-style-type: decimal">
+<li>各个楼盘在城市主干道昭阳大道、绿汀大道两侧排开。</li>
+<li>高铁邵东站、国际商贸城、邦盛凤凰城地理位置价值依次降低，后者短期内发展不起来。</li>
+<li>百富广场、邵东工业品市场、邵东市中医院、邵东一中属于老城区。</li>
+<li>2019年邵东撤县划市，建设新城区，邵东高铁站开通，楼市炒贵族学校、区位优势，县政府推波助澜，房价已翻倍。</li>
+<li>建设新城区，碧桂园等头部房企进场，对房价有推动作用，但整体上供给充足。</li>
+</ol>
+<p>另外，结合最近几年邵东市发布的统计年鉴数据，笔者了解到，邵东市最近几年人口增长为负，经济增长主要靠固定资产投资，换个说法，就是房地产投资。大城市各个行业，特别是产业互联网下沉战略促使三、四、五线城市消费升级，但是小城人民薪资待遇并没有升级，形成收入消费倒挂。因此，小城房地产价格近年猛增已到极限，没有足够配套建设，特别是没有大城市的高质量劳动力回流，城市发展会很慢。结合笔者对邵东市近年来人才引进政策、人力市场需求和薪资待遇的了解，特别是对公务员、中学教师、工程师等岗位的分析，对大城市高质量劳动力吸引不足，也承接不了。</p>
+<p>目前，邵东房价整体在 5000至6000，如果资金充裕，不用选，找最贵的房子买，大家都不傻，地段越好，价格越高。未来城市资源配套都往这集中，等着升值，当下越贵的房子未来升值空间也越高，这就是马太效应！2021年房价基本稳定，国家出台系列政策调控，国家若不出手，房地产就只剩下泡沫了，楼市也将迟早崩盘，这对邵东经济发展是致命的。</p>
