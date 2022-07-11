@@ -7,6 +7,10 @@
     <span class="article-duration">预计阅读 </span>
     {{ end }}
 
+    {{ if eq .Section "daily" }}
+    <span class="article-duration">预计阅读 </span>
+    {{ end }}
+
     <h1 class="article-title">{{ .Title }}</h1>
     {{ if .Params.author }}      
       <h3 class="article-author">{{ .Params.author }}</h3>
@@ -26,6 +30,12 @@
     {{ end }} 
     
     {{ if eq .Section "post" }}
+    <span class="article-date">日期: {{ .Date.Format "2006/01/02" }}</span>
+    <br>
+    <span class="article-metadata article-wordcount">字数: </span>
+    {{ end }}
+
+    {{ if eq .Section "daily" }}
     <span class="article-date">日期: {{ .Date.Format "2006/01/02" }}</span>
     <br>
     <span class="article-metadata article-wordcount">字数: </span>
