@@ -24,9 +24,11 @@ tags:
 output:
   blogdown::html_page:
     toc: true
+    number_sections: true
 link-citations: true
 math: true
-thumbnail: /img/maps-in-r/usmap-statex77.png
+thumbnail: img/usmap-statex77.png
+csl: institute-of-mathematical-statistics.csl
 bibliography: 
   - refer.bib
   - packages.bib
@@ -60,80 +62,6 @@ knitr::knit_hooks$set(output = local({
 }))
 # 控制输出的宽度
 options(width = 89)
-```
-
-```{css, echo=FALSE}
-.sidebar {
-  border: 1px solid #ccc;
-}
-
-.rmdwarn {
-  border: 1px solid #EA4335;
-}
-
-.rmdnote {
-  border: 1px solid #FBBC05;
-}
-
-.rmdtip {
-  border: 1px solid #34A853;
-}
-
-.sidebar, .rmdwarn, .rmdnote, .rmdtip {
-  border-left-width: 5px;
-  border-radius: 5px;
-  padding: 1em;
-  margin: 1em 0;
-}
-
-div.rmdwarn::before, div.rmdnote::before, div.rmdtip::before {
-  display: block;
-  font-size: 1.1em;
-  font-weight: bold;
-  margin-bottom: 0.25em;
-}
-
-div.rmdwarn::before {
-  content: "警告";
-  color: #EA4335;
-}
-
-div.rmdnote::before {
-  content: "注意";
-  color: #FBBC05;
-}
-
-div.rmdtip::before {
-  content: "提示";
-  color: #34A853;
-}
-
-.rmdinfo {
-  border: 1px solid #ccc;
-  border-left-width: 5px;
-  border-radius: 5px;
-  padding: 1em;
-  margin: 1em 0;
-}
-div.rmdinfo::before {
-  content: "声明";
-  color: block;
-  display: block;
-  font-size: 1.1em;
-  font-weight: bold;
-  margin-bottom: 0.25em;
-}
-
-figure {
-  text-align: center;
-}
-
-div.img {
-  text-align: center;
-  display: block; 
-  margin-left: auto; 
-  margin-right: auto;
-}
 ```
 
 ::: rmdinfo
@@ -1743,5 +1671,7 @@ bib <- gsub("(\\\n)", " ", bib)
 xfun::write_utf8(bib, "packages.bib")
 ```
 
-# 参考文献
+# 参考文献 {#refer}
+
+<div id="refs"></div>
 

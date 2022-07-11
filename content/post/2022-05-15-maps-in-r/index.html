@@ -24,9 +24,11 @@ tags:
 output:
   blogdown::html_page:
     toc: true
+    number_sections: true
 link-citations: true
 math: true
-thumbnail: /img/maps-in-r/usmap-statex77.png
+thumbnail: img/usmap-statex77.png
+csl: institute-of-mathematical-statistics.csl
 bibliography: 
   - refer.bib
   - packages.bib
@@ -36,122 +38,49 @@ description: "介绍用于地理可视化的几种常用数据结构，比如 **
 
 <div id="TOC">
 <ul>
-<li><a href="#概览" id="toc-概览">概览</a></li>
-<li><a href="#空间数据" id="toc-空间数据">空间数据</a>
+<li><a href="#概览" id="toc-概览"><span class="toc-section-number">1</span> 概览</a></li>
+<li><a href="#空间数据" id="toc-空间数据"><span class="toc-section-number">2</span> 空间数据</a>
 <ul>
-<li><a href="#示例美国旧金山犯罪数据" id="toc-示例美国旧金山犯罪数据">示例：美国旧金山犯罪数据</a></li>
-<li><a href="#示例美国人口普查统计数据" id="toc-示例美国人口普查统计数据">示例：美国人口普查统计数据</a></li>
-<li><a href="#示例美国锡安公园地形数据" id="toc-示例美国锡安公园地形数据">示例：美国锡安公园地形数据</a></li>
+<li><a href="#示例美国旧金山犯罪数据" id="toc-示例美国旧金山犯罪数据"><span class="toc-section-number">2.1</span> 示例：美国旧金山犯罪数据</a></li>
+<li><a href="#示例美国人口普查统计数据" id="toc-示例美国人口普查统计数据"><span class="toc-section-number">2.2</span> 示例：美国人口普查统计数据</a></li>
+<li><a href="#示例美国锡安公园地形数据" id="toc-示例美国锡安公园地形数据"><span class="toc-section-number">2.3</span> 示例：美国锡安公园地形数据</a></li>
 </ul></li>
-<li><a href="#可视化包" id="toc-可视化包">可视化包</a>
+<li><a href="#可视化包" id="toc-可视化包"><span class="toc-section-number">3</span> 可视化包</a>
 <ul>
-<li><a href="#echarts4r" id="toc-echarts4r">echarts4r</a></li>
-<li><a href="#leaflet" id="toc-leaflet">leaflet</a></li>
-<li><a href="#plotly" id="toc-plotly">plotly</a></li>
-<li><a href="#lattice" id="toc-lattice">lattice</a></li>
+<li><a href="#echarts4r" id="toc-echarts4r"><span class="toc-section-number">3.1</span> echarts4r</a></li>
+<li><a href="#leaflet" id="toc-leaflet"><span class="toc-section-number">3.2</span> leaflet</a></li>
+<li><a href="#plotly" id="toc-plotly"><span class="toc-section-number">3.3</span> plotly</a></li>
+<li><a href="#lattice" id="toc-lattice"><span class="toc-section-number">3.4</span> lattice</a></li>
 </ul></li>
-<li><a href="#数据结构" id="toc-数据结构">数据结构</a>
+<li><a href="#数据结构" id="toc-数据结构"><span class="toc-section-number">4</span> 数据结构</a>
 <ul>
-<li><a href="#矢量数据-sp" id="toc-矢量数据-sp">矢量数据 sp</a></li>
-<li><a href="#矢量数据-sf" id="toc-矢量数据-sf">矢量数据 sf</a></li>
+<li><a href="#矢量数据-sp" id="toc-矢量数据-sp"><span class="toc-section-number">4.1</span> 矢量数据 sp</a></li>
+<li><a href="#矢量数据-sf" id="toc-矢量数据-sf"><span class="toc-section-number">4.2</span> 矢量数据 sf</a></li>
 </ul></li>
-<li><a href="#数据操作" id="toc-数据操作">数据操作</a>
+<li><a href="#数据操作" id="toc-数据操作"><span class="toc-section-number">5</span> 数据操作</a>
 <ul>
-<li><a href="#一般数据操作" id="toc-一般数据操作">一般数据操作</a></li>
-<li><a href="#空间数据操作" id="toc-空间数据操作">空间数据操作</a></li>
+<li><a href="#一般数据操作" id="toc-一般数据操作"><span class="toc-section-number">5.1</span> 一般数据操作</a></li>
+<li><a href="#空间数据操作" id="toc-空间数据操作"><span class="toc-section-number">5.2</span> 空间数据操作</a></li>
 </ul></li>
-<li><a href="#案例美国北卡婴儿猝死综合征数据" id="toc-案例美国北卡婴儿猝死综合征数据">案例：美国北卡婴儿猝死综合征数据</a>
+<li><a href="#案例美国北卡婴儿猝死综合征数据" id="toc-案例美国北卡婴儿猝死综合征数据"><span class="toc-section-number">6</span> 案例：美国北卡婴儿猝死综合征数据</a>
 <ul>
-<li><a href="#ggplot2-sf" id="toc-ggplot2-sf">ggplot2 &amp; sf</a></li>
-<li><a href="#leaflet-mapdeck" id="toc-leaflet-mapdeck">leaflet &amp; mapdeck</a></li>
-<li><a href="#spspplot" id="toc-spspplot">sp::spplot</a></li>
-<li><a href="#latticeextramapplot" id="toc-latticeextramapplot">latticeExtra::mapplot</a></li>
+<li><a href="#ggplot2-sf" id="toc-ggplot2-sf"><span class="toc-section-number">6.1</span> ggplot2 &amp; sf</a></li>
+<li><a href="#leaflet-mapdeck" id="toc-leaflet-mapdeck"><span class="toc-section-number">6.2</span> leaflet &amp; mapdeck</a></li>
+<li><a href="#spspplot" id="toc-spspplot"><span class="toc-section-number">6.3</span> sp::spplot</a></li>
+<li><a href="#latticeextramapplot" id="toc-latticeextramapplot"><span class="toc-section-number">6.4</span> latticeExtra::mapplot</a></li>
 </ul></li>
-<li><a href="#总结归纳" id="toc-总结归纳">总结归纳</a></li>
-<li><a href="#未来展望" id="toc-未来展望">未来展望</a></li>
-<li><a href="#环境信息" id="toc-环境信息">环境信息</a></li>
-<li><a href="#参考文献" id="toc-参考文献">参考文献</a></li>
+<li><a href="#总结归纳" id="toc-总结归纳"><span class="toc-section-number">7</span> 总结归纳</a></li>
+<li><a href="#未来展望" id="toc-未来展望"><span class="toc-section-number">8</span> 未来展望</a></li>
+<li><a href="#环境信息" id="toc-环境信息"><span class="toc-section-number">9</span> 环境信息</a></li>
+<li><a href="#refer" id="toc-refer"><span class="toc-section-number">10</span> 参考文献</a></li>
 </ul>
 </div>
 
-<style type="text/css">
-.sidebar {
-  border: 1px solid #ccc;
-}
-
-.rmdwarn {
-  border: 1px solid #EA4335;
-}
-
-.rmdnote {
-  border: 1px solid #FBBC05;
-}
-
-.rmdtip {
-  border: 1px solid #34A853;
-}
-
-.sidebar, .rmdwarn, .rmdnote, .rmdtip {
-  border-left-width: 5px;
-  border-radius: 5px;
-  padding: 1em;
-  margin: 1em 0;
-}
-
-div.rmdwarn::before, div.rmdnote::before, div.rmdtip::before {
-  display: block;
-  font-size: 1.1em;
-  font-weight: bold;
-  margin-bottom: 0.25em;
-}
-
-div.rmdwarn::before {
-  content: "警告";
-  color: #EA4335;
-}
-
-div.rmdnote::before {
-  content: "注意";
-  color: #FBBC05;
-}
-
-div.rmdtip::before {
-  content: "提示";
-  color: #34A853;
-}
-
-.rmdinfo {
-  border: 1px solid #ccc;
-  border-left-width: 5px;
-  border-radius: 5px;
-  padding: 1em;
-  margin: 1em 0;
-}
-div.rmdinfo::before {
-  content: "声明";
-  color: block;
-  display: block;
-  font-size: 1.1em;
-  font-weight: bold;
-  margin-bottom: 0.25em;
-}
-
-figure {
-  text-align: center;
-}
-
-div.img {
-  text-align: center;
-  display: block; 
-  margin-left: auto; 
-  margin-right: auto;
-}
-</style>
 <div class="rmdinfo">
 <p>本文引用的所有信息均为公开信息，仅代表作者本人观点，与就职单位无关。</p>
 </div>
-<div id="概览" class="section level1">
-<h1>概览</h1>
+<div id="概览" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> 概览</h1>
 <p>本文首先以实际示例介绍三类典型的空间数据，希望读者能对不同类型的空间数据的特点和使用场景有个简单印象。紧接着，介绍各类地理空间数据的可视化方法及 R 包实现，笔者从个人经验出发详细介绍了4个，相信足够让读者应付大部分使用场景。之后，再介绍 R 语言中的空间数据类型及其基本操作，空间数据操作是基本功，也是比较难的，没放在空间数据可视化前面是怕吓跑了一些读者，笔者所知也十分有限，也怕写不好。再基于一个真实数据用不同的 R 包实现类似的可视化效果，是几代空间数据可视化方法的并列介绍，最后是一些心得、总结和展望。</p>
 <p>本文有几个写作意图：</p>
 <ol style="list-style-type: decimal">
@@ -164,11 +93,11 @@ div.img {
 无需强调：笔者不是测绘专业出身，自学过一点地统计学（Geostatistics），很多地理信息和空间分析的领域知识是现学现卖，恐有错漏，还请多多指正。 
 -->
 </div>
-<div id="空间数据" class="section level1">
-<h1>空间数据</h1>
-<p>空间数据基本类型有点、线、面（或称多边形）等，还分矢量数据和栅格数据，地理可视化的展示形式有气泡图、热力图、瓦片图、地形图等。下面通过几个实际的空间数据，以图形的展示方式以期帮助读者建立数据直觉，陆续使用 <strong>lattice</strong> <span class="citation">(<a href="#ref-lattice" role="doc-biblioref">Sarkar 2021</a>)</span>、<strong>ggplot2</strong> <span class="citation">(<a href="#ref-ggplot2" role="doc-biblioref">Wickham et al. 2022</a>)</span>和 <strong>leaflet</strong> <span class="citation">(<a href="#ref-leaflet" role="doc-biblioref">Cheng, Karambelkar, and Xie 2022</a>)</span> 来绘制静态和交互图形。</p>
-<div id="示例美国旧金山犯罪数据" class="section level2">
-<h2>示例：美国旧金山犯罪数据</h2>
+<div id="空间数据" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> 空间数据</h1>
+<p>空间数据基本类型有点、线、面（或称多边形）等，还分矢量数据和栅格数据，地理可视化的展示形式有气泡图、热力图、瓦片图、地形图等。下面通过几个实际的空间数据，以图形的展示方式以期帮助读者建立数据直觉，陆续使用 <strong>lattice</strong> <span class="citation">[<a href="#ref-lattice" role="doc-biblioref">1</a>]</span>、<strong>ggplot2</strong> <span class="citation">[<a href="#ref-ggplot2" role="doc-biblioref">2</a>]</span>和 <strong>leaflet</strong> <span class="citation">[<a href="#ref-leaflet" role="doc-biblioref">3</a>]</span> 来绘制静态和交互图形。</p>
+<div id="示例美国旧金山犯罪数据" class="section level2" number="2.1">
+<h2><span class="header-section-number">2.1</span> 示例：美国旧金山犯罪数据</h2>
 <p>下面以 <strong>RgoogleMaps</strong> 包内置的数据集 incidents 为例介绍空间点数据，并作一些简单的分析。</p>
 <pre class="r"><code>library(RgoogleMaps)
 # 加载 incidents 
@@ -196,7 +125,7 @@ head(incidents)
 # 35951  37.78   FALSE      11  11.50000     11.500 06075016400
 # 102975 37.73   FALSE      07   7.00000    151.000 06075025702
 # 35201  37.76   FALSE      00   0.38333     48.383 06075020800</code></pre>
-<p>数据集 incidents 来自 2012 年旧金山的犯罪数据，更多数据见 <a href="https://datasf.org/opendata/">DataSF 项目</a>，一些数据分析见 Github <a href="https://github.com/datasf">项目</a>。数据集 incidents 随机抽取了 5000 行，16个观测变量，分别是犯罪数目 <code>IncidntNum</code>、犯罪类型 <code>Category</code>、犯罪行为描述 <code>Descript</code>、犯罪行为发生在周几 <code>DayOfWeek</code>、犯罪行为发生的日期 <code>Date</code>、犯罪行为发生的时间（hh::mm）<code>Time</code>、警局辖区 <code>PdDistrict</code>、警方处置方式 <code>Resolution</code>、位置 <code>Location</code>、经度 <code>lon</code>、纬度 <code>lat</code>、是否属于暴力行为 <code>violent</code>、发生时间（小时，以2位整数计） <code>HrOfDay</code>、发生时间（小时，以10进制计）<code>TimeOfDay</code>、发生时间（一周168个小时，0-168之间的数字）<code>HourOfWeek</code>、人口普查的区块标记 <code>censusBlock</code>。图<a href="#fig:incidents-map">1</a>展示警方出警地点，或者说犯罪行为发生地点，红点表示此处发生暴力冲突，黑点表示此处没有暴力冲突。</p>
+<p>数据集 incidents 来自 2012 年旧金山的犯罪数据，更多数据见 <a href="https://datasf.org/opendata/">DataSF 项目</a>，一些数据分析见 Github <a href="https://github.com/datasf">项目</a>。数据集 incidents 随机抽取了 5000 行，16个观测变量，分别是犯罪数目 <code>IncidntNum</code>、犯罪类型 <code>Category</code>、犯罪行为描述 <code>Descript</code>、犯罪行为发生在周几 <code>DayOfWeek</code>、犯罪行为发生的日期 <code>Date</code>、犯罪行为发生的时间（hh::mm）<code>Time</code>、警局辖区 <code>PdDistrict</code>、警方处置方式 <code>Resolution</code>、位置 <code>Location</code>、经度 <code>lon</code>、纬度 <code>lat</code>、是否属于暴力行为 <code>violent</code>、发生时间（小时，以2位整数计） <code>HrOfDay</code>、发生时间（小时，以10进制计）<code>TimeOfDay</code>、发生时间（一周168个小时，0-168之间的数字）<code>HourOfWeek</code>、人口普查的区块标记 <code>censusBlock</code>。图<a href="#fig:incidents-map">2.1</a>展示警方出警地点，或者说犯罪行为发生地点，红点表示此处发生暴力冲突，黑点表示此处没有暴力冲突。</p>
 <pre class="r"><code>plotmap(
   lat = lat, lon = lon, data = incidents, 
   col = &#39;violent&#39;, zoom = 12,
@@ -205,9 +134,9 @@ head(incidents)
 )</code></pre>
 <div class="figure"><span style="display:block;" id="fig:incidents-map"></span>
 <img src="img/incidents-map.png" class="full" alt="" />
-<p class="caption">图 1:  2012 年旧金山警方出警地点的空间分布</p>
+<p class="caption">图 2.1:  2012 年旧金山警方出警地点的空间分布</p>
 </div>
-<p>除了 <strong>RgoogleMaps</strong> 提供的 <code>plotmap()</code> 函数，当然，还可以用 <strong>leaflet</strong> 来绘制交互式的散点图，因为交互，可以放入更多的信息。如图<a href="#fig:incidents-leaflet">2</a>，鼠标悬浮在散点上可以看到事件发生的警区 PdDistrict，点击可以看到警方的处置方式 Resolution，这是设置 <code>addCircles()</code> 的参数 <code>label</code> 和 <code>popup</code> 实现的，实际上，它们还可以放入更加丰富的信息。</p>
+<p>除了 <strong>RgoogleMaps</strong> 提供的 <code>plotmap()</code> 函数，当然，还可以用 <strong>leaflet</strong> 来绘制交互式的散点图，因为交互，可以放入更多的信息。如图<a href="#fig:incidents-leaflet">2.2</a>，鼠标悬浮在散点上可以看到事件发生的警区 PdDistrict，点击可以看到警方的处置方式 Resolution，这是设置 <code>addCircles()</code> 的参数 <code>label</code> 和 <code>popup</code> 实现的，实际上，它们还可以放入更加丰富的信息。</p>
 <pre class="r"><code>library(leaflet)
 # 分类变量映射成颜色
 colorize_factor &lt;- function(x) {
@@ -232,7 +161,7 @@ leaflet(options = leafletOptions(
   ), values = incidents$Resolution, opacity = 1)</code></pre>
 <div class="figure"><span style="display:block;" id="fig:incidents-leaflet"></span>
 <img src="img/incidents-leaflet.png" class="full" alt="" />
-<p class="caption">图 2:  2012 年旧金山警方出警地点的空间分布</p>
+<p class="caption">图 2.2:  2012 年旧金山警方出警地点的空间分布</p>
 </div>
 <p>接下来再细致一点地探索 incidents 数据集，各个警区出警次数的分布情况，</p>
 <pre class="r"><code>library(data.table)
@@ -245,9 +174,9 @@ ggplot(data = dat, aes(x = PdDistrict, y = cnt, fill = violent)) +
   geom_col()</code></pre>
 <div class="figure"><span style="display:block;" id="fig:incidents-pddistrict"></span>
 <img src="img/incidents-pddistrict.png" class="full" alt="" />
-<p class="caption">图 3:  事件发生次数随警区的分布</p>
+<p class="caption">图 2.3:  事件发生次数随警区的分布</p>
 </div>
-<p>进一步，可将图<a href="#fig:incidents-pddistrict">3</a>所示分布绘制在地图上，如图<a href="#fig:incidents">4</a>展示事件发生次数随警区的空间分布。</p>
+<p>进一步，可将图<a href="#fig:incidents-pddistrict">2.3</a>所示分布绘制在地图上，如图<a href="#fig:incidents">2.4</a>展示事件发生次数随警区的空间分布。</p>
 <pre class="r"><code>dat &lt;- incidents[, .(cnt = length(IncidntNum), lat = mean(lat), lon = mean(lon)), by = c(&quot;violent&quot;, &quot;PdDistrict&quot;)]
 # RgoogleMapsPlot 函数合成了地图和 lattice 分面绘图的能力
 RgoogleMapsPlot(cnt ~ lat * lon | violent,
@@ -262,7 +191,7 @@ RgoogleMapsPlot(cnt ~ lat * lon | violent,
 )</code></pre>
 <div class="figure"><span style="display:block;" id="fig:incidents"></span>
 <img src="img/incidents.png" class="full" alt="" />
-<p class="caption">图 4:  事件发生次数随警区的<strong>空间</strong>分布：左图<strong>非暴力</strong>事件，右图<strong>暴力</strong>事件</p>
+<p class="caption">图 2.4:  事件发生次数随警区的<strong>空间</strong>分布：左图<strong>非暴力</strong>事件，右图<strong>暴力</strong>事件</p>
 </div>
 <p>再从全年来看，事件发生的时间分布，发现犯罪的高峰时段从下午 5-6 点一直持续到午夜 12 点。</p>
 <pre class="r"><code>dat &lt;- incidents[, .(cnt = length(IncidntNum)), by = c(&quot;HrOfDay&quot;, &quot;violent&quot;)]
@@ -270,7 +199,7 @@ ggplot(data = dat, aes(x = HrOfDay, y = cnt, fill = violent)) +
   geom_col()</code></pre>
 <div class="figure"><span style="display:block;" id="fig:incidents-hour"></span>
 <img src="img/incidents-hour.png" class="full" alt="" />
-<p class="caption">图 5:  事件发生次数随时段的分布</p>
+<p class="caption">图 2.5:  事件发生次数随时段的分布</p>
 </div>
 <p>每次接报出警，警方会根据具体情况快速对事件定级分类，然后派出相应的警力以及处置方式。可以见事件性质 Category、是否发生暴力 violent 和警方处置方式 Resolution 应当有很强的关联。既然 Category， violent 和 Resolution 有很强的关联，展示关联关系非常重要，有的分类 Category 就应该给予足够的处置力度，特别对于暴力事件，关注警方的措施是否有不当或处置不力的？以此，还可以推测旧金山的治安状况。</p>
 <pre class="r"><code>dat &lt;- incidents[, .(cnt = length(IncidntNum)), by = c(&quot;Category&quot;, &quot;violent&quot;, &quot;Resolution&quot;)]
@@ -282,11 +211,11 @@ ggplot(data = dat, aes(x = reorder(Category, cnt), y = cnt, fill = Resolution)) 
   labs(x = &quot;Category&quot;)</code></pre>
 <div class="figure"><span style="display:block;" id="fig:incidents-resolution"></span>
 <img src="img/incidents-resolution.png" class="full" alt="" />
-<p class="caption">图 6:  事件性质和警方处置情况</p>
+<p class="caption">图 2.6:  事件性质和警方处置情况</p>
 </div>
-<p>从图<a href="#fig:incidents-resolution">6</a>看出，对于不同的事件 Category 有不同的执行措施 Resolution，执行措施和是否属于暴力有关系。一般来讲，暴力事件都应该有处置，发生暴力事件只有 5 类，按发生次数依次是打架斗殴、抢劫、性骚扰、绑架、盗窃，从图中也可看出盗窃是最多的犯罪事件。下表 <a href="#tab:incidents-category">1</a> 是对图中分类的中文翻译，笔者英文水平一般，翻译仅供参考。</p>
+<p>从图<a href="#fig:incidents-resolution">2.6</a>看出，对于不同的事件 Category 有不同的执行措施 Resolution，执行措施和是否属于暴力有关系。一般来讲，暴力事件都应该有处置，发生暴力事件只有 5 类，按发生次数依次是打架斗殴、抢劫、性骚扰、绑架、盗窃，从图中也可看出盗窃是最多的犯罪事件。下表 <a href="#tab:incidents-category">2.1</a> 是对图中分类的中文翻译，笔者英文水平一般，翻译仅供参考。</p>
 <table>
-<caption><span id="tab:incidents-category">表 1: </span>事件性质</caption>
+<caption><span id="tab:incidents-category">表 2.1: </span>事件性质</caption>
 <thead>
 <tr class="header">
 <th align="left">Category</th>
@@ -429,9 +358,9 @@ ggplot(data = dat, aes(x = reorder(Category, cnt), y = cnt, fill = Resolution)) 
 </tbody>
 </table>
 </div>
-<div id="示例美国人口普查统计数据" class="section level2">
-<h2>示例：美国人口普查统计数据</h2>
-<p><strong>ggplot2</strong> 提供的 <code>map_data()</code> 函数可以从 <strong>maps</strong> 包中提取和转化地图数据，而 <code>coord_map()</code> 函数结合 <strong>mapproj</strong> 包可以实现坐标转化。下面以 R 内置的数据集 state.x77 为例，它记录了美国 1977 年 50 个州的人口普查情况，Population 各州的人口数量 （1975 年 7 月 1 日估计），Income 人均收入（1974年），Illiteracy 文盲比例（人口百分比），平均寿命（1969-1971年统计），Murder 谋杀和非过失杀人率（单位：十万分之一，1976年统计），HS Grad 高中毕业生百分比（1970 年统计），Frost 首都或大城市最低气温低于冰点的平均天数（1931-1960年统计），Area 土地面积（单位：平方英里）。如图<a href="#fig:ggplot2-statex77">7</a>， <strong>maps</strong> 包内置的美国各州的地图数据缺少夏威夷和阿拉斯加州。</p>
+<div id="示例美国人口普查统计数据" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span> 示例：美国人口普查统计数据</h2>
+<p><strong>ggplot2</strong> 提供的 <code>map_data()</code> 函数可以从 <strong>maps</strong> 包中提取和转化地图数据，而 <code>coord_map()</code> 函数结合 <strong>mapproj</strong> 包可以实现坐标转化。下面以 R 内置的数据集 state.x77 为例，它记录了美国 1977 年 50 个州的人口普查情况，Population 各州的人口数量 （1975 年 7 月 1 日估计），Income 人均收入（1974年），Illiteracy 文盲比例（人口百分比），平均寿命（1969-1971年统计），Murder 谋杀和非过失杀人率（单位：十万分之一，1976年统计），HS Grad 高中毕业生百分比（1970 年统计），Frost 首都或大城市最低气温低于冰点的平均天数（1931-1960年统计），Area 土地面积（单位：平方英里）。如图<a href="#fig:ggplot2-statex77">2.7</a>， <strong>maps</strong> 包内置的美国各州的地图数据缺少夏威夷和阿拉斯加州。</p>
 <pre class="r"><code>library(ggplot2)
 # 准备地图数据
 # maps 包的地图数据提取转为 data.frame 数据类型
@@ -459,7 +388,7 @@ ggplot(states_map, aes(x = long, y = lat, group = group)) +
   theme(legend.position = &quot;bottom&quot;) # 图例位置图形下方</code></pre>
 <div class="figure"><span style="display:block;" id="fig:ggplot2-statex77"></span>
 <img src="img/ggplot2-statex77.png" class="full" alt="" />
-<p class="caption">图 7:  1975年美国各个州的人口</p>
+<p class="caption">图 2.7:  1975年美国各个州的人口</p>
 </div>
 <p><a href="https://github.com/pdil/usmap/"><strong>usmap</strong></a> 提供 <code>plot_usmap()</code> 函数可谓专门用来绘制美国各州县的地图，包含夏威夷和阿拉斯加州，不包含波多黎各，参数 <code>data</code> 需要传入一个数据框，且必须有一列可以和地图提供的区域名称映射上，即需要有一列的列名是 state 或 fips。实际上，<strong>usmap</strong> 包 还内置有区县级地图数据，也支持抽取特定的州县，更多介绍见<a href="https://usmap.dev/">这里</a>。</p>
 <pre class="r"><code>library(ggplot2)
@@ -477,31 +406,31 @@ usmap::plot_usmap(data = state_x77, values = &quot;Population&quot;, labels = TR
   theme(legend.position = &quot;bottom&quot;) # 图例位置图形下方</code></pre>
 <div class="figure"><span style="display:block;" id="fig:usmap-statex77"></span>
 <img src="img/usmap-statex77.png" class="full" alt="" />
-<p class="caption">图 8:  1975年美国各个州的人口</p>
+<p class="caption">图 2.8:  1975年美国各个州的人口</p>
 </div>
 </div>
-<div id="示例美国锡安公园地形数据" class="section level2">
-<h2>示例：美国锡安公园地形数据</h2>
+<div id="示例美国锡安公园地形数据" class="section level2" number="2.3">
+<h2><span class="header-section-number">2.3</span> 示例：美国锡安公园地形数据</h2>
 <p>美国西南部犹他州锡安国家公园的高程珊格数据 elevation，该数据集由 <a href="https://nowosad.github.io/">Jakub Nowosad</a> 收集于 <a href="https://github.com/Nowosad/spDataLarge">spDataLarge</a> 包内，由于该 R 包收集的地理信息数据很多又很大，超出了 <a href="https://cran.r-project.org/">CRAN</a> 对 R 包的大小限制，因此，需要从作者制作的 drat 站点下载。</p>
 <pre class="r"><code>install.packages(&quot;spDataLarge&quot;, repos = &quot;https://nowosad.github.io/drat/&quot;)</code></pre>
-<p>elevation 数据集通过雷达地形测绘 SRTM (Shuttle Radar Topography Mission) 获得，其分辨率为 90m <span class="math inline">\(\times\)</span> 90m，属于高精度地形网格数据，更多细节描述见 <a href="http://srtm.csi.cgiar.org/" class="uri">http://srtm.csi.cgiar.org/</a>，下图<a href="#fig:raster-elevation">9</a>将公园的地形清晰地展示出来了，读者不妨再借助维基百科词条 (<a href="https://en.wikipedia.org/wiki/Zion_National_Park" class="uri">https://en.wikipedia.org/wiki/Zion_National_Park</a>) 从整体上了解该公园的情况，结合丰富的实景图可以获得更加直观的感受。</p>
+<p>elevation 数据集通过雷达地形测绘 SRTM (Shuttle Radar Topography Mission) 获得，其分辨率为 90m <span class="math inline">\(\times\)</span> 90m，属于高精度地形网格数据，更多细节描述见 <a href="http://srtm.csi.cgiar.org/" class="uri">http://srtm.csi.cgiar.org/</a>，下图<a href="#fig:raster-elevation">2.9</a>将公园的地形清晰地展示出来了，读者不妨再借助维基百科词条 (<a href="https://en.wikipedia.org/wiki/Zion_National_Park" class="uri">https://en.wikipedia.org/wiki/Zion_National_Park</a>) 从整体上了解该公园的情况，结合丰富的实景图可以获得更加直观的感受。</p>
 <div class="figure"><span style="display:block;" id="fig:raster-elevation"></span>
 <img src="img/raster-elevation.png" class="full" alt="" />
-<p class="caption">图 9:  <strong>terra</strong> 包绘制锡安国家公园地形</p>
+<p class="caption">图 2.9:  <strong>terra</strong> 包绘制锡安国家公园地形</p>
 </div>
 <div class="rmdtip">
 <p>R 软件内置的调色板 <code>terrain.colors()</code> 专用于地形图配色，从翠绿色、土黄色、沙白色，无不暗示海拔变化，读者不妨想象一下，山上的树呈翠绿色，山腰的砂石土块呈土黄色，山脚的河床小路呈沙白色，十分符合我国南方的丘陵山地印象。</p>
 </div>
 </div>
 </div>
-<div id="可视化包" class="section level1">
-<h1>可视化包</h1>
-<p>本节主要介绍几个 R 语言社区提供的地理可视化 R 包，分别是绘制交互式地图的 <strong>echarts4r</strong> 包 <span class="citation">(<a href="#ref-echarts4r" role="doc-biblioref">Coene 2022</a>)</span>、<strong>leaflet</strong> 包和 <strong>plotly</strong> 包。它们各有千秋， <strong>echarts4r</strong> 背靠 <a href="https://github.com/apache/echarts">Apache Echarts</a> 功能覆盖面比较广，但是还不够精纯，在易用性和性能上还有较大提升空间，此外，在统计方面有些弱，比如分组线性回归很难实现。<strong>leaflet</strong> 专注于交互式地理可视化，支持常见的矢量和栅格数据对象。<strong>plotly</strong> 背后的支持来自商业公司，上游依赖是开源的JavaScript 库<a href="https://github.com/plotly">plotly</a>，深耕多年，功能全面，使用的体感是性能比较差。</p>
+<div id="可视化包" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> 可视化包</h1>
+<p>本节主要介绍几个 R 语言社区提供的地理可视化 R 包，分别是绘制交互式地图的 <strong>echarts4r</strong> 包 <span class="citation">[<a href="#ref-echarts4r" role="doc-biblioref">4</a>]</span>、<strong>leaflet</strong> 包和 <strong>plotly</strong> 包。它们各有千秋， <strong>echarts4r</strong> 背靠 <a href="https://github.com/apache/echarts">Apache Echarts</a> 功能覆盖面比较广，但是还不够精纯，在易用性和性能上还有较大提升空间，此外，在统计方面有些弱，比如分组线性回归很难实现。<strong>leaflet</strong> 专注于交互式地理可视化，支持常见的矢量和栅格数据对象。<strong>plotly</strong> 背后的支持来自商业公司，上游依赖是开源的JavaScript 库<a href="https://github.com/plotly">plotly</a>，深耕多年，功能全面，使用的体感是性能比较差。</p>
 <p>地理可视化的 R 包是有很多的，本文无法穷尽。<a href="https://github.com/trulia/choroplethr">choroplethr</a> 和<a href="https://github.com/trulia/choroplethrMaps">choroplethrMaps</a> 主要用来制作地区分布图，需要的区域数据，<strong>choroplethrMaps</strong> 包提供三份地图数据，分别是美国州、县地图和世界地图，相关介绍材料见<a href="https://arilamstein.com/open-source/">这里</a>。<a href="https://github.com/r-tmap/tmap">tmap</a> 制作交互地图，<a href="https://github.com/riatelab/mapsf">mapsf</a> 制作符号地图、等值地图、拓扑地图，关于各类地图的可视化示例见<a href="https://antv.vision/zh">AntV 官网</a>。<a href="https://github.com/michaeldorman/mapsapi">mapsapi</a> 可以连接 4 种 Google 提供的 Web 地图服务。</p>
 <p>地理可视化的展示形式有多种，散点图、气泡图、峰窝图和热度图等，还可以有更加复合的专题地图，如在地图上省、市、区、县一级别，显示各个年龄段的人口比例，类似将饼图贴在地图上。为简单起见，主要以散点图为例介绍入门级别的内容。</p>
-<div id="echarts4r" class="section level2">
-<h2>echarts4r</h2>
-<p><strong>echarts4r</strong> 支持使用多种地图服务，包括 OSM（OpenStreetMap）、Mapbox、谷歌、高德等，只要提供引用瓦片服务数据模版即可。<strong>echarts4r</strong> 内置了一份矢量地图数据，如图<a href="#fig:quakes-echarts4r">10</a>所示。简单起见，这里使用了 R 内置的数据集 quakes，它描述了太平洋岛国斐济及周边自 1964 年以来的四级以上的地震活动。从图中不难看出有两个非常清晰的地震带。结合背景材料，一个在主要板块交界处，另一个是新西兰附近的汤加海沟。火山爆发和地震不是一回事，但紧密相连。2022年1月14日，汤加海底火山爆发，引发海啸等一系列自然灾害，中国地震局也发布新闻资讯—<a href="https://www.cea.gov.cn/cea/xwzx/fzjzyw/5647231/index.html">汤加火山喷发，会造成哪些影响？</a>详细介绍了这一事件。</p>
+<div id="echarts4r" class="section level2" number="3.1">
+<h2><span class="header-section-number">3.1</span> echarts4r</h2>
+<p><strong>echarts4r</strong> 支持使用多种地图服务，包括 OSM（OpenStreetMap）、Mapbox、谷歌、高德等，只要提供引用瓦片服务数据模版即可。<strong>echarts4r</strong> 内置了一份矢量地图数据，如图<a href="#fig:quakes-echarts4r">3.1</a>所示。简单起见，这里使用了 R 内置的数据集 quakes，它描述了太平洋岛国斐济及周边自 1964 年以来的四级以上的地震活动。从图中不难看出有两个非常清晰的地震带。结合背景材料，一个在主要板块交界处，另一个是新西兰附近的汤加海沟。火山爆发和地震不是一回事，但紧密相连。2022年1月14日，汤加海底火山爆发，引发海啸等一系列自然灾害，中国地震局也发布新闻资讯—<a href="https://www.cea.gov.cn/cea/xwzx/fzjzyw/5647231/index.html">汤加火山喷发，会造成哪些影响？</a>详细介绍了这一事件。</p>
 <pre class="r"><code>library(echarts4r)
 # 使用默认的地图
 quakes |&gt;
@@ -521,9 +450,9 @@ quakes |&gt;
   e_visual_map(mag, scale = e_scale)</code></pre>
 <div class="figure"><span style="display:block;" id="fig:quakes-echarts4r"></span>
 <img src="img/quakes-echarts4r.png" class="full" alt="" />
-<p class="caption">图 10:  <strong>echarts4r</strong> 使用内置矢量地图数据</p>
+<p class="caption">图 3.1:  <strong>echarts4r</strong> 使用内置矢量地图数据</p>
 </div>
-<p><strong>echarts4r</strong> 提供地理图层 <code>e_geo()</code> 专门用来加载地图数据，在这个例子中，只需要展示局部地图，因此基于数据集 quakes 提取经纬度范围，获取了边界信息，设置了参数 <code>boundingCoords</code>，即矩形的左上顶点和右下顶点的两个坐标，关于其它参数更加详尽的介绍，见 Apache Echarts 官方文档里 <a href="https://echarts.apache.org/en/option.html#geo.boundingCoords">地理图层</a>。下面做一些更加细致的调整，最终效果如图<a href="#fig:quakes-chalk">11</a>。</p>
+<p><strong>echarts4r</strong> 提供地理图层 <code>e_geo()</code> 专门用来加载地图数据，在这个例子中，只需要展示局部地图，因此基于数据集 quakes 提取经纬度范围，获取了边界信息，设置了参数 <code>boundingCoords</code>，即矩形的左上顶点和右下顶点的两个坐标，关于其它参数更加详尽的介绍，见 Apache Echarts 官方文档里 <a href="https://echarts.apache.org/en/option.html#geo.boundingCoords">地理图层</a>。下面做一些更加细致的调整，最终效果如图<a href="#fig:quakes-chalk">3.2</a>。</p>
 <ul>
 <li><code>e_effect_scatter()</code> 替换 <code>e_scatter()</code> 实现一些动态特效，和地震的震波建立一些视觉联系，不过会增加渲染压力；设置 <code>scale = NULL</code> 去掉默认对 size 变量的尺度变换；</li>
 <li><code>e_title()</code> 添加一些文字介绍斐济地震带背后的数据背景；</li>
@@ -593,9 +522,9 @@ quakes |&gt;
   e_theme(name = &quot;chalk&quot;)</code></pre>
 <div class="figure"><span style="display:block;" id="fig:quakes-chalk"></span>
 <img src="img/quakes-chalk.png" class="full" alt="" />
-<p class="caption">图 11:  <strong>echarts4r</strong> 使用内置矢量地图数据</p>
+<p class="caption">图 3.2:  <strong>echarts4r</strong> 使用内置矢量地图数据</p>
 </div>
-<p>下面介绍在瓦片地图数据的基础上展示 quakes 数据，如图<a href="#fig:quakes-osm">12</a> 所示，这里采用地理图层 <code>e_leaflet()</code> 调用开放的 OpenStreetMap 瓦片服务。</p>
+<p>下面介绍在瓦片地图数据的基础上展示 quakes 数据，如图<a href="#fig:quakes-osm">3.3</a> 所示，这里采用地理图层 <code>e_leaflet()</code> 调用开放的 OpenStreetMap 瓦片服务。</p>
 <pre class="r"><code># OSM
 quakes |&gt;
   e_charts(long) |&gt;
@@ -604,9 +533,9 @@ quakes |&gt;
   e_scatter(lat, size = mag, coord_system = &quot;leaflet&quot;)</code></pre>
 <div class="figure"><span style="display:block;" id="fig:quakes-osm"></span>
 <img src="img/quakes-osm.png" class="full" alt="" />
-<p class="caption">图 12:  <strong>echarts4r</strong> 使用 OpenStreetMap 地图</p>
+<p class="caption">图 3.3:  <strong>echarts4r</strong> 使用 OpenStreetMap 地图</p>
 </div>
-<p>只要提供瓦片地图服务的模版，就可以切换地图底图数据，图<a href="#fig:quakes-ggmap">13</a>使用了谷歌的地图服务。</p>
+<p>只要提供瓦片地图服务的模版，就可以切换地图底图数据，图<a href="#fig:quakes-ggmap">3.4</a>使用了谷歌的地图服务。</p>
 <pre class="r"><code># 谷歌地图
 quakes |&gt;
   e_charts(long) |&gt;
@@ -618,7 +547,7 @@ quakes |&gt;
   e_scatter(lat, size = mag, coord_system = &quot;leaflet&quot;)</code></pre>
 <div class="figure"><span style="display:block;" id="fig:quakes-ggmap"></span>
 <img src="img/quakes-ggmap.png" class="full" alt="" />
-<p class="caption">图 13:  <strong>echarts4r</strong> 使用谷歌地图</p>
+<p class="caption">图 3.4:  <strong>echarts4r</strong> 使用谷歌地图</p>
 </div>
 <p>类似谷歌的要求，使用 Mapbox 地图服务也需要先申请个人访问令牌，申请下来后，也把它设置到 R 语言环境变量里 <code>MAPBOX_TOKEN</code>，以便后续使用。</p>
 <pre class="r"><code># MAPBOX 地图
@@ -638,7 +567,7 @@ quakes |&gt;
   e_visual_map(mag)</code></pre>
 <div class="figure"><span style="display:block;" id="fig:quakes-mapbox"></span>
 <img src="img/quakes-mapbox.png" class="full" alt="" />
-<p class="caption">图 14:  <strong>echarts4r</strong> 使用 MAPBOX 地图</p>
+<p class="caption">图 3.5:  <strong>echarts4r</strong> 使用 MAPBOX 地图</p>
 </div>
 <p>在国内，最好使用百度、高德这样的国家认可的地图服务提供商，这也很容易，只需用高德的 tile 服务数据替换 OSM 的。</p>
 <pre class="r"><code># 高德地图
@@ -652,19 +581,19 @@ quakes |&gt;
   e_scatter(lat, size = mag, coord_system = &quot;leaflet&quot;)</code></pre>
 <div class="figure"><span style="display:block;" id="fig:quakes-amap"></span>
 <img src="img/quakes-amap.png" class="full" alt="" />
-<p class="caption">图 15:  <strong>echarts4r</strong> 使用高德地图</p>
+<p class="caption">图 3.6:  <strong>echarts4r</strong> 使用高德地图</p>
 </div>
 <p>另外，袁凡整理的材料 — <a href="https://cosx.org/2021/12/introduction-to-echarts4r/"><strong>echarts4r</strong>: 从入门到应用</a>，详细介绍了如何用 <strong>echarts4r</strong> 绘制各种各样的常用图形，如何引入外部地图数据制图，文章完全基于用 R Markdown 编译，图文并茂，内容可重复。苏玮制作的 <a href="https://github.com/swsoyee/2019-ncov-japan">日本新冠疫情看板</a> 也大量使用 <strong>echarts4r</strong>，可见 <strong>echarts4r</strong> 能力之强，此看板适合比较高阶的 R 语言读者学习，地理可视化的定制化程度比较高。</p>
-<p>百度、阿里、腾讯等公司都提供大量面向不同场景的地图服务，一些软件也内置了地图，如<a href="https://www.tableau.com/products/desktop">tableau</a>、<a href="https://grass.osgeo.org/">GRASS GIS</a> 和<a href="https://www.qgis.org/">QGIS</a>等，下图<a href="#fig:qgis">16</a> 展示 QGIS 软件使用在线的 OpenStreetMap 地图。</p>
+<p>百度、阿里、腾讯等公司都提供大量面向不同场景的地图服务，一些软件也内置了地图，如<a href="https://www.tableau.com/products/desktop">tableau</a>、<a href="https://grass.osgeo.org/">GRASS GIS</a> 和<a href="https://www.qgis.org/">QGIS</a>等，下图<a href="#fig:qgis">3.7</a> 展示 QGIS 软件使用在线的 OpenStreetMap 地图。</p>
 <div class="figure"><span style="display:block;" id="fig:qgis"></span>
 <img src="img/qgis.png" class="full" alt="" />
-<p class="caption">图 16:  QGIS 软件内的 OpenStreetMap 地图</p>
+<p class="caption">图 3.7:  QGIS 软件内的 OpenStreetMap 地图</p>
 </div>
 </div>
-<div id="leaflet" class="section level2">
-<h2>leaflet</h2>
-<p><strong>leaflet</strong> <span class="citation">(<a href="#ref-leaflet" role="doc-biblioref">Cheng, Karambelkar, and Xie 2022</a>)</span> 包借助 <a href="https://github.com/ramnathv/htmlwidgets"><strong>htmlwidgets</strong></a> 封装了鼎鼎大名的开源交互式可视化地图库 <a href="https://leafletjs.com/">leaflet</a>。注意，leaflet 只是一个渲染 GIS 数据的可视化库，并不提供 GIS 数据服务。类似的可视化库还有<a href="https://github.com/openlayers/openlayers">OpenLayers</a>，及其 R 接口<a href="https://github.com/crazycapivara/openlayers">openlayers</a>，另一个紧密相关的空间数据处理工具是<a href="https://github.com/geoserver/geoserver">GeoServer</a>，它遵循 Open Geospatial Consortium (OGC) Web Feature Service (WFS) 和 Web Coverage Service (WCS) 标准，支持各种 GIS 数据源。</p>
-<p>在可视化的过程中，配色是非常重要的一个环节，准确地表达地图上各个区域或位置的数据信息，负责体现分类、层次、大小等信息。常见的操作是将一组数据映射成一组颜色值，还是以 quakes 数据集为例，下面将连续型的地震震级数据映射成一组颜色值。这方面的工作已经有非常成熟的 R 包来做了，比如<a href="https://github.com/r-lib/scales"><strong>scales</strong></a>包和<a href="https://github.com/SymbolixAU/colourvalues"><strong>colourvalues</strong></a> 包。如图 <a href="#fig:quakes-viridis">17</a>，默认情况下 <code>viridis</code> 调色板，颜色越黄值越大。</p>
+<div id="leaflet" class="section level2" number="3.2">
+<h2><span class="header-section-number">3.2</span> leaflet</h2>
+<p><strong>leaflet</strong> <span class="citation">[<a href="#ref-leaflet" role="doc-biblioref">3</a>]</span> 包借助 <a href="https://github.com/ramnathv/htmlwidgets"><strong>htmlwidgets</strong></a> 封装了鼎鼎大名的开源交互式可视化地图库 <a href="https://leafletjs.com/">leaflet</a>。注意，leaflet 只是一个渲染 GIS 数据的可视化库，并不提供 GIS 数据服务。类似的可视化库还有<a href="https://github.com/openlayers/openlayers">OpenLayers</a>，及其 R 接口<a href="https://github.com/crazycapivara/openlayers">openlayers</a>，另一个紧密相关的空间数据处理工具是<a href="https://github.com/geoserver/geoserver">GeoServer</a>，它遵循 Open Geospatial Consortium (OGC) Web Feature Service (WFS) 和 Web Coverage Service (WCS) 标准，支持各种 GIS 数据源。</p>
+<p>在可视化的过程中，配色是非常重要的一个环节，准确地表达地图上各个区域或位置的数据信息，负责体现分类、层次、大小等信息。常见的操作是将一组数据映射成一组颜色值，还是以 quakes 数据集为例，下面将连续型的地震震级数据映射成一组颜色值。这方面的工作已经有非常成熟的 R 包来做了，比如<a href="https://github.com/r-lib/scales"><strong>scales</strong></a>包和<a href="https://github.com/SymbolixAU/colourvalues"><strong>colourvalues</strong></a> 包。如图 <a href="#fig:quakes-viridis">3.8</a>，默认情况下 <code>viridis</code> 调色板，颜色越黄值越大。</p>
 <pre class="r"><code># 将连续型数据向量转化为颜色向量
 colorize_numeric &lt;- function(x) {
   scales::col_numeric(palette = &quot;viridis&quot;, domain = range(x))(x)
@@ -675,13 +604,13 @@ quakes &lt;- transform(quakes, color = colorize_numeric(mag))
 plot(data = quakes, lat ~ long, col = color, pch = 19)</code></pre>
 <div class="figure"><span style="display:block;" id="fig:quakes-viridis"></span>
 <img src="img/quakes-viridis.png" class="full" alt="" />
-<p class="caption">图 17:  地震震级映射连续的颜色值</p>
+<p class="caption">图 3.8:  地震震级映射连续的颜色值</p>
 </div>
 <p>另一种情况是将分类型的变量映射上颜色，这通常采用分类型的调色板，比如 <code>Set2</code>。所有常用的调色板可见 <strong>RColorBrewer</strong> 包，在命令行中直接运行 <code>RColorBrewer::display.brewer.all()</code> 即可预览。稍微值得注意的是当分类太多，超出了调色板的数量，需要自己构造一下，比如 <code>Set2</code> 只有8种颜色，但是需要10种，可通过如下方法插值构造：</p>
 <pre class="r"><code>colorRampPalette(colors = RColorBrewer::brewer.pal(n = 8, name = &quot;Set2&quot;))(10)
 #  [1] &quot;#66C2A5&quot; &quot;#DA9870&quot; &quot;#BE979C&quot; &quot;#AB98C8&quot; &quot;#DF92B6&quot; &quot;#ADCF60&quot; &quot;#E1D83B&quot; &quot;#F3CF5B&quot;
 #  [9] &quot;#D9C09A&quot; &quot;#B3B3B3&quot;</code></pre>
-<p>如图 <a href="#fig:quakes-set2">18</a> 所示，用不同颜色表示不同种类的鸢尾花。</p>
+<p>如图 <a href="#fig:quakes-set2">3.9</a> 所示，用不同颜色表示不同种类的鸢尾花。</p>
 <pre class="r"><code># 注意因子水平个数
 colorize_factor &lt;- function(x) {
   scales::col_factor(palette = &quot;Set2&quot;, levels = unique(x))(x)
@@ -692,9 +621,9 @@ iris &lt;- transform(iris, color = colorize_factor(Species))
 plot(data = iris, Petal.Length ~ Petal.Width, col = color, pch = 19)</code></pre>
 <div class="figure"><span style="display:block;" id="fig:quakes-set2"></span>
 <img src="img/quakes-set2.png" class="full" alt="" />
-<p class="caption">图 18:  三种鸢尾花用不同颜色标记</p>
+<p class="caption">图 3.9:  三种鸢尾花用不同颜色标记</p>
 </div>
-<p>实际上，还可以将地震震级分段，用梯度变化的颜色表示震级的大小，如图<a href="#fig:quakes-leaflet">19</a>所示。</p>
+<p>实际上，还可以将地震震级分段，用梯度变化的颜色表示震级的大小，如图<a href="#fig:quakes-leaflet">3.10</a>所示。</p>
 <pre class="r"><code>library(leaflet)
 data(quakes)
 # 构造 Pop 提示
@@ -716,7 +645,7 @@ leaflet(quakes, options = leafletOptions(attributionControl = FALSE)) |&gt;
   addScaleBar(position = c(&quot;bottomleft&quot;))</code></pre>
 <div class="figure"><span style="display:block;" id="fig:quakes-leaflet"></span>
 <img src="img/quakes-leaflet.png" class="full" alt="" />
-<p class="caption">图 19: 散点图</p>
+<p class="caption">图 3.10: 散点图</p>
 </div>
 <p><a href="https://github.com/bhaskarvk/leaflet.extras"><strong>leaflet.extras</strong></a> 提供绘制热力图的扩展，另一个与之类似的包是<a href="https://github.com/trafficonese/leaflet.extras2"><strong>leaflet.extras2</strong></a> 包，前者虽已停止开发了，但是目前看来还可以用。</p>
 <pre class="r"><code>#  提供 addHeatmap 函数绘制热力图 
@@ -732,15 +661,15 @@ leaflet(quakes) |&gt;
   ) |&gt;  
   addLegend(&quot;bottomright&quot;, pal = pal, values = ~mag, title = &quot;地震震级&quot;) |&gt; 
   addScaleBar(position = &quot;bottomleft&quot;)</code></pre>
-<p>绘制热力图就这么简单，如图 <a href="#fig:quakes-heatmap">20</a> 所示，在图<a href="#fig:quakes-leaflet">19</a>的基础上添加了热力图，实际上就是根据点的密度添加色彩，密度值根据核密度估计算法统计出来。</p>
+<p>绘制热力图就这么简单，如图 <a href="#fig:quakes-heatmap">3.11</a> 所示，在图<a href="#fig:quakes-leaflet">3.10</a>的基础上添加了热力图，实际上就是根据点的密度添加色彩，密度值根据核密度估计算法统计出来。</p>
 <div class="figure"><span style="display:block;" id="fig:quakes-heatmap"></span>
 <img src="img/quakes-heatmap.png" class="full" alt="" />
-<p class="caption">图 20: 热力图</p>
+<p class="caption">图 3.11: 热力图</p>
 </div>
 </div>
-<div id="plotly" class="section level2">
-<h2>plotly</h2>
-<p><strong>plotly</strong> <span class="citation">(<a href="#ref-plotly" role="doc-biblioref">Sievert et al. 2021</a>)</span> 包在地理可视化方面提供散点图 <a href="https://plotly.com/r/reference/scattergeo/">scattergeo</a> 和等值图 <a href="https://plotly.com/r/reference/choropleth/">choropleth</a> 两种基础类型。<strong>plotly</strong> 还为 <a href="https://mapbox.com/">mapbox</a> 地图服务添加三个专门的绘图函数，分别是散点图<a href="https://plotly.com/r/reference/scattermapbox/">scattermapbox</a>、等值图<a href="https://plotly.com/r/reference/choroplethmapbox/">choroplethmapbox</a>和热力图<a href="https://plotly.com/r/reference/densitymapbox/">densitymapbox</a>。</p>
+<div id="plotly" class="section level2" number="3.3">
+<h2><span class="header-section-number">3.3</span> plotly</h2>
+<p><strong>plotly</strong> <span class="citation">[<a href="#ref-plotly" role="doc-biblioref">5</a>]</span> 包在地理可视化方面提供散点图 <a href="https://plotly.com/r/reference/scattergeo/">scattergeo</a> 和等值图 <a href="https://plotly.com/r/reference/choropleth/">choropleth</a> 两种基础类型。<strong>plotly</strong> 还为 <a href="https://mapbox.com/">mapbox</a> 地图服务添加三个专门的绘图函数，分别是散点图<a href="https://plotly.com/r/reference/scattermapbox/">scattermapbox</a>、等值图<a href="https://plotly.com/r/reference/choroplethmapbox/">choroplethmapbox</a>和热力图<a href="https://plotly.com/r/reference/densitymapbox/">densitymapbox</a>。</p>
 <pre class="r"><code>plotly::plot_mapbox(
   data = quakes, colors = &quot;Spectral&quot;,
   lon = ~long, lat = ~lat, color = ~mag,
@@ -763,12 +692,12 @@ leaflet(quakes) |&gt;
   )</code></pre>
 <div class="figure"><span style="display:block;" id="fig:quakes-plotly"></span>
 <img src="img/quakes-plotly.png" class="full" alt="" />
-<p class="caption">图 21:  <strong>plotly</strong> 包使用 Mapbox 地图</p>
+<p class="caption">图 3.12:  <strong>plotly</strong> 包使用 Mapbox 地图</p>
 </div>
 <p>接下来介绍布局设置，以 <code>layout(mapbox = ...)</code> 内的 style 参数为例， 它是用来设置地图风格样式的，除了默认的参数值 <code>basic</code>，还可以设置为夜晚暗黑 <code>dark</code>，卫星地图 <code>satellite</code> 等。若设置<code>open-street-map</code>，调 OpenStreetMap 服务，则无需 <code>MAPBOX_TOKEN</code>，具体哪些用到 <code>MAPBOX_TOKEN</code> 哪些不需要用到 <code>MAPBOX_TOKEN</code>，读者可以根据需要选择，详见<a href="https://plotly.com/r/mapbox-layers/">mapbox-layers 文档</a>，其他参数设置见<a href="https://plotly.com/r/reference/layout/mapbox/">mapbox 文档</a>。</p>
 <div class="figure"><span style="display:block;" id="fig:quakes-satellite"></span>
 <img src="img/quakes-satellite.png" class="full" alt="" />
-<p class="caption">图 22:  <strong>plotly</strong> 包使用 Mapbox 卫星地图</p>
+<p class="caption">图 3.13:  <strong>plotly</strong> 包使用 Mapbox 卫星地图</p>
 </div>
 <pre class="r"><code>plotly::plot_ly(
   data = quakes,
@@ -788,7 +717,7 @@ leaflet(quakes) |&gt;
   plotly::config(displayModeBar = FALSE)</code></pre>
 <div class="figure"><span style="display:block;" id="fig:mapbox-density"></span>
 <img src="img/mapbox-density.png" class="full" alt="" />
-<p class="caption">图 23:  <strong>plotly</strong> 包使用 Mapbox 绘制热力图</p>
+<p class="caption">图 3.14:  <strong>plotly</strong> 包使用 Mapbox 绘制热力图</p>
 </div>
 <p><strong>plotly</strong> 包内置了两个地图数据集，一个是美国州级多边形数据<code>"USA-states"</code>，另一个是国家级多边形数据，来自 Natural Earth，需要3个字母的国家代码传给参数 <code>locations</code>。</p>
 <pre class="r"><code>dat &lt;- data.frame(state.x77,
@@ -811,9 +740,9 @@ plotly::plot_ly(
   plotly::config(displayModeBar = FALSE)</code></pre>
 <div class="figure"><span style="display:block;" id="fig:mapbox-choropleth"></span>
 <img src="img/mapbox-choropleth.png" class="full" alt="" />
-<p class="caption">图 24:  <strong>plotly</strong> 包使用 Mapbox 绘制面量图</p>
+<p class="caption">图 3.15:  <strong>plotly</strong> 包使用 Mapbox 绘制面量图</p>
 </div>
-<p>多边形矢量地图数据，多边形的边界常常是行政区域，choropleth 地图是填充颜色的多边形，颜色深浅表示数据指标，地图的作用在于展示指标的空间变化，在美国，郡县一级的行政区大致相当于咱们市一级行政单位，比如图<a href="#fig:mapbox-choropleth-counties">25</a> 展示美国各个县的失业率，大城市失业率相对较高。值得注意，数据量较大的时<strong>plotly</strong>渲染速度较慢。</p>
+<p>多边形矢量地图数据，多边形的边界常常是行政区域，choropleth 地图是填充颜色的多边形，颜色深浅表示数据指标，地图的作用在于展示指标的空间变化，在美国，郡县一级的行政区大致相当于咱们市一级行政单位，比如图<a href="#fig:mapbox-choropleth-counties">3.16</a> 展示美国各个县的失业率，大城市失业率相对较高。值得注意，数据量较大的时<strong>plotly</strong>渲染速度较慢。</p>
 <pre class="r"><code># 示例修改自 https://plotly.com/r/choropleth-maps/
 library(plotly)
 # 数据集来自 https://github.com/plotly/datasets
@@ -857,12 +786,12 @@ plotly::plot_ly(
   plotly::config(displayModeBar = FALSE)</code></pre>
 <div class="figure"><span style="display:block;" id="fig:mapbox-choropleth-counties"></span>
 <img src="img/mapbox-choropleth-counties.png" class="full" alt="" />
-<p class="caption">图 25:  <strong>plotly</strong> 包使用 Mapbox 绘制面量图</p>
+<p class="caption">图 3.16:  <strong>plotly</strong> 包使用 Mapbox 绘制面量图</p>
 </div>
 <p>函数 <code>plot_ly(locations = ~fips,...)</code> 传进去的参数值 fips（Federal Information Processing Standards，即联邦信息处理标准，简称 FIPS）。FIPS 类似我国的行政区划编码，美国地图上每一块区域都有唯一的一个代码对应，详见<a href="https://en.wikipedia.org/wiki/FIPS_county_code">FIPS 代码</a>。观测数据需要和地图数据 GeoJSON 里每个 feature（代表一个地理单元）的 id 或 properties （地理单元的各个属性值）下的主键性质的属性值映射。进一步，读者可参考<a href="https://plotly.com/r/choropleth-maps/">choropleth-maps</a>文档中的示例。</p>
 </div>
-<div id="lattice" class="section level2">
-<h2>lattice</h2>
+<div id="lattice" class="section level2" number="3.4">
+<h2><span class="header-section-number">3.4</span> lattice</h2>
 <p>2001 年 <strong>lattice</strong> 包就发布到 CRAN 了，已经过去20多年了，功能相当全面成熟稳定，内置于 R 软件。下面介绍 <strong>lattice</strong> 包的数据可视化能力，继续以 quakes 数据集为例展开介绍。</p>
 <pre class="r"><code>library(lattice)
 # 散点图
@@ -880,7 +809,7 @@ xyplot(lat ~ long,
 )</code></pre>
 <div class="figure"><span style="display:block;" id="fig:quakes-xyplot"></span>
 <img src="img/quakes-xyplot.png" class="full" alt="" />
-<p class="caption">图 26: 散点图</p>
+<p class="caption">图 3.17: 散点图</p>
 </div>
 <pre class="r"><code># 仅保留低密度区域上的散点
 xyplot(lat ~ long,
@@ -900,7 +829,7 @@ xyplot(lat ~ long,
 )</code></pre>
 <div class="figure"><span style="display:block;" id="fig:quakes-smooth"></span>
 <img src="img/quakes-smooth.png" class="full" alt="" />
-<p class="caption">图 27: 热力图</p>
+<p class="caption">图 3.18: 热力图</p>
 </div>
 <pre class="r"><code>library(loa)
 # 气泡图
@@ -917,7 +846,7 @@ loaPlot(mag ~ long * lat,
 )</code></pre>
 <div class="figure"><span style="display:block;" id="fig:quakes-bubble"></span>
 <img src="img/quakes-bubble.png" class="full" alt="" />
-<p class="caption">图 28: 气泡图</p>
+<p class="caption">图 3.19: 气泡图</p>
 </div>
 <pre class="r"><code># 蜂窝图
 loaPlot(mag ~ long * lat,
@@ -935,7 +864,7 @@ loaPlot(mag ~ long * lat,
 )</code></pre>
 <div class="figure"><span style="display:block;" id="fig:quakes-binplot"></span>
 <img src="img/quakes-binplot.png" class="full" alt="" />
-<p class="caption">图 29: 蜂窝图</p>
+<p class="caption">图 3.20: 蜂窝图</p>
 </div>
 <pre class="r"><code># 等高图
 loaPlot(mag ~ long * lat,
@@ -952,9 +881,9 @@ loaPlot(mag ~ long * lat,
 )</code></pre>
 <div class="figure"><span style="display:block;" id="fig:quakes-contour"></span>
 <img src="img/quakes-contour.png" class="full" alt="" />
-<p class="caption">图 30: 等高图</p>
+<p class="caption">图 3.21: 等高图</p>
 </div>
-<p>就地震数据集 quakes 来说，它还有地震深度变量，实际上，完整地描述一个地震的位置，当然需要震深，想要立体化地呈现出来必须借助三维图形。<strong>lattice</strong> 包就具备绘制三维图形的能力，如图<a href="#fig:quakes-cloud">31</a>所示，此外，<a href="https://github.com/dmurdoch/rgl"><strong>rgl</strong></a> 包<span class="citation">(<a href="#ref-rgl" role="doc-biblioref">Adler and Murdoch 2022</a>)</span>可以绘制交互式的<strong>真三维</strong>图形，如图<a href="#fig:quakes-rgl">32</a>。</p>
+<p>就地震数据集 quakes 来说，它还有地震深度变量，实际上，完整地描述一个地震的位置，当然需要震深，想要立体化地呈现出来必须借助三维图形。<strong>lattice</strong> 包就具备绘制三维图形的能力，如图<a href="#fig:quakes-cloud">3.22</a>所示，此外，<a href="https://github.com/dmurdoch/rgl"><strong>rgl</strong></a> 包<span class="citation">[<a href="#ref-rgl" role="doc-biblioref">6</a>]</span>可以绘制交互式的<strong>真三维</strong>图形，如图<a href="#fig:quakes-rgl">3.23</a>。</p>
 <pre class="r"><code>quakes &lt;- transform(quakes, cex = mag - 4)
 # 三维气泡图
 cloud(-depth ~ long * lat,
@@ -987,7 +916,7 @@ cloud(-depth ~ long * lat,
 )</code></pre>
 <div class="figure"><span style="display:block;" id="fig:quakes-cloud"></span>
 <img src="img/quakes-cloud.png" class="full" alt="" />
-<p class="caption">图 31:  <strong>lattice</strong> 包绘制三维气泡图</p>
+<p class="caption">图 3.22:  <strong>lattice</strong> 包绘制三维气泡图</p>
 </div>
 <pre class="r"><code># 设置 WebGL 渲染
 options(rgl.useNULL = TRUE)
@@ -1001,9 +930,9 @@ with(quakes, {
 })</code></pre>
 <div class="figure"><span style="display:block;" id="fig:quakes-rgl"></span>
 <img src="img/quakes-rgl.png" class="full" alt="" />
-<p class="caption">图 32:  <strong>rgl</strong> 包绘制三维气泡图</p>
+<p class="caption">图 3.23:  <strong>rgl</strong> 包绘制三维气泡图</p>
 </div>
-<p>结合三维气泡图，也许读者已经发现震级和震深有一些关系，不妨再看看仔细它们之间关系，如图<a href="#fig:quakes-mag">33</a>。</p>
+<p>结合三维气泡图，也许读者已经发现震级和震深有一些关系，不妨再看看仔细它们之间关系，如图<a href="#fig:quakes-mag">3.24</a>。</p>
 <pre class="r"><code># 数据抖动和透明度是为了减轻数据点的覆盖情况
 stripplot(depth ~ factor(mag),
   data = quakes,
@@ -1016,17 +945,17 @@ stripplot(depth ~ factor(mag),
 )</code></pre>
 <div class="figure"><span style="display:block;" id="fig:quakes-mag"></span>
 <img src="img/quakes-mag.png" class="full" alt="" />
-<p class="caption">图 33: 抖动图</p>
+<p class="caption">图 3.24: 抖动图</p>
 </div>
 <p>无论震级如何，地震似乎集中发生在表层或深层的位置，中间带反而比较稀疏，可见震级和地震的位置关系不大，地不地震、震级如何主要是由地质条件决定的。</p>
 </div>
 </div>
-<div id="数据结构" class="section level1">
-<h1>数据结构</h1>
+<div id="数据结构" class="section level1" number="4">
+<h1><span class="header-section-number">4</span> 数据结构</h1>
 <p>本节开始介绍一些空间数据相关的基础知识，R 语言有一些扩展包是专门处理空间数据的，提供基础数据结构和类型，了解这些是为空间数据操作、分析、建模打基础。空间数据操作（Spatial Data Manipulation），如计算空间区域的面积、空间点的路径、区域叠加、基于空间关系的数据查询等。空间数据分析（Spatial Data Analysis），空间数据的描述性分析和探索性分析，帮助发现数据中的模式规律。空间统计分析（Spatial Statistical Analysis），传统的统计模型认为观测值之间常常是独立的，而空间数据自带空间相关性，需要专门的统计分析方法。空间数据建模（Spatial Data Modeling），面对不同的空间数据类型需要不同的建模方法，比如空间点模式分析（Spatial Point Pattern Analysis）、格网/面状数据分析（Area Data/Grid Data/lattice Data Analysis）、地统计分析（Geostatistics）等。</p>
-<div id="矢量数据-sp" class="section level2">
-<h2>矢量数据 sp</h2>
-<p><strong>sp</strong> <span class="citation">(<a href="#ref-sp" role="doc-biblioref">Pebesma and Bivand 2022</a>)</span> 是一个 R 包，提供一种存储和操作空间数据的对象类型，具体地，提供点 SpatialPoints / SpatialMultiPoints、线 SpatialLines、多边形 SpatialPolygons、栅格 SpatialGrid / SpatialPixels 等基础空间数据类型以及相应构造方法，还有聚合 <code>aggregate()</code>，合并 <code>merge()</code>，转化 <code>spTransform()</code> 和绘图 <code>spplot()</code> / <code>bubble()</code> / <code>image()</code> 等空间数据操作和可视化函数。</p>
+<div id="矢量数据-sp" class="section level2" number="4.1">
+<h2><span class="header-section-number">4.1</span> 矢量数据 sp</h2>
+<p><strong>sp</strong> <span class="citation">[<a href="#ref-sp" role="doc-biblioref">7</a>]</span> 是一个 R 包，提供一种存储和操作空间数据的对象类型，具体地，提供点 SpatialPoints / SpatialMultiPoints、线 SpatialLines、多边形 SpatialPolygons、栅格 SpatialGrid / SpatialPixels 等基础空间数据类型以及相应构造方法，还有聚合 <code>aggregate()</code>，合并 <code>merge()</code>，转化 <code>spTransform()</code> 和绘图 <code>spplot()</code> / <code>bubble()</code> / <code>image()</code> 等空间数据操作和可视化函数。</p>
 <pre class="r"><code>library(sp)
 getClass(&quot;Spatial&quot;)
 # Class &quot;Spatial&quot; [package &quot;sp&quot;]
@@ -1051,7 +980,7 @@ getClass(&quot;Spatial&quot;)
 # Class &quot;SpatialPolygonsDataFrame&quot;, by class &quot;SpatialPolygons&quot;, distance 2</code></pre>
 <p>可以看出 <strong>sp</strong> 打造的一套空间数据基础类型及其衍生类型，知道数据类型才知道后续该怎么对其进行操作，调用合适的方法。比如最常使用的绘图函数 <code>plot()</code> 已经汇集很多方法了，它也是一个绘图对象，对于不同类型的数据对象，它会调用相应的绘图方法。在 R 语言内，一切都是对象，一切操作都是函数调用。</p>
 <table>
-<caption><span id="tab:methods-plot">表 2: </span>plot 绘图方法</caption>
+<caption><span id="tab:methods-plot">表 4.1: </span>plot 绘图方法</caption>
 <tbody>
 <tr class="odd">
 <td align="left">plot,ANY,ANY-method</td>
@@ -1239,13 +1168,13 @@ bbox(quakes)
 #         min    max
 # long 165.67 188.13
 # lat  -38.59 -10.72</code></pre>
-<p>直接调用 <code>plot()</code> 方法，获取图<a href="#fig:quakes-sp">34</a>。实际上，会调用 SpatialPoints 类的 <code>plot()</code> 方法，<code>plot()</code> 本身也是一个泛型函数，R 语言中的泛型有点类似面向对象编程中的多态。</p>
+<p>直接调用 <code>plot()</code> 方法，获取图<a href="#fig:quakes-sp">4.1</a>。实际上，会调用 SpatialPoints 类的 <code>plot()</code> 方法，<code>plot()</code> 本身也是一个泛型函数，R 语言中的泛型有点类似面向对象编程中的多态。</p>
 <pre class="r"><code>plot(quakes)</code></pre>
 <div class="figure"><span style="display:block;" id="fig:quakes-sp"></span>
 <img src="img/quakes-sp.png" class="full" alt="" />
-<p class="caption">图 34: 空间数据绘图</p>
+<p class="caption">图 4.1: 空间数据绘图</p>
 </div>
-<p>调 sp 数据对象特有的方法 <code>spplot()</code>，获取图<a href="#fig:quakes-spplot">35</a>。</p>
+<p>调 sp 数据对象特有的方法 <code>spplot()</code>，获取图<a href="#fig:quakes-spplot">4.2</a>。</p>
 <pre class="r"><code>p1 &lt;- spplot(quakes, &quot;depth&quot;, main = &quot;Depth&quot;,
   as.table = TRUE, # 面板自左上开始
   scales = list(
@@ -1274,16 +1203,16 @@ print(p1, split = c(1, 1, 2, 1), more = TRUE)
 print(p2, split = c(2, 1, 2, 1), more = FALSE)</code></pre>
 <div class="figure"><span style="display:block;" id="fig:quakes-spplot"></span>
 <img src="img/quakes-spplot.png" class="full" alt="" />
-<p class="caption">图 35: 空间数据绘图</p>
+<p class="caption">图 4.2: 空间数据绘图</p>
 </div>
 <p>地震主要是由于地壳运动产生的，两条地震带由内圈到外圈，地震深度有明显的阶梯变化，暗示着断层的方向和位置。</p>
 <div class="rmdnote">
 <p><strong>sp</strong> 会逐步退出空间数据领域，Roger Bivand 已经在为他的著作《Applied Spatial Data Analysis with R》迁移升级<a href="https://github.com/rsbivand/sf_asdar2ed">代码</a>，推荐读者尽快转移到 <strong>sf</strong> 上。考虑到一些读者大概率还会遇到基于 <strong>sp</strong> 的空间数据处理、分析和可视化的案例代码，因而做一些介绍，毕竟生态的迁移过程还要一段时间。</p>
 </div>
 </div>
-<div id="矢量数据-sf" class="section level2">
-<h2>矢量数据 sf</h2>
-<p><strong>sf</strong> 包依赖三个基础的地理空间数据处理库，分别是制图投影库 <a href="https://proj.org/">proj</a>（Cartographic <strong>Proj</strong>ections Library，简称 proj），开源几何计算引擎 <a href="https://trac.osgeo.org/geos">geos</a>（ <strong>G</strong>eometry <strong>E</strong>ngine, <strong>O</strong>pen <strong>S</strong>ource，简称 geos），地理空间数据抽象库 <a href="https://www.gdal.org/">gdal</a> （<strong>G</strong>eospatial <strong>D</strong>ata <strong>A</strong>bstraction <strong>L</strong>ibrary，简称 gdal）。<strong>sf</strong> <span class="citation">(<a href="#ref-sf" role="doc-biblioref">Pebesma 2022</a>)</span> 可以看作是继 <strong>sp</strong> 后的第二代空间数据处理和分析的框架。</p>
+<div id="矢量数据-sf" class="section level2" number="4.2">
+<h2><span class="header-section-number">4.2</span> 矢量数据 sf</h2>
+<p><strong>sf</strong> 包依赖三个基础的地理空间数据处理库，分别是制图投影库 <a href="https://proj.org/">proj</a>（Cartographic <strong>Proj</strong>ections Library，简称 proj），开源几何计算引擎 <a href="https://trac.osgeo.org/geos">geos</a>（ <strong>G</strong>eometry <strong>E</strong>ngine, <strong>O</strong>pen <strong>S</strong>ource，简称 geos），地理空间数据抽象库 <a href="https://www.gdal.org/">gdal</a> （<strong>G</strong>eospatial <strong>D</strong>ata <strong>A</strong>bstraction <strong>L</strong>ibrary，简称 gdal）。<strong>sf</strong> <span class="citation">[<a href="#ref-sf" role="doc-biblioref">8</a>]</span> 可以看作是继 <strong>sp</strong> 后的第二代空间数据处理和分析的框架。</p>
 <pre class="r"><code>library(sf)
 # Linking to GEOS 3.10.2, GDAL 3.4.2, PROJ 8.2.1; sf_use_s2() is TRUE</code></pre>
 <pre class="r"><code>data(alaska, package = &#39;spData&#39;)
@@ -1297,11 +1226,11 @@ alaska
 # 1    02 Alaska   West 1718925 [km^2]       691189       733375
 #                         geometry
 # 1 MULTIPOLYGON (((-1730018 47...</code></pre>
-<p>数据集 alaska 只有1行6列，使用的坐标参考系是 Alaska Albers (EPSG:3467)。各个变量分别是 GEOID 地理标识符（geographic identifiers），NAME 州的名称，REGION 区域的名称，AREA 面积（平方千米），total_pop_10 2010 年人口，total_pop_15 2015 年人口，geometry 表示 sf 多边形类 MULTIPOLYGON 的集合属性，阿拉斯加地区是由多个多边形组成的，通过图<a href="#fig:sf-alaska">36</a>可以直观地看出来。</p>
+<p>数据集 alaska 只有1行6列，使用的坐标参考系是 Alaska Albers (EPSG:3467)。各个变量分别是 GEOID 地理标识符（geographic identifiers），NAME 州的名称，REGION 区域的名称，AREA 面积（平方千米），total_pop_10 2010 年人口，total_pop_15 2015 年人口，geometry 表示 sf 多边形类 MULTIPOLYGON 的集合属性，阿拉斯加地区是由多个多边形组成的，通过图<a href="#fig:sf-alaska">4.3</a>可以直观地看出来。</p>
 <pre class="r"><code>plot(alaska[&quot;total_pop_15&quot;])</code></pre>
 <div class="figure"><span style="display:block;" id="fig:sf-alaska"></span>
 <img src="img/sf-alaska.png" class="full" alt="" />
-<p class="caption">图 36:  <strong>sf</strong> 包绘制多边形数据</p>
+<p class="caption">图 4.3:  <strong>sf</strong> 包绘制多边形数据</p>
 </div>
 <pre class="r"><code>data(world, package = &#39;spData&#39;)
 world
@@ -1328,18 +1257,18 @@ world
 <pre class="r"><code>plot(world[&quot;gdpPercap&quot;])</code></pre>
 <div class="figure"><span style="display:block;" id="fig:sf-world"></span>
 <img src="img/sf-world.png" class="full" alt="" />
-<p class="caption">图 37:  2014 年世界各国人均 GDP</p>
+<p class="caption">图 4.4:  2014 年世界各国人均 GDP</p>
 </div>
 <div class="rmdnote">
 <p><strong>spData</strong> 包内置的 world 数据集将台湾和中国大陆的地区用不同的颜色标记，严格来讲，这是不符合国家地图规范的，不能出现在期刊、书籍等正式的出版物里。</p>
 </div>
 </div>
 </div>
-<div id="数据操作" class="section level1">
-<h1>数据操作</h1>
+<div id="数据操作" class="section level1" number="5">
+<h1><span class="header-section-number">5</span> 数据操作</h1>
 <p>先简要介绍 Base R 内置的一般数据操作，也是最常见的，然后介绍 <strong>sf</strong> 包和空间数据操作。<strong>sf</strong> 包对 Base R 内置的一些函数做了扩展以支持空间数据的合并、聚合等。</p>
-<div id="一般数据操作" class="section level2">
-<h2>一般数据操作</h2>
+<div id="一般数据操作" class="section level2" number="5.1">
+<h2><span class="header-section-number">5.1</span> 一般数据操作</h2>
 <p>通过排列组合 R 软件内置的一些基础数据操作函数能够满足大部分使用场景，这些基础函数都来自 <strong>base</strong> 包和 <strong>stats</strong> 包，由 R 语言 核心团队维护，约<strong>10</strong>来个函数：</p>
 <ol style="list-style-type: decimal">
 <li><p>函数 <code>subset()</code> 提取数据框中的某些列和行，也可以用 <code>$</code> 或 <code>[</code> 实现。</p></li>
@@ -1352,7 +1281,7 @@ world
 <li><p>函数 <code>duplicated()</code> 查出是否有<strong>重复</strong>的记录，后续可以决定是否去掉。</p></li>
 <li><p>函数 <code>complete.cases()</code> 查出是否有<strong>不完整</strong>的记录，后续考虑是否要去掉。</p></li>
 </ol>
-<p>下面以 R 软件内置的数据集 mtcars 为例，介绍数据操作的一个典型过程，拆分、计算、合并，早年Hadley Wickham 创建 <strong>plyr</strong> 包 <span class="citation">(<a href="#ref-plyr" role="doc-biblioref">Wickham 2022b</a>)</span> 就是干这个事情，后来，陆续出现很多 R 包，如 <strong>reshape</strong> 包（已退休）、<strong>reshape2</strong>（已退休）、<strong>dplyr</strong>（活跃）、<strong>purrr</strong>（活跃）、<strong>tidyr</strong>（活跃），一直处于不太稳定的状态，此处不再细说。</p>
+<p>下面以 R 软件内置的数据集 mtcars 为例，介绍数据操作的一个典型过程，拆分、计算、合并，早年Hadley Wickham 创建 <strong>plyr</strong> 包 <span class="citation">[<a href="#ref-plyr" role="doc-biblioref">9</a>]</span> 就是干这个事情，后来，陆续出现很多 R 包，如 <strong>reshape</strong> 包（已退休）、<strong>reshape2</strong>（已退休）、<strong>dplyr</strong>（活跃）、<strong>purrr</strong>（活跃）、<strong>tidyr</strong>（活跃），一直处于不太稳定的状态，此处不再细说。</p>
 <pre class="r"><code>data(&quot;mtcars&quot;)
 mtcars
 #                      mpg cyl  disp  hp drat    wt  qsec vs am gear carb
@@ -1386,8 +1315,8 @@ mtcars[, as.list(coef(lm(mpg ~ disp))), by = .(cyl)]
 # 3:   8       22.03 -0.019634</code></pre>
 <p>如果想要自己的代码稳定、高效、简洁、易维护，那就先学习一下 Base R 的基本数据操作吧！熟悉之后，可以再深入学习一下 <strong>data.table</strong> 提供的高级数据操作，熟练掌握之后，配合 SQL，可以成为真正的生产力工具，从 Base R 到 <strong>data.table</strong> 可以加深理解 R 语言的精要，从而真正地提升编码水平。最后总结一点，新手都在做高难度动作<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>，高手都在练基本动作<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>。为了让自己的编码更加有效率，更加符合语言本身的特点，先从数据操作开始，一点一点从头练习。</p>
 </div>
-<div id="空间数据操作" class="section level2">
-<h2>空间数据操作</h2>
+<div id="空间数据操作" class="section level2" number="5.2">
+<h2><span class="header-section-number">5.2</span> 空间数据操作</h2>
 <p><strong>sf</strong> 内置了一些基础的空间数据操作函数，在此基础上，绝大多数复杂的空间数据操作都可以拆解为这些基础动作，更多详情见<strong>sf</strong>包<a href="https://r-spatial.github.io/sf/articles/sf1.html">帮助文档</a>。</p>
 <pre class="r"><code>library(sf)
 # 基础数据操作函数
@@ -1489,8 +1418,8 @@ st_sfc(st_point(c(-71.0882, 42.3607)), crs = 4326)
 <p>可见，R 包 <strong>sf</strong> 和 Presto 计算的结果完全一致，Presto 采用的空间坐标参考系也是 WGS 84。</p>
 </div>
 </div>
-<div id="案例美国北卡婴儿猝死综合征数据" class="section level1">
-<h1>案例：美国北卡婴儿猝死综合征数据</h1>
+<div id="案例美国北卡婴儿猝死综合征数据" class="section level1" number="6">
+<h1><span class="header-section-number">6</span> 案例：美国北卡婴儿猝死综合征数据</h1>
 <p>再看一个稍微复杂的例子，涉及数据读取、操作和绘图，数据集 SIDS (Sudden Infant Death Syndrome，简称 SIDS)来自 <strong>sf</strong> 包，更早些时候收集在 <strong>sp</strong> 包内，更多细节见 Edzer Pebesma 开发的 <strong>sp</strong> 包<a href="https://edzer.github.io/sp/">帮助文档</a>，描述 1974 年和 1979 年美国北卡罗来纳州各个区县的婴儿猝死综合征的情况。</p>
 <pre class="r"><code># 读取数据，且读取后不要转化为 tibble 数据类型
 nc &lt;- read_sf(system.file(&quot;gpkg/nc.gpkg&quot;, package = &quot;sf&quot;), as_tibble = FALSE)
@@ -1536,10 +1465,10 @@ nc3 &lt;- reshape(
 nc3 &lt;- st_as_sf(nc3, sf_column_name = &quot;geom&quot;)
 class(nc3)
 # [1] &quot;sf&quot;         &quot;data.frame&quot;</code></pre>
-<div id="ggplot2-sf" class="section level2">
-<h2>ggplot2 &amp; sf</h2>
-<p><strong>ggplot2</strong> 提供的几何图层 <code>geom_sf()</code> 是专门为 sf 数据对象准备的，<code>facet_wrap()</code> 和 <code>facet_grid()</code> 都可以用来实现分面，布局样式稍有不同，更多绘图细节介绍见《ggplot2: Elegant Graphics for Data Analysis》<span class="citation">(<a href="#ref-Wickham2022" role="doc-biblioref">Wickham 2022a</a>)</span>
-第三版的地图章节，如图 <a href="#fig:sf-nc">38</a>。在地图上绘制栅格图形，有个专业的制图术语 — <a href="https://en.wikipedia.org/wiki/Choropleth_map">Choropleth Map</a>，翻译过来，大致叫填充地图、等值域图、瓦片图、围栏图、面量图、断层图等，可以非常直观地展示观测变量在地理区域内的变化情况。</p>
+<div id="ggplot2-sf" class="section level2" number="6.1">
+<h2><span class="header-section-number">6.1</span> ggplot2 &amp; sf</h2>
+<p><strong>ggplot2</strong> 提供的几何图层 <code>geom_sf()</code> 是专门为 sf 数据对象准备的，<code>facet_wrap()</code> 和 <code>facet_grid()</code> 都可以用来实现分面，布局样式稍有不同，更多绘图细节介绍见《ggplot2: Elegant Graphics for Data Analysis》<span class="citation">[<a href="#ref-Wickham2022" role="doc-biblioref">10</a>]</span>
+第三版的地图章节，如图 <a href="#fig:sf-nc">6.1</a>。在地图上绘制栅格图形，有个专业的制图术语 — <a href="https://en.wikipedia.org/wiki/Choropleth_map">Choropleth Map</a>，翻译过来，大致叫填充地图、等值域图、瓦片图、围栏图、面量图、断层图等，可以非常直观地展示观测变量在地理区域内的变化情况。</p>
 <pre class="r"><code>library(ggplot2)
 ggplot() +
   geom_sf(data = nc3, aes(fill = SID)) +
@@ -1550,12 +1479,12 @@ ggplot() +
 #   facet_grid(rows = vars(VAR))</code></pre>
 <div class="figure"><span style="display:block;" id="fig:sf-nc"></span>
 <img src="img/sf-nc.png" class="full" alt="" />
-<p class="caption">图 38:  sf 数据可视化</p>
+<p class="caption">图 6.1:  sf 数据可视化</p>
 </div>
 </div>
-<div id="leaflet-mapdeck" class="section level2">
-<h2>leaflet &amp; mapdeck</h2>
-<p>而 <strong>leaflet</strong> 支持绘制交互式的图形，如图 <a href="#fig:leaflet-nc">39</a> 所示。稍微注意的是，需要先将数据映射到坐标参考系 EPSG:4326 上，而后 <strong>leaflet</strong> 会负责将数据转化映射到 EPSG:3857，详见<a href="https://rstudio.github.io/leaflet/projections.html">文档</a>。</p>
+<div id="leaflet-mapdeck" class="section level2" number="6.2">
+<h2><span class="header-section-number">6.2</span> leaflet &amp; mapdeck</h2>
+<p>而 <strong>leaflet</strong> 支持绘制交互式的图形，如图 <a href="#fig:leaflet-nc">6.2</a> 所示。稍微注意的是，需要先将数据映射到坐标参考系 EPSG:4326 上，而后 <strong>leaflet</strong> 会负责将数据转化映射到 EPSG:3857，详见<a href="https://rstudio.github.io/leaflet/projections.html">文档</a>。</p>
 <pre class="r"><code># https://stackoverflow.com/questions/57223853/
 # 转化坐标和 leaflet 的坐标系保持一致
 nc2 &lt;- sf::st_transform(nc2, crs = 4326)
@@ -1572,7 +1501,7 @@ leaflet(nc2) |&gt;
   addLegend(pal = pal, values = ~SID74, opacity = 1.0)</code></pre>
 <div class="figure"><span style="display:block;" id="fig:leaflet-nc"></span>
 <img src="img/leaflet-nc.png" class="full" alt="" />
-<p class="caption">图 39:  <strong>leaflet</strong> 数据可视化</p>
+<p class="caption">图 6.2:  <strong>leaflet</strong> 数据可视化</p>
 </div>
 <p>实现类似功能的还有 <strong>mapdeck</strong> 包。</p>
 <pre class="r"><code>library(mapdeck)
@@ -1584,8 +1513,8 @@ mapdeck() |&gt;
     palette = &quot;spectral&quot;
   )</code></pre>
 </div>
-<div id="spspplot" class="section level2">
-<h2>sp::spplot</h2>
+<div id="spspplot" class="section level2" number="6.3">
+<h2><span class="header-section-number">6.3</span> sp::spplot</h2>
 <p>在 <strong>sf</strong> 包出来前，<strong>maptools</strong> 曾经是空间数据操作的主力，是读取 <code>*.shp</code> 文件的主要方式。配合 <strong>sp</strong> 包，是实现空间数据分析和可视化的主要帮手。</p>
 <pre class="r"><code>library(maptools)
 nc &lt;- readShapePoly(
@@ -1599,7 +1528,7 @@ nc &lt;- sf::st_read(system.file(&quot;shape/nc.shp&quot;, package = &quot;sf&qu
 # 将数据对象从 sf 类型转化为 sp 类型
 nc &lt;- sf::as(nc, &quot;Spatial&quot;)</code></pre>
 </div>
-<p><strong>sp</strong> 包提供的函数 <code>spplot()</code> 方法绘制类似的分面图，这其中借助了 <strong>lattice</strong> 包的绘图能力，效果如<a href="#fig:lattice-nc">40</a>所示。</p>
+<p><strong>sp</strong> 包提供的函数 <code>spplot()</code> 方法绘制类似的分面图，这其中借助了 <strong>lattice</strong> 包的绘图能力，效果如<a href="#fig:lattice-nc">6.3</a>所示。</p>
 <pre class="r"><code>spplot(nc, c(&quot;SID74&quot;, &quot;SID79&quot;),
   as.table = TRUE,
   scales = list(draw = T, 
@@ -1614,7 +1543,7 @@ nc &lt;- sf::as(nc, &quot;Spatial&quot;)</code></pre>
 )</code></pre>
 <div class="figure"><span style="display:block;" id="fig:lattice-nc"></span>
 <img src="img/lattice-nc.png" class="full" alt="" />
-<p class="caption">图 40:  <strong>lattice</strong> 数据可视化</p>
+<p class="caption">图 6.3:  <strong>lattice</strong> 数据可视化</p>
 </div>
 <p><strong>ggmap</strong> 包获取的 Google 瓦片地图和 <strong>leaflet</strong> 包 使用的 OpenStreetMap 地图在坐标参考系上是一样的，都是 EPSG:3857，想把数据绘制到地图上，需要先将数据的坐标参考系转换到 EPSG:3857，坐标单位从经纬度随之变为米。</p>
 <pre class="r"><code>library(ggmap)
@@ -1632,12 +1561,12 @@ spplot(spTransform(nc, CRSobj = CRS(&quot;EPSG:3857&quot;)),
 )</code></pre>
 <div class="figure"><span style="display:block;" id="fig:sp-nc"></span>
 <img src="img/sp-nc.png" class="full" alt="" />
-<p class="caption">图 41:  <strong>sp</strong> 数据可视化</p>
+<p class="caption">图 6.4:  <strong>sp</strong> 数据可视化</p>
 </div>
 </div>
-<div id="latticeextramapplot" class="section level2">
-<h2>latticeExtra::mapplot</h2>
-<p><strong>latticeExtra</strong> <span class="citation">(<a href="#ref-latticeExtra" role="doc-biblioref">Sarkar and Andrews 2019</a>)</span> 在 <strong>lattice</strong> 的基础上，封装了一些高级函数，围绕本篇主题，下面介绍一下 <code>mapplot()</code> 函数，读者不妨类比 <code>spplot()</code> 函数，可知它是专门为 map 数据类型提供绘图服务。 map 数据类型在 R 语言中存在很多年了，算得上是古老了，很久以前绘制地图的 R 包主要有：提供基础地图数据的 <strong>maps</strong>包， 提供更多常用地图数据的 <strong>mapdata</strong> 包， 实现坐标投影转化的 <strong>mapproj</strong> 包 和数据读写、操作的 <strong>maptools</strong> 包。</p>
+<div id="latticeextramapplot" class="section level2" number="6.4">
+<h2><span class="header-section-number">6.4</span> latticeExtra::mapplot</h2>
+<p><strong>latticeExtra</strong> <span class="citation">[<a href="#ref-latticeExtra" role="doc-biblioref">11</a>]</span> 在 <strong>lattice</strong> 的基础上，封装了一些高级函数，围绕本篇主题，下面介绍一下 <code>mapplot()</code> 函数，读者不妨类比 <code>spplot()</code> 函数，可知它是专门为 map 数据类型提供绘图服务。 map 数据类型在 R 语言中存在很多年了，算得上是古老了，很久以前绘制地图的 R 包主要有：提供基础地图数据的 <strong>maps</strong>包， 提供更多常用地图数据的 <strong>mapdata</strong> 包， 实现坐标投影转化的 <strong>mapproj</strong> 包 和数据读写、操作的 <strong>maptools</strong> 包。</p>
 <pre class="r"><code>mapplot(x, data, map,
   outer = TRUE,
   prepanel = prepanel.mapplot,
@@ -1683,16 +1612,16 @@ mapplot(NAME ~ SID79 + SID74,
 )</code></pre>
 <div class="figure"><span style="display:block;" id="fig:latticeExtra-nc"></span>
 <img src="img/latticeExtra-nc.png" class="full" alt="" />
-<p class="caption">图 42:  <strong>latticeExtra</strong> 数据可视化</p>
+<p class="caption">图 6.5:  <strong>latticeExtra</strong> 数据可视化</p>
 </div>
 </div>
 </div>
-<div id="总结归纳" class="section level1">
-<h1>总结归纳</h1>
+<div id="总结归纳" class="section level1" number="7">
+<h1><span class="header-section-number">7</span> 总结归纳</h1>
 <p>本文意在提供一个基于 R 语言的空间数据结构、可视化的简单概览，帮助读者了解空间数据可视化的轮廓，提供 R 语言在此领域的探索和实践。</p>
-<p>本文创作过程中使用了大量的 R 包，感谢 R 语言社区的各个维护者，是他们开源共享的精神建立了如今繁荣的局面。总的来说，分两块，其一提供基础的空间数据类型，以及相应的数据操作方法，包括导入各种各样格式的空间数据，其二是空间数据分析和可视化方法，支持接入各种各样的地图服务，渲染静态和交互图形。空间数据方面，特别是 <strong>sp</strong> <span class="citation">(<a href="#ref-sp" role="doc-biblioref">Pebesma and Bivand 2022</a>)</span> 和 <strong>sf</strong><span class="citation">(<a href="#ref-sf" role="doc-biblioref">Pebesma 2022</a>)</span> 包的开发者 <a href="https://www.r-spatial.org/">Edzer Pebesma</a>，<strong>raster</strong> <span class="citation">(<a href="#ref-raster" role="doc-biblioref">Hijmans 2022a</a>)</span>和 <strong>terra</strong> 包<span class="citation">(<a href="#ref-terra" role="doc-biblioref">Hijmans 2022b</a>)</span>的开发者 <a href="https://github.com/rhijmans">Robert J. Hijmans</a>，数据可视化方面，特别是 <strong>lattice</strong> 包 <span class="citation">(<a href="#ref-lattice" role="doc-biblioref">Sarkar 2021</a>)</span> 的开发者 <a href="https://deepayan.github.io/">Deepayan Sarkar</a>，<strong>ggplot2</strong> 包<span class="citation">(<a href="#ref-Wickham2022" role="doc-biblioref">Wickham 2022a</a>)</span>的开发者 <a href="https://hadley.nz/">Hadley Wickham</a> 和 <a href="https://www.data-imaginist.com/">Thomas Lin Pedersen</a>，<strong>RgoogleMaps</strong> 包的开发者 <span class="citation">(<a href="#ref-Loecher2015" role="doc-biblioref">Loecher and Ropkins 2015</a>)</span> <a href="https://blog.hwr-berlin.de/codeandstats/">Markus Loecher</a>，<strong>ggmap</strong> 包<span class="citation">(<a href="#ref-Kahle2013" role="doc-biblioref">Kahle and Wickham 2013</a>)</span>的开发者 <a href="https://www.kahle.io/">David Kahle</a>，<strong>leaflet</strong> 包<span class="citation">(<a href="#ref-leaflet" role="doc-biblioref">Cheng, Karambelkar, and Xie 2022</a>)</span>的开发者 <a href="https://github.com/jcheng5">Joe Cheng</a>，<strong>echarts4r</strong> 包<span class="citation">(<a href="#ref-echarts4r" role="doc-biblioref">Coene 2022</a>)</span>的开发者 <a href="https://john-coene.com/">John Coene</a>，<strong>plotly</strong> 包<span class="citation">(<a href="#ref-Sievert2020" role="doc-biblioref">Sievert 2020</a>)</span>的开发者 <a href="https://cpsievert.me/">Carson Sievert</a>。这些开发者只是 R 语言社区的冰山一角，截止写作时间，CRAN 上的开发者已经超过<strong>10000</strong>人。表<a href="#tab:spatial-deps">3</a>列出了基础的空间数据处理、分析和可视化的 R 包，也是本文直接或间接使用的一些 R 包，更多详情见 CRAN 上关于空间数据的<a href="https://cran.r-project.org/view=Spatial">任务视图</a>。</p>
+<p>本文创作过程中使用了大量的 R 包，感谢 R 语言社区的各个维护者，是他们开源共享的精神建立了如今繁荣的局面。总的来说，分两块，其一提供基础的空间数据类型，以及相应的数据操作方法，包括导入各种各样格式的空间数据，其二是空间数据分析和可视化方法，支持接入各种各样的地图服务，渲染静态和交互图形。空间数据方面，特别是 <strong>sp</strong> <span class="citation">[<a href="#ref-sp" role="doc-biblioref">7</a>]</span> 和 <strong>sf</strong><span class="citation">[<a href="#ref-sf" role="doc-biblioref">8</a>]</span> 包的开发者 <a href="https://www.r-spatial.org/">Edzer Pebesma</a>，<strong>raster</strong> <span class="citation">[<a href="#ref-raster" role="doc-biblioref">12</a>]</span>和 <strong>terra</strong> 包<span class="citation">[<a href="#ref-terra" role="doc-biblioref">13</a>]</span>的开发者 <a href="https://github.com/rhijmans">Robert J. Hijmans</a>，数据可视化方面，特别是 <strong>lattice</strong> 包 <span class="citation">[<a href="#ref-lattice" role="doc-biblioref">1</a>]</span> 的开发者 <a href="https://deepayan.github.io/">Deepayan Sarkar</a>，<strong>ggplot2</strong> 包<span class="citation">[<a href="#ref-Wickham2022" role="doc-biblioref">10</a>]</span>的开发者 <a href="https://hadley.nz/">Hadley Wickham</a> 和 <a href="https://www.data-imaginist.com/">Thomas Lin Pedersen</a>，<strong>RgoogleMaps</strong> 包的开发者 <span class="citation">[<a href="#ref-Loecher2015" role="doc-biblioref">14</a>]</span> <a href="https://blog.hwr-berlin.de/codeandstats/">Markus Loecher</a>，<strong>ggmap</strong> 包<span class="citation">[<a href="#ref-Kahle2013" role="doc-biblioref">15</a>]</span>的开发者 <a href="https://www.kahle.io/">David Kahle</a>，<strong>leaflet</strong> 包<span class="citation">[<a href="#ref-leaflet" role="doc-biblioref">3</a>]</span>的开发者 <a href="https://github.com/jcheng5">Joe Cheng</a>，<strong>echarts4r</strong> 包<span class="citation">[<a href="#ref-echarts4r" role="doc-biblioref">4</a>]</span>的开发者 <a href="https://john-coene.com/">John Coene</a>，<strong>plotly</strong> 包<span class="citation">[<a href="#ref-Sievert2020" role="doc-biblioref">16</a>]</span>的开发者 <a href="https://cpsievert.me/">Carson Sievert</a>。这些开发者只是 R 语言社区的冰山一角，截止写作时间，CRAN 上的开发者已经超过<strong>10000</strong>人。表<a href="#tab:spatial-deps">7.1</a>列出了基础的空间数据处理、分析和可视化的 R 包，也是本文直接或间接使用的一些 R 包，更多详情见 CRAN 上关于空间数据的<a href="https://cran.r-project.org/view=Spatial">任务视图</a>。</p>
 <table>
-<caption><span id="tab:spatial-deps">表 3: </span>空间分析的 R 包（排名不分先后）</caption>
+<caption><span id="tab:spatial-deps">表 7.1: </span>空间分析的 R 包（排名不分先后）</caption>
 <colgroup>
 <col width="26%" />
 <col width="52%" />
@@ -1707,149 +1636,149 @@ mapplot(NAME ~ SID79 + SID74,
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left"><strong>mapdata</strong> <span class="citation">(<a href="#ref-mapdata" role="doc-biblioref">Richard A. Becker and Ray Brownrigg. 2018</a>)</span></td>
+<td align="left"><strong>mapdata</strong> <span class="citation">[<a href="#ref-mapdata" role="doc-biblioref">17</a>]</span></td>
 <td align="left">Extra Map Databases</td>
 <td align="left">Alex Deckmyn</td>
 </tr>
 <tr class="even">
-<td align="left"><strong>mapproj</strong> <span class="citation">(<a href="#ref-mapproj" role="doc-biblioref">McIlroy et al. 2022</a>)</span></td>
+<td align="left"><strong>mapproj</strong> <span class="citation">[<a href="#ref-mapproj" role="doc-biblioref">18</a>]</span></td>
 <td align="left">Map Projections</td>
 <td align="left">Alex Deckmyn</td>
 </tr>
 <tr class="odd">
-<td align="left"><strong>maps</strong> <span class="citation">(<a href="#ref-maps" role="doc-biblioref">Brownrigg 2021</a>)</span></td>
+<td align="left"><strong>maps</strong> <span class="citation">[<a href="#ref-maps" role="doc-biblioref">19</a>]</span></td>
 <td align="left">Draw Geographical Maps</td>
 <td align="left">Alex Deckmyn</td>
 </tr>
 <tr class="even">
-<td align="left"><strong>plotly</strong> <span class="citation">(<a href="#ref-plotly" role="doc-biblioref">Sievert et al. 2021</a>)</span></td>
+<td align="left"><strong>plotly</strong> <span class="citation">[<a href="#ref-plotly" role="doc-biblioref">5</a>]</span></td>
 <td align="left">Create Interactive Web Graphics via ‘plotly.js’</td>
 <td align="left">Carson Sievert</td>
 </tr>
 <tr class="odd">
-<td align="left"><strong>ggmap</strong> <span class="citation">(<a href="#ref-ggmap" role="doc-biblioref">Kahle, Wickham, and Jackson 2019</a>)</span></td>
+<td align="left"><strong>ggmap</strong> <span class="citation">[<a href="#ref-ggmap" role="doc-biblioref">20</a>]</span></td>
 <td align="left">Spatial Visualization with ggplot2</td>
 <td align="left">David Kahle</td>
 </tr>
 <tr class="even">
-<td align="left"><strong>lattice</strong> <span class="citation">(<a href="#ref-lattice" role="doc-biblioref">Sarkar 2021</a>)</span></td>
+<td align="left"><strong>lattice</strong> <span class="citation">[<a href="#ref-lattice" role="doc-biblioref">1</a>]</span></td>
 <td align="left">Trellis Graphics for R</td>
 <td align="left">Deepayan Sarkar</td>
 </tr>
 <tr class="odd">
-<td align="left"><strong>latticeExtra</strong> <span class="citation">(<a href="#ref-latticeExtra" role="doc-biblioref">Sarkar and Andrews 2019</a>)</span></td>
+<td align="left"><strong>latticeExtra</strong> <span class="citation">[<a href="#ref-latticeExtra" role="doc-biblioref">11</a>]</span></td>
 <td align="left">Extra Graphical Utilities Based on Lattice</td>
 <td align="left">Deepayan Sarkar</td>
 </tr>
 <tr class="even">
-<td align="left"><strong>sf</strong> <span class="citation">(<a href="#ref-sf" role="doc-biblioref">Pebesma 2022</a>)</span></td>
+<td align="left"><strong>sf</strong> <span class="citation">[<a href="#ref-sf" role="doc-biblioref">8</a>]</span></td>
 <td align="left">Simple Features for R</td>
 <td align="left">Edzer Pebesma</td>
 </tr>
 <tr class="odd">
-<td align="left"><strong>sp</strong> <span class="citation">(<a href="#ref-sp" role="doc-biblioref">Pebesma and Bivand 2022</a>)</span></td>
+<td align="left"><strong>sp</strong> <span class="citation">[<a href="#ref-sp" role="doc-biblioref">7</a>]</span></td>
 <td align="left">Classes and Methods for Spatial Data</td>
 <td align="left">Edzer Pebesma</td>
 </tr>
 <tr class="even">
-<td align="left"><strong>stars</strong> <span class="citation">(<a href="#ref-stars" role="doc-biblioref">Pebesma 2021</a>)</span></td>
+<td align="left"><strong>stars</strong> <span class="citation">[<a href="#ref-stars" role="doc-biblioref">21</a>]</span></td>
 <td align="left">Spatiotemporal Arrays, Raster and Vector Data Cubes</td>
 <td align="left">Edzer Pebesma</td>
 </tr>
 <tr class="odd">
-<td align="left"><strong>leaflet</strong> <span class="citation">(<a href="#ref-leaflet" role="doc-biblioref">Cheng, Karambelkar, and Xie 2022</a>)</span></td>
+<td align="left"><strong>leaflet</strong> <span class="citation">[<a href="#ref-leaflet" role="doc-biblioref">3</a>]</span></td>
 <td align="left">Create Interactive Web Maps with the JavaScript ‘Leaflet’ Library</td>
 <td align="left">Joe Cheng</td>
 </tr>
 <tr class="even">
-<td align="left"><strong>echarts4r</strong> <span class="citation">(<a href="#ref-echarts4r" role="doc-biblioref">Coene 2022</a>)</span></td>
+<td align="left"><strong>echarts4r</strong> <span class="citation">[<a href="#ref-echarts4r" role="doc-biblioref">4</a>]</span></td>
 <td align="left">Create Interactive Graphs with ‘Echarts JavaScript’ Version 5</td>
 <td align="left">John Coene</td>
 </tr>
 <tr class="odd">
-<td align="left"><strong>loa</strong> <span class="citation">(<a href="#ref-loa" role="doc-biblioref">Ropkins 2021</a>)</span></td>
+<td align="left"><strong>loa</strong> <span class="citation">[<a href="#ref-loa" role="doc-biblioref">22</a>]</span></td>
 <td align="left">Lattice Options and Add-Ins</td>
 <td align="left">Karl Ropkins</td>
 </tr>
 <tr class="even">
-<td align="left"><strong>RgoogleMaps</strong> <span class="citation">(<a href="#ref-RgoogleMaps" role="doc-biblioref">Loecher 2020</a>)</span></td>
+<td align="left"><strong>RgoogleMaps</strong> <span class="citation">[<a href="#ref-RgoogleMaps" role="doc-biblioref">23</a>]</span></td>
 <td align="left">Overlays on Static Maps</td>
 <td align="left">Markus Loecher</td>
 </tr>
 <tr class="odd">
-<td align="left"><strong>rasterVis</strong> <span class="citation">(<a href="#ref-rasterVis" role="doc-biblioref">Perpinan Lamigueiro and Hijmans 2022</a>)</span></td>
+<td align="left"><strong>rasterVis</strong> <span class="citation">[<a href="#ref-rasterVis" role="doc-biblioref">24</a>]</span></td>
 <td align="left">Visualization Methods for Raster Data</td>
 <td align="left">Oscar Perpinan Lamigueiro</td>
 </tr>
 <tr class="even">
-<td align="left"><strong>raster</strong> <span class="citation">(<a href="#ref-raster" role="doc-biblioref">Hijmans 2022a</a>)</span></td>
+<td align="left"><strong>raster</strong> <span class="citation">[<a href="#ref-raster" role="doc-biblioref">12</a>]</span></td>
 <td align="left">Geographic Data Analysis and Modeling</td>
 <td align="left">Robert J. Hijmans</td>
 </tr>
 <tr class="odd">
-<td align="left"><strong>terra</strong> <span class="citation">(<a href="#ref-terra" role="doc-biblioref">Hijmans 2022b</a>)</span></td>
+<td align="left"><strong>terra</strong> <span class="citation">[<a href="#ref-terra" role="doc-biblioref">13</a>]</span></td>
 <td align="left">Spatial Data Analysis</td>
 <td align="left">Robert J. Hijmans</td>
 </tr>
 <tr class="even">
-<td align="left"><strong>maptools</strong> <span class="citation">(<a href="#ref-maptools" role="doc-biblioref">Bivand and Lewin-Koh 2022</a>)</span></td>
+<td align="left"><strong>maptools</strong> <span class="citation">[<a href="#ref-maptools" role="doc-biblioref">25</a>]</span></td>
 <td align="left">Tools for Handling Spatial Objects</td>
 <td align="left">Roger Bivand</td>
 </tr>
 <tr class="odd">
-<td align="left"><strong>rgdal</strong> <span class="citation">(<a href="#ref-rgdal" role="doc-biblioref">Bivand, Keitt, and Rowlingson 2022</a>)</span></td>
+<td align="left"><strong>rgdal</strong> <span class="citation">[<a href="#ref-rgdal" role="doc-biblioref">26</a>]</span></td>
 <td align="left">Bindings for the ‘Geospatial’ Data Abstraction Library</td>
 <td align="left">Roger Bivand</td>
 </tr>
 <tr class="even">
-<td align="left"><strong>rgeos</strong> <span class="citation">(<a href="#ref-rgeos" role="doc-biblioref">Bivand and Rundel 2021</a>)</span></td>
+<td align="left"><strong>rgeos</strong> <span class="citation">[<a href="#ref-rgeos" role="doc-biblioref">27</a>]</span></td>
 <td align="left">Interface to Geometry Engine - Open Source (‘GEOS’)</td>
 <td align="left">Roger Bivand</td>
 </tr>
 <tr class="odd">
-<td align="left"><strong>ggplot2</strong> <span class="citation">(<a href="#ref-ggplot2" role="doc-biblioref">Wickham et al. 2022</a>)</span></td>
+<td align="left"><strong>ggplot2</strong> <span class="citation">[<a href="#ref-ggplot2" role="doc-biblioref">2</a>]</span></td>
 <td align="left">Create Elegant Data Visualisations Using the Grammar of Graphics</td>
 <td align="left">Thomas Lin Pedersen</td>
 </tr>
 <tr class="even">
-<td align="left"><strong>mapedit</strong> <span class="citation">(<a href="#ref-mapedit" role="doc-biblioref">Appelhans, Russell, and Busetto 2020</a>)</span></td>
+<td align="left"><strong>mapedit</strong> <span class="citation">[<a href="#ref-mapedit" role="doc-biblioref">28</a>]</span></td>
 <td align="left">Interactive Editing of Spatial Data in R</td>
 <td align="left">Tim Appelhans</td>
 </tr>
 <tr class="odd">
-<td align="left"><strong>mapview</strong> <span class="citation">(<a href="#ref-mapview" role="doc-biblioref">Appelhans et al. 2022</a>)</span></td>
+<td align="left"><strong>mapview</strong> <span class="citation">[<a href="#ref-mapview" role="doc-biblioref">29</a>]</span></td>
 <td align="left">Interactive Viewing of Spatial Data in R</td>
 <td align="left">Tim Appelhans</td>
 </tr>
 <tr class="even">
-<td align="left"><strong>mapsf</strong> <span class="citation">(<a href="#ref-mapsf" role="doc-biblioref">Giraud 2022</a>)</span></td>
+<td align="left"><strong>mapsf</strong> <span class="citation">[<a href="#ref-mapsf" role="doc-biblioref">30</a>]</span></td>
 <td align="left">Thematic Cartography</td>
 <td align="left">Timothée Giraud</td>
 </tr>
 </tbody>
 </table>
 <p>从 <strong>sp</strong> 到 <strong>sf</strong>，从 <strong>raster</strong> 到 <strong>terra</strong>，是 R 语言在空间数据领域前进的一大步，在使用的直观感受上，数据读写、操作的性能得到极大的提升，整个空间数据处理领域的 R 包依赖也将大为减少。</p>
-<p><strong>rgeos</strong> <span class="citation">(<a href="#ref-rgeos" role="doc-biblioref">Bivand and Rundel 2021</a>)</span>、<strong>rgdal</strong> <span class="citation">(<a href="#ref-rgdal" role="doc-biblioref">Bivand, Keitt, and Rowlingson 2022</a>)</span> 和 <strong>maptools</strong> <span class="citation">(<a href="#ref-maptools" role="doc-biblioref">Bivand and Lewin-Koh 2022</a>)</span> 都将于 2023 年底移出 CRAN，不再维护，它们主要用来读取和操作空间数据，相比于 <strong>sf</strong> <span class="citation">(<a href="#ref-sf" role="doc-biblioref">Pebesma 2022</a>)</span> 加 <strong>terra</strong> <span class="citation">(<a href="#ref-terra" role="doc-biblioref">Hijmans 2022b</a>)</span> 的新方案，它们都落后了。部分功能会迁移到 <strong>sp</strong> 包<span class="citation">(<a href="#ref-sp" role="doc-biblioref">Pebesma and Bivand 2022</a>)</span>，而 <strong>raster</strong> 包<span class="citation">(<a href="#ref-raster" role="doc-biblioref">Hijmans 2022a</a>)</span>也不推荐使用，大迁移背景介绍见<a href="https://github.com/r-spatial/evolution">这里</a>，几十年过去了，维护者退休了，代码的历史包袱很重，很难维护，功能和性能也没新的好。2019 年出版的开源书籍<a href="https://geocompr.robinlovelace.net/">《Geocomputation with R》</a> 已经在紧锣密鼓地升级了，感兴趣的读者不妨看看新旧<a href="https://keen-swartz-3146c4.netlify.app/older.html">详细比较</a>。</p>
+<p><strong>rgeos</strong> <span class="citation">[<a href="#ref-rgeos" role="doc-biblioref">27</a>]</span>、<strong>rgdal</strong> <span class="citation">[<a href="#ref-rgdal" role="doc-biblioref">26</a>]</span> 和 <strong>maptools</strong> <span class="citation">[<a href="#ref-maptools" role="doc-biblioref">25</a>]</span> 都将于 2023 年底移出 CRAN，不再维护，它们主要用来读取和操作空间数据，相比于 <strong>sf</strong> <span class="citation">[<a href="#ref-sf" role="doc-biblioref">8</a>]</span> 加 <strong>terra</strong> <span class="citation">[<a href="#ref-terra" role="doc-biblioref">13</a>]</span> 的新方案，它们都落后了。部分功能会迁移到 <strong>sp</strong> 包<span class="citation">[<a href="#ref-sp" role="doc-biblioref">7</a>]</span>，而 <strong>raster</strong> 包<span class="citation">[<a href="#ref-raster" role="doc-biblioref">12</a>]</span>也不推荐使用，大迁移背景介绍见<a href="https://github.com/r-spatial/evolution">这里</a>，几十年过去了，维护者退休了，代码的历史包袱很重，很难维护，功能和性能也没新的好。2019 年出版的开源书籍<a href="https://geocompr.robinlovelace.net/">《Geocomputation with R》</a> 已经在紧锣密鼓地升级了，感兴趣的读者不妨看看新旧<a href="https://keen-swartz-3146c4.netlify.app/older.html">详细比较</a>。</p>
 <p><strong>ggplot2</strong> 及其生态是很好的，可能大家不知道的是，<strong>lattice</strong> 在绘图能力上丝毫不逊色于 <strong>ggplot2</strong>，甚至还有超越。本篇主要介绍空间数据，下面以 R 软件内置的地形数据 volcano 为例。</p>
 <div class="figure"><span style="display:block;" id="fig:lattice-volcano-shade"></span>
 <img src="img/lattice-volcano-shade.png" class="full" alt="" />
-<p class="caption">图 43:  <a href="https://en.wikipedia.org/wiki/Maungawhau_/_Mount_Eden">Auckland Maunga Whau 火山</a>三维地形图 <span class="math inline">\(10m\times 10m\)</span></p>
+<p class="caption">图 7.1:  <a href="https://en.wikipedia.org/wiki/Maungawhau_/_Mount_Eden">Auckland Maunga Whau 火山</a>三维地形图 <span class="math inline">\(10m\times 10m\)</span></p>
 </div>
-<p>仅是图 <a href="#fig:lattice-volcano-shade">43</a> 就已经让 <strong>ggplot2</strong> 自愧不如了，更别说实现图<a href="#fig:lattice-volcano-contour">44</a>这样的组合图形，此例摘自 <a href="https://deepayan.github.io/">Deepayan Sarkar</a> 的书《<strong>lattice</strong>: Multivariate Data Visualization with R》<span class="citation">(<a href="#ref-Sarkar2008" role="doc-biblioref">Sarkar 2008</a>)</span>。</p>
+<p>仅是图 <a href="#fig:lattice-volcano-shade">7.1</a> 就已经让 <strong>ggplot2</strong> 自愧不如了，更别说实现图<a href="#fig:lattice-volcano-contour">7.2</a>这样的组合图形，此例摘自 <a href="https://deepayan.github.io/">Deepayan Sarkar</a> 的书《<strong>lattice</strong>: Multivariate Data Visualization with R》<span class="citation">[<a href="#ref-Sarkar2008" role="doc-biblioref">31</a>]</span>。</p>
 <div class="figure"><span style="display:block;" id="fig:lattice-volcano-contour"></span>
 <img src="img/lattice-volcano-contour.png" class="full" alt="" />
-<p class="caption">图 44:  Auckland Maunga Whau 火山带等值线的三维地形图 <span class="math inline">\(10m\times 10m\)</span></p>
+<p class="caption">图 7.2:  Auckland Maunga Whau 火山带等值线的三维地形图 <span class="math inline">\(10m\times 10m\)</span></p>
 </div>
 <p>顺便一提，Python 语言社区关于空间数据操作的流行模块有<a href="https://github.com/shapely/shapely">shapely</a>和<a href="https://github.com/geopandas/geopandas">geopandas</a>，后者还包含基于<a href="https://github.com/matplotlib/matplotlib">matplotlib</a>的地理可视化，而做空间数据可视化的有<a href="https://github.com/bokeh/bokeh">bokeh</a>、<a href="https://github.com/pyecharts/pyecharts">pyecharts</a>和<a href="https://github.com/plotly/plotly.py">plotly</a>等。<a href="https://github.com/matplotlib/basemap">basemap</a> 基于 matplotlib 提供地图坐标映射，作用类似 R 包 <strong>mapproj</strong>。<a href="https://github.com/ResidentMario/geoplot">geoplot</a> 提供高级易用的使用接口，扩展 <a href="https://github.com/SciTools/cartopy">cartopy</a> 和 matplotlib 在地理可视化方面的能力。<a href="https://github.com/rasterio/rasterio">rasterio</a> 读写栅格数据，更多 Python 语言相关的地理可视化见<a href="https://github.com/sacridini/Awesome-Geospatial">地理资源列表</a>。</p>
 </div>
-<div id="未来展望" class="section level1">
-<h1>未来展望</h1>
+<div id="未来展望" class="section level1" number="8">
+<h1><span class="header-section-number">8</span> 未来展望</h1>
 <p>本文只涉及空间数据领域的皮毛，说白了就是导入几种格式的空间数据画点小地图，也未涉及百万乃至百亿级的大规模空间数据的可视化，以及支持可视分析需要的空间数据存储、检索、操作、分析、建模和应用的知识和技术。此外，对于不同类型的空间数据有不同的分析方法和统计模型，比如点数据的模式分析，面数据的层次分析，栅格数据的图像分析等，本文亦未涉及。再有，面向具体业务问题，从问题发现到数据模型的转化、界定、拆解、优化和应用所需要的领域知识，本文也未涉及。笔者所知所学有限，空间数据领域是如此广阔，需要大家一起发力。</p>
 <p>在大规模空间数据可视化和计算方面，<a href="https://github.com/keplergl/kepler.gl">Kepler.gl</a> 是一款开源的大规模地理数据分析工具。<a href="https://github.com/visgl/deck.gl">deck.gl</a> WebGL2 加持的高性能大规模空间数据可视化框架，支持灵活的自定义。Uber 开发的<a href="https://github.com/uber/h3">h3</a> 提供六边形分层时空索引，<a href="https://github.com/locationtech/geomesa">GeoMesa</a> 提供点、线、多边形的时空索引，支持分布式时空数据查询分析，结合 kafka 提供近实时的时空数据流处理能力，支持自定义 <a href="https://github.com/apache/spark">Apache Spark</a> 作为分布式地理分析计算引擎，要知道 Spark 本身是不提供针对空间数据操作的 SQL 函数，因此，使用成本是很高的。更进一步，<a href="https://github.com/apache/incubator-sedona">Apache Sedona</a>专门应用于大规模空间数据处理的集群计算系统，扩展了 Apache Spark / SparkSQL 的能力，提供一组开箱即用的套件 SpatialSQL，支持 Python 和 R 等多种编程接口。<a href="https://github.com/prestodb/presto">Presto</a> 作为一款分布式 SQL 查询引擎，内置了常用空间数据操作的函数，和 R 包 <strong>sf</strong> 提供的函数名基本是一致的，迁移学习成本低。更加老牌的 GIS 数据库当属站在<a href="https://www.postgresql.org/">PostgreSQL</a>肩膀上的<a href="http://postgis.net/">PostGIS</a>，PostgreSQL提供基础的空间数据类型，作为存储设施，PostGIS 提供空间数据特有的系列操作。</p>
 </div>
-<div id="环境信息" class="section level1">
-<h1>环境信息</h1>
-<p>本文的 R Markdown 源文件是在 RStudio IDE 内编辑的，用 <strong>blogdown</strong> <span class="citation">(<a href="#ref-Xie2017" role="doc-biblioref">Xie, Hill, and Thomas 2017</a>)</span> 构建网站，<a href="https://github.com/gohugoio/hugo">Hugo</a> 渲染 <strong>knitr</strong> 之后的 Markdown 文件，得益于 <strong>blogdown</strong> 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：</p>
+<div id="环境信息" class="section level1" number="9">
+<h1><span class="header-section-number">9</span> 环境信息</h1>
+<p>本文的 R Markdown 源文件是在 RStudio IDE 内编辑的，用 <strong>blogdown</strong> <span class="citation">[<a href="#ref-Xie2017" role="doc-biblioref">32</a>]</span> 构建网站，<a href="https://github.com/gohugoio/hugo">Hugo</a> 渲染 <strong>knitr</strong> 之后的 Markdown 文件，得益于 <strong>blogdown</strong> 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：</p>
 <pre class="r"><code>xfun::session_info(packages = c(
   &quot;knitr&quot;, &quot;rmarkdown&quot;, &quot;blogdown&quot;,
   &quot;ggmap&quot;, &quot;ggplot2&quot;, &quot;data.table&quot;,
@@ -1861,123 +1790,123 @@ mapplot(NAME ~ SID79 + SID74,
   &quot;raster&quot;, &quot;terra&quot;, &quot;sp&quot;, &quot;sf&quot;,
   &quot;leaflet&quot;, &quot;echarts4r&quot;, &quot;plotly&quot;
 ), dependencies = FALSE)
-# R version 4.2.0 (2022-04-22)
+# R version 4.2.1 (2022-06-23)
 # Platform: x86_64-apple-darwin17.0 (64-bit)
-# Running under: macOS Big Sur/Monterey 10.16
+# Running under: macOS Big Sur ... 10.16
 # 
 # Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
 # 
 # Package version:
-#   baidumap_0.2.2       blogdown_1.10        data.table_1.14.2    echarts4r_0.4.3     
+#   baidumap_0.2.2       blogdown_1.10        data.table_1.14.2    echarts4r_0.4.4     
 #   ggmap_3.0.0          ggplot2_3.3.6        knitr_1.39           lattice_0.20-45     
-#   latticeExtra_0.6.29  leaflet_2.1.1        leaflet.extras_1.0.0 loa_0.2.47.1        
+#   latticeExtra_0.6.30  leaflet_2.1.1        leaflet.extras_1.0.0 loa_0.2.47.1        
 #   mapdata_2.3.0        mapproj_1.2.8        maps_3.4.0           maptools_1.1.4      
-#   plotly_4.10.0        raster_3.5.15        rgl_0.108.3.2        RgoogleMaps_1.4.5.3 
-#   rjson_0.2.21         rmarkdown_2.14       sf_1.0-7             sp_1.4-7            
-#   spData_2.0.1         terra_1.5.21         usmap_0.6.0         
+#   plotly_4.10.0        raster_3.5.21        rgl_0.109.6          RgoogleMaps_1.4.5.3 
+#   rjson_0.2.21         rmarkdown_2.14       sf_1.0-7             sp_1.5-0            
+#   spData_2.0.1         terra_1.5.34         usmap_0.6.0         
 # 
 # Pandoc version: 2.18
 # 
-# Hugo version: 0.98.0</code></pre>
+# Hugo version: 0.101.0</code></pre>
 </div>
-<div id="参考文献" class="section level1 unnumbered">
-<h1>参考文献</h1>
-<div id="refs" class="references csl-bib-body hanging-indent">
-<div id="ref-rgl" class="csl-entry">
-Adler, Daniel, and Duncan Murdoch. 2022. <em>Rgl: 3d Visualization Using OpenGL</em>. <a href="https://CRAN.R-project.org/package=rgl">https://CRAN.R-project.org/package=rgl</a>.
-</div>
-<div id="ref-mapview" class="csl-entry">
-Appelhans, Tim, Florian Detsch, Christoph Reudenbach, and Stefan Woellauer. 2022. <em>Mapview: Interactive Viewing of Spatial Data in r</em>. <a href="https://github.com/r-spatial/mapview">https://github.com/r-spatial/mapview</a>.
-</div>
-<div id="ref-mapedit" class="csl-entry">
-Appelhans, Tim, Kenton Russell, and Lorenzo Busetto. 2020. <em>Mapedit: Interactive Editing of Spatial Data in r</em>. <a href="https://github.com/r-spatial/mapedit">https://github.com/r-spatial/mapedit</a>.
-</div>
-<div id="ref-rgdal" class="csl-entry">
-Bivand, Roger, Tim Keitt, and Barry Rowlingson. 2022. <em>Rgdal: Bindings for the Geospatial Data Abstraction Library</em>. <a href="https://CRAN.R-project.org/package=rgdal">https://CRAN.R-project.org/package=rgdal</a>.
-</div>
-<div id="ref-maptools" class="csl-entry">
-Bivand, Roger, and Nicholas Lewin-Koh. 2022. <em>Maptools: Tools for Handling Spatial Objects</em>. <a href="https://CRAN.R-project.org/package=maptools">https://CRAN.R-project.org/package=maptools</a>.
-</div>
-<div id="ref-rgeos" class="csl-entry">
-Bivand, Roger, and Colin Rundel. 2021. <em>Rgeos: Interface to Geometry Engine - Open Source (GEOS)</em>. <a href="https://CRAN.R-project.org/package=rgeos">https://CRAN.R-project.org/package=rgeos</a>.
-</div>
-<div id="ref-maps" class="csl-entry">
-Brownrigg, Ray. 2021. <em>Maps: Draw Geographical Maps</em>. <a href="https://CRAN.R-project.org/package=maps">https://CRAN.R-project.org/package=maps</a>.
-</div>
-<div id="ref-leaflet" class="csl-entry">
-Cheng, Joe, Bhaskar Karambelkar, and Yihui Xie. 2022. <em>Leaflet: Create Interactive Web Maps with the JavaScript Leaflet Library</em>. <a href="https://rstudio.github.io/leaflet/">https://rstudio.github.io/leaflet/</a>.
-</div>
-<div id="ref-echarts4r" class="csl-entry">
-Coene, John. 2022. <em>Echarts4r: Create Interactive Graphs with Echarts JavaScript Version 5</em>. <a href="https://CRAN.R-project.org/package=echarts4r">https://CRAN.R-project.org/package=echarts4r</a>.
-</div>
-<div id="ref-mapsf" class="csl-entry">
-Giraud, Timothée. 2022. <em>Mapsf: Thematic Cartography</em>. <a href="https://CRAN.R-project.org/package=mapsf">https://CRAN.R-project.org/package=mapsf</a>.
-</div>
-<div id="ref-raster" class="csl-entry">
-Hijmans, Robert J. 2022a. <em>Raster: Geographic Data Analysis and Modeling</em>. <a href="https://rspatial.org/raster">https://rspatial.org/raster</a>.
-</div>
-<div id="ref-terra" class="csl-entry">
-———. 2022b. <em>Terra: Spatial Data Analysis</em>. <a href="https://rspatial.org/terra/">https://rspatial.org/terra/</a>.
-</div>
-<div id="ref-Kahle2013" class="csl-entry">
-Kahle, David, and Hadley Wickham. 2013. <span>“<span class="nocase">ggmap</span>: Spatial Visualization with <span class="nocase">ggplot2</span>.”</span> <em>The R Journal</em> 5 (1): 144–61. <a href="https://journal.r-project.org/archive/2013-1/kahle-wickham.pdf">https://journal.r-project.org/archive/2013-1/kahle-wickham.pdf</a>.
-</div>
-<div id="ref-ggmap" class="csl-entry">
-Kahle, David, Hadley Wickham, and Scott Jackson. 2019. <em>Ggmap: Spatial Visualization with Ggplot2</em>. <a href="https://github.com/dkahle/ggmap">https://github.com/dkahle/ggmap</a>.
-</div>
-<div id="ref-RgoogleMaps" class="csl-entry">
-Loecher, Markus. 2020. <em>RgoogleMaps: Overlays on Static Maps</em>. <a href="https://github.com/markusloecher/rgooglemaps/blob/master/rgooglemaps/www/QuickTutorial.html">https://github.com/markusloecher/rgooglemaps/blob/master/rgooglemaps/www/QuickTutorial.html</a>.
-</div>
-<div id="ref-Loecher2015" class="csl-entry">
-Loecher, Markus, and Karl Ropkins. 2015. <span>“<span>RgoogleMaps</span> and <span class="nocase">loa</span>: Unleashing <span>R</span> Graphics Power on Map Tiles.”</span> <em>Journal of Statistical Software</em> 63 (4): 1–18. <a href="http://www.jstatsoft.org/v63/i04/">http://www.jstatsoft.org/v63/i04/</a>.
-</div>
-<div id="ref-mapproj" class="csl-entry">
-McIlroy, Doug, Ray Brownrigg, Thomas P Minka, and Roger Bivand. 2022. <em>Mapproj: Map Projections</em>. <a href="https://CRAN.R-project.org/package=mapproj">https://CRAN.R-project.org/package=mapproj</a>.
-</div>
-<div id="ref-stars" class="csl-entry">
-Pebesma, Edzer. 2021. <em>Stars: Spatiotemporal Arrays, Raster and Vector Data Cubes</em>. <a href="https://CRAN.R-project.org/package=stars">https://CRAN.R-project.org/package=stars</a>.
-</div>
-<div id="ref-sf" class="csl-entry">
-———. 2022. <em>Sf: Simple Features for r</em>. <a href="https://CRAN.R-project.org/package=sf">https://CRAN.R-project.org/package=sf</a>.
-</div>
-<div id="ref-sp" class="csl-entry">
-Pebesma, Edzer, and Roger Bivand. 2022. <em>Sp: Classes and Methods for Spatial Data</em>. <a href="https://CRAN.R-project.org/package=sp">https://CRAN.R-project.org/package=sp</a>.
-</div>
-<div id="ref-rasterVis" class="csl-entry">
-Perpinan Lamigueiro, Oscar, and Robert Hijmans. 2022. <em>rasterVis: Visualization Methods for Raster Data</em>. <a href="https://oscarperpinan.github.io/rastervis/">https://oscarperpinan.github.io/rastervis/</a>.
-</div>
-<div id="ref-mapdata" class="csl-entry">
-Richard A. Becker, Original S code by, and Allan R. Wilks. R version by Ray Brownrigg. 2018. <em>Mapdata: Extra Map Databases</em>. <a href="https://CRAN.R-project.org/package=mapdata">https://CRAN.R-project.org/package=mapdata</a>.
-</div>
-<div id="ref-loa" class="csl-entry">
-Ropkins, Karl. 2021. <em>Loa: Lattice Options and Add-Ins</em>. <a href="http://loa.r-forge.r-project.org/loa.intro.html">http://loa.r-forge.r-project.org/loa.intro.html</a>.
-</div>
-<div id="ref-Sarkar2008" class="csl-entry">
-Sarkar, Deepayan. 2008. <em><span class="nocase">lattice</span>: Multivariate Data Visualization with <span>R</span></em>. New York: Springer-Verlag. <a href="http://lmdvr.r-forge.r-project.org">http://lmdvr.r-forge.r-project.org</a>.
-</div>
+<div id="refer" class="section level1" number="10">
+<h1><span class="header-section-number">10</span> 参考文献</h1>
+<div id="refs" class="references csl-bib-body">
 <div id="ref-lattice" class="csl-entry">
-———. 2021. <em>Lattice: Trellis Graphics for r</em>. <a href="http://lattice.r-forge.r-project.org/">http://lattice.r-forge.r-project.org/</a>.
-</div>
-<div id="ref-latticeExtra" class="csl-entry">
-Sarkar, Deepayan, and Felix Andrews. 2019. <em>latticeExtra: Extra Graphical Utilities Based on Lattice</em>. <a href="http://latticeextra.r-forge.r-project.org/">http://latticeextra.r-forge.r-project.org/</a>.
-</div>
-<div id="ref-Sievert2020" class="csl-entry">
-Sievert, Carson. 2020. <em>Interactive Web-Based Data Visualization with <span>R</span>, <span class="nocase">plotly</span>, and <span class="nocase">shiny</span></em>. 1st ed. Boca Raton, Florida: Chapman; Hall/CRC. <a href="https://plotly-r.com/">https://plotly-r.com/</a>.
-</div>
-<div id="ref-plotly" class="csl-entry">
-Sievert, Carson, Chris Parmer, Toby Hocking, Scott Chamberlain, Karthik Ram, Marianne Corvellec, and Pedro Despouy. 2021. <em>Plotly: Create Interactive Web Graphics via Plotly.js</em>. <a href="https://CRAN.R-project.org/package=plotly">https://CRAN.R-project.org/package=plotly</a>.
-</div>
-<div id="ref-Wickham2022" class="csl-entry">
-Wickham, Hadley. 2022a. <em><span class="nocase">ggplot2</span>: Elegant Graphics for Data Analysis</em>. 3rd ed. Springer-Verlag New York. <a href="https://ggplot2-book.org/">https://ggplot2-book.org/</a>.
-</div>
-<div id="ref-plyr" class="csl-entry">
-———. 2022b. <em>Plyr: Tools for Splitting, Applying and Combining Data</em>. <a href="https://CRAN.R-project.org/package=plyr">https://CRAN.R-project.org/package=plyr</a>.
+<div class="csl-left-margin">[1] </div><div class="csl-right-inline"><span class="smallcaps">Sarkar</span>, D. (2021). <em><a href="http://lattice.r-forge.r-project.org/">Lattice: Trellis graphics for r</a></em>.</div>
 </div>
 <div id="ref-ggplot2" class="csl-entry">
-Wickham, Hadley, Winston Chang, Lionel Henry, Thomas Lin Pedersen, Kohske Takahashi, Claus Wilke, Kara Woo, Hiroaki Yutani, and Dewey Dunnington. 2022. <em>Ggplot2: Create Elegant Data Visualisations Using the Grammar of Graphics</em>. <a href="https://CRAN.R-project.org/package=ggplot2">https://CRAN.R-project.org/package=ggplot2</a>.
+<div class="csl-left-margin">[2] </div><div class="csl-right-inline"><span class="smallcaps">Wickham</span>, H., <span class="smallcaps">Chang</span>, W., <span class="smallcaps">Henry</span>, L., <span class="smallcaps">Pedersen</span>, T. L., <span class="smallcaps">Takahashi</span>, K., <span class="smallcaps">Wilke</span>, C., <span class="smallcaps">Woo</span>, K., <span class="smallcaps">Yutani</span>, H. and <span class="smallcaps">Dunnington</span>, D. (2022). <em><a href="https://CRAN.R-project.org/package=ggplot2">ggplot2: Create elegant data visualisations using the grammar of graphics</a></em>.</div>
+</div>
+<div id="ref-leaflet" class="csl-entry">
+<div class="csl-left-margin">[3] </div><div class="csl-right-inline"><span class="smallcaps">Cheng</span>, J., <span class="smallcaps">Karambelkar</span>, B. and <span class="smallcaps">Xie</span>, Y. (2022). <em><a href="https://rstudio.github.io/leaflet/">Leaflet: Create interactive web maps with the JavaScript leaflet library</a></em>.</div>
+</div>
+<div id="ref-echarts4r" class="csl-entry">
+<div class="csl-left-margin">[4] </div><div class="csl-right-inline"><span class="smallcaps">Coene</span>, J. (2022). <em><a href="https://CRAN.R-project.org/package=echarts4r">echarts4r: Create interactive graphs with echarts JavaScript version 5</a></em>.</div>
+</div>
+<div id="ref-plotly" class="csl-entry">
+<div class="csl-left-margin">[5] </div><div class="csl-right-inline"><span class="smallcaps">Sievert</span>, C., <span class="smallcaps">Parmer</span>, C., <span class="smallcaps">Hocking</span>, T., <span class="smallcaps">Chamberlain</span>, S., <span class="smallcaps">Ram</span>, K., <span class="smallcaps">Corvellec</span>, M. and <span class="smallcaps">Despouy</span>, P. (2021). <em><a href="https://CRAN.R-project.org/package=plotly">Plotly: Create interactive web graphics via plotly.js</a></em>.</div>
+</div>
+<div id="ref-rgl" class="csl-entry">
+<div class="csl-left-margin">[6] </div><div class="csl-right-inline"><span class="smallcaps">Adler</span>, D. and <span class="smallcaps">Murdoch</span>, D. (2022). <em><a href="https://CRAN.R-project.org/package=rgl">Rgl: 3D visualization using OpenGL</a></em>.</div>
+</div>
+<div id="ref-sp" class="csl-entry">
+<div class="csl-left-margin">[7] </div><div class="csl-right-inline"><span class="smallcaps">Pebesma</span>, E. and <span class="smallcaps">Bivand</span>, R. (2022). <em><a href="https://CRAN.R-project.org/package=sp">Sp: Classes and methods for spatial data</a></em>.</div>
+</div>
+<div id="ref-sf" class="csl-entry">
+<div class="csl-left-margin">[8] </div><div class="csl-right-inline"><span class="smallcaps">Pebesma</span>, E. (2022). <em><a href="https://CRAN.R-project.org/package=sf">Sf: Simple features for r</a></em>.</div>
+</div>
+<div id="ref-plyr" class="csl-entry">
+<div class="csl-left-margin">[9] </div><div class="csl-right-inline"><span class="smallcaps">Wickham</span>, H. (2022). <em><a href="https://CRAN.R-project.org/package=plyr">Plyr: Tools for splitting, applying and combining data</a></em>.</div>
+</div>
+<div id="ref-Wickham2022" class="csl-entry">
+<div class="csl-left-margin">[10] </div><div class="csl-right-inline"><span class="smallcaps">Wickham</span>, H. (2022). <em><a href="https://ggplot2-book.org/"><span class="nocase">ggplot2</span>: Elegant graphics for data analysis</a></em>. Springer-Verlag New York.</div>
+</div>
+<div id="ref-latticeExtra" class="csl-entry">
+<div class="csl-left-margin">[11] </div><div class="csl-right-inline"><span class="smallcaps">Sarkar</span>, D. and <span class="smallcaps">Andrews</span>, F. (2022). <em><a href="https://R-Forge.R-project.org/projects/latticeextra/">latticeExtra: Extra graphical utilities based on lattice</a></em>.</div>
+</div>
+<div id="ref-raster" class="csl-entry">
+<div class="csl-left-margin">[12] </div><div class="csl-right-inline"><span class="smallcaps">Hijmans</span>, R. J. (2022). <em><a href="https://rspatial.org/raster">Raster: Geographic data analysis and modeling</a></em>.</div>
+</div>
+<div id="ref-terra" class="csl-entry">
+<div class="csl-left-margin">[13] </div><div class="csl-right-inline"><span class="smallcaps">Hijmans</span>, R. J. (2022). <em><a href="https://rspatial.org/terra/">Terra: Spatial data analysis</a></em>.</div>
+</div>
+<div id="ref-Loecher2015" class="csl-entry">
+<div class="csl-left-margin">[14] </div><div class="csl-right-inline"><span class="smallcaps">Loecher</span>, M. and <span class="smallcaps">Ropkins</span>, K. (2015). <a href="http://www.jstatsoft.org/v63/i04/"><span>RgoogleMaps</span> and <span class="nocase">loa</span>: Unleashing <span>R</span> graphics power on map tiles</a>. <em>Journal of Statistical Software</em> <strong>63</strong> 1–8.</div>
+</div>
+<div id="ref-Kahle2013" class="csl-entry">
+<div class="csl-left-margin">[15] </div><div class="csl-right-inline"><span class="smallcaps">Kahle</span>, D. and <span class="smallcaps">Wickham</span>, H. (2013). <a href="https://journal.r-project.org/archive/2013-1/kahle-wickham.pdf"><span class="nocase">ggmap</span>: Spatial visualization with <span class="nocase">ggplot2</span></a>. <em>The R Journal</em> <strong>5</strong> 144–61.</div>
+</div>
+<div id="ref-Sievert2020" class="csl-entry">
+<div class="csl-left-margin">[16] </div><div class="csl-right-inline"><span class="smallcaps">Sievert</span>, C. (2020). <em><a href="https://plotly-r.com/">Interactive web-based data visualization with <span>R</span>, <span class="nocase">plotly</span>, and <span class="nocase">shiny</span></a></em>. Chapman; Hall/CRC, Boca Raton, Florida.</div>
+</div>
+<div id="ref-mapdata" class="csl-entry">
+<div class="csl-left-margin">[17] </div><div class="csl-right-inline"><span class="smallcaps">Richard A. Becker</span>, O. S. code by and <span class="smallcaps">Ray Brownrigg.</span>, A. R. Wilks. R. version by. (2018). <em><a href="https://CRAN.R-project.org/package=mapdata">Mapdata: Extra map databases</a></em>.</div>
+</div>
+<div id="ref-mapproj" class="csl-entry">
+<div class="csl-left-margin">[18] </div><div class="csl-right-inline"><span class="smallcaps">McIlroy</span>, D., <span class="smallcaps">Brownrigg</span>, R., <span class="smallcaps">Minka</span>, T. P. and <span class="smallcaps">Bivand</span>, R. (2022). <em><a href="https://CRAN.R-project.org/package=mapproj">Mapproj: Map projections</a></em>.</div>
+</div>
+<div id="ref-maps" class="csl-entry">
+<div class="csl-left-margin">[19] </div><div class="csl-right-inline"><span class="smallcaps">Brownrigg</span>, R. (2021). <em><a href="https://CRAN.R-project.org/package=maps">Maps: Draw geographical maps</a></em>.</div>
+</div>
+<div id="ref-ggmap" class="csl-entry">
+<div class="csl-left-margin">[20] </div><div class="csl-right-inline"><span class="smallcaps">Kahle</span>, D., <span class="smallcaps">Wickham</span>, H. and <span class="smallcaps">Jackson</span>, S. (2019). <em><a href="https://github.com/dkahle/ggmap">Ggmap: Spatial visualization with ggplot2</a></em>.</div>
+</div>
+<div id="ref-stars" class="csl-entry">
+<div class="csl-left-margin">[21] </div><div class="csl-right-inline"><span class="smallcaps">Pebesma</span>, E. (2021). <em><a href="https://CRAN.R-project.org/package=stars">Stars: Spatiotemporal arrays, raster and vector data cubes</a></em>.</div>
+</div>
+<div id="ref-loa" class="csl-entry">
+<div class="csl-left-margin">[22] </div><div class="csl-right-inline"><span class="smallcaps">Ropkins</span>, K. (2021). <em><a href="http://loa.r-forge.r-project.org/loa.intro.html">Loa: Lattice options and add-ins</a></em>.</div>
+</div>
+<div id="ref-RgoogleMaps" class="csl-entry">
+<div class="csl-left-margin">[23] </div><div class="csl-right-inline"><span class="smallcaps">Loecher</span>, M. (2020). <em><a href="https://github.com/markusloecher/rgooglemaps/blob/master/rgooglemaps/www/QuickTutorial.html">RgoogleMaps: Overlays on static maps</a></em>.</div>
+</div>
+<div id="ref-rasterVis" class="csl-entry">
+<div class="csl-left-margin">[24] </div><div class="csl-right-inline"><span class="smallcaps">Perpinan Lamigueiro</span>, O. and <span class="smallcaps">Hijmans</span>, R. (2022). <em><a href="https://oscarperpinan.github.io/rastervis/">rasterVis: Visualization methods for raster data</a></em>.</div>
+</div>
+<div id="ref-maptools" class="csl-entry">
+<div class="csl-left-margin">[25] </div><div class="csl-right-inline"><span class="smallcaps">Bivand</span>, R. and <span class="smallcaps">Lewin-Koh</span>, N. (2022). <em><a href="https://CRAN.R-project.org/package=maptools">Maptools: Tools for handling spatial objects</a></em>.</div>
+</div>
+<div id="ref-rgdal" class="csl-entry">
+<div class="csl-left-margin">[26] </div><div class="csl-right-inline"><span class="smallcaps">Bivand</span>, R., <span class="smallcaps">Keitt</span>, T. and <span class="smallcaps">Rowlingson</span>, B. (2022). <em><a href="https://CRAN.R-project.org/package=rgdal">Rgdal: Bindings for the geospatial data abstraction library</a></em>.</div>
+</div>
+<div id="ref-rgeos" class="csl-entry">
+<div class="csl-left-margin">[27] </div><div class="csl-right-inline"><span class="smallcaps">Bivand</span>, R. and <span class="smallcaps">Rundel</span>, C. (2021). <em><a href="https://CRAN.R-project.org/package=rgeos">Rgeos: Interface to geometry engine - open source (GEOS)</a></em>.</div>
+</div>
+<div id="ref-mapedit" class="csl-entry">
+<div class="csl-left-margin">[28] </div><div class="csl-right-inline"><span class="smallcaps">Appelhans</span>, T., <span class="smallcaps">Russell</span>, K. and <span class="smallcaps">Busetto</span>, L. (2020). <em><a href="https://github.com/r-spatial/mapedit">Mapedit: Interactive editing of spatial data in r</a></em>.</div>
+</div>
+<div id="ref-mapview" class="csl-entry">
+<div class="csl-left-margin">[29] </div><div class="csl-right-inline"><span class="smallcaps">Appelhans</span>, T., <span class="smallcaps">Detsch</span>, F., <span class="smallcaps">Reudenbach</span>, C. and <span class="smallcaps">Woellauer</span>, S. (2022). <em><a href="https://github.com/r-spatial/mapview">Mapview: Interactive viewing of spatial data in r</a></em>.</div>
+</div>
+<div id="ref-mapsf" class="csl-entry">
+<div class="csl-left-margin">[30] </div><div class="csl-right-inline"><span class="smallcaps">Giraud</span>, T. (2022). <em><a href="https://CRAN.R-project.org/package=mapsf">Mapsf: Thematic cartography</a></em>.</div>
+</div>
+<div id="ref-Sarkar2008" class="csl-entry">
+<div class="csl-left-margin">[31] </div><div class="csl-right-inline"><span class="smallcaps">Sarkar</span>, D. (2008). <em><a href="http://lmdvr.r-forge.r-project.org"><span class="nocase">lattice</span>: Multivariate data visualization with <span>R</span></a></em>. Springer-Verlag, New York.</div>
 </div>
 <div id="ref-Xie2017" class="csl-entry">
-Xie, Yihui, Alison Presmanes Hill, and Amber Thomas. 2017. <em><span class="nocase">blogdown</span>: Creating Websites with <span>R</span> Markdown</em>. Boca Raton, Florida: Chapman; Hall/CRC. <a href="https://bookdown.org/yihui/blogdown/">https://bookdown.org/yihui/blogdown/</a>.
+<div class="csl-left-margin">[32] </div><div class="csl-right-inline"><span class="smallcaps">Xie</span>, Y., <span class="smallcaps">Hill</span>, A. P. and <span class="smallcaps">Thomas</span>, A. (2017). <em><a href="https://bookdown.org/yihui/blogdown/"><span class="nocase">blogdown</span>: Creating websites with <span>R</span> markdown</a></em>. Chapman; Hall/CRC, Boca Raton, Florida.</div>
 </div>
 </div>
 </div>
