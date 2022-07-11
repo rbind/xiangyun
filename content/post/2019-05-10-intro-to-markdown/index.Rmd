@@ -1,8 +1,7 @@
 ---
 title: Hugo 和 Pandoc 对 Markdown 的扩展支持
 slug: intro-to-markdown
-author:
-  - 黄湘云
+author: "黄湘云"
 date: '2019-05-09'
 categories:
   - 统计软件
@@ -10,10 +9,22 @@ tags:
   - Markdown
   - Pandoc
   - Hugo
-draft: true
+math: true
 description: "又一份介绍 Markdown 的入门文档，本文对比了 Hugo 和 Pandoc 提供的 Markdown 扩展支持"
-thumbnail: /img/hugo.svg
+thumbnail: /img/logo/hugo.svg
 ---
+
+
+```{css}
+#| echo: false
+
+blockquote > p:last-child {
+  text-align: right;
+}
+blockquote > p:first-child {
+  text-align: inherit;
+}
+```
 
 这篇博文源自于 Yihui Xie 为 Hugo 主题 [hugo-xmag](https://themes.gohugo.io/hugo-xmag/) 写的英文介绍 [A Plain Markdown Post](https://xmag.yihui.name/post/2017/02/14/a-plain-markdown-post/)[^translation]。除翻译的内容外，补充了关于如何嵌入音频、视频和幻灯片的内容，也是这次 R 会上小伙伴们提问最多的地方。
 
@@ -21,9 +32,10 @@ thumbnail: /img/hugo.svg
 
 [^translation]: 我知道很多人是不会耐着性子把原来的英文文档看完，所以翻译了一下。此外，更新原博文中的一点， Markdown 的任务列表，在较新版本的 Pandoc 2.6 及以上也支持了 <https://github.com/jgm/pandoc/releases/tag/2.6>。
 
-> **注意**
-> 
-> 这篇文章含有丰富的多媒体内容，需要有较好的网速环境，也需要科学上网才能获得最佳的阅读体验！！
+::: rmdnote
+这篇文章含有丰富的多媒体内容，需要有较好的网速环境，也需要科学上网才能获得最佳的阅读体验！
+:::
+
 
 # 1. Markdown 还是 R Markdown {#markdown}
 
@@ -32,7 +44,9 @@ thumbnail: /img/hugo.svg
 1. Markdown 文档中不能运行任何代码，而在 R Markdown 文档中，你可以插入这样的 R 代码块 (```` ```{r} ````)；
 1. Markdown 文档通过 Hugo 内建的 Markdown 处理器 [Blackfriday](https://github.com/russross/blackfriday) 渲染，R Markdown 文档需要先由 [**rmarkdown**](https://rmarkdown.rstudio.com) 和 [Pandoc](https://pandoc.org) 编译转化生成 HTML 网页。
 
-> [John Gruber's Markdown](https://daringfireball.net/projects/markdown/) 是最原始的，Pandoc 和 Blackfriday 都是在它的基础上进行功能的扩充和加强
+::: sidebar
+[John Gruber's Markdown](https://daringfireball.net/projects/markdown/) 是最原始的，Pandoc 和 Blackfriday 都是在它的基础上进行功能的扩充和加强
+:::
 
 Pandoc 和 Blackfriday 一样都支持任务型列表[^pandoc-task-list]，而原始 Markdown 是不支持的
 
@@ -43,11 +57,14 @@ Pandoc 和 Blackfriday 一样都支持任务型列表[^pandoc-task-list]，而�
 
 [^pandoc-task-list]: Pandoc 2.6 及以上支持任务列表 <https://pandoc.org/MANUAL.html#definition-lists>
 
-[Blackfriday's Markdown](https://github.com/russross/blackfriday) 和 [Pandoc's Markdown](https://pandoc.org/MANUAL.html#pandocs-markdown) 之间有很多区别。比如 Blackfriday 不支持 LaTeX 数学公式，而 Pandoc 支持。 [谢益辉](https://yihui.name/) 在 [hugo-xmin](https://github.com/yihui/hugo-xmag) 主题中添加了 [MathJax](https://www.mathjax.org/) 支持，在 Markdown 文档中必须把数学表达式放在一对反引号中，行内公式： `` `$ $` ``；行间公式： `` `$$ $$` ``，举个小栗子，`$S_n = \sum_{i=1}^n X_i$`，`$$S_n = \sum_{i=1}^n X_i.$$` 在 R Markdown 文档里，不需要反引号，因为 Pandoc 能识别和处理数学表达式。^[这是因为我们必须保护数学表达式，防止被 Markdown 解释。如果你的数学表达式中不包含任何特殊的 Markdown 语法，如下划线或星号，你也许不需要反引号，但更安全的方式是始终添加反引号。] 
+[Blackfriday's Markdown](https://github.com/russross/blackfriday) 和 [Pandoc's Markdown](https://pandoc.org/MANUAL.html#pandocs-markdown) 之间有很多区别。比如 Blackfriday 不支持 LaTeX 数学公式，而 Pandoc 支持。 [谢益辉](https://yihui.name/) 在 [hugo-xmin](https://github.com/yihui/hugo-xmag) 主题中添加了 [MathJax](https://www.mathjax.org/) 支持，在 Markdown 文档中必须把数学表达式放在一对反引号中，行内公式： `` `$ $` ``；行间公式： `` `$$ $$` ``，举个小栗子，`$S_n = \sum_{i=1}^n X_i$`，`$$S_n = \sum_{i=1}^n X_i.$$` 在 R Markdown 文档里，不需要反引号，因为 Pandoc 能识别和处理数学表达式。[^preserve-math]
+
+[^preserve-math]: 这是因为我们必须保护数学表达式，防止被 Markdown 解释。如果你的数学表达式中不包含任何特殊的 Markdown 语法，如下划线或星号，你也许不需要反引号，但更安全的方式是始终添加反引号。
+
 
 总的来说， Markdown、Hugo's Markdown、Pandoc's Markdown 和 R Markdown 的关系大致如下：
 
-![all-markdown](https://wp-contents.netlify.com/2019/05/markdown.svg)
+![Markdown 家族](https://wp-contents.netlify.com/2019/05/markdown.svg)
 
 当你创建一篇新的博文时，我推荐你使用 RStudio 插件“新建博文” (New-Post)：
 
@@ -74,6 +91,7 @@ Pandoc 和 Blackfriday 一样都支持任务型列表[^pandoc-task-list]，而�
 引用的左边有灰色条，背景是亮灰色，再引用名人名言
 
 > Essentially, all models are wrong, but some are useful.  
+>
 > --- George Box
 
 引用要被玩坏了，继续引用唐代诗人崔护的诗《题都城南庄》
@@ -81,7 +99,7 @@ Pandoc 和 Blackfriday 一样都支持任务型列表[^pandoc-task-list]，而�
 > 去年今日此门中，人面桃花相映红。  
 人面不知何处去，桃花依旧笑春风。
 
-在 Markdown 中引用诗词或歌词，请看这篇博文 <https://yihui.name/cn/2018/07/quote-poem/>，还可以在 RStudio 里用 blogdown 提供的插件 （Quote Poem）快速实现 [诗歌的引用](https://yihui.name/en/2018/06/quote-poem-blogdown/)
+在 Markdown 中引用诗词或歌词，请看这篇[博文](https://yihui.name/cn/2018/07/quote-poem/)，还可以在 RStudio 里用 blogdown 提供的插件 （Quote Poem）快速实现 [诗歌的引用](https://yihui.name/en/2018/06/quote-poem-blogdown/)
 
 > This is a block quote. This
 paragraph has two lines.
@@ -123,6 +141,15 @@ par(op)
 
 一张表格，表格的位置默认居中：
 
+    | Sepal.Length| Sepal.Width| Petal.Length| Petal.Width|Species |
+    |------------:|-----------:|------------:|-----------:|:-------|
+    |          5.1|         3.5|          1.4|         0.2|setosa  |
+    |          4.9|         3.0|          1.4|         0.2|setosa  |
+    |          4.7|         3.2|          1.3|         0.2|setosa  |
+    |          4.6|         3.1|          1.5|         0.2|setosa  |
+    |          5.0|         3.6|          1.4|         0.2|setosa  |
+    |          5.4|         3.9|          1.7|         0.4|setosa  |
+
 | Sepal.Length| Sepal.Width| Petal.Length| Petal.Width|Species |
 |------------:|-----------:|------------:|-----------:|:-------|
 |          5.1|         3.5|          1.4|         0.2|setosa  |
@@ -132,18 +159,8 @@ par(op)
 |          5.0|         3.6|          1.4|         0.2|setosa  |
 |          5.4|         3.9|          1.7|         0.4|setosa  |
 
-```
-| Sepal.Length| Sepal.Width| Petal.Length| Petal.Width|Species |
-|------------:|-----------:|------------:|-----------:|:-------|
-|          5.1|         3.5|          1.4|         0.2|setosa  |
-|          4.9|         3.0|          1.4|         0.2|setosa  |
-|          4.7|         3.2|          1.3|         0.2|setosa  |
-|          4.6|         3.1|          1.5|         0.2|setosa  |
-|          5.0|         3.6|          1.4|         0.2|setosa  |
-|          5.4|         3.9|          1.7|         0.4|setosa  |
-```
 
-Pandoc 支持插入可以跨行的表格，就是一个 cell 里可以跨行，但是 Hugo 不支持
+Pandoc 支持插入可以跨行的表格，就是一个 cell 里可以跨行，但是 Hugo 不支持。
 
     -------------------------------------------------------------
      Centered   Default           Right Left
@@ -160,7 +177,24 @@ Pandoc 支持插入可以跨行的表格，就是一个 cell 里可以跨行，�
     Table: Here's the caption. It, too, may span
     multiple lines.
 
-类似地，Hugo 不支持插入 grid 表格
+
+-------------------------------------------------------------
+ Centered   Default           Right Left
+  Header    Aligned         Aligned Aligned
+----------- ------- --------------- -------------------------
+   First    row                12.0 Example of a row that
+                                    spans multiple lines.
+
+  Second    row                 5.0 Here's another one. Note
+                                    the blank line between
+                                    rows.
+-------------------------------------------------------------
+
+Table: Here's the caption. It, too, may span
+multiple lines.
+
+
+类似地，Hugo 不支持插入 grid 表格，但是 Pandoc 支持。
 
     +---------------+---------------+--------------------+
     | Fruit         | Price         | Advantages         |
@@ -171,6 +205,17 @@ Pandoc 支持插入可以跨行的表格，就是一个 cell 里可以跨行，�
     | Oranges       | $2.10         | - cures scurvy     |
     |               |               | - tasty            |
     +---------------+---------------+--------------------+
+
++---------------+---------------+--------------------+
+| Fruit         | Price         | Advantages         |
++===============+===============+====================+
+| Bananas       | $1.34         | - built-in wrapper |
+|               |               | - bright color     |
++---------------+---------------+--------------------+
+| Oranges       | $2.10         | - cures scurvy     |
+|               |               | - tasty            |
++---------------+---------------+--------------------+
+
 
 
 ## 2.4 插入图片 {#image}
@@ -197,13 +242,14 @@ Pandoc 支持插入可以跨行的表格，就是一个 cell 里可以跨行，�
 
 太大了是不是，我们还可以控制插入的大小
 
-<img width="50%" src="https://cloud.r-project.org/Rlogo.svg">
-
 ```
 <img width="256" height="256" src="https://cloud.r-project.org/Rlogo.svg">
 # 或者
 <img width="50%" src="https://cloud.r-project.org/Rlogo.svg">
 ```
+
+<img width="50%" src="https://cloud.r-project.org/Rlogo.svg">
+
 
 在 Pandoc 中更加简洁
 
@@ -211,11 +257,15 @@ Pandoc 支持插入可以跨行的表格，就是一个 cell 里可以跨行，�
 ![r-logo](https://cloud.r-project.org/Rlogo.svg){ width=50% }
 ```
 
+![r-logo](https://cloud.r-project.org/Rlogo.svg){ width=50% }
+
 Pandoc 还支持插入全宽图形，并且交叉引用 `\@ref(fig:r-logo)`
 
 ```
 ![(\#fig:r-logo) 一幅全宽的图片](https://www.r-project.org/logo/Rlogo.png){.full}
 ```
+
+![(\#fig:r-logo) 一幅全宽的图片](https://www.r-project.org/logo/Rlogo.png){.full}
 
 ## 2.5 插入音频 {#audio}
 
@@ -250,58 +300,93 @@ Pandoc 还支持插入全宽图形，并且交叉引用 `\@ref(fig:r-logo)`
 
 ## 2.6 插入视频 {#video}
 
-Rick Becker 在 2016 年国际 R 语言大会上的演讲 --- Forty Years of S
-
-<iframe src="https://channel9.msdn.com/Events/useR-international-R-User-conference/useR2016/Forty-years-of-S/player" width="960" height="440" allowFullScreen frameBorder="0"></iframe>
-
-```html
-<iframe src="https://channel9.msdn.com/Events/useR-international-R-User-conference/useR2016/Forty-years-of-S/player" width="960" height="440" allowFullScreen frameBorder="0"></iframe>
-```
 
 [Statistics Views](https://www.statisticsviews.com/details/feature/10033491/Its-just-serendipity-that-I-ended-up-in-statistics-An-interview-with-Trevor-Hast.html)  对 Trevor Hastie 的采访
 
-<iframe src="https://players.brightcove.net/87100274001/default_default/index.html?videoId=5193920344001" width="960" height="440" allowFullScreen frameBorder="0"></iframe>
+```{r}
+#| echo: false
+
+knitr::include_url(url = "https://players.brightcove.net/87100274001/default_default/index.html?videoId=5193920344001", height = "500px")
+```
+
 
 > It’s just serendipity that I ended up in statistics.
 
 
 统计之都海外沙龙第8期： [陈天奇](https://tqchen.com/)、 [何通](https://github.com/hetong007)、 [邱怡轩](https://statr.me/) 在聊 xgboost 统计软件奖背后的故事
 
-<iframe width="960" height="600" src="https://player.bilibili.com/player.html?aid=4018491&cid=6479840&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+```{r}
+#| echo: false
+
+knitr::include_url(url = "https://player.bilibili.com/player.html?aid=4018491&cid=6479840&page=1", height = "500px")
+```
 
 统计之都海外沙龙第26期：在谷歌、微软、Facebook 搬砖之感受
 
-<iframe width="960" height="600" src="//player.bilibili.com/player.html?aid=15256742&cid=24831259&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+
+```{r}
+#| echo: false
+
+knitr::include_url(url = "https://player.bilibili.com/player.html?aid=15256742&cid=24831259&page=1", height = "500px")
+```
+
 
 北京出租车的运行轨迹
 
-<iframe src='https://gfycat.com/ifr/PartialMadeupAustraliancurlew' frameborder='0' scrolling='no' allowfullscreen width="800" height="600"></iframe>
+```{r}
+#| echo: false
+
+knitr::include_url(url = "https://gfycat.com/ifr/PartialMadeupAustraliancurlew", height = "500px")
+```
 
 插入腾讯视频
 
-<iframe width="800" height="600" frameborder="0" src="https://v.qq.com/txp/iframe/player.html?vid=s0392uw1zzj" allowFullScreen="true"></iframe>
+```{r}
+#| echo: false
+
+knitr::include_url(url = "https://v.qq.com/txp/iframe/player.html?vid=s0392uw1zzj", height = "500px")
+```
+
 
 ## 2.7 插入幻灯片 {#slide}
 
-[Ryan Hafen](https://ryanhafen.com/) 在介绍 geofacet
+[Ryan Hafen](https://ryanhafen.com/) 在介绍 [**geofacet**](https://github.com/hafen/geofacet)
 
-<iframe src="//slides.com/hafen/geofacet-cascadia/embed" width="960" height="700" scrolling="no" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
 
-```html
-<iframe src="//slides.com/hafen/geofacet-cascadia/embed" width="960" height="700" scrolling="no" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+```{r}
+#| echo: false
+
+knitr::include_url(url = "https://slides.com/hafen/geofacet-cascadia/embed", height = "500px")
 ```
 
-[Ryan Hafen](https://ryanhafen.com/) 在介绍 trelliscopejs
+```r
+knitr::include_url(url = "https://slides.com/hafen/trelliscopejs-lightning/embed", height = "500px")
+```
 
-<iframe src="//slides.com/hafen/trelliscopejs-lightning/embed" width="960" height="700" scrolling="no" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+[Ryan Hafen](https://ryanhafen.com/) 在介绍 [**trelliscopejs**](https://github.com/hafen/trelliscopejs)
+
+```{r}
+#| echo: false
+
+knitr::include_url(url = "https://slides.com/hafen/trelliscopejs-lightning/embed", height = "500px")
+```
 
 除了从网站插入幻灯片，还支持直接插入 xaringan 制作的幻灯片，下面是我在2019年中国R语言大会（北京）上的幻灯片，也是创建本博客的技术栈。blogdown 出来已经有两年了，很多人使用它创建了自己的博客，统计之都主站是最早使用这套工具的，这次分享以现场操作为主。
 
-<iframe src="//wp-contents.netlify.com/talks/2019-chinar12th-cos-blogdown" width="960" height="700" scrolling="no" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+```{r}
+#| echo: false
+
+knitr::include_url(url = "https://xiangyun.rbind.io//slide/2019/chinar12th-cos-blogdown#1", height = "500px")
+```
+
 
 PDF 格式文档也是可以插入的，比如 beamer 制作的幻灯片，2016 年我去北大听 Cuihui Zhang 教授的高维线性模型，他人非常 nice，分享了他的幻灯片[^hlm]
 
-<iframe src="//wp-contents.netlify.com/talks/Cunhui-Zhang16-Beida.pdf" width="800" height="600" scrolling="no" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+```{r}
+#| echo: false
+
+knitr::include_url(url = "https://wp-contents.netlify.com/talks/Cunhui-Zhang16-Beida.pdf", height = "600px")
+```
 
 
 [^hlm]: 这个课内容非常高深，听不大懂，但是知道个轮廓，感受下高维统计方向的研究前沿
@@ -487,14 +572,5 @@ This is a footnote.[^1]
 curl -s -v https://xiangyunhuang.com.cn 2>&1 | grep Server
 ```
 
-我的博客也以统计之都一样的风格搭建，基于几个原因：
-
-1. 目前统计之都主站我参与维护，比较熟悉
-1. 博客的 CSS 主题 hugo-xmag 由谢益辉开发维护，学习起来有近水楼台之便
-1. 搬迁统计之都的博客到本站（限本人的），或以后投稿给统计之都，文档内容不需要丝毫改变
-
-> **注意**
-> 
-> 本博客平台托管在 Netlify 上，国内的访问速度会是一个问题，所以科学上网后访问，效果更佳！！
 
 [^ssl-tls]: https://www.netlify.com/docs/ssl/#troubleshooting

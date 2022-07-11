@@ -1,0 +1,559 @@
+---
+title: Hugo 和 Pandoc 对 Markdown 的扩展支持
+slug: intro-to-markdown
+author: "黄湘云"
+date: '2019-05-09'
+categories:
+  - 统计软件
+tags:
+  - Markdown
+  - Pandoc
+  - Hugo
+math: true
+description: "又一份介绍 Markdown 的入门文档，本文对比了 Hugo 和 Pandoc 提供的 Markdown 扩展支持"
+thumbnail: /img/logo/hugo.svg
+---
+
+
+
+<style type="text/css">
+blockquote > p:last-child {
+  text-align: right;
+}
+blockquote > p:first-child {
+  text-align: inherit;
+}
+</style>
+<p>这篇博文源自于 Yihui Xie 为 Hugo 主题 <a href="https://themes.gohugo.io/hugo-xmag/">hugo-xmag</a> 写的英文介绍 <a href="https://xmag.yihui.name/post/2017/02/14/a-plain-markdown-post/">A Plain Markdown Post</a><a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>。除翻译的内容外，补充了关于如何嵌入音频、视频和幻灯片的内容，也是这次 R 会上小伙伴们提问最多的地方。</p>
+<p>这篇博文主要面向 <a href="https://github.com/rstudio/blogdown"><strong>blogdown</strong></a> 用户，如果你不使用 <strong>blogdown</strong>，你可以跳过第一节。想知道更多关于 Markdown 的基础语法，请看 <a href="https://daringfireball.net/projects/markdown/">John Gruber’s Markdown 语法</a> 和 <a href="https://bookdown.org/yihui/rmarkdown/markdown-syntax.html">R Markdown: The Definitive Guide</a>。</p>
+<div class="rmdnote">
+<p>这篇文章含有丰富的多媒体内容，需要有较好的网速环境，也需要科学上网才能获得最佳的阅读体验！</p>
+</div>
+<div id="markdown" class="section level1">
+<h1>1. Markdown 还是 R Markdown</h1>
+<p>这篇博客是用纯 Markdown (<code>*.md</code>) 语法写的，而不是 R Markdown (<code>*.Rmd</code>)。 其主要的区别是：</p>
+<ol style="list-style-type: decimal">
+<li>Markdown 文档中不能运行任何代码，而在 R Markdown 文档中，你可以插入这样的 R 代码块 (<code>```{r}</code>)；</li>
+<li>Markdown 文档通过 Hugo 内建的 Markdown 处理器 <a href="https://github.com/russross/blackfriday">Blackfriday</a> 渲染，R Markdown 文档需要先由 <a href="https://rmarkdown.rstudio.com"><strong>rmarkdown</strong></a> 和 <a href="https://pandoc.org">Pandoc</a> 编译转化生成 HTML 网页。</li>
+</ol>
+<div class="sidebar">
+<p><a href="https://daringfireball.net/projects/markdown/">John Gruber’s Markdown</a> 是最原始的，Pandoc 和 Blackfriday 都是在它的基础上进行功能的扩充和加强</p>
+</div>
+<p>Pandoc 和 Blackfriday 一样都支持任务型列表<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>，而原始 Markdown 是不支持的</p>
+<ul class="task-list">
+<li><input type="checkbox" disabled="" checked="" />
+开发一个R包。</li>
+<li><input type="checkbox" disabled="" />
+写一本书。</li>
+<li><input type="checkbox" disabled="" />
+…</li>
+<li><input type="checkbox" disabled="" />
+搭建个人博客！</li>
+</ul>
+<p><a href="https://github.com/russross/blackfriday">Blackfriday’s Markdown</a> 和 <a href="https://pandoc.org/MANUAL.html#pandocs-markdown">Pandoc’s Markdown</a> 之间有很多区别。比如 Blackfriday 不支持 LaTeX 数学公式，而 Pandoc 支持。 <a href="https://yihui.name/">谢益辉</a> 在 <a href="https://github.com/yihui/hugo-xmag">hugo-xmin</a> 主题中添加了 <a href="https://www.mathjax.org/">MathJax</a> 支持，在 Markdown 文档中必须把数学表达式放在一对反引号中，行内公式： <code>`$ $`</code>；行间公式： <code>`$$ $$`</code>，举个小栗子，<code>$S_n = \sum_{i=1}^n X_i$</code>，<code>$$S_n = \sum_{i=1}^n X_i.$$</code> 在 R Markdown 文档里，不需要反引号，因为 Pandoc 能识别和处理数学表达式。<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a></p>
+<p>总的来说， Markdown、Hugo’s Markdown、Pandoc’s Markdown 和 R Markdown 的关系大致如下：</p>
+<div class="figure">
+<img src="https://wp-contents.netlify.com/2019/05/markdown.svg" alt="" />
+<p class="caption">Markdown 家族</p>
+</div>
+<p>当你创建一篇新的博文时，我推荐你使用 RStudio 插件“新建博文” (New-Post)：</p>
+<div class="figure">
+<img src="https://bookdown.org/yihui/blogdown/images/new-post.png" alt="" />
+<p class="caption">RStudio addin New Post</p>
+</div>
+</div>
+<div id="text" class="section level1">
+<h1>2. 样例文本</h1>
+<div id="二级标题" class="section level2">
+<h2>二级标题</h2>
+<div id="三级标题" class="section level3">
+<h3>三级标题</h3>
+<div id="四级标题" class="section level4">
+<h4>四级标题</h4>
+<p>一个有脚注的段落：</p>
+<p><strong>Lorem ipsum</strong> dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore <em>magna aliqua</em>. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a></p>
+</div>
+</div>
+</div>
+<div id="quote" class="section level2">
+<h2>2.1 引用</h2>
+<p>下面插入一段引用，来自《红楼梦》第三回，林黛玉初到荣国府，曹雪芹对她的描写</p>
+<blockquote>
+<p>两弯似蹙非蹙笼烟眉，一双似喜非喜含情目。态生两靥之愁，娇袭一身之病。泪光点点，娇喘微微。闲静似娇花照水，行动如弱柳扶风。心较比干多一窍，病如西子胜三分。</p>
+</blockquote>
+<p>引用的左边有灰色条，背景是亮灰色，再引用名人名言</p>
+<blockquote>
+<p>Essentially, all models are wrong, but some are useful.</p>
+<p>— George Box</p>
+</blockquote>
+<p>引用要被玩坏了，继续引用唐代诗人崔护的诗《题都城南庄》</p>
+<blockquote>
+<p>去年今日此门中，人面桃花相映红。<br />
+人面不知何处去，桃花依旧笑春风。</p>
+</blockquote>
+<p>在 Markdown 中引用诗词或歌词，请看这篇<a href="https://yihui.name/cn/2018/07/quote-poem/">博文</a>，还可以在 RStudio 里用 blogdown 提供的插件 （Quote Poem）快速实现 <a href="https://yihui.name/en/2018/06/quote-poem-blogdown/">诗歌的引用</a></p>
+<blockquote>
+<p>This is a block quote. This
+paragraph has two lines.</p>
+</blockquote>
+<blockquote>
+<ol style="list-style-type: decimal">
+<li>This is a list inside a block quote.</li>
+<li>Second item.</li>
+</ol>
+</blockquote>
+<p>嵌套引用</p>
+<blockquote>
+<p>This is a block quote.</p>
+<blockquote>
+<p>A block quote within a block quote.</p>
+</blockquote>
+</blockquote>
+</div>
+<div id="code" class="section level2">
+<h2>2.2 插入代码</h2>
+<p>插入一些 R 代码，可以语法高亮和带下拉的阴影效果哦！</p>
+<pre class="r"><code>data(anscombe)
+form &lt;- paste(paste0(&quot;y&quot;, seq(4)), paste0(&quot;x&quot;, seq(4)), sep = &quot;~&quot;)
+fit &lt;- lapply(form, lm, data = anscombe)
+op &lt;- par(mfrow = c(2, 2), mar = 0.1 + c(4, 4, 1, 1), oma = c(0, 0, 2, 0))
+for (i in seq(4)) {
+  plot(as.formula(form[i]),
+    data = anscombe, col = hcl.colors(11),
+    pch = 19, cex = 1.2,
+    xlim = c(3, 19), ylim = c(3, 13),
+    xlab = as.expression(substitute(x[i], list(i = i))),
+    ylab = as.expression(substitute(y[i], list(i = i)))
+  )
+  abline(fit[[i]], col = &quot;red&quot;, lwd = 2)
+}
+mtext(&quot;Anscombe&#39;s 4 Regression data sets&quot;, outer = TRUE, cex = 1.5)
+par(op)</code></pre>
+</div>
+<div id="table" class="section level2">
+<h2>2.3 插入表格</h2>
+<p>一张表格，表格的位置默认居中：</p>
+<pre><code>| Sepal.Length| Sepal.Width| Petal.Length| Petal.Width|Species |
+|------------:|-----------:|------------:|-----------:|:-------|
+|          5.1|         3.5|          1.4|         0.2|setosa  |
+|          4.9|         3.0|          1.4|         0.2|setosa  |
+|          4.7|         3.2|          1.3|         0.2|setosa  |
+|          4.6|         3.1|          1.5|         0.2|setosa  |
+|          5.0|         3.6|          1.4|         0.2|setosa  |
+|          5.4|         3.9|          1.7|         0.4|setosa  |</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Sepal.Length</th>
+<th align="right">Sepal.Width</th>
+<th align="right">Petal.Length</th>
+<th align="right">Petal.Width</th>
+<th align="left">Species</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">5.1</td>
+<td align="right">3.5</td>
+<td align="right">1.4</td>
+<td align="right">0.2</td>
+<td align="left">setosa</td>
+</tr>
+<tr class="even">
+<td align="right">4.9</td>
+<td align="right">3.0</td>
+<td align="right">1.4</td>
+<td align="right">0.2</td>
+<td align="left">setosa</td>
+</tr>
+<tr class="odd">
+<td align="right">4.7</td>
+<td align="right">3.2</td>
+<td align="right">1.3</td>
+<td align="right">0.2</td>
+<td align="left">setosa</td>
+</tr>
+<tr class="even">
+<td align="right">4.6</td>
+<td align="right">3.1</td>
+<td align="right">1.5</td>
+<td align="right">0.2</td>
+<td align="left">setosa</td>
+</tr>
+<tr class="odd">
+<td align="right">5.0</td>
+<td align="right">3.6</td>
+<td align="right">1.4</td>
+<td align="right">0.2</td>
+<td align="left">setosa</td>
+</tr>
+<tr class="even">
+<td align="right">5.4</td>
+<td align="right">3.9</td>
+<td align="right">1.7</td>
+<td align="right">0.4</td>
+<td align="left">setosa</td>
+</tr>
+</tbody>
+</table>
+<p>Pandoc 支持插入可以跨行的表格，就是一个 cell 里可以跨行，但是 Hugo 不支持。</p>
+<pre><code>-------------------------------------------------------------
+ Centered   Default           Right Left
+  Header    Aligned         Aligned Aligned
+----------- ------- --------------- -------------------------
+   First    row                12.0 Example of a row that
+                                    spans multiple lines.
+
+  Second    row                 5.0 Here&#39;s another one. Note
+                                    the blank line between
+                                    rows.
+-------------------------------------------------------------
+
+Table: Here&#39;s the caption. It, too, may span
+multiple lines.</code></pre>
+<table style="width:86%;">
+<caption>Here’s the caption. It, too, may span
+multiple lines.</caption>
+<colgroup>
+<col width="16%" />
+<col width="11%" />
+<col width="22%" />
+<col width="36%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center">Centered
+Header</th>
+<th>Default
+Aligned</th>
+<th align="right">Right
+Aligned</th>
+<th align="left">Left
+Aligned</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">First</td>
+<td>row</td>
+<td align="right">12.0</td>
+<td align="left">Example of a row that
+spans multiple lines.</td>
+</tr>
+<tr class="even">
+<td align="center">Second</td>
+<td>row</td>
+<td align="right">5.0</td>
+<td align="left">Here’s another one. Note
+the blank line between
+rows.</td>
+</tr>
+</tbody>
+</table>
+<p>类似地，Hugo 不支持插入 grid 表格，但是 Pandoc 支持。</p>
+<pre><code>+---------------+---------------+--------------------+
+| Fruit         | Price         | Advantages         |
++===============+===============+====================+
+| Bananas       | $1.34         | - built-in wrapper |
+|               |               | - bright color     |
++---------------+---------------+--------------------+
+| Oranges       | $2.10         | - cures scurvy     |
+|               |               | - tasty            |
++---------------+---------------+--------------------+</code></pre>
+<table style="width:74%;">
+<colgroup>
+<col width="22%" />
+<col width="22%" />
+<col width="29%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Fruit</th>
+<th>Price</th>
+<th>Advantages</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Bananas</td>
+<td>$1.34</td>
+<td><ul>
+<li>built-in wrapper</li>
+<li>bright color</li>
+</ul></td>
+</tr>
+<tr class="even">
+<td>Oranges</td>
+<td>$2.10</td>
+<td><ul>
+<li>cures scurvy</li>
+<li>tasty</li>
+</ul></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="image" class="section level2">
+<h2>2.4 插入图片</h2>
+<p>插入一张图片，<a href="https://github.com/yihui/hugo-xmag">hugo-xmag</a> 主题的 CSS 样式已经将其设置为自动居中：</p>
+<div class="figure">
+<img src="https://slides.yihui.name/gif/happy-elmo.gif" alt="" />
+<p class="caption">Happy Elmo</p>
+</div>
+<pre><code>![Happy Elmo](https://slides.yihui.name/gif/happy-elmo.gif)</code></pre>
+<p>看起来好吗？</p>
+<hr />
+<p>插入矢量图片是一样的</p>
+<div class="figure">
+<img src="https://cloud.r-project.org/Rlogo.svg" alt="" />
+<p class="caption">r-logo</p>
+</div>
+<pre><code>![r-logo](https://cloud.r-project.org/Rlogo.svg)</code></pre>
+<p>太大了是不是，我们还可以控制插入的大小</p>
+<pre><code>&lt;img width=&quot;256&quot; height=&quot;256&quot; src=&quot;https://cloud.r-project.org/Rlogo.svg&quot;&gt;
+# 或者
+&lt;img width=&quot;50%&quot; src=&quot;https://cloud.r-project.org/Rlogo.svg&quot;&gt;</code></pre>
+<p><img width="50%" src="https://cloud.r-project.org/Rlogo.svg"></p>
+<p>在 Pandoc 中更加简洁</p>
+<pre><code>![r-logo](https://cloud.r-project.org/Rlogo.svg){ width=50% }</code></pre>
+<div class="figure">
+<img src="https://cloud.r-project.org/Rlogo.svg" style="width:50.0%" alt="" />
+<p class="caption">r-logo</p>
+</div>
+<p>Pandoc 还支持插入全宽图形，并且交叉引用 <code>\@ref(fig:r-logo)</code></p>
+<pre><code>![(\#fig:r-logo) 一幅全宽的图片](https://www.r-project.org/logo/Rlogo.png){.full}</code></pre>
+<div class="figure"><span style="display:block;" id="fig:r-logo"></span>
+<img src="https://www.r-project.org/logo/Rlogo.png" class="full" alt="" />
+<p class="caption">图 1:  一幅全宽的图片</p>
+</div>
+</div>
+<div id="audio" class="section level2">
+<h2>2.5 插入音频</h2>
+<pre class="html"><code>&lt;iframe frameborder=&quot;0&quot; marginwidth=&quot;0&quot; marginheight=&quot;0&quot; width=400 height=80 src=&quot;https://music.163.com/outchain/player?type=2&amp;id=34341360&amp;auto=0&amp;height=66&quot;&gt;&lt;/iframe&gt;</code></pre>
+<iframe frameborder="0" marginwidth="0" marginheight="0" width="400" height="80" src="https://music.163.com/outchain/player?type=2&amp;id=34341360&amp;auto=0&amp;height=66">
+</iframe>
+<p>陈慧娴版《千千阙歌》</p>
+<iframe frameborder="0" marginwidth="0" marginheight="0" width="400" height="80" src="https://music.163.com/outchain/player?type=2&amp;id=5244310&amp;auto=0&amp;height=66">
+</iframe>
+<p>张国荣版《千千阙歌》</p>
+<iframe frameborder="0" marginwidth="0" marginheight="0" width="400" height="80" src="https://music.163.com/outchain/player?type=2&amp;id=34341388&amp;auto=0&amp;height=66">
+</iframe>
+<blockquote>
+<p>你不觉得天边的晚霞很美吗？只有看着她，我才能坚持向西走。
+— 《悟空传》</p>
+</blockquote>
+<p>戴荃的《悟空》</p>
+<iframe frameborder="0" marginwidth="0" marginheight="0" width="400" height="80" src="https://music.163.com/outchain/player?type=2&amp;id=33162226&amp;auto=0&amp;height=66">
+</iframe>
+<p>霍尊的《卷珠帘》</p>
+<iframe frameborder="0" marginwidth="0" marginheight="0" width="400" height="80" src="https://music.163.com/outchain/player?type=2&amp;id=32063039&amp;auto=0&amp;height=66">
+</iframe>
+<p>更多可以播放的音乐，去网站搜索 <a href="https://music.liuzhijin.cn/" class="uri">https://music.liuzhijin.cn/</a></p>
+</div>
+<div id="video" class="section level2">
+<h2>2.6 插入视频</h2>
+<p><a href="https://www.statisticsviews.com/details/feature/10033491/Its-just-serendipity-that-I-ended-up-in-statistics-An-interview-with-Trevor-Hast.html">Statistics Views</a> 对 Trevor Hastie 的采访</p>
+<iframe src="https://players.brightcove.net/87100274001/default_default/index.html?videoId=5193920344001" width="672" height="500px" data-external="1">
+</iframe>
+<blockquote>
+<p>It’s just serendipity that I ended up in statistics.</p>
+</blockquote>
+<p>统计之都海外沙龙第8期： <a href="https://tqchen.com/">陈天奇</a>、 <a href="https://github.com/hetong007">何通</a>、 <a href="https://statr.me/">邱怡轩</a> 在聊 xgboost 统计软件奖背后的故事</p>
+<iframe src="https://player.bilibili.com/player.html?aid=4018491&amp;cid=6479840&amp;page=1" width="672" height="500px" data-external="1">
+</iframe>
+<p>统计之都海外沙龙第26期：在谷歌、微软、Facebook 搬砖之感受</p>
+<iframe src="https://player.bilibili.com/player.html?aid=15256742&amp;cid=24831259&amp;page=1" width="672" height="500px" data-external="1">
+</iframe>
+<p>北京出租车的运行轨迹</p>
+<iframe src="https://gfycat.com/ifr/PartialMadeupAustraliancurlew" width="672" height="500px" data-external="1">
+</iframe>
+<p>插入腾讯视频</p>
+<iframe src="https://v.qq.com/txp/iframe/player.html?vid=s0392uw1zzj" width="672" height="500px" data-external="1">
+</iframe>
+</div>
+<div id="slide" class="section level2">
+<h2>2.7 插入幻灯片</h2>
+<p><a href="https://ryanhafen.com/">Ryan Hafen</a> 在介绍 <a href="https://github.com/hafen/geofacet"><strong>geofacet</strong></a></p>
+<iframe src="https://slides.com/hafen/geofacet-cascadia/embed" width="672" height="500px" data-external="1">
+</iframe>
+<pre class="r"><code>knitr::include_url(url = &quot;https://slides.com/hafen/trelliscopejs-lightning/embed&quot;, height = &quot;500px&quot;)</code></pre>
+<p><a href="https://ryanhafen.com/">Ryan Hafen</a> 在介绍 <a href="https://github.com/hafen/trelliscopejs"><strong>trelliscopejs</strong></a></p>
+<iframe src="https://slides.com/hafen/trelliscopejs-lightning/embed" width="672" height="500px" data-external="1">
+</iframe>
+<p>除了从网站插入幻灯片，还支持直接插入 xaringan 制作的幻灯片，下面是我在2019年中国R语言大会（北京）上的幻灯片，也是创建本博客的技术栈。blogdown 出来已经有两年了，很多人使用它创建了自己的博客，统计之都主站是最早使用这套工具的，这次分享以现场操作为主。</p>
+<iframe src="https://xiangyun.rbind.io//slide/2019/chinar12th-cos-blogdown#1" width="672" height="500px" data-external="1">
+</iframe>
+<p>PDF 格式文档也是可以插入的，比如 beamer 制作的幻灯片，2016 年我去北大听 Cuihui Zhang 教授的高维线性模型，他人非常 nice，分享了他的幻灯片<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a></p>
+<iframe src="https://wp-contents.netlify.com/talks/Cunhui-Zhang16-Beida.pdf" width="672" height="600px" data-external="1">
+</iframe>
+</div>
+<div id="list" class="section level2">
+<h2>2.8 插入列表</h2>
+<p>定义类型的列表</p>
+<pre><code>Cat
+: Fluffy animal everyone likes
+
+Internet
+: Vector of transmission for pictures of cats</code></pre>
+<dl>
+<dt>Cat</dt>
+<dd>
+Fluffy animal everyone likes
+</dd>
+<dt>Internet</dt>
+<dd>
+Vector of transmission for pictures of cats
+</dd>
+</dl>
+<p>插入无序列表</p>
+<pre><code>* one
+* two
+* three</code></pre>
+<ul>
+<li>one</li>
+<li>two</li>
+<li>three</li>
+</ul>
+<p>插入有序的列表</p>
+<pre><code>1.  one
+2.  two
+3.  three</code></pre>
+<ol style="list-style-type: decimal">
+<li>one</li>
+<li>two</li>
+<li>three</li>
+</ol>
+<p>把前面的数字全部换成 1 也是可以的</p>
+<pre><code>1.  one
+1.  two
+1.  three</code></pre>
+<ol style="list-style-type: decimal">
+<li>one</li>
+<li>two</li>
+<li>three</li>
+</ol>
+<p>在列表中含有段落</p>
+<ul>
+<li><p>First paragraph.</p>
+<p>Continued.</p></li>
+<li><p>Second paragraph. With a code block, which must be indented
+eight spaces:</p>
+<pre><code>{ code }</code></pre></li>
+<li><p>First paragraph.</p>
+<p>Continued.</p></li>
+</ul>
+<p>还可以在列表环境中插入图片</p>
+<pre><code>-   One
+
+-   Two
+
+     ![deploy-to-netlify](https://www.netlify.com/img/deploy/button.svg)
+
+-   Three</code></pre>
+<ul>
+<li><p>One</p></li>
+<li><p>Two</p>
+<div class="figure">
+<img src="https://www.netlify.com/img/deploy/button.svg" alt="" />
+<p class="caption">deploy-to-netlify</p>
+</div></li>
+<li><p>Three</p></li>
+</ul>
+<p>插入多层的列表， Pandoc 支持多层，而 Hugo 支持两层</p>
+<pre><code>* fruits
+  + apples
+    - macintosh
+    - red delicious
+  + pears
+  + peaches
+* vegetables
+  + broccoli
+  + chard</code></pre>
+<ul>
+<li>fruits
+<ul>
+<li>apples
+<ul>
+<li>macintosh</li>
+<li>red delicious</li>
+</ul></li>
+<li>pears</li>
+<li>peaches</li>
+</ul></li>
+<li>vegetables
+<ul>
+<li>broccoli</li>
+<li>chard</li>
+</ul></li>
+</ul>
+</div>
+<div id="footnote" class="section level2">
+<h2>2.9 插入脚注</h2>
+<p>这是内联形式的脚注，对于包含很长内容的脚注，我们建议使用文本引用的方式插入</p>
+<pre><code>Here is an inline note.^[Inlines notes are easier to write, since
+you don&#39;t have to pick an identifier and move down to type the
+note.]</code></pre>
+<p>Here is an inline note.<a href="#fn6" class="footnote-ref" id="fnref6"><sup>6</sup></a></p>
+<p>采用文本交叉引用的方式，插入脚注</p>
+<pre><code>This is a footnote.[^1]
+
+[^1]: the footnote text.</code></pre>
+<p>This is a footnote.<a href="#fn7" class="footnote-ref" id="fnref7"><sup>7</sup></a></p>
+<p>脚注中包含段落只在 Pandoc 中支持， Hugo 中不支持</p>
+<pre><code>Here is a footnote reference,[^2] and another.[^longnote]
+
+[^2]: Here is the footnote.
+
+[^longnote]: Here&#39;s one with multiple blocks.
+
+    Subsequent paragraphs are indented to show that they
+belong to the previous footnote.
+
+        { some.code }
+
+    The whole paragraph can be indented, or just the first
+    line.  In this way, multi-paragraph footnotes work like
+    multi-paragraph list items.
+
+This paragraph won&#39;t be part of the note, because it
+isn&#39;t indented.</code></pre>
+<hr />
+</div>
+</div>
+<div id="reference" class="section level1">
+<h1>3. 参考文献</h1>
+<ol style="list-style-type: decimal">
+<li>Markdown <a href="https://daringfireball.net/projects/markdown/" class="uri">https://daringfireball.net/projects/markdown/</a></li>
+<li>Github’s Markdown <a href="https://guides.github.com/features/mastering-markdown/" class="uri">https://guides.github.com/features/mastering-markdown/</a></li>
+<li>Pandoc’s Markdown <a href="https://pandoc.org/MANUAL.html#pandocs-markdown" class="uri">https://pandoc.org/MANUAL.html#pandocs-markdown</a></li>
+<li>Hugo’s Markdown <a href="https://github.com/russross/blackfriday#features" class="uri">https://github.com/russross/blackfriday#features</a></li>
+<li>插入音视频 <a href="https://www.sunyazhou.com/2017/12/27/20171227markdown-audio/" class="uri">https://www.sunyazhou.com/2017/12/27/20171227markdown-audio/</a></li>
+<li>非常全面的 Markdown 入门参考 <a href="http://xianbai.me/learn-md" class="uri">http://xianbai.me/learn-md</a></li>
+</ol>
+<hr />
+<p><strong>我讨厌 CSDN 知乎，支持个人博客，下面是一些我写这篇文章遇到的个人博客</strong></p>
+<ul>
+<li><a href="https://zyf.im/">Yifan</a> 一名在帝都的软件工程师，<del>对前端非常感兴趣</del> 现在专注于后端服务</li>
+<li><a href="https://www.aomanhao.top/">AomanHao</a> 热爱图像处理，图像优化世界 matlab</li>
+<li><a href="https://www.gcssloop.com">GcsSloop</a> 一名来自2.5次元的魔法师 Java Android</li>
+<li><a href="https://imququ.com/">屈光宇</a> 专注 WEB 端开发</li>
+</ul>
+<hr />
+<p>本博客托管平台的设置类似博文 — <a href="https://www.aomanhao.top/2019/05/03/Hexo_Netlify/">Hexo 个人博客迁移到托管平台 Netlify</a>，补充一点，在自定义域名后，添加 SSL/TLS 认证<a href="#fn8" class="footnote-ref" id="fnref8"><sup>8</sup></a>，只需在 Git Bash 中输入</p>
+<pre class="bash"><code>curl -s -v https://xiangyunhuang.com.cn 2&gt;&amp;1 | grep Server</code></pre>
+</div>
+<div class="footnotes footnotes-end-of-document">
+<hr />
+<ol>
+<li id="fn1"><p>我知道很多人是不会耐着性子把原来的英文文档看完，所以翻译了一下。此外，更新原博文中的一点， Markdown 的任务列表，在较新版本的 Pandoc 2.6 及以上也支持了 <a href="https://github.com/jgm/pandoc/releases/tag/2.6" class="uri">https://github.com/jgm/pandoc/releases/tag/2.6</a>。<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>Pandoc 2.6 及以上支持任务列表 <a href="https://pandoc.org/MANUAL.html#definition-lists" class="uri">https://pandoc.org/MANUAL.html#definition-lists</a><a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p>这是因为我们必须保护数学表达式，防止被 Markdown 解释。如果你的数学表达式中不包含任何特殊的 Markdown 语法，如下划线或星号，你也许不需要反引号，但更安全的方式是始终添加反引号。<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+<li id="fn4"><p>你肯定会对这里的文本感到无聊<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
+<li id="fn5"><p>这个课内容非常高深，听不大懂，但是知道个轮廓，感受下高维统计方向的研究前沿<a href="#fnref5" class="footnote-back">↩︎</a></p></li>
+<li id="fn6"><p>Inlines notes are easier to write, since
+you don’t have to pick an identifier and move down to type the
+note.<a href="#fnref6" class="footnote-back">↩︎</a></p></li>
+<li id="fn7"><p>the footnote text.<a href="#fnref7" class="footnote-back">↩︎</a></p></li>
+<li id="fn8"><p><a href="https://www.netlify.com/docs/ssl/#troubleshooting" class="uri">https://www.netlify.com/docs/ssl/#troubleshooting</a><a href="#fnref8" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
