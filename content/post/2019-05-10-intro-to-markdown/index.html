@@ -367,9 +367,6 @@ rows.</td>
 <p>北京出租车的运行轨迹</p>
 <iframe src="https://gfycat.com/ifr/PartialMadeupAustraliancurlew" width="672" height="500px" data-external="1">
 </iframe>
-<p>插入腾讯视频</p>
-<iframe src="https://v.qq.com/txp/iframe/player.html?vid=s0392uw1zzj" width="672" height="500px" data-external="1">
-</iframe>
 </div>
 <div id="slide" class="section level2">
 <h2>2.7 插入幻灯片</h2>
@@ -382,9 +379,6 @@ rows.</td>
 </iframe>
 <p>除了从网站插入幻灯片，还支持直接插入 xaringan 制作的幻灯片，下面是我在2019年中国R语言大会（北京）上的幻灯片，也是创建本博客的技术栈。blogdown 出来已经有两年了，很多人使用它创建了自己的博客，统计之都主站是最早使用这套工具的，这次分享以现场操作为主。</p>
 <iframe src="https://xiangyun.rbind.io//slide/2019/chinar12th-cos-blogdown#1" width="672" height="500px" data-external="1">
-</iframe>
-<p>PDF 格式文档也是可以插入的，比如 beamer 制作的幻灯片，2016 年我去北大听 Cuihui Zhang 教授的高维线性模型，他人非常 nice，分享了他的幻灯片<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a></p>
-<iframe src="https://wp-contents.netlify.com/talks/Cunhui-Zhang16-Beida.pdf" width="672" height="600px" data-external="1">
 </iframe>
 </div>
 <div id="list" class="section level2">
@@ -493,12 +487,12 @@ eight spaces:</p>
 <pre><code>Here is an inline note.^[Inlines notes are easier to write, since
 you don&#39;t have to pick an identifier and move down to type the
 note.]</code></pre>
-<p>Here is an inline note.<a href="#fn6" class="footnote-ref" id="fnref6"><sup>6</sup></a></p>
+<p>Here is an inline note.<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a></p>
 <p>采用文本交叉引用的方式，插入脚注</p>
 <pre><code>This is a footnote.[^1]
 
 [^1]: the footnote text.</code></pre>
-<p>This is a footnote.<a href="#fn7" class="footnote-ref" id="fnref7"><sup>7</sup></a></p>
+<p>This is a footnote.<a href="#fn6" class="footnote-ref" id="fnref6"><sup>6</sup></a></p>
 <p>脚注中包含段落只在 Pandoc 中支持， Hugo 中不支持</p>
 <pre><code>Here is a footnote reference,[^2] and another.[^longnote]
 
@@ -539,7 +533,7 @@ isn&#39;t indented.</code></pre>
 <li><a href="https://imququ.com/">屈光宇</a> 专注 WEB 端开发</li>
 </ul>
 <hr />
-<p>本博客托管平台的设置类似博文 — <a href="https://www.aomanhao.top/2019/05/03/Hexo_Netlify/">Hexo 个人博客迁移到托管平台 Netlify</a>，补充一点，在自定义域名后，添加 SSL/TLS 认证<a href="#fn8" class="footnote-ref" id="fnref8"><sup>8</sup></a>，只需在 Git Bash 中输入</p>
+<p>本博客托管平台的设置类似博文 — <a href="https://www.aomanhao.top/2019/05/03/Hexo_Netlify/">Hexo 个人博客迁移到托管平台 Netlify</a>，补充一点，在自定义域名后，添加 SSL/TLS 认证<a href="#fn7" class="footnote-ref" id="fnref7"><sup>7</sup></a>，只需在 Git Bash 中输入</p>
 <pre class="bash"><code>curl -s -v https://xiangyunhuang.com.cn 2&gt;&amp;1 | grep Server</code></pre>
 </div>
 <div class="footnotes footnotes-end-of-document">
@@ -549,11 +543,10 @@ isn&#39;t indented.</code></pre>
 <li id="fn2"><p>Pandoc 2.6 及以上支持任务列表 <a href="https://pandoc.org/MANUAL.html#definition-lists" class="uri">https://pandoc.org/MANUAL.html#definition-lists</a><a href="#fnref2" class="footnote-back">↩︎</a></p></li>
 <li id="fn3"><p>这是因为我们必须保护数学表达式，防止被 Markdown 解释。如果你的数学表达式中不包含任何特殊的 Markdown 语法，如下划线或星号，你也许不需要反引号，但更安全的方式是始终添加反引号。<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
 <li id="fn4"><p>你肯定会对这里的文本感到无聊<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
-<li id="fn5"><p>这个课内容非常高深，听不大懂，但是知道个轮廓，感受下高维统计方向的研究前沿<a href="#fnref5" class="footnote-back">↩︎</a></p></li>
-<li id="fn6"><p>Inlines notes are easier to write, since
+<li id="fn5"><p>Inlines notes are easier to write, since
 you don’t have to pick an identifier and move down to type the
-note.<a href="#fnref6" class="footnote-back">↩︎</a></p></li>
-<li id="fn7"><p>the footnote text.<a href="#fnref7" class="footnote-back">↩︎</a></p></li>
-<li id="fn8"><p><a href="https://www.netlify.com/docs/ssl/#troubleshooting" class="uri">https://www.netlify.com/docs/ssl/#troubleshooting</a><a href="#fnref8" class="footnote-back">↩︎</a></p></li>
+note.<a href="#fnref5" class="footnote-back">↩︎</a></p></li>
+<li id="fn6"><p>the footnote text.<a href="#fnref6" class="footnote-back">↩︎</a></p></li>
+<li id="fn7"><p><a href="https://www.netlify.com/docs/ssl/#troubleshooting" class="uri">https://www.netlify.com/docs/ssl/#troubleshooting</a><a href="#fnref7" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>

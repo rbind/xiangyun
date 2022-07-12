@@ -339,14 +339,6 @@ knitr::include_url(url = "https://player.bilibili.com/player.html?aid=15256742&c
 knitr::include_url(url = "https://gfycat.com/ifr/PartialMadeupAustraliancurlew", height = "500px")
 ```
 
-插入腾讯视频
-
-```{r}
-#| echo: false
-
-knitr::include_url(url = "https://v.qq.com/txp/iframe/player.html?vid=s0392uw1zzj", height = "500px")
-```
-
 
 ## 2.7 插入幻灯片 {#slide}
 
@@ -379,17 +371,6 @@ knitr::include_url(url = "https://slides.com/hafen/trelliscopejs-lightning/embed
 knitr::include_url(url = "https://xiangyun.rbind.io//slide/2019/chinar12th-cos-blogdown#1", height = "500px")
 ```
 
-
-PDF 格式文档也是可以插入的，比如 beamer 制作的幻灯片，2016 年我去北大听 Cuihui Zhang 教授的高维线性模型，他人非常 nice，分享了他的幻灯片[^hlm]
-
-```{r}
-#| echo: false
-
-knitr::include_url(url = "https://wp-contents.netlify.com/talks/Cunhui-Zhang16-Beida.pdf", height = "600px")
-```
-
-
-[^hlm]: 这个课内容非常高深，听不大懂，但是知道个轮廓，感受下高维统计方向的研究前沿
 
 ## 2.8 插入列表 {#list}
 
