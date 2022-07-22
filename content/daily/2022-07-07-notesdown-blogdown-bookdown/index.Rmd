@@ -1,0 +1,65 @@
+---
+date: "2022-07-07"
+slug: notesdown-blogdown-bookdown
+title: 笔记、博客、书籍
+categories:
+  - 推荐文章
+tags:
+  - 似水流年
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+description: "平时，会把随时随地的碎片化思考和想法写在手机备忘录里，久而久之，像摆放在墙角的稻草一样越堆越高，隔几个月会生个火清理一下，发现好多想法有相似性。最早可追溯的想法能到2019年，可以想见，备忘录已经开始成为一种负担，不清理，心里不好受，清理了，时间浪费掉了，简而言之，思考在快速迭代，备忘录的内容却没有很好的整合推进。"
+---
+
+```{r}
+#| echo: false
+
+options(
+  tinytex.engine = 'xelatex',
+  tikzDefaultEngine = "xetex",
+  width = 69,
+  tikzDocumentDeclaration = "\\documentclass[tikz]{standalone}\n",
+  tikzXelatexPackages = c(
+    "\\usepackage[fontset=fandol]{ctex}",
+    "\\PassOptionsToPackage{quiet}{xeCJK}",
+    "\\usepackage{amsfonts,bm,mathrsfs,amssymb}\n"
+  )
+)
+```
+
+```{r triangle, engine="tikz", echo=FALSE, fig.cap="笔记、博客、书籍的三角关系", engine.opts=list(extra.preamble=c("\\usepackage[fontset=fandol]{ctex}","\\usepackage[default]{sourcesanspro}","\\usetikzlibrary{mindmap}")), out.width="45%"}
+\begin{tikzpicture}[align=center]
+  \node (notesdown) at (-2, 0) [concept, concept color=teal, text=white] {笔记};
+  \node (blogdown) at (2, 0) [concept, concept color=orange, text=white] {博客};
+  \node (bookdown) at (0, -3) [concept, concept color=blue!60!black, text=white] {书籍};
+
+  \path (notesdown) to[circle connection bar switch color=from (teal) to (orange)] node[above=1ex, font=\small] {反复加工} (blogdown);
+  \path (blogdown) to[circle connection bar switch color=from (orange) to (blue!60!black)] node[right=1ex, font=\small] {厚积如雪} (bookdown);
+  \path (bookdown) to[circle connection bar switch color=from (blue!60!black) to (teal)] node[left=1ex, font=\small] {迭代认知} (notesdown);
+\end{tikzpicture}
+```
+
+
+平时，会把随时随地的碎片化思考和想法写在手机备忘录里，久而久之，像摆放在墙角的稻草一样越堆越高，隔几个月会生个火清理一下，发现好多想法有相似性。最早可追溯的想法能到2019年，可以想见，备忘录已经开始成为一种负担，不清理，心里不好受，清理了，时间浪费掉了，简而言之，思考在快速迭代，备忘录的内容却没有很好的整合推进。
+
+
+我还有一本的[R 语言学习笔记](https://github.com/XiangyunHuang/notesdown)，之前的名字大概叫「统计软件安装和使用笔记」、「现代应用统计」，时间久了，记得不是很清楚了。它糅合了之前三、四本长短不齐的散碎笔记，有关于统计图形的，关于数据科学的，关于统计模型的，关于各种乱七八糟软件工具的。2020 年终于整合进这本笔记里，搬到一个地方是为了方便维护，既然什么都有也就无所谓一本书了，倒像是超级豪华版的便利贴，只做了分门别类，有网便可看。为了更好地维护，我将编译部署的平台从 Trvais 迁移到 Github Action，使用 **renv** 包管理 R 语言环境。为了照顾世界各地的网络环境，书籍托管在 [Github](https://xiangyunhuang.github.io/notesdown/)、[Netlify](https://notesdown.netlify.app/) 和 [bookdown](https://bookdown.org/xiangyun/notesdown/)。
+有的章节颇为厚实，有的徒有架子，有的空空如也，因此，万不敢在正式的公开场合提及，但是每天却有数十人访问，放狗搜索「现代应用统计」，结果页能排第一，着实让我震惊一下。原本只是为了自己方便，记了一些流水账，没想到还有些流量。这样过了两年，有几次编译 PDF 的时候，竟有 **1000 多页**，又一次震惊到我，慢慢地，我发现升级维护越发困难，不得不拆分重组，「现代应用统计」改为「R 语言学习笔记」，去掉完整度很低的章节，不适合再叫「现代应用统计」。我之前在个人博客的[角落](/2021/01/reproducible-analysis/#fn:2)里说过，没有那么多整块的时间去写书，它是我学习过程中随手记下的笔记和思考，很多东西昙花一现或蜻蜓点水。如果现在去写书，一则时间不够，即使写书成为我工作的一部分，恐怕积累不够，不符合我现在的成长轨迹。但是，我想经过三年五年，乃至十年八年的积累后，笔记会成为一本书的，那时水到渠成。
+
+
+接着，要说说我的博客了，今年又双叒搬了次家，2017 年在校期间从某度买了域名，开始接触 [**blogdown**](https://github.com/rstudio/blogdown)，弄了人生第一个个人博客 <https://xiangyunhuang.com.cn>，还是学术主题，没多久赶紧换了，不搞学术的人套一个学术主题想挨揍呀！期间尝试了很多个主题，毕竟人年轻，初学新事物，三天的热度，换主题比写博客勤快，博客能满足虚荣心。后来，要干正事，热乎劲消退了，也折腾不动了。朋友建议我先写**80**篇博文吧！好家伙，八十篇！捌拾篇！2019年使劲灌水，在[hugo-xmag](https://github.com/yihui/hugo-xmag)主题下凑了20-30篇，再后来时间没那么多了，几乎停更了，对自己先前的灌水行为感到惴惴不安。2020 年决定洗心革面，向 [rbind](https://github.com/rbind) 组织申请了新域名，就是如今的 <https://xiangyun.rbind.io/>，放弃了之前臭长的域名 <https://xiangyunhuang.com.cn>。当时比较满意的一篇是[求学 10 年和工作 10 月](https://xiangyun.rbind.io/2020/08/ten-years-ten-months/)，两年过后，现在看来，有不少幼稚的想法。人最重要的是和自己和解，永远相信曾经做过的事、说过的话是当时你能做的、能说的、最好的选择。坦然接受和面对那个幼稚的你比选择性忽视要好得多。
+
+
+2021 年上半年又偷偷摸摸地用 [Gollum](https://github.com/gollum/gollum) 折腾起 Wiki 来，主要是苦于思维胡乱发散，一些零碎的思考没有聚合，从灵光一现到一篇个人技术博客，要走很远的路，这个过程所花费的时间和精力需要管理起来，以便反思、改进。每一次深度思考都是一次痛苦的旅行，希望通过管理，能过渡到一场快乐的旅行！这初衷是不是很美好？起初，我还试过印象笔记，买了高级账户，但是它冷不丁地给我弹广告，打断思路，你说恶心不恶心！另一方面，我对软件有一些洁癖，倾向于开源、自由、可定制的产品，所以，其他收费后不弹广告的产品，我也不打算尝试了，试错成本太高，逃了逃了。Gollum 有版本控制，界面简洁清爽，可以让我专注，Markdown 语法配以基本的操作，正好满足需求。创作的热情似乎就要以此为界限，一发不可收拾，然则，我发现我根本驾驭不了，它太强了，而我太菜了！首先面临的问题是如何组织类目，比如生活、工作、学习、认知、规划，一级目录码完，想了想，脑子有点空白，好像哪方面都缺乏规划，所以又放弃了。
+
+
+认真思考需要很强的专注力，反思更加痛苦，也很花费时间，还是先写点博客吧。战术上很勤奋，战略上很懒惰，说的就是我这种类型的人。就这样，时间一晃，来到 2022 年。我意识到项目管理的重要性，个人时间精力是有限的，「Do one thing and do it well」。一段时间内只能聚焦于一个问题，并取得显著进展。一直在项目管理、规划、复盘等方面做得比较差劲。因此，重新认真思考书籍、笔记和博客的关系，以及如何才能真正用好它们。
+
+
+[厚积当如雪](https://yanlinlin.cn/2019/11/30/review-my-20-years/)，真正写书之前，先以写书的要求写一些博客。深吸一口气，写完一节，立下一个标杆，而不是每章都写一点，堆砌材料，最后不了了之，前后两种写法分别对应于写书和记流水账。写书先写规划，以终为始，没想清楚规划就不要动笔！更多地想想怎么写博客，而不是怎么写书，时间精力是有限的。如果打算放到书里，想一下为什么不可以放在博客里？书籍偏理论和知识体系的完整性，博客偏应用和分析方法的体系化。博客里什么都可以放，真实数据的分析过程、软件工具的使用过程、学习工作的经验分享。以点状的知识居多，比如某某模型应用于某某数据的分析，偶尔也有线状的知识整理，比如[《地区分布图及其应用》](/2022/04/choropleth-map/)，包含各种绘制姿势及其心得体会，还包含真实数据的分析和解读。
+
+
+写书首先是善心，把思维的光华而不是糟粕分享给读者；其次是耐心，它是一个长期性的项目，期间涉及个人创作、出版沟通、家庭生活和工作学习，不要独立地看待写书这个事情；最后需要决心，强大的执行力才是最后成事的关键，再好的想法不付诸实践都只是空想。写完一本书的关键因素有很多，我不想谈哪个因素更重要，因为在创作过程中都离不开它们，首当其冲就是时间和精力，继而是如何高效地分配，分配必须目标导向，因而写书的规划是关键的，规划之后就是执行，执行的关键是持续和质量，必须以终为始，不然书和流水账式的便利贴没有本质的区别。
+
