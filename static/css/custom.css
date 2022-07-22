@@ -153,3 +153,10 @@ div.csl-right-inline {
 div.csl-indent {
   margin-left: 1em;
 }
+del {
+  background-color: #444;
+}
+del:hover {
+  background-color: inherit;
+  text-decoration: inherit;
+}
