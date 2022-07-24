@@ -3,7 +3,10 @@ date: "2021-11-20"
 author: "黄湘云"
 slug: data-product-with-shiny-app
 title: 数据产品与 R Shiny 应用
-toc: true
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
 categories:
   - 统计软件
 tags:
@@ -12,8 +15,9 @@ tags:
   - R Markdown
 bibliography: 
   - refer.bib
-thumbnail: /img/shiny.svg
+thumbnail: /img/logo/shiny.svg
 link-citations: true
+math: true
 description: "本文将先回顾 2000 年以来 R 语言社区在做数据产品、工具、应用的一些历史；接着简要介绍《2021 年 Gartner 分析和商业智能平台魔力象限》，国内外商业智能分析领域出现的系列产品以及未来趋势；然后介绍 Web 开发框架 --- Shiny 生态以及一些典型作品；再介绍制作一款数据产品可能涉及到的方方面面，包括技术的、非技术的，以及一些个人思考，不一定对，仅供参考，笔者也会随着时间迭代。"
 ---
 
@@ -37,81 +41,13 @@ knitr::knit_hooks$set(output = local({
 # 控制输出的宽度
 options(width = 79)
 ```
+```{css}
+#| echo: false
 
-```{css, echo=FALSE}
-.sidebar {
-  border: 1px solid #ccc;
-}
-
-.rmdwarn {
-  border: 1px solid #EA4335;
-}
-
-.rmdnote {
-  border: 1px solid #FBBC05;
-}
-
-.rmdtip {
-  border: 1px solid #34A853;
-}
-
-.sidebar, .rmdwarn, .rmdnote, .rmdtip {
-  border-left-width: 5px;
-  border-radius: 5px;
-  padding: 1em;
-  margin: 1em 0;
-}
-
-div.rmdwarn::before, div.rmdnote::before, div.rmdtip::before {
-  display: block;
-  font-size: 1.1em;
-  font-weight: bold;
-  margin-bottom: 0.25em;
-}
-
-div.rmdwarn::before {
-  content: "警告";
-  color: #EA4335;
-}
-
-div.rmdnote::before {
-  content: "注意";
-  color: #FBBC05;
-}
-
-div.rmdtip::before {
-  content: "提示";
-  color: #34A853;
-}
-
-.rmdinfo {
-  border: 1px solid #ccc;
-  border-left-width: 5px;
-  border-radius: 5px;
-  padding: 1em;
-  margin: 1em 0;
-}
-div.rmdinfo::before {
-  content: "声明";
-  color: block;
-  display: block;
-  font-size: 1.1em;
-  font-weight: bold;
-  margin-bottom: 0.25em;
-}
-
-figure {
+.center {
   text-align: center;
-}
-
-div.img {
-  text-align: center;
-  display: block; 
-  margin-left: auto; 
-  margin-right: auto;
 }
 ```
-
 
 ::: rmdinfo
 本文引用的所有信息均为公开信息，仅代表作者本人观点，与就职单位无关。
@@ -232,7 +168,7 @@ Table: (\#tab:jasp) JASP 软件的主要统计分析功能
 
 
 ```{r shiny-logo, echo = FALSE}
-blogdown::shortcode("figure", src = "/img/shiny.svg", width = "25%", caption = "R Shiny 框架", link = "https://github.com/rstudio/shiny", alt = "R Shiny 框架", target = "_blank")
+blogdown::shortcode("figure", src = "/img/logo/shiny.svg", width = "25%", caption = "R Shiny 框架", link = "https://github.com/rstudio/shiny", alt = "R Shiny 框架", target = "_blank", class = "center")
 ```
 
 [**shiny**](https://shiny.rstudio.com/) 是 2012 年正式登陆 R 语言官方仓库 [CRAN](https://cran.r-project.org/) （Comprehensive R Archive Network）的，在 2015 年以后才开始形成生产力，经过最近几年的快速发展，截止当前，直接或间接依赖 **shiny** 的 R 包已有近 1000 个[^shiny-ecosystem]，还不算 [Bioconductor](https://www.bioconductor.org/) 上发布的，实际上还有很多存放在 Github 上。类似 **Rcmdr**，**shiny** 也有很多插件包，提供一些附加功能，比如交互反馈 [**shinyFeedback**](https://github.com/merlinoa/shinyFeedback)、主题配色 [**shinythemes**](https://github.com/rstudio/shinythemes)、输入校验 [**shinyvalidate**](https://github.com/rstudio/shinyvalidate)、筛选器样式 [**shinyWidgets**](https://github.com/dreamRs/shinyWidgets) 等，下面列出部分：
@@ -386,4 +322,7 @@ xfun::session_info(packages = c(
 ))
 ```
 
-# 参考文献
+
+# 参考文献 {#refer}
+
+<div id="refs"></div>
