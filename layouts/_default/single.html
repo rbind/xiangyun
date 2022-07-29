@@ -53,8 +53,9 @@
     {{ end }}
     
     {{ with .Site.Params.GithubEdit}}
-    <span class="article-metadata">编辑: </span>
-    <a href='{{ . }}{{ $.Scratch.Get "FilePath" }}'><i class="fa fa-edit" aria-hidden="true" title="编辑本页"></i></a>
+    <span class="article-metadata">编辑: 
+    <a href='{{ . }}{{ $.Scratch.Get "FilePath" }}'><i class="fa fa-edit" aria-hidden="true" title="编辑本页" style="color:#ccc"></i></a>
+    </span>
     {{ end }}
     
     {{ end }}
