@@ -46,6 +46,8 @@ rssLimit = 10
     MathJaxVersion = "2.7.5"
     MathJaxCDN = "//cdnjs.cloudflare.com/ajax/libs"
 
+    GithubEdit = "https://github.com/rbind/xiangyun/edit/master/content/"
+
 [markup]
     [markup.goldmark.renderer]
       unsafe = true
