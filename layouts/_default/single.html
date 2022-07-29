@@ -40,6 +40,24 @@
     <br>
     <span class="article-metadata article-wordcount">字数: </span>
     {{ end }}
+    
+    <br>
+    {{ if .File.Path }}
+    
+    {{ $Rmd := (print .File.BaseFileName ".Rmd") }}
+    
+    {{ if (where (readDir (print "content/" .File.Dir)) "Name" $Rmd) }}
+      {{ $.Scratch.Set "FilePath" (print .File.Dir $Rmd) }}
+    {{ else }}
+      {{ $.Scratch.Set "FilePath" .File.Path }}
+    {{ end }}
+    
+    {{ with .Site.Params.GithubEdit}}
+    <span class="article-metadata">编辑: </span>
+    <a href='{{ . }}{{ $.Scratch.Get "FilePath" }}'><i class="fa fa-edit" aria-hidden="true" title="编辑本页"></i></a>
+    {{ end }}
+    
+    {{ end }}
 
     <div class="article-content">
       {{ .Content }}
