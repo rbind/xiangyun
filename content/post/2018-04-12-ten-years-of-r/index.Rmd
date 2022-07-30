@@ -1,0 +1,675 @@
+---
+title: 从那十年看 R 语言的核心的核心：Brian Ripley 大人
+subtitle: "基于 2003-2012 年 SVN 代码提交日志数据"
+author: 黄湘云
+date: '2018-04-12'
+slug: ten-years-of-r
+categories:
+  - 统计应用
+tags:
+  - 数据可视化
+  - 日志分析
+  - R 语言
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+bibliography: 
+  - refer.bib
+csl: institute-of-mathematical-statistics.csl
+description: "本文根据 R 语言核心团队在 SVN 上的代码提交日志数据，分析大家的行为，感受一波时间的力量，团队的变迁。Brian Ripley 大人何以掌握 CRAN 上 R 包的生杀大权？那 10 年，Ripley 大人默默奉献自己的日日夜夜，向开源精神致敬。"
+---
+
+
+
+# 本文背景 {#background}
+
+自 1997 年 9 月 18 日 [Ross Ihaka](https://www.stat.auckland.ac.nz/~ihaka/) 在 [Apache Subversion](https://subversion.apache.org/)（下面简称 SVN） 上提交第一次代码以来，R 语言的开发一直由 [R Core Team](https://www.r-project.org/contributors.html)（即 R 语言核心团队）在 SVN 上进行着，到如今 25 年快过去了。25 年，四分之一个世纪，[Brian Ripley](https://www.stats.ox.ac.uk/~ripley/profile.html) 大人一路陪伴 R 语言的成长，如今，70 岁了，还在继续！
+
+本文将分析 Brian Ripley 在 SVN 上留下的一段足迹，观察陪跑的一段历程 --- 2003 至 2012 的十年，也正是 R 语言蓬勃发展的十年。R 语言开发者网站(<https://developer.r-project.org/>)提供了一份逐年的代码提交日志，官网除了提供日志数据直接下载地址，也提供了日志数据的生成过程，简单来说，就是从代码版本管理工具 SVN  中抽出来，下面的代码可以查看最近两天的提交日志。
+
+```{bash}
+#| eval: false
+
+## 笔者在 MacOS 上请测可用
+svn log -v -r HEAD:\{`date +%Y-%m-%d`\} https://svn.r-project.org/R
+```
+
+本文将完全基于 R 语言实现日志数据的分析过程，且保证代码稳定可重复。数据预处理的步骤有：读取文本数据，借助正则表达式匹配、筛选、抽取。仅说明每段代码的作用，而略去单个函数的介绍。分析过程中主要涉及的工具有：Base R 数据操作，**lattice** [@lattice2008] 数据可视化，期间穿插笔者的一些分析，希望对读者有所启发。
+
+
+# 数据准备 {#data-preparation}
+
+
+目前，R 语言源码及开发一直都在 SVN 上，在 Github 上有一份[源码镜像](https://github.com/r-devel/r-svn)，保持持续同步，R 语言[官方网站](https://cran.r-project.org/)及博客源码数据存放在 Github (<https://github.com/r-devel/r-dev-web>)。
+
+
+2003-2012 年的日志数据是现成的，总计约 10 年的 SVN [提交日志数据](https://developer.r-project.org/)，先从 R 语言官网下载，保存到本地文件夹 `data-raw/`，然后批量导入数据到 R 环境。读者可先查看其中一个文件的数据，直观了解数据的形态，分析探索之旅将从这里出发。
+
+## 查看数据
+
+查看纯文本文件 `R_svnlog_2003` 的头 10 行记录，即 2003 年 CRAN 团队代码提交日志数据。
+
+```{bash}
+#| comment=NA
+
+## 命令行窗口中查看文件前 10 行数据
+head -n 10 data-raw/R_svnlog_2003
+```
+
+```{r}
+# 批量导入原始数据到 R 环境
+meta_data <- unlist(lapply(
+  list.files(
+    path = "data-raw",
+    full.names = T,
+    pattern = "R_svnlog_\\d{4}"
+  ), readLines
+))
+```
+
+查看导入 R 环境中的数据情况
+
+```{r}
+#| comment=NA
+
+writeLines(meta_data[1:15]) 
+```
+
+## 筛选数据
+
+不难看出，每一条 SVN 提交日志用虚线分割，本文主要关注：
+
+```
+## 提交代码的 ID commit_id、贡献者 contributor、时间戳 timestamp 和修改行数 lines
+r27838 | pd | 2003-12-31 18:35:35 -0500 (Wed, 31 Dec 2003) | 2 lines
+```
+
+按照时间戳的格式过滤出提交日志的信息，比如 `2003-12-31 18:35:35`。
+
+```{r}
+## 过滤出想要的文本
+filter_meta_data <- meta_data[grepl(pattern = "(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})", x = meta_data)]
+```
+
+它们是用竖线分割的文本数据，只需将字符串按此规律分割，即可提取各个字段。
+
+```{r}
+## 分割文本
+split_meta_data <- strsplit(x = filter_meta_data, split = " | ", fixed = T)
+```
+
+<!--
+## 异常处理
+
+在数据抽取的过程中，注意到存在少量异常的提交数据，竖线分割后，没有形成 4 段。
+
+```{r}
+#| eval=FALSE
+
+# 异常数据长什么样
+split_meta_data[unlist(lapply(split_meta_data, length)) != 4]
+```
+
+因此，先过滤掉几个不符合规则的提交日志数据
+
+```{r}
+#| eval=FALSE
+
+# 过滤异常数据
+split_meta_data <- split_meta_data[unlist(lapply(split_meta_data, length)) == 4]
+```
+
+-->
+
+接下来整理成适合进行数据操作的数据类型。
+
+```{r}
+## 构造 matrix 类型
+tidy_meta_data <- matrix(
+  data = unlist(split_meta_data), ncol = 4, byrow = T,
+  dimnames = list(c(), c("commit_id", "contributor", "timestamp", "lines"))
+)
+## 转化为 data.frame
+tidy_meta_data <- as.data.frame(tidy_meta_data)
+```
+
+
+
+## 抽取数据
+
+为了提取文本数据中的有效信息，先准备一个提取函数。
+
+```{r}
+## 从一段文本中，按照给定的匹配模式提取一部分文本 
+str_extract <- function(text, pattern, ...) regmatches(text, regexpr(pattern, text, ...))
+```
+
+提取代码提交时间和修改代码行数。
+
+```{r}
+# 提取时间戳和代码修改行数
+spread_meta_data <- within(tidy_meta_data, {
+  time <- str_extract(text = timestamp, pattern = "\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}")
+  cnt <- str_extract(text = lines, pattern = "\\d{1}")
+})
+```
+
+## 数据转换
+
+再进行一些必要的数据转化，提取时间信息
+
+```{r}
+# 代码行数转为整型
+spread_meta_data$cnt <- as.integer(spread_meta_data$cnt)
+# 时间戳用 POSIXlt 类型表示
+spread_meta_data$time <- as.POSIXlt(spread_meta_data$time, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+# 提取日期
+spread_meta_data$date <- format(spread_meta_data$time, format = "%Y-%m-%d", tz = "UTC")
+# 提取年份
+spread_meta_data$year <- format(spread_meta_data$time, format = "%Y", tz = "UTC")
+# 提取月份
+spread_meta_data$month <- format(spread_meta_data$time, format = "%m", tz = "UTC")
+# 提取时段
+spread_meta_data$hour <- format(spread_meta_data$time, format = "%H", tz = "UTC")
+# 时段转为整型
+spread_meta_data$hour <- as.integer(spread_meta_data$hour)
+# 一周的周几
+spread_meta_data$weekday <- weekdays(spread_meta_data$time, abbreviate = T)
+# 转为 factor 类型
+spread_meta_data$weekday <- factor(spread_meta_data$weekday,
+  levels = c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+)
+# 一年的第几天
+spread_meta_data$days <- format(spread_meta_data$time, format = "%j", tz = "UTC")
+# 转为整型，一年总共 300 多天，整型够用
+spread_meta_data$days <- as.integer(spread_meta_data$days)
+```
+
+查看整理后的数据，如下：
+
+```{r}
+# 数据类型
+str(spread_meta_data)
+# 前几行数据记录
+head(spread_meta_data)
+```
+
+## 保存数据
+
+清理完成后，将数据保存起来，以备后用。
+
+```{r}
+#| eval: false
+#| echo: true
+
+## CRAN 团队 SVN 提交日志数据
+saveRDS(spread_meta_data, file = "data/cran-svn-log.rds")
+```
+
+# 数据分析 {#data-analysis}
+
+## CRAN 团队
+
+### 提交量排序（成员）
+
+
+笔者已迫不及待地想看下这 10 年 R 语言核心团队各个贡献者提交代码的总量，这可以用分组计数实现。
+
+```{r}
+## 按贡献者分组统计提交次数
+aggr_meta <- aggregate(x = commit_id ~ contributor, data = spread_meta_data, FUN = function(x) length(unique(x)))
+```
+
+下面简单排个序：
+
+```{r}
+## 按提交次数降序排列
+aggr_meta[order(aggr_meta$commit_id, decreasing = T), ]
+```
+
+
+Ripley 大人的提交量远超其他贡献者，是绝对的主力呀！对于我这个之前不太了解核心团队的人，这是令人感到惊讶的。尽管我之前已经听说过一点 Ripley 大人的传说，他是核心成员，拥有很大话语权，对 CRAN 上发布的 R 包「喊打喊杀」，其实，正因 Ripley 大人对质量的把控，才早就了 R 语言社区的持续发展。
+
+
+```{r}
+#| label: aggr-meta-data
+#| fig.cap: "R Core Team 代码提交量的分布"
+#| fig.showtext: true
+#| fig.align: "center"
+#| fig.width: 7
+#| fig.height: 6
+
+library(lattice)
+barchart(
+  data = aggr_meta, reorder(contributor, commit_id) ~ commit_id, origin = 0, 
+  horiz = T, xlab = "提交量", ylab = "R Core Team",
+  col = "lightblue", border = NA, scales = "free",
+  panel = function(...) {
+    panel.grid(h = 0, v = -1)
+    panel.barchart(...)
+  }
+)
+```
+
+图中 **root**、**(no author)** 和 **apache** 一看就不是正常的人名，请读者忽略。SVN 日志中涉及了部分 R Core Team 成员，笔者将 SVN ID、姓名、主页，整理成表\@ref(tab:svn-ctb-names)，方便对号入座，这大都是非常低调的一群人。
+
+```{r}
+#| echo: false
+#| label: svn-ctb-names
+
+library(tibble)
+
+cran_team <- tribble(
+  ~svn_name, ~full_name, ~homepage,
+  "ripley", "Brian Ripley", "https://www.stats.ox.ac.uk/~ripley/",
+  "maechler", "Martin Maechler", "https://people.math.ethz.ch/~maechler/",
+  "hornik", "Kurt Hornik", "https://statmath.wu.ac.at/~hornik/",
+  "murdoch", "Duncan Murdoch", "https://www.uwo.ca/stats/people/bios/duncan-murdoch.html",
+  "pd", "Peter Dalgaard", "http://staff.pubhealth.ku.dk/~pd/",
+  "jmc", "John Chambers", "https://statweb.stanford.edu/~jmc4/",
+  "luke", "Luke Tierney", "https://homepage.divms.uiowa.edu/~luke/",
+  "urbaneks", "Simon Urbanek", "https://github.com/s-u",
+  "iacus", "Stefano Iacus", "https://github.com/siacus",
+  "murrell", "Paul Murrell", "https://github.com/pmur002",
+  "leisch", "Friedrich Leisch", "https://boku.ac.at/rali/stat/personen/friedrich-leisch",
+  "tlumley", "Thomas Lumley", "https://github.com/tslumley",
+  "rgentlem", "Robert Gentleman", "https://github.com/rgentlem",
+  "duncan", "Duncan Temple Lang", "https://github.com/duncantl",
+  "bates", "Douglas Bates", "https://www.stat.wisc.edu/~bates/",
+  "falcon", "Seth Falcon", "https://github.com/seth",
+  "deepayan", "Deepayan Sarkar", "https://deepayan.github.io/",
+  "plummer", "Martyn Plummer", "https://warwick.ac.uk/fac/sci/statistics/staff/academic-research/plummer/",
+  "ligges", "Uwe Ligges", "https://www.statistik.tu-dortmund.de/ligges.html",
+  "martyn", "Martyn Plummer", "https://warwick.ac.uk/fac/sci/statistics/staff/academic-research/plummer/",
+  "ihaka", "Ross Ihaka", "https://www.stat.auckland.ac.nz/~ihaka/"
+)
+
+knitr::kable(cran_team,
+  col.names = c("SVN ID", "姓名", "主页"),
+  caption = "2003-2012 年 GNU R 维护者（部分）",
+  label = "svn-ctb-names"
+)
+```
+
+- Martyn Plummer 维护 [JAGS](https://mcmc-jags.sourceforge.io) 以及 rjags 包
+- [Paul Murrell](https://www.stat.auckland.ac.nz/~paul/) 维护 grid 包
+- Douglas Bates 维护 nlme 包
+- Deepayan Sarkar 维护 lattice 包
+- ……
+
+他们还在 [Bioconductor](https://www.bioconductor.org/)、[R Journal](https://journal.r-project.org/)、[Use R!](https://www.springer.com/series/6991) 和 [Journal of Statistical Software](https://www.jstatsoft.org/) 等组织中做了大量工作。
+
+
+
+### 提交量趋势（星期）
+
+接下里，看看每个贡献者提交量的星期分布。Ripley 大人，不管周末还是不周末都会提交大量代码，只是提交量在周六、周日明显要少一些，毕竟也是要休息的。Hornik 和 Ripley 类似，周六日会休息一下，Maechler 在周日休息，Murdoch 没有明显的休息规律，工作日和周末差不多。
+
+```{r}
+#| label: aggr-meta-week
+#| fig.cap: "提交次数的星期分布"
+#| fig.showtext: true
+#| fig.align: "center"
+#| fig.width: 7
+#| fig.height: 7
+
+# 按星期分组计数
+aggr_meta_week <- aggregate(
+  x = commit_id ~ contributor + weekday,
+  data = spread_meta_data, FUN = function(x) length(unique(x))
+)
+# 条形图
+barchart(
+  data = aggr_meta_week, weekday ~ commit_id | contributor, 
+  subset = !contributor %in% c("root", "apache", "(no author)"),
+  horiz = T, xlab = "提交次数", ylab = "星期几",
+  col = "lightblue", border = NA, origin = 0
+)
+```
+
+接下来看看这 10 年每个贡献者的提交量趋势。
+
+```{r}
+# 分组计数
+aggr_meta_ctb_year <- aggregate(
+  x = commit_id ~ contributor + year,
+  data = spread_meta_data, 
+  subset = !contributor %in% c("root", "apache", "(no author)"),
+  FUN = function(x) length(unique(x))
+)
+# 查看数据
+head(aggr_meta_ctb_year)
+```
+
+
+```{r}
+#| label: aggr-meta-ctb-year
+#| fig.cap: "贡献者年度提交量趋势"
+#| fig.showtext: true
+#| fig.align: "center"
+#| fig.width: 7
+#| fig.height: 7
+
+xyplot(commit_id ~ as.integer(year) | contributor,
+  data = aggr_meta_ctb_year,
+  subset = !contributor %in% c("root", "apache", "(no author)"),
+  type = "b", xlab = "年份", ylab = "提交量", col = "lightblue", pch = 19
+)
+```
+
+原来 R 语言的创始人 **R**obert Gentleman 和 **R**oss Ihaka 早就不参与贡献 R Core 代码了。Stefano Iacus、 Martyn Plummer 和 Thomas Lumley 陆续也不活跃了，同时又有
+Simon Urbanek、Deepayan Sarkar 和 Uwe Ligges 陆续加入。Ripley 大人在提交量上是如此地遥遥领先，不由得单独进行一波分析。
+
+## Ripley 大人
+
+
+### 提交量分布（箱线图）
+
+先按年分组，再按天统计 Ripley 大人的提交量，一年 365 天的提交量分布，如图\@ref(fig:aggr-meta-day-bw) 所示。
+
+```{r}
+# 按天聚合提交量，保留天所在年、月信息
+aggr_meta_day <- aggregate(
+  x = commit_id ~ days + month + year, subset = contributor == "ripley",
+  data = spread_meta_data, FUN = function(x) length(unique(x))
+)
+# 查看数据
+head(aggr_meta_day)
+```
+
+Ripley 大人有的时候一天提交 30 多次代码，连续 10 年相当稳定地输出。
+
+```{r}
+#| label: aggr-meta-day-bw
+#| fig.cap: "Ripley 大人提交量的分布"
+#| fig.showtext: true
+#| fig.align: "center"
+#| fig.width: 6
+#| fig.height: 5
+
+bwplot(commit_id ~ year,
+  data = aggr_meta_day,
+  xlab = "年份", ylab = "提交次数",
+  par.settings = list(
+    plot.symbol = list(col = "lightblue"),
+    box.rectangle = list(col = "lightblue"),
+    box.dot = list(col = "lightblue"),
+    box.umbrella = list(col = "lightblue")
+  )
+)
+```
+
+
+### 提交量分布（提琴图）
+
+相比于葙线图，提琴图可以更加精细地刻画数据的分布，除了5个分位点，它用密度估计曲线描述数据的分布。
+
+```{r}
+#| label: aggr-meta-year-violin
+#| fig.cap: "Ripley 大人提交量的分布"
+#| fig.showtext: true
+#| fig.align: "center"
+#| fig.width: 6
+#| fig.height: 5
+
+bwplot(commit_id ~ year,
+  data = aggr_meta_day,
+  xlab = "年份", ylab = "提交次数",
+  col = 'lightblue', border = NA,
+  panel = panel.violin
+)
+```
+
+
+
+
+### 提交量分布（密度图）
+
+按年分组，将提交量的分布情况用密度曲线图表示，图中虚线表示提交量的中位数。无论是从提交量的整体分布还是提交量的中位数（可将中位数看作是 Ripley 大人的日平均提交量），Ripley 也是相当稳定地输出呀！
+
+```{r}
+#| label: aggr-meta-day-density
+#| fig.cap: "Ripley 大人提交量的分布"
+#| fig.showtext: true
+#| fig.align: "center"
+#| fig.width: 8
+#| fig.height: 6
+
+densityplot(~commit_id |  year,
+  data = aggr_meta_day, col = 'lightblue', 
+  panel = function(x, ...) {
+    panel.densityplot(x, plot.points = FALSE,...)
+    panel.rug(x, y = rep(0, length(x)), ...)
+    panel.abline(v = quantile(x, .5), col.line = "lightblue", lty = 2, lwd = 1.5)
+  },
+  xlab = "提交次数", ylab = "密度"
+)
+```
+
+
+### 提交量趋势（每年）
+
+接下来，看看 Ripley 大人提交量的年度变化趋势。
+
+```{r}
+# 按年统计提交量
+aggr_meta_year <- aggregate(
+  x = commit_id ~ year,
+  data = aggr_meta_day, 
+  FUN = sum
+)
+# 查看数据
+head(aggr_meta_year)
+```
+
+整体上，看起来提交量在逐年稳定地增加。
+
+```{r}
+#| label: aggr-meta-yeat
+#| fig.cap: "Ripley 大人每年的提交量趋势"
+#| fig.showtext: true
+#| fig.align: "center"
+#| fig.width: 8
+#| fig.height: 6
+
+xyplot(commit_id ~ as.integer(year), data = aggr_meta_year,
+  type = "b", xlab = "年份", ylab = "提交量", col = 'lightblue', pch = 19
+)
+```
+
+
+### 提交量趋势（每月）
+
+细分月份来看，Ripley 大人逐年月度提交量趋势。
+
+```{r}
+# 按月统计提交量
+aggr_meta_month <- aggregate(
+  x = commit_id ~ month + year,
+  data = aggr_meta_day, 
+  FUN = sum
+)
+# 查看数据
+head(aggr_meta_month)
+```
+
+
+```{r}
+#| label: aggr-meta-month
+#| fig.cap: "Ripley 大人每月的提交量趋势"
+#| fig.showtext: true
+#| fig.align: "center"
+#| fig.width: 8
+#| fig.height: 5.5
+
+xyplot(commit_id ~ as.integer(month),
+  groups = factor(year), data = aggr_meta_month,
+  auto.key = list(columns = 4, space = "top", points = TRUE, lines = TRUE),
+  type = c("b", "g"), xlab = "月份", ylab = "提交量", scales = "free",
+  lattice.options = list(
+    layout.heights = list(
+      bottom.padding = list(x = -.1, units = "inches")
+    )
+  ),
+  par.settings = list(
+    superpose.line = list(
+      lwd = 1.5,
+      col = RColorBrewer::brewer.pal(name = "Set3", n = 10)
+    ),
+    superpose.symbol = list(
+      cex = 1, pch = 19,
+      col = RColorBrewer::brewer.pal(name = "Set3", n = 10)
+    )
+  )
+)
+```
+
+看似毫无规律，每年的趋势混合在一起，却正说明 Ripley 大人每年提交代码的量很稳定，很规律。
+
+::: sidebar
+函数 `xyplot()` 的参数 `type` 的取值 `'p'` 表示添加点 points，`'l'` 表示添加线 lines，`'r'` 表示添加回归线，`'smooth'` 表示添加局部多项式回归拟合线，详情见 `loess()`，`'g'` 表示添加背景参考线。
+:::
+
+下面将此数据看作时间序列数据。
+
+```{r}
+aggr_meta_month_ts <- ts(
+  data = aggr_meta_month$commit_id, 
+  start = c(2003, 1), end = c(2012, 12), 
+  frequency = 12, 
+  class = "ts", names = "commit_id"
+)
+aggr_meta_month_ts
+```
+
+以时序图观察 Ripley 大人每月的提交量趋势，如图\@ref(fig:aggr-meta-month-ts)所示，是不是看起来很平稳呀？那究竟是不是平稳的时间序列呢？
+
+```{r}
+#| label: aggr-meta-month-ts
+#| fig.cap: "ripley 大人每月的提交量趋势"
+#| fig.showtext: true
+#| fig.align: "center"
+#| fig.width: 8
+#| fig.height: 6
+
+xyplot(aggr_meta_month_ts)
+```
+
+下面使用 Ljung-Box 检验一下，它的原假设是时间序列是白噪声。
+
+```{r}
+Box.test(aggr_meta_month_ts, lag = 1, type = "Ljung-Box")
+```
+
+可见，P 值显著小于 0.05，时间序列不是统计意义上的白噪声，还包含些确定性的信息。
+
+
+观察时间序列数据中的变化趋势，还可以用水平图，假定 Ripley 大人设定每月提交 100 次代码的 OKR，图\@ref(fig:aggr-meta-month-horizon)可以非常直观地看出每年的完成情况。
+
+```{r}
+#| label: aggr-meta-month-horizon
+#| fig.cap: "Ripley 大人每月的提交量趋势"
+#| fig.showtext: true
+#| fig.align: "center"
+#| fig.width: 8
+#| fig.height: 6
+
+library(latticeExtra)
+# origin 为基线值，后续值相对于它的增减变化
+horizonplot(aggr_meta_month_ts, 
+  panel = function(x, ...) {
+    latticeExtra::panel.horizonplot(x, ...)
+    grid::grid.text(round(x[1]), x = 0, just = "left")
+  },
+  xlab = "", ylab = "",
+  cut = list(n = 10, overlap = 0), # 10 年
+  scales = list(draw = FALSE, y = list(relation = "same")),
+  origin = 100, 
+  colorkey = TRUE, # 右侧梯度颜色条
+  col.regions = RColorBrewer::brewer.pal(6, "RdBu"),
+  strip.left = FALSE,
+  layout = c(1, 10) # 布局 1 列 10 行，每年一行
+)
+```
+
+::: sidebar
+latticeExtra 包很早就提供了水平图的绘制函数 `horizonplot()`，支持 ts 类型的时序数据，更多详情见帮助文档 `?horizonplot`。
+:::
+
+### 提交量趋势（每天）
+
+接下来，再分年按天统计提交量，分组观察趋势变化，如图\@ref(fig:aggr-meta-day)所示。这就很难看出一些规律了，毕竟每天是否写代码，写多少的影响因素太多，Ripley 大人就是再规律，也不至于规律到每天都一样，或者保持某种明显的趋势。
+
+```{r}
+#| label: aggr-meta-day
+#| fig.cap: "Ripley 大人每天的提交量趋势"
+#| fig.showtext: true
+#| fig.align: "center"
+#| fig.width: 8
+#| fig.height: 6
+
+xyplot(commit_id ~ days | year, data = aggr_meta_day, 
+       type = "l", xlab = "天", ylab = "提交量", col = "lightblue")
+```
+
+
+
+### 提交量趋势（每时）
+
+因此，接下来，按年分组，将每天划分为24个时段，再按时段聚合提交量，就可获得年度提交量分时段的分布，如图\@ref(fig:aggr-meta-hour)所示。将一年 365 天的数据聚合在一块，这就相当地有规律了，规律体现在每天的作息。
+
+```{r}
+# 按年分组，按小时聚合统计
+aggr_meta_hour <- aggregate(
+  x = commit_id ~ hour + year, subset = contributor == "ripley",
+  data = spread_meta_data, FUN = function(x) length(unique(x))
+)
+# 查看数据
+head(aggr_meta_hour)
+```
+
+每天凌晨 2:00 - 5:00 之间为 Ripley 大人提交量的高峰期，Ripley 大人生活在英国，而英国伦敦和中国北京的时差为 7 小时，也就是说图中凌晨 3:00 - 3:59 相当于北京时间上午 10:00 - 10:59。
+
+```{r}
+#| label: aggr-meta-hour
+#| fig.cap: "Ripley 大人每小时的提交量趋势"
+#| fig.showtext: true
+#| fig.align: "center"
+#| fig.width: 8
+#| fig.height: 6
+
+xyplot(commit_id ~ hour | year, type = "b", data = aggr_meta_hour, 
+       xlab = "时段", ylab = "提交量", col = "lightblue", pch = 19)
+```
+
+
+一天 24 小时，Ripley 大人有可能出现在任意一个时段。2005、2007、2011 和 2012 年明显又比其他年份提交量更多些。每年提交代码的高峰时段很稳定，均在北京时间上午 10:00 - 10:59。
+
+
+# 本文小结 {#summary}
+
+下面从数据探索和数据可视化两个方面谈谈。
+
+1.  有的人何以如此这般的犀利？背后都有一番轻易不为人所知的缘由，唯有拨开云雾才能洞悉其因果。2015 年[Yihui Xie](https://yihui.org/)在[《论R码农的自我修养》](https://www.bilibili.com/video/BV1qP4y1w774)中提及 Brian Ripley 大人曾经和蔼可亲，言外之意，Ripley 大人现在手握利器对 R 包、开发者做减法。我也曾吐槽 R 语言社区[开源但没有充分利用开源的力量](https://d.cosx.org/d/420697/16)，更像是长期雇佣了 Ripley 大人做维护和开发。甚至在本文写作之前仍有此类似想法 --- 基于[CRAN 团队](https://www.r-project.org/foundation/members.html)在 SVN 上提交的[10 年日志数据](https://developer.r-project.org/)进行分析，试图回答开源社区是不是谁贡献多谁话语权多？但本文写完，这个问题已不重要，我完全体谅 Ripley 大人，希望出现更多像他这样的维护者。2021 年[Dirk Eddelbuettel](https://dirk.eddelbuettel.com/) 曾有篇文章 [An Ode to Stable Interfaces: R and R Core Deserve So Much Praise](https://dirk.eddelbuettel.com/blog/2021/03/20/) 致敬 R 的稳定性，本文也有此意，特意避开 ggplot2 和一众[净土包](https://github.com/tidyverse)，也立下[十年可重复之约](https://www.nature.com/articles/d41586-020-02462-7)，感谢 Ripley 大人为开源社区的贡献。
+
+1. 可视化在数据探查、数据探索、数据展示都有非常重要的作用，不同的任务对可视化的要求是不一样的。探查的目的是了解数据质量，探索是为了揭示数据蕴含的规律，而展示是为了交流数据信息、洞见。探查和探索的潜在过程尽管耗时费力，但一般不会给读者直接看到，所以，很多时候，大家更多关注可视化的过程和结果。更多详细介绍，推荐读者看看 Antony Unwin 的文章《Why is Data Visualization Important? What is Important in Data Visualization? 》[@Unwin2020]。
+
+
+
+
+# 环境信息 {#session}
+
+在 RStudio IDE 内编辑本文的 R Markdown 源文件，用 **blogdown** 构建网站，[Hugo](https://github.com/gohugoio/hugo) 渲染 knitr 之后的 Markdown 文件，得益于 **blogdown** 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：
+
+```{r}
+xfun::session_info(packages = c(
+  "rmarkdown", "blogdown", 
+  "lattice", "latticeExtra", "RColorBrewer"
+), dependencies = FALSE)
+```
+
+# 参考文献 {#refer}
+
+<div id="refs"></div>

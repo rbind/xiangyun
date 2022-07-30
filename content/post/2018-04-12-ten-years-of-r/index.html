@@ -1,0 +1,763 @@
+---
+title: 从那十年看 R 语言的核心的核心：Brian Ripley 大人
+subtitle: "基于 2003-2012 年 SVN 代码提交日志数据"
+author: 黄湘云
+date: '2018-04-12'
+slug: ten-years-of-r
+categories:
+  - 统计应用
+tags:
+  - 数据可视化
+  - 日志分析
+  - R 语言
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+bibliography: 
+  - refer.bib
+csl: institute-of-mathematical-statistics.csl
+description: "本文根据 R 语言核心团队在 SVN 上的代码提交日志数据，分析大家的行为，感受一波时间的力量，团队的变迁。Brian Ripley 大人何以掌握 CRAN 上 R 包的生杀大权？那 10 年，Ripley 大人默默奉献自己的日日夜夜，向开源精神致敬。"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#background" id="toc-background"><span class="toc-section-number">1</span> 本文背景</a></li>
+<li><a href="#data-preparation" id="toc-data-preparation"><span class="toc-section-number">2</span> 数据准备</a>
+<ul>
+<li><a href="#查看数据" id="toc-查看数据"><span class="toc-section-number">2.1</span> 查看数据</a></li>
+<li><a href="#筛选数据" id="toc-筛选数据"><span class="toc-section-number">2.2</span> 筛选数据</a></li>
+<li><a href="#抽取数据" id="toc-抽取数据"><span class="toc-section-number">2.3</span> 抽取数据</a></li>
+<li><a href="#数据转换" id="toc-数据转换"><span class="toc-section-number">2.4</span> 数据转换</a></li>
+<li><a href="#保存数据" id="toc-保存数据"><span class="toc-section-number">2.5</span> 保存数据</a></li>
+</ul></li>
+<li><a href="#data-analysis" id="toc-data-analysis"><span class="toc-section-number">3</span> 数据分析</a>
+<ul>
+<li><a href="#cran-团队" id="toc-cran-团队"><span class="toc-section-number">3.1</span> CRAN 团队</a>
+<ul>
+<li><a href="#提交量排序成员" id="toc-提交量排序成员"><span class="toc-section-number">3.1.1</span> 提交量排序（成员）</a></li>
+<li><a href="#提交量趋势星期" id="toc-提交量趋势星期"><span class="toc-section-number">3.1.2</span> 提交量趋势（星期）</a></li>
+</ul></li>
+<li><a href="#ripley-大人" id="toc-ripley-大人"><span class="toc-section-number">3.2</span> Ripley 大人</a>
+<ul>
+<li><a href="#提交量分布箱线图" id="toc-提交量分布箱线图"><span class="toc-section-number">3.2.1</span> 提交量分布（箱线图）</a></li>
+<li><a href="#提交量分布提琴图" id="toc-提交量分布提琴图"><span class="toc-section-number">3.2.2</span> 提交量分布（提琴图）</a></li>
+<li><a href="#提交量分布密度图" id="toc-提交量分布密度图"><span class="toc-section-number">3.2.3</span> 提交量分布（密度图）</a></li>
+<li><a href="#提交量趋势每年" id="toc-提交量趋势每年"><span class="toc-section-number">3.2.4</span> 提交量趋势（每年）</a></li>
+<li><a href="#提交量趋势每月" id="toc-提交量趋势每月"><span class="toc-section-number">3.2.5</span> 提交量趋势（每月）</a></li>
+<li><a href="#提交量趋势每天" id="toc-提交量趋势每天"><span class="toc-section-number">3.2.6</span> 提交量趋势（每天）</a></li>
+<li><a href="#提交量趋势每时" id="toc-提交量趋势每时"><span class="toc-section-number">3.2.7</span> 提交量趋势（每时）</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#summary" id="toc-summary"><span class="toc-section-number">4</span> 本文小结</a></li>
+<li><a href="#session" id="toc-session"><span class="toc-section-number">5</span> 环境信息</a></li>
+<li><a href="#refer" id="toc-refer"><span class="toc-section-number">6</span> 参考文献</a></li>
+</ul>
+</div>
+
+<div id="background" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> 本文背景</h1>
+<p>自 1997 年 9 月 18 日 <a href="https://www.stat.auckland.ac.nz/~ihaka/">Ross Ihaka</a> 在 <a href="https://subversion.apache.org/">Apache Subversion</a>（下面简称 SVN） 上提交第一次代码以来，R 语言的开发一直由 <a href="https://www.r-project.org/contributors.html">R Core Team</a>（即 R 语言核心团队）在 SVN 上进行着，到如今 25 年快过去了。25 年，四分之一个世纪，<a href="https://www.stats.ox.ac.uk/~ripley/profile.html">Brian Ripley</a> 大人一路陪伴 R 语言的成长，如今，70 岁了，还在继续！</p>
+<p>本文将分析 Brian Ripley 在 SVN 上留下的一段足迹，观察陪跑的一段历程 — 2003 至 2012 的十年，也正是 R 语言蓬勃发展的十年。R 语言开发者网站(<a href="https://developer.r-project.org/" class="uri">https://developer.r-project.org/</a>)提供了一份逐年的代码提交日志，官网除了提供日志数据直接下载地址，也提供了日志数据的生成过程，简单来说，就是从代码版本管理工具 SVN 中抽出来，下面的代码可以查看最近两天的提交日志。</p>
+<pre class="bash"><code>## 笔者在 MacOS 上请测可用
+svn log -v -r HEAD:\{`date +%Y-%m-%d`\} https://svn.r-project.org/R</code></pre>
+<p>本文将完全基于 R 语言实现日志数据的分析过程，且保证代码稳定可重复。数据预处理的步骤有：读取文本数据，借助正则表达式匹配、筛选、抽取。仅说明每段代码的作用，而略去单个函数的介绍。分析过程中主要涉及的工具有：Base R 数据操作，<strong>lattice</strong> <span class="citation">[<a href="#ref-lattice2008" role="doc-biblioref">1</a>]</span> 数据可视化，期间穿插笔者的一些分析，希望对读者有所启发。</p>
+</div>
+<div id="data-preparation" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> 数据准备</h1>
+<p>目前，R 语言源码及开发一直都在 SVN 上，在 Github 上有一份<a href="https://github.com/r-devel/r-svn">源码镜像</a>，保持持续同步，R 语言<a href="https://cran.r-project.org/">官方网站</a>及博客源码数据存放在 Github (<a href="https://github.com/r-devel/r-dev-web" class="uri">https://github.com/r-devel/r-dev-web</a>)。</p>
+<p>2003-2012 年的日志数据是现成的，总计约 10 年的 SVN <a href="https://developer.r-project.org/">提交日志数据</a>，先从 R 语言官网下载，保存到本地文件夹 <code>data-raw/</code>，然后批量导入数据到 R 环境。读者可先查看其中一个文件的数据，直观了解数据的形态，分析探索之旅将从这里出发。</p>
+<div id="查看数据" class="section level2" number="2.1">
+<h2><span class="header-section-number">2.1</span> 查看数据</h2>
+<p>查看纯文本文件 <code>R_svnlog_2003</code> 的头 10 行记录，即 2003 年 CRAN 团队代码提交日志数据。</p>
+<pre class="bash"><code>## 命令行窗口中查看文件前 10 行数据
+head -n 10 data-raw/R_svnlog_2003</code></pre>
+<pre><code>------------------------------------------------------------------------
+r27839 | pd | 2003-12-31 18:35:40 -0500 (Wed, 31 Dec 2003) | 2 lines
+Changed paths:
+   M /trunk/BUGS
+
+auto-update
+
+------------------------------------------------------------------------
+r27838 | pd | 2003-12-31 18:35:35 -0500 (Wed, 31 Dec 2003) | 2 lines
+Changed paths:</code></pre>
+<pre class="r"><code># 批量导入原始数据到 R 环境
+meta_data &lt;- unlist(lapply(
+  list.files(
+    path = &quot;data-raw&quot;,
+    full.names = T,
+    pattern = &quot;R_svnlog_\\d{4}&quot;
+  ), readLines
+))</code></pre>
+<p>查看导入 R 环境中的数据情况</p>
+<pre class="r"><code>writeLines(meta_data[1:15]) </code></pre>
+<pre><code>------------------------------------------------------------------------
+r27839 | pd | 2003-12-31 18:35:40 -0500 (Wed, 31 Dec 2003) | 2 lines
+Changed paths:
+   M /trunk/BUGS
+
+auto-update
+
+------------------------------------------------------------------------
+r27838 | pd | 2003-12-31 18:35:35 -0500 (Wed, 31 Dec 2003) | 2 lines
+Changed paths:
+   M /branches/R-1-8-patches/BUGS
+
+auto-update
+
+------------------------------------------------------------------------</code></pre>
+</div>
+<div id="筛选数据" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span> 筛选数据</h2>
+<p>不难看出，每一条 SVN 提交日志用虚线分割，本文主要关注：</p>
+<pre><code>## 提交代码的 ID commit_id、贡献者 contributor、时间戳 timestamp 和修改行数 lines
+r27838 | pd | 2003-12-31 18:35:35 -0500 (Wed, 31 Dec 2003) | 2 lines</code></pre>
+<p>按照时间戳的格式过滤出提交日志的信息，比如 <code>2003-12-31 18:35:35</code>。</p>
+<pre class="r"><code>## 过滤出想要的文本
+filter_meta_data &lt;- meta_data[grepl(pattern = &quot;(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})&quot;, x = meta_data)]</code></pre>
+<p>它们是用竖线分割的文本数据，只需将字符串按此规律分割，即可提取各个字段。</p>
+<pre class="r"><code>## 分割文本
+split_meta_data &lt;- strsplit(x = filter_meta_data, split = &quot; | &quot;, fixed = T)</code></pre>
+<!--
+## 异常处理
+
+在数据抽取的过程中，注意到存在少量异常的提交数据，竖线分割后，没有形成 4 段。
+
+
+```r
+# 异常数据长什么样
+split_meta_data[unlist(lapply(split_meta_data, length)) != 4]
+```
+
+因此，先过滤掉几个不符合规则的提交日志数据
+
+
+```r
+# 过滤异常数据
+split_meta_data <- split_meta_data[unlist(lapply(split_meta_data, length)) == 4]
+```
+
+-->
+<p>接下来整理成适合进行数据操作的数据类型。</p>
+<pre class="r"><code>## 构造 matrix 类型
+tidy_meta_data &lt;- matrix(
+  data = unlist(split_meta_data), ncol = 4, byrow = T,
+  dimnames = list(c(), c(&quot;commit_id&quot;, &quot;contributor&quot;, &quot;timestamp&quot;, &quot;lines&quot;))
+)
+## 转化为 data.frame
+tidy_meta_data &lt;- as.data.frame(tidy_meta_data)</code></pre>
+</div>
+<div id="抽取数据" class="section level2" number="2.3">
+<h2><span class="header-section-number">2.3</span> 抽取数据</h2>
+<p>为了提取文本数据中的有效信息，先准备一个提取函数。</p>
+<pre class="r"><code>## 从一段文本中，按照给定的匹配模式提取一部分文本 
+str_extract &lt;- function(text, pattern, ...) regmatches(text, regexpr(pattern, text, ...))</code></pre>
+<p>提取代码提交时间和修改代码行数。</p>
+<pre class="r"><code># 提取时间戳和代码修改行数
+spread_meta_data &lt;- within(tidy_meta_data, {
+  time &lt;- str_extract(text = timestamp, pattern = &quot;\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}&quot;)
+  cnt &lt;- str_extract(text = lines, pattern = &quot;\\d{1}&quot;)
+})</code></pre>
+</div>
+<div id="数据转换" class="section level2" number="2.4">
+<h2><span class="header-section-number">2.4</span> 数据转换</h2>
+<p>再进行一些必要的数据转化，提取时间信息</p>
+<pre class="r"><code># 代码行数转为整型
+spread_meta_data$cnt &lt;- as.integer(spread_meta_data$cnt)
+# 时间戳用 POSIXlt 类型表示
+spread_meta_data$time &lt;- as.POSIXlt(spread_meta_data$time, format = &quot;%Y-%m-%d %H:%M:%S&quot;, tz = &quot;UTC&quot;)
+# 提取日期
+spread_meta_data$date &lt;- format(spread_meta_data$time, format = &quot;%Y-%m-%d&quot;, tz = &quot;UTC&quot;)
+# 提取年份
+spread_meta_data$year &lt;- format(spread_meta_data$time, format = &quot;%Y&quot;, tz = &quot;UTC&quot;)
+# 提取月份
+spread_meta_data$month &lt;- format(spread_meta_data$time, format = &quot;%m&quot;, tz = &quot;UTC&quot;)
+# 提取时段
+spread_meta_data$hour &lt;- format(spread_meta_data$time, format = &quot;%H&quot;, tz = &quot;UTC&quot;)
+# 时段转为整型
+spread_meta_data$hour &lt;- as.integer(spread_meta_data$hour)
+# 一周的周几
+spread_meta_data$weekday &lt;- weekdays(spread_meta_data$time, abbreviate = T)
+# 转为 factor 类型
+spread_meta_data$weekday &lt;- factor(spread_meta_data$weekday,
+  levels = c(&quot;Mon&quot;, &quot;Tue&quot;, &quot;Wed&quot;, &quot;Thu&quot;, &quot;Fri&quot;, &quot;Sat&quot;, &quot;Sun&quot;)
+)
+# 一年的第几天
+spread_meta_data$days &lt;- format(spread_meta_data$time, format = &quot;%j&quot;, tz = &quot;UTC&quot;)
+# 转为整型，一年总共 300 多天，整型够用
+spread_meta_data$days &lt;- as.integer(spread_meta_data$days)</code></pre>
+<p>查看整理后的数据，如下：</p>
+<pre class="r"><code># 数据类型
+str(spread_meta_data)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    38954 obs. of  12 variables:
+##  $ commit_id  : chr  &quot;r27839&quot; &quot;r27838&quot; &quot;r27837&quot; &quot;r27836&quot; ...
+##  $ contributor: chr  &quot;pd&quot; &quot;pd&quot; &quot;ripley&quot; &quot;jmc&quot; ...
+##  $ timestamp  : chr  &quot;2003-12-31 18:35:40 -0500 (Wed, 31 Dec 2003)&quot; &quot;2003-12-31 18:35:35 -0500 (Wed, 31 Dec 2003)&quot; &quot;2003-12-31 12:58:22 -0500 (Wed, 31 Dec 2003)&quot; &quot;2003-12-31 11:22:43 -0500 (Wed, 31 Dec 2003)&quot; ...
+##  $ lines      : chr  &quot;2 lines&quot; &quot;2 lines&quot; &quot;2 lines&quot; &quot;2 lines&quot; ...
+##  $ cnt        : int  2 2 2 2 4 2 2 2 2 3 ...
+##  $ time       : POSIXlt, format: &quot;2003-12-31 18:35:40&quot; &quot;2003-12-31 18:35:35&quot; ...
+##  $ date       : chr  &quot;2003-12-31&quot; &quot;2003-12-31&quot; &quot;2003-12-31&quot; &quot;2003-12-31&quot; ...
+##  $ year       : chr  &quot;2003&quot; &quot;2003&quot; &quot;2003&quot; &quot;2003&quot; ...
+##  $ month      : chr  &quot;12&quot; &quot;12&quot; &quot;12&quot; &quot;12&quot; ...
+##  $ hour       : int  18 18 12 11 11 11 11 6 6 5 ...
+##  $ weekday    : Factor w/ 7 levels &quot;Mon&quot;,&quot;Tue&quot;,&quot;Wed&quot;,..: 3 3 3 3 3 3 3 3 3 3 ...
+##  $ days       : int  365 365 365 365 365 365 365 365 365 365 ...</code></pre>
+<pre class="r"><code># 前几行数据记录
+head(spread_meta_data)</code></pre>
+<pre><code>##   commit_id contributor                                    timestamp   lines
+## 1    r27839          pd 2003-12-31 18:35:40 -0500 (Wed, 31 Dec 2003) 2 lines
+## 2    r27838          pd 2003-12-31 18:35:35 -0500 (Wed, 31 Dec 2003) 2 lines
+## 3    r27837      ripley 2003-12-31 12:58:22 -0500 (Wed, 31 Dec 2003) 2 lines
+## 4    r27836         jmc 2003-12-31 11:22:43 -0500 (Wed, 31 Dec 2003) 2 lines
+## 5    r27835         jmc 2003-12-31 11:22:13 -0500 (Wed, 31 Dec 2003) 4 lines
+## 6    r27834         jmc 2003-12-31 11:20:09 -0500 (Wed, 31 Dec 2003) 2 lines
+##   cnt                time       date year month hour weekday days
+## 1   2 2003-12-31 18:35:40 2003-12-31 2003    12   18     Wed  365
+## 2   2 2003-12-31 18:35:35 2003-12-31 2003    12   18     Wed  365
+## 3   2 2003-12-31 12:58:22 2003-12-31 2003    12   12     Wed  365
+## 4   2 2003-12-31 11:22:43 2003-12-31 2003    12   11     Wed  365
+## 5   4 2003-12-31 11:22:13 2003-12-31 2003    12   11     Wed  365
+## 6   2 2003-12-31 11:20:09 2003-12-31 2003    12   11     Wed  365</code></pre>
+</div>
+<div id="保存数据" class="section level2" number="2.5">
+<h2><span class="header-section-number">2.5</span> 保存数据</h2>
+<p>清理完成后，将数据保存起来，以备后用。</p>
+<pre class="r"><code>## CRAN 团队 SVN 提交日志数据
+saveRDS(spread_meta_data, file = &quot;data/cran-svn-log.rds&quot;)</code></pre>
+</div>
+</div>
+<div id="data-analysis" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> 数据分析</h1>
+<div id="cran-团队" class="section level2" number="3.1">
+<h2><span class="header-section-number">3.1</span> CRAN 团队</h2>
+<div id="提交量排序成员" class="section level3" number="3.1.1">
+<h3><span class="header-section-number">3.1.1</span> 提交量排序（成员）</h3>
+<p>笔者已迫不及待地想看下这 10 年 R 语言核心团队各个贡献者提交代码的总量，这可以用分组计数实现。</p>
+<pre class="r"><code>## 按贡献者分组统计提交次数
+aggr_meta &lt;- aggregate(x = commit_id ~ contributor, data = spread_meta_data, FUN = function(x) length(unique(x)))</code></pre>
+<p>下面简单排个序：</p>
+<pre class="r"><code>## 按提交次数降序排列
+aggr_meta[order(aggr_meta$commit_id, decreasing = T), ]</code></pre>
+<pre><code>##    contributor commit_id
+## 21      ripley     23728
+## 14    maechler      3682
+## 7       hornik      3677
+## 16     murdoch      2026
+## 18          pd      1791
+## 2       apache       658
+## 10         jmc       609
+## 13        luke       582
+## 24    urbaneks       420
+## 8        iacus       382
+## 17     murrell       335
+## 11      leisch       284
+## 23     tlumley       153
+## 20    rgentlem       141
+## 22        root        87
+## 5       duncan        82
+## 3        bates        76
+## 1  (no author)        61
+## 6       falcon        45
+## 4     deepayan        41
+## 19     plummer        28
+## 12      ligges        26
+## 15      martyn        20
+## 9        ihaka        14</code></pre>
+<p>Ripley 大人的提交量远超其他贡献者，是绝对的主力呀！对于我这个之前不太了解核心团队的人，这是令人感到惊讶的。尽管我之前已经听说过一点 Ripley 大人的传说，他是核心成员，拥有很大话语权，对 CRAN 上发布的 R 包「喊打喊杀」，其实，正因 Ripley 大人对质量的把控，才早就了 R 语言社区的持续发展。</p>
+<pre class="r"><code>library(lattice)
+barchart(
+  data = aggr_meta, reorder(contributor, commit_id) ~ commit_id, origin = 0, 
+  horiz = T, xlab = &quot;提交量&quot;, ylab = &quot;R Core Team&quot;,
+  col = &quot;lightblue&quot;, border = NA, scales = &quot;free&quot;,
+  panel = function(...) {
+    panel.grid(h = 0, v = -1)
+    panel.barchart(...)
+  }
+)</code></pre>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:aggr-meta-data"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/aggr-meta-data-1.png" alt="R Core Team 代码提交量的分布" width="672" />
+<p class="caption">
+图 3.1: R Core Team 代码提交量的分布
+</p>
+</div>
+<p>图中 <strong>root</strong>、<strong>(no author)</strong> 和 <strong>apache</strong> 一看就不是正常的人名，请读者忽略。SVN 日志中涉及了部分 R Core Team 成员，笔者将 SVN ID、姓名、主页，整理成表<a href="#tab:svn-ctb-names">3.1</a>，方便对号入座，这大都是非常低调的一群人。</p>
+<table>
+<caption><span id="tab:svn-ctb-names">表 3.1: </span>2003-2012 年 GNU R 维护者（部分）</caption>
+<colgroup>
+<col width="8%" />
+<col width="18%" />
+<col width="72%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">SVN ID</th>
+<th align="left">姓名</th>
+<th align="left">主页</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">ripley</td>
+<td align="left">Brian Ripley</td>
+<td align="left"><a href="https://www.stats.ox.ac.uk/~ripley/" class="uri">https://www.stats.ox.ac.uk/~ripley/</a></td>
+</tr>
+<tr class="even">
+<td align="left">maechler</td>
+<td align="left">Martin Maechler</td>
+<td align="left"><a href="https://people.math.ethz.ch/~maechler/" class="uri">https://people.math.ethz.ch/~maechler/</a></td>
+</tr>
+<tr class="odd">
+<td align="left">hornik</td>
+<td align="left">Kurt Hornik</td>
+<td align="left"><a href="https://statmath.wu.ac.at/~hornik/" class="uri">https://statmath.wu.ac.at/~hornik/</a></td>
+</tr>
+<tr class="even">
+<td align="left">murdoch</td>
+<td align="left">Duncan Murdoch</td>
+<td align="left"><a href="https://www.uwo.ca/stats/people/bios/duncan-murdoch.html" class="uri">https://www.uwo.ca/stats/people/bios/duncan-murdoch.html</a></td>
+</tr>
+<tr class="odd">
+<td align="left">pd</td>
+<td align="left">Peter Dalgaard</td>
+<td align="left"><a href="http://staff.pubhealth.ku.dk/~pd/" class="uri">http://staff.pubhealth.ku.dk/~pd/</a></td>
+</tr>
+<tr class="even">
+<td align="left">jmc</td>
+<td align="left">John Chambers</td>
+<td align="left"><a href="https://statweb.stanford.edu/~jmc4/" class="uri">https://statweb.stanford.edu/~jmc4/</a></td>
+</tr>
+<tr class="odd">
+<td align="left">luke</td>
+<td align="left">Luke Tierney</td>
+<td align="left"><a href="https://homepage.divms.uiowa.edu/~luke/" class="uri">https://homepage.divms.uiowa.edu/~luke/</a></td>
+</tr>
+<tr class="even">
+<td align="left">urbaneks</td>
+<td align="left">Simon Urbanek</td>
+<td align="left"><a href="https://github.com/s-u" class="uri">https://github.com/s-u</a></td>
+</tr>
+<tr class="odd">
+<td align="left">iacus</td>
+<td align="left">Stefano Iacus</td>
+<td align="left"><a href="https://github.com/siacus" class="uri">https://github.com/siacus</a></td>
+</tr>
+<tr class="even">
+<td align="left">murrell</td>
+<td align="left">Paul Murrell</td>
+<td align="left"><a href="https://github.com/pmur002" class="uri">https://github.com/pmur002</a></td>
+</tr>
+<tr class="odd">
+<td align="left">leisch</td>
+<td align="left">Friedrich Leisch</td>
+<td align="left"><a href="https://boku.ac.at/rali/stat/personen/friedrich-leisch" class="uri">https://boku.ac.at/rali/stat/personen/friedrich-leisch</a></td>
+</tr>
+<tr class="even">
+<td align="left">tlumley</td>
+<td align="left">Thomas Lumley</td>
+<td align="left"><a href="https://github.com/tslumley" class="uri">https://github.com/tslumley</a></td>
+</tr>
+<tr class="odd">
+<td align="left">rgentlem</td>
+<td align="left">Robert Gentleman</td>
+<td align="left"><a href="https://github.com/rgentlem" class="uri">https://github.com/rgentlem</a></td>
+</tr>
+<tr class="even">
+<td align="left">duncan</td>
+<td align="left">Duncan Temple Lang</td>
+<td align="left"><a href="https://github.com/duncantl" class="uri">https://github.com/duncantl</a></td>
+</tr>
+<tr class="odd">
+<td align="left">bates</td>
+<td align="left">Douglas Bates</td>
+<td align="left"><a href="https://www.stat.wisc.edu/~bates/" class="uri">https://www.stat.wisc.edu/~bates/</a></td>
+</tr>
+<tr class="even">
+<td align="left">falcon</td>
+<td align="left">Seth Falcon</td>
+<td align="left"><a href="https://github.com/seth" class="uri">https://github.com/seth</a></td>
+</tr>
+<tr class="odd">
+<td align="left">deepayan</td>
+<td align="left">Deepayan Sarkar</td>
+<td align="left"><a href="https://deepayan.github.io/" class="uri">https://deepayan.github.io/</a></td>
+</tr>
+<tr class="even">
+<td align="left">plummer</td>
+<td align="left">Martyn Plummer</td>
+<td align="left"><a href="https://warwick.ac.uk/fac/sci/statistics/staff/academic-research/plummer/" class="uri">https://warwick.ac.uk/fac/sci/statistics/staff/academic-research/plummer/</a></td>
+</tr>
+<tr class="odd">
+<td align="left">ligges</td>
+<td align="left">Uwe Ligges</td>
+<td align="left"><a href="https://www.statistik.tu-dortmund.de/ligges.html" class="uri">https://www.statistik.tu-dortmund.de/ligges.html</a></td>
+</tr>
+<tr class="even">
+<td align="left">martyn</td>
+<td align="left">Martyn Plummer</td>
+<td align="left"><a href="https://warwick.ac.uk/fac/sci/statistics/staff/academic-research/plummer/" class="uri">https://warwick.ac.uk/fac/sci/statistics/staff/academic-research/plummer/</a></td>
+</tr>
+<tr class="odd">
+<td align="left">ihaka</td>
+<td align="left">Ross Ihaka</td>
+<td align="left"><a href="https://www.stat.auckland.ac.nz/~ihaka/" class="uri">https://www.stat.auckland.ac.nz/~ihaka/</a></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Martyn Plummer 维护 <a href="https://mcmc-jags.sourceforge.io">JAGS</a> 以及 rjags 包</li>
+<li><a href="https://www.stat.auckland.ac.nz/~paul/">Paul Murrell</a> 维护 grid 包</li>
+<li>Douglas Bates 维护 nlme 包</li>
+<li>Deepayan Sarkar 维护 lattice 包</li>
+<li>……</li>
+</ul>
+<p>他们还在 <a href="https://www.bioconductor.org/">Bioconductor</a>、<a href="https://journal.r-project.org/">R Journal</a>、<a href="https://www.springer.com/series/6991">Use R!</a> 和 <a href="https://www.jstatsoft.org/">Journal of Statistical Software</a> 等组织中做了大量工作。</p>
+</div>
+<div id="提交量趋势星期" class="section level3" number="3.1.2">
+<h3><span class="header-section-number">3.1.2</span> 提交量趋势（星期）</h3>
+<p>接下里，看看每个贡献者提交量的星期分布。Ripley 大人，不管周末还是不周末都会提交大量代码，只是提交量在周六、周日明显要少一些，毕竟也是要休息的。Hornik 和 Ripley 类似，周六日会休息一下，Maechler 在周日休息，Murdoch 没有明显的休息规律，工作日和周末差不多。</p>
+<pre class="r"><code># 按星期分组计数
+aggr_meta_week &lt;- aggregate(
+  x = commit_id ~ contributor + weekday,
+  data = spread_meta_data, FUN = function(x) length(unique(x))
+)
+# 条形图
+barchart(
+  data = aggr_meta_week, weekday ~ commit_id | contributor, 
+  subset = !contributor %in% c(&quot;root&quot;, &quot;apache&quot;, &quot;(no author)&quot;),
+  horiz = T, xlab = &quot;提交次数&quot;, ylab = &quot;星期几&quot;,
+  col = &quot;lightblue&quot;, border = NA, origin = 0
+)</code></pre>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:aggr-meta-week"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/aggr-meta-week-1.png" alt="提交次数的星期分布" width="672" />
+<p class="caption">
+图 3.2: 提交次数的星期分布
+</p>
+</div>
+<p>接下来看看这 10 年每个贡献者的提交量趋势。</p>
+<pre class="r"><code># 分组计数
+aggr_meta_ctb_year &lt;- aggregate(
+  x = commit_id ~ contributor + year,
+  data = spread_meta_data, 
+  subset = !contributor %in% c(&quot;root&quot;, &quot;apache&quot;, &quot;(no author)&quot;),
+  FUN = function(x) length(unique(x))
+)
+# 查看数据
+head(aggr_meta_ctb_year)</code></pre>
+<pre><code>##   contributor year commit_id
+## 1          pd 2002         1
+## 2       bates 2003        37
+## 3      duncan 2003        15
+## 4      hornik 2003       785
+## 5       iacus 2003       205
+## 6       ihaka 2003         5</code></pre>
+<pre class="r"><code>xyplot(commit_id ~ as.integer(year) | contributor,
+  data = aggr_meta_ctb_year,
+  subset = !contributor %in% c(&quot;root&quot;, &quot;apache&quot;, &quot;(no author)&quot;),
+  type = &quot;b&quot;, xlab = &quot;年份&quot;, ylab = &quot;提交量&quot;, col = &quot;lightblue&quot;, pch = 19
+)</code></pre>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:aggr-meta-ctb-year"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/aggr-meta-ctb-year-1.png" alt="贡献者年度提交量趋势" width="672" />
+<p class="caption">
+图 3.3: 贡献者年度提交量趋势
+</p>
+</div>
+<p>原来 R 语言的创始人 <strong>R</strong>obert Gentleman 和 <strong>R</strong>oss Ihaka 早就不参与贡献 R Core 代码了。Stefano Iacus、 Martyn Plummer 和 Thomas Lumley 陆续也不活跃了，同时又有
+Simon Urbanek、Deepayan Sarkar 和 Uwe Ligges 陆续加入。Ripley 大人在提交量上是如此地遥遥领先，不由得单独进行一波分析。</p>
+</div>
+</div>
+<div id="ripley-大人" class="section level2" number="3.2">
+<h2><span class="header-section-number">3.2</span> Ripley 大人</h2>
+<div id="提交量分布箱线图" class="section level3" number="3.2.1">
+<h3><span class="header-section-number">3.2.1</span> 提交量分布（箱线图）</h3>
+<p>先按年分组，再按天统计 Ripley 大人的提交量，一年 365 天的提交量分布，如图<a href="#fig:aggr-meta-day-bw">3.4</a> 所示。</p>
+<pre class="r"><code># 按天聚合提交量，保留天所在年、月信息
+aggr_meta_day &lt;- aggregate(
+  x = commit_id ~ days + month + year, subset = contributor == &quot;ripley&quot;,
+  data = spread_meta_data, FUN = function(x) length(unique(x))
+)
+# 查看数据
+head(aggr_meta_day)</code></pre>
+<pre><code>##   days month year commit_id
+## 1    1    01 2003         9
+## 2    2    01 2003        10
+## 3    3    01 2003         3
+## 4    4    01 2003         6
+## 5    6    01 2003         2
+## 6    8    01 2003         9</code></pre>
+<p>Ripley 大人有的时候一天提交 30 多次代码，连续 10 年相当稳定地输出。</p>
+<pre class="r"><code>bwplot(commit_id ~ year,
+  data = aggr_meta_day,
+  xlab = &quot;年份&quot;, ylab = &quot;提交次数&quot;,
+  par.settings = list(
+    plot.symbol = list(col = &quot;lightblue&quot;),
+    box.rectangle = list(col = &quot;lightblue&quot;),
+    box.dot = list(col = &quot;lightblue&quot;),
+    box.umbrella = list(col = &quot;lightblue&quot;)
+  )
+)</code></pre>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:aggr-meta-day-bw"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/aggr-meta-day-bw-1.png" alt="Ripley 大人提交量的分布" width="576" />
+<p class="caption">
+图 3.4: Ripley 大人提交量的分布
+</p>
+</div>
+</div>
+<div id="提交量分布提琴图" class="section level3" number="3.2.2">
+<h3><span class="header-section-number">3.2.2</span> 提交量分布（提琴图）</h3>
+<p>相比于葙线图，提琴图可以更加精细地刻画数据的分布，除了5个分位点，它用密度估计曲线描述数据的分布。</p>
+<pre class="r"><code>bwplot(commit_id ~ year,
+  data = aggr_meta_day,
+  xlab = &quot;年份&quot;, ylab = &quot;提交次数&quot;,
+  col = &#39;lightblue&#39;, border = NA,
+  panel = panel.violin
+)</code></pre>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:aggr-meta-year-violin"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/aggr-meta-year-violin-1.png" alt="Ripley 大人提交量的分布" width="576" />
+<p class="caption">
+图 3.5: Ripley 大人提交量的分布
+</p>
+</div>
+</div>
+<div id="提交量分布密度图" class="section level3" number="3.2.3">
+<h3><span class="header-section-number">3.2.3</span> 提交量分布（密度图）</h3>
+<p>按年分组，将提交量的分布情况用密度曲线图表示，图中虚线表示提交量的中位数。无论是从提交量的整体分布还是提交量的中位数（可将中位数看作是 Ripley 大人的日平均提交量），Ripley 也是相当稳定地输出呀！</p>
+<pre class="r"><code>densityplot(~commit_id |  year,
+  data = aggr_meta_day, col = &#39;lightblue&#39;, 
+  panel = function(x, ...) {
+    panel.densityplot(x, plot.points = FALSE,...)
+    panel.rug(x, y = rep(0, length(x)), ...)
+    panel.abline(v = quantile(x, .5), col.line = &quot;lightblue&quot;, lty = 2, lwd = 1.5)
+  },
+  xlab = &quot;提交次数&quot;, ylab = &quot;密度&quot;
+)</code></pre>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:aggr-meta-day-density"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/aggr-meta-day-density-1.png" alt="Ripley 大人提交量的分布" width="768" />
+<p class="caption">
+图 3.6: Ripley 大人提交量的分布
+</p>
+</div>
+</div>
+<div id="提交量趋势每年" class="section level3" number="3.2.4">
+<h3><span class="header-section-number">3.2.4</span> 提交量趋势（每年）</h3>
+<p>接下来，看看 Ripley 大人提交量的年度变化趋势。</p>
+<pre class="r"><code># 按年统计提交量
+aggr_meta_year &lt;- aggregate(
+  x = commit_id ~ year,
+  data = aggr_meta_day, 
+  FUN = sum
+)
+# 查看数据
+head(aggr_meta_year)</code></pre>
+<pre><code>##   year commit_id
+## 1 2003      1731
+## 2 2004      1989
+## 3 2005      2701
+## 4 2006      2110
+## 5 2007      2555
+## 6 2008      2463</code></pre>
+<p>整体上，看起来提交量在逐年稳定地增加。</p>
+<pre class="r"><code>xyplot(commit_id ~ as.integer(year), data = aggr_meta_year,
+  type = &quot;b&quot;, xlab = &quot;年份&quot;, ylab = &quot;提交量&quot;, col = &#39;lightblue&#39;, pch = 19
+)</code></pre>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:aggr-meta-yeat"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/aggr-meta-yeat-1.png" alt="Ripley 大人每年的提交量趋势" width="768" />
+<p class="caption">
+图 3.7: Ripley 大人每年的提交量趋势
+</p>
+</div>
+</div>
+<div id="提交量趋势每月" class="section level3" number="3.2.5">
+<h3><span class="header-section-number">3.2.5</span> 提交量趋势（每月）</h3>
+<p>细分月份来看，Ripley 大人逐年月度提交量趋势。</p>
+<pre class="r"><code># 按月统计提交量
+aggr_meta_month &lt;- aggregate(
+  x = commit_id ~ month + year,
+  data = aggr_meta_day, 
+  FUN = sum
+)
+# 查看数据
+head(aggr_meta_month)</code></pre>
+<pre><code>##   month year commit_id
+## 1    01 2003       149
+## 2    02 2003       235
+## 3    03 2003       152
+## 4    04 2003        50
+## 5    05 2003       177
+## 6    06 2003       177</code></pre>
+<pre class="r"><code>xyplot(commit_id ~ as.integer(month),
+  groups = factor(year), data = aggr_meta_month,
+  auto.key = list(columns = 4, space = &quot;top&quot;, points = TRUE, lines = TRUE),
+  type = c(&quot;b&quot;, &quot;g&quot;), xlab = &quot;月份&quot;, ylab = &quot;提交量&quot;, scales = &quot;free&quot;,
+  lattice.options = list(
+    layout.heights = list(
+      bottom.padding = list(x = -.1, units = &quot;inches&quot;)
+    )
+  ),
+  par.settings = list(
+    superpose.line = list(
+      lwd = 1.5,
+      col = RColorBrewer::brewer.pal(name = &quot;Set3&quot;, n = 10)
+    ),
+    superpose.symbol = list(
+      cex = 1, pch = 19,
+      col = RColorBrewer::brewer.pal(name = &quot;Set3&quot;, n = 10)
+    )
+  )
+)</code></pre>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:aggr-meta-month"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/aggr-meta-month-1.png" alt="Ripley 大人每月的提交量趋势" width="768" />
+<p class="caption">
+图 3.8: Ripley 大人每月的提交量趋势
+</p>
+</div>
+<p>看似毫无规律，每年的趋势混合在一起，却正说明 Ripley 大人每年提交代码的量很稳定，很规律。</p>
+<div class="sidebar">
+<p>函数 <code>xyplot()</code> 的参数 <code>type</code> 的取值 <code>'p'</code> 表示添加点 points，<code>'l'</code> 表示添加线 lines，<code>'r'</code> 表示添加回归线，<code>'smooth'</code> 表示添加局部多项式回归拟合线，详情见 <code>loess()</code>，<code>'g'</code> 表示添加背景参考线。</p>
+</div>
+<p>下面将此数据看作时间序列数据。</p>
+<pre class="r"><code>aggr_meta_month_ts &lt;- ts(
+  data = aggr_meta_month$commit_id, 
+  start = c(2003, 1), end = c(2012, 12), 
+  frequency = 12, 
+  class = &quot;ts&quot;, names = &quot;commit_id&quot;
+)
+aggr_meta_month_ts</code></pre>
+<pre><code>##      Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec
+## 2003 149 235 152  50 177 177 115 103  56  53 196 268
+## 2004 139  50  89 110 177 223  83 342 108 285 190 193
+## 2005 379 238 180 167 188 216  82 254  73 292 347 285
+## 2006 190 144  98 248 198 131 207 204 297  56 179 158
+## 2007 220 141  88 324 305 247 194 279 183 196 186 192
+## 2008 350 275 269 413 121  89 103 194  64 131 151 303
+## 2009 324 170 126  53 153  95  45 365 288 256 241 181
+## 2010 152  72 272 267 225 187 173 115 105 320 150  77
+## 2011 209 330 465 410 245 155 243 188 146 315 195 183
+## 2012 171 221 247 316 128 150 302 390 268 159  82 249</code></pre>
+<p>以时序图观察 Ripley 大人每月的提交量趋势，如图<a href="#fig:aggr-meta-month-ts">3.9</a>所示，是不是看起来很平稳呀？那究竟是不是平稳的时间序列呢？</p>
+<pre class="r"><code>xyplot(aggr_meta_month_ts)</code></pre>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:aggr-meta-month-ts"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/aggr-meta-month-ts-1.png" alt="ripley 大人每月的提交量趋势" width="768" />
+<p class="caption">
+图 3.9: ripley 大人每月的提交量趋势
+</p>
+</div>
+<p>下面使用 Ljung-Box 检验一下，它的原假设是时间序列是白噪声。</p>
+<pre class="r"><code>Box.test(aggr_meta_month_ts, lag = 1, type = &quot;Ljung-Box&quot;)</code></pre>
+<pre><code>## 
+##  Box-Ljung test
+## 
+## data:  aggr_meta_month_ts
+## X-squared = 8, df = 1, p-value = 0.005</code></pre>
+<p>可见，P 值显著小于 0.05，时间序列不是统计意义上的白噪声，还包含些确定性的信息。</p>
+<p>观察时间序列数据中的变化趋势，还可以用水平图，假定 Ripley 大人设定每月提交 100 次代码的 OKR，图<a href="#fig:aggr-meta-month-horizon">3.10</a>可以非常直观地看出每年的完成情况。</p>
+<pre class="r"><code>library(latticeExtra)
+# origin 为基线值，后续值相对于它的增减变化
+horizonplot(aggr_meta_month_ts, 
+  panel = function(x, ...) {
+    latticeExtra::panel.horizonplot(x, ...)
+    grid::grid.text(round(x[1]), x = 0, just = &quot;left&quot;)
+  },
+  xlab = &quot;&quot;, ylab = &quot;&quot;,
+  cut = list(n = 10, overlap = 0), # 10 年
+  scales = list(draw = FALSE, y = list(relation = &quot;same&quot;)),
+  origin = 100, 
+  colorkey = TRUE, # 右侧梯度颜色条
+  col.regions = RColorBrewer::brewer.pal(6, &quot;RdBu&quot;),
+  strip.left = FALSE,
+  layout = c(1, 10) # 布局 1 列 10 行，每年一行
+)</code></pre>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:aggr-meta-month-horizon"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/aggr-meta-month-horizon-1.png" alt="Ripley 大人每月的提交量趋势" width="768" />
+<p class="caption">
+图 3.10: Ripley 大人每月的提交量趋势
+</p>
+</div>
+<div class="sidebar">
+<p>latticeExtra 包很早就提供了水平图的绘制函数 <code>horizonplot()</code>，支持 ts 类型的时序数据，更多详情见帮助文档 <code>?horizonplot</code>。</p>
+</div>
+</div>
+<div id="提交量趋势每天" class="section level3" number="3.2.6">
+<h3><span class="header-section-number">3.2.6</span> 提交量趋势（每天）</h3>
+<p>接下来，再分年按天统计提交量，分组观察趋势变化，如图<a href="#fig:aggr-meta-day">3.11</a>所示。这就很难看出一些规律了，毕竟每天是否写代码，写多少的影响因素太多，Ripley 大人就是再规律，也不至于规律到每天都一样，或者保持某种明显的趋势。</p>
+<pre class="r"><code>xyplot(commit_id ~ days | year, data = aggr_meta_day, 
+       type = &quot;l&quot;, xlab = &quot;天&quot;, ylab = &quot;提交量&quot;, col = &quot;lightblue&quot;)</code></pre>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:aggr-meta-day"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/aggr-meta-day-1.png" alt="Ripley 大人每天的提交量趋势" width="768" />
+<p class="caption">
+图 3.11: Ripley 大人每天的提交量趋势
+</p>
+</div>
+</div>
+<div id="提交量趋势每时" class="section level3" number="3.2.7">
+<h3><span class="header-section-number">3.2.7</span> 提交量趋势（每时）</h3>
+<p>因此，接下来，按年分组，将每天划分为24个时段，再按时段聚合提交量，就可获得年度提交量分时段的分布，如图<a href="#fig:aggr-meta-hour">3.12</a>所示。将一年 365 天的数据聚合在一块，这就相当地有规律了，规律体现在每天的作息。</p>
+<pre class="r"><code># 按年分组，按小时聚合统计
+aggr_meta_hour &lt;- aggregate(
+  x = commit_id ~ hour + year, subset = contributor == &quot;ripley&quot;,
+  data = spread_meta_data, FUN = function(x) length(unique(x))
+)
+# 查看数据
+head(aggr_meta_hour)</code></pre>
+<pre><code>##   hour year commit_id
+## 1    0 2003        13
+## 2    1 2003        28
+## 3    2 2003        99
+## 4    3 2003       186
+## 5    4 2003       154
+## 6    5 2003       124</code></pre>
+<p>每天凌晨 2:00 - 5:00 之间为 Ripley 大人提交量的高峰期，Ripley 大人生活在英国，而英国伦敦和中国北京的时差为 7 小时，也就是说图中凌晨 3:00 - 3:59 相当于北京时间上午 10:00 - 10:59。</p>
+<pre class="r"><code>xyplot(commit_id ~ hour | year, type = &quot;b&quot;, data = aggr_meta_hour, 
+       xlab = &quot;时段&quot;, ylab = &quot;提交量&quot;, col = &quot;lightblue&quot;, pch = 19)</code></pre>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:aggr-meta-hour"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/aggr-meta-hour-1.png" alt="Ripley 大人每小时的提交量趋势" width="768" />
+<p class="caption">
+图 3.12: Ripley 大人每小时的提交量趋势
+</p>
+</div>
+<p>一天 24 小时，Ripley 大人有可能出现在任意一个时段。2005、2007、2011 和 2012 年明显又比其他年份提交量更多些。每年提交代码的高峰时段很稳定，均在北京时间上午 10:00 - 10:59。</p>
+</div>
+</div>
+</div>
+<div id="summary" class="section level1" number="4">
+<h1><span class="header-section-number">4</span> 本文小结</h1>
+<p>下面从数据探索和数据可视化两个方面谈谈。</p>
+<ol style="list-style-type: decimal">
+<li><p>有的人何以如此这般的犀利？背后都有一番轻易不为人所知的缘由，唯有拨开云雾才能洞悉其因果。2015 年<a href="https://yihui.org/">Yihui Xie</a>在<a href="https://www.bilibili.com/video/BV1qP4y1w774">《论R码农的自我修养》</a>中提及 Brian Ripley 大人曾经和蔼可亲，言外之意，Ripley 大人现在手握利器对 R 包、开发者做减法。我也曾吐槽 R 语言社区<a href="https://d.cosx.org/d/420697/16">开源但没有充分利用开源的力量</a>，更像是长期雇佣了 Ripley 大人做维护和开发。甚至在本文写作之前仍有此类似想法 — 基于<a href="https://www.r-project.org/foundation/members.html">CRAN 团队</a>在 SVN 上提交的<a href="https://developer.r-project.org/">10 年日志数据</a>进行分析，试图回答开源社区是不是谁贡献多谁话语权多？但本文写完，这个问题已不重要，我完全体谅 Ripley 大人，希望出现更多像他这样的维护者。2021 年<a href="https://dirk.eddelbuettel.com/">Dirk Eddelbuettel</a> 曾有篇文章 <a href="https://dirk.eddelbuettel.com/blog/2021/03/20/">An Ode to Stable Interfaces: R and R Core Deserve So Much Praise</a> 致敬 R 的稳定性，本文也有此意，特意避开 ggplot2 和一众<a href="https://github.com/tidyverse">净土包</a>，也立下<a href="https://www.nature.com/articles/d41586-020-02462-7">十年可重复之约</a>，感谢 Ripley 大人为开源社区的贡献。</p></li>
+<li><p>可视化在数据探查、数据探索、数据展示都有非常重要的作用，不同的任务对可视化的要求是不一样的。探查的目的是了解数据质量，探索是为了揭示数据蕴含的规律，而展示是为了交流数据信息、洞见。探查和探索的潜在过程尽管耗时费力，但一般不会给读者直接看到，所以，很多时候，大家更多关注可视化的过程和结果。更多详细介绍，推荐读者看看 Antony Unwin 的文章《Why is Data Visualization Important? What is Important in Data Visualization? 》<span class="citation">[<a href="#ref-Unwin2020" role="doc-biblioref">2</a>]</span>。</p></li>
+</ol>
+</div>
+<div id="session" class="section level1" number="5">
+<h1><span class="header-section-number">5</span> 环境信息</h1>
+<p>在 RStudio IDE 内编辑本文的 R Markdown 源文件，用 <strong>blogdown</strong> 构建网站，<a href="https://github.com/gohugoio/hugo">Hugo</a> 渲染 knitr 之后的 Markdown 文件，得益于 <strong>blogdown</strong> 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：</p>
+<pre class="r"><code>xfun::session_info(packages = c(
+  &quot;rmarkdown&quot;, &quot;blogdown&quot;, 
+  &quot;lattice&quot;, &quot;latticeExtra&quot;, &quot;RColorBrewer&quot;
+), dependencies = FALSE)</code></pre>
+<pre><code>## R version 4.2.1 (2022-06-23)
+## Platform: x86_64-apple-darwin17.0 (64-bit)
+## Running under: macOS Big Sur ... 10.16
+## 
+## Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
+## 
+## Package version:
+##   blogdown_1.10       lattice_0.20-45     latticeExtra_0.6-30
+##   RColorBrewer_1.1-3  rmarkdown_2.14     
+## 
+## Pandoc version: 2.18
+## 
+## Hugo version: 0.101.0</code></pre>
+</div>
+<div id="refer" class="section level1" number="6">
+<h1><span class="header-section-number">6</span> 参考文献</h1>
+<div id="refs" class="references csl-bib-body">
+<div id="ref-lattice2008" class="csl-entry">
+<div class="csl-left-margin">[1] </div><div class="csl-right-inline"><span class="smallcaps">Sarkar</span>, D. (2008). <em><a href="http://lmdvr.r-forge.r-project.org">Lattice: Multivariate data visualization with r</a></em>. Springer, New York.</div>
+</div>
+<div id="ref-Unwin2020" class="csl-entry">
+<div class="csl-left-margin">[2] </div><div class="csl-right-inline"><span class="smallcaps">Unwin</span>, A. (2020). <a href="https://doi.org/10.1162/99608f92.8ae4d525">Why is data visualization important? What is important in data visualization?</a> <em>Harvard Data Science Review</em> <strong>2</strong>.</div>
+</div>
+</div>
+</div>
