@@ -1,0 +1,2411 @@
+---
+title: R Markdown 制作 beamer 幻灯片（2022 版）
+author: 黄湘云
+date: '2022-08-04'
+meta_extra: "审稿：楚新元、谢益辉"
+slug: beamer-not-down
+categories:
+  - R 语言
+tags:
+  - TinyTeX
+  - LaTeX
+  - beamer
+  - R Markdown
+  - Pandoc
+  - Quarto
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+bibliography: 
+  - refer.bib
+link-citations: true
+csl: institute-of-mathematical-statistics.csl
+thumbnail: https://user-images.githubusercontent.com/12031874/182398952-998e9473-7ead-41ab-b113-b3010eca5980.gif
+description: "LaTeX 提供 beamer 文类主要用于学术报告，从面上来看，好多主题是大学开发的，大家不约而同地使用蓝调，看多了想睡觉。目前，现代风格的 beamer 主题已经陆续涌现出来，本文旨在介绍一条 R Markdown 制作 beamer 幻灯片的入坑路径，让 beamer 看起来更加清爽些！"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#overview" id="toc-overview"><span class="toc-section-number">1</span> 本文概览</a></li>
+<li><a href="#background" id="toc-background"><span class="toc-section-number">2</span> 本文背景</a></li>
+<li><a href="#setup" id="toc-setup"><span class="toc-section-number">3</span> 软件配置</a>
+<ul>
+<li><a href="#setup-rpkgs" id="toc-setup-rpkgs"><span class="toc-section-number">3.1</span> 安装 R 包</a></li>
+<li><a href="#setup-tinytex" id="toc-setup-tinytex"><span class="toc-section-number">3.2</span> 安装 TinyTeX</a></li>
+<li><a href="#setup-fonts" id="toc-setup-fonts"><span class="toc-section-number">3.3</span> 安装字体</a></li>
+</ul></li>
+<li><a href="#beamer" id="toc-beamer"><span class="toc-section-number">4</span> 制作 beamer 幻灯片</a>
+<ul>
+<li><a href="#latex" id="toc-latex"><span class="toc-section-number">4.1</span> LaTeX</a></li>
+<li><a href="#pandoc-markdown" id="toc-pandoc-markdown"><span class="toc-section-number">4.2</span> Pandoc’s Markdown</a>
+<ul>
+<li><a href="#简单示例" id="toc-简单示例"><span class="toc-section-number">4.2.1</span> 简单示例</a></li>
+<li><a href="#latex-模版" id="toc-latex-模版"><span class="toc-section-number">4.2.2</span> LaTeX 模版</a></li>
+<li><a href="#幻灯主题" id="toc-幻灯主题"><span class="toc-section-number">4.2.3</span> 幻灯主题</a></li>
+<li><a href="#英文字体" id="toc-英文字体"><span class="toc-section-number">4.2.4</span> 英文字体</a></li>
+<li><a href="#数学字体" id="toc-数学字体"><span class="toc-section-number">4.2.5</span> 数学字体</a></li>
+<li><a href="#幻灯首页" id="toc-幻灯首页"><span class="toc-section-number">4.2.6</span> 幻灯首页</a></li>
+<li><a href="#双栏排版" id="toc-双栏排版"><span class="toc-section-number">4.2.7</span> 双栏排版</a></li>
+<li><a href="#页面暂停" id="toc-页面暂停"><span class="toc-section-number">4.2.8</span> 页面暂停</a></li>
+<li><a href="#滚动条目" id="toc-滚动条目"><span class="toc-section-number">4.2.9</span> 滚动条目</a></li>
+<li><a href="#添加背景" id="toc-添加背景"><span class="toc-section-number">4.2.10</span> 添加背景</a></li>
+<li><a href="#插入表格" id="toc-插入表格"><span class="toc-section-number">4.2.11</span> 插入表格</a></li>
+<li><a href="#插入图片" id="toc-插入图片"><span class="toc-section-number">4.2.12</span> 插入图片</a></li>
+<li><a href="#独立页面" id="toc-独立页面"><span class="toc-section-number">4.2.13</span> 独立页面</a></li>
+<li><a href="#文献引用" id="toc-文献引用"><span class="toc-section-number">4.2.14</span> 文献引用</a></li>
+<li><a href="#更多功能" id="toc-更多功能"><span class="toc-section-number">4.2.15</span> 更多功能</a></li>
+</ul></li>
+<li><a href="#rmarkdown-basic" id="toc-rmarkdown-basic"><span class="toc-section-number">4.3</span> R Markdown（基础篇）</a>
+<ul>
+<li><a href="#从-pandocs-markdown-到-r-markdown" id="toc-从-pandocs-markdown-到-r-markdown"><span class="toc-section-number">4.3.1</span> 从 Pandoc’s Markdown 到 R Markdown</a></li>
+<li><a href="#中文-r-markdown-文档" id="toc-中文-r-markdown-文档"><span class="toc-section-number">4.3.2</span> 中文 R Markdown 文档</a></li>
+<li><a href="#数学公式与引理定理" id="toc-数学公式与引理定理"><span class="toc-section-number">4.3.3</span> 数学公式与引理定理</a></li>
+<li><a href="#r-markdown-专属功能" id="toc-r-markdown-专属功能"><span class="toc-section-number">4.3.4</span> R Markdown 专属功能</a></li>
+<li><a href="#图表公式交叉引用" id="toc-图表公式交叉引用"><span class="toc-section-number">4.3.5</span> 图、表、公式交叉引用</a></li>
+</ul></li>
+<li><a href="#rmarkdown-advanced" id="toc-rmarkdown-advanced"><span class="toc-section-number">4.4</span> R Markdown（高级篇）</a>
+<ul>
+<li><a href="#r-markdown-幻灯片模版" id="toc-r-markdown-幻灯片模版"><span class="toc-section-number">4.4.1</span> R Markdown 幻灯片模版</a></li>
+<li><a href="#深度使用-beamer-幻灯片主题" id="toc-深度使用-beamer-幻灯片主题"><span class="toc-section-number">4.4.2</span> 深度使用 beamer 幻灯片主题</a></li>
+</ul></li>
+<li><a href="#rmarkdown-ninja" id="toc-rmarkdown-ninja"><span class="toc-section-number">4.5</span> R Markdown（忍者篇）</a>
+<ul>
+<li><a href="#pandoc-之-lua-外挂" id="toc-pandoc-之-lua-外挂"><span class="toc-section-number">4.5.1</span> Pandoc 之 Lua 外挂</a></li>
+<li><a href="#math-symbols" id="toc-math-symbols"><span class="toc-section-number">4.5.2</span> 数学符号与数学字体</a></li>
+<li><a href="#chinese-document" id="toc-chinese-document"><span class="toc-section-number">4.5.3</span> 文档汉化与中文字体</a></li>
+</ul></li>
+<li><a href="#beamer-quarto" id="toc-beamer-quarto"><span class="toc-section-number">4.6</span> Quarto 制作 beamer 幻灯片</a></li>
+</ul></li>
+<li><a href="#summary" id="toc-summary"><span class="toc-section-number">5</span> 本文小结</a></li>
+<li><a href="#refer" id="toc-refer"><span class="toc-section-number">6</span> 参考文献</a></li>
+<li><a href="#session" id="toc-session"><span class="toc-section-number">7</span> 环境信息</a></li>
+<li><a href="#appendix" id="toc-appendix"><span class="toc-section-number">8</span> 附录</a>
+<ul>
+<li><a href="#pdf-to-gif" id="toc-pdf-to-gif"><span class="toc-section-number">8.1</span> PDF 文档转 GIF 动图</a></li>
+<li><a href="#pdf-to-png" id="toc-pdf-to-png"><span class="toc-section-number">8.2</span> PDF 文档转 PNG 图片</a></li>
+</ul></li>
+</ul>
+</div>
+
+<style type="text/css">
+.rmdinfo {
+  border: 1px solid #ccc;
+}
+
+.rmdwarn {
+  border: 1px solid #EA4335;
+}
+
+.rmdnote {
+  border: 1px solid #FBBC05;
+}
+
+.rmdtip {
+  border: 1px solid #34A853;
+}
+
+.rmdinfo, .rmdwarn, .rmdnote, .rmdtip {
+  border-left-width: 5px;
+  border-radius: 5px;
+  padding: 1em;
+  margin: 1em 0;
+}
+
+div.rmdwarn::before, div.rmdnote::before, div.rmdtip::before {
+  display: block;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-bottom: 0.25em;
+}
+
+div.rmdwarn::before {
+  content: "警告";
+  color: #EA4335;
+}
+
+div.rmdnote::before {
+  content: "注意";
+  color: #FBBC05;
+}
+
+div.rmdtip::before {
+  content: "提示";
+  color: #34A853;
+}
+
+.todo {
+  display: block;
+  border: 1px solid #4285f4;
+  border-left-width: 5px;
+  border-radius: 5px;
+  padding: 0.5em 1em;
+  margin: 1em 0;
+}
+
+.todo::before {
+  content: "TO DO: ";
+  font-weight: bold;
+  color: #4285f4;
+}
+
+blockquote > p:last-child {
+  text-align: right;
+}
+blockquote > p:first-child {
+  text-align: inherit;
+}
+
+div.figure {
+  text-align: center;
+  display: block; 
+  margin-left: auto; 
+  margin-right: auto;
+  width: 70%;
+}
+
+.columns {
+  display: flex;
+}
+</style>
+<style type="text/css">
+/* https://github.com/rstudio/bookdown/blob/main/inst/templates/default.html#L89-L113 */
+/* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left: 2em;
+  text-indent: -2em;
+}
+div.csl-left-margin {
+  min-width: 2em;
+  float: left;
+}
+div.csl-right-inline {
+  margin-left: 1em;
+  padding-left: 1em;
+}
+div.csl-indent {
+  margin-left: 1em;
+}
+</style>
+<div class="rmdinfo">
+<p>声明：本文引用的所有信息均为公开信息，仅代表作者本人观点，与就职单位无关。</p>
+</div>
+<div id="overview" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> 本文概览</h1>
+<p>R Markdown 站在 Markdown、Pandoc 和 R 等诸多巨人的肩膀上，支持动态文档写作，让文本、代码相互交织，插图、表格、文献、引用等动态生成。在网站简历、期刊书籍、报告演示等诸多方面有大量应用。其中，报告演示（Presentations）是传递、交流想法的重要方式，R Markdown 生态有很多扩展包，提供多种方式制作幻灯片，支持的幻灯片种类有 Office PowerPoint（俗称 PPT）、ioslides、 <a href="https://github.com/rstudio/revealjs"><strong>reveal.js</strong></a> 和<a href="https://github.com/yihui/xaringan">写轮眼</a>等。</p>
+<p>本文将介绍如何用 R Markdown 制作 beamer 风格的幻灯片，主要包含以下内容：</p>
+<ol class="example" style="list-style-type: decimal">
+<li>作者与 beamer 结缘和本文写作的始末。</li>
+<li>准备本文涉及到的一些软件依赖和扩展包。</li>
+<li>简单回顾一下 LaTeX 是如何制作 beamer 幻灯片的。</li>
+<li>作为后续铺垫，介绍 Pandoc’s Markdown 制作 beamer 幻灯片的过程，从此在 Markdown 与 LaTeX 之间相爱相杀。</li>
+<li>在 (4) 的基础上，介绍 R Markdown 制作 beamer 幻灯片的过程，揭开 R Markdown 的神秘面纱，谓之「基础篇」。</li>
+<li>在 (5) 的基础上，介绍 R Markdown 深度制作 beamer 幻灯片的过程，从此玩转 beamer 主题，谓之「高级篇」。</li>
+<li>在(6)的基础上，结合 LaTeX 和 Lua 两大神器，深度定制 beamer 幻灯片，以及填一填用户在使用 beamer 幻灯片过程中遇到的字体坑，谓之「忍者篇」。</li>
+<li>简要介绍 Quarto 制作 beamer 幻灯片过程。</li>
+<li>总结一下本文内容，写一点个人使用经验，仅供参考。</li>
+</ol>
+<p>对于初学者，建议阅读(1)、 (2) 、 (3) 和 (5)；对于入门者，建议继续阅读 (4)、(6)、 (8) 和 (9)；对于进阶者，建议继续阅读 (7)。</p>
+</div>
+<div id="background" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> 本文背景</h1>
+<p>故事还要从头开始讲起，7-8 年前，出于学术答辩和课程汇报需要，陆续学习和使用 LaTeX 来排版作业和论文，曾有一段时间深陷此坑不能自拔，以至于遍览 <a href="https://tug.org/texlive/">TeXLive</a> 内置的幻灯片制作宏包，收集了大量 beamer 幻灯片的模版，藏于 Github 仓库 <a href="https://github.com/XiangyunHuang/awesome-beamers">awesome-beamers</a>。</p>
+<p>LaTeX 在国外是比较流行的学术写作工具，在国内部分学校的数学或统计系会用它来排版毕业论文，相关的学习材料有很多，推荐 CTeX 开发小组翻译的<a href="https://github.com/CTeX-org/lshort-zh-cn">一份（不太）简短的LaTeX介绍</a>。吴康隆的 <a href="https://github.com/wklchris/Note-by-LaTeX">《简单粗暴LaTeX》</a>，盛文博翻译的<a href="https://github.com/WenboSheng/epslatex-cn">《LaTeX2e 插图指南, 第三版》</a>，吕荐瑞的<a href="https://lvjr.bitbucket.io/tutorial/learn-latex.pdf">科技文档排版课程材料</a>，曾祥东的<a href="https://github.com/stone-zeng/latex-talk">现代 LaTeX 入门讲座</a>，都非常适合从零开始学习的。进阶的部分，根据需要去看宏包手册，LaTeX 宏包文档的长度一般都吓死个人，<a href="https://github.com/pgf-tikz/pgf">PGF</a> 绘图 <strong>1300</strong> 多页，<a href="https://ctan.org/pkg/pgfplots">pgfplots</a> 3D 绘图 <strong>573</strong> 页， <a href="https://github.com/josephwright/beamer">beamer</a> 幻灯片制作 <strong>247</strong> 页，<a href="https://github.com/davidcarlisle/geometry">geometry</a> 版面设置 <strong>42</strong> 页，<a href="https://github.com/T-F-S/tcolorbox">tcolorbox</a> 箱子定制 <strong>539</strong>页，通常不需要从头到尾的看，除非遇到难处或需要自定义了。在对基础的 LaTeX 排版工具有一些了解后，日常使用过程中必备数学公式<a href="https://gitlab.com/jim.hefferon/undergradmath">速记小抄</a> ，搭好梯子随时放狗去搜。</p>
+<p>2020 年 6 月份搬迁完<a href="https://github.com/liantze/pgfornament-han">汉风主题</a>，在论坛开帖分享了<a href="https://d.cosx.org/d/421591">成果</a>，又被撺掇着在主站<a href="https://github.com/cosname/cosx.org/issues/901">立了字句</a>—-要写一篇文章介绍 R Markdown 制作幻灯片模版的过程，一直囿于工作繁忙，难以抽身，去年在 WX 上和<a href="https://gitlab.com/chuxinyuan">楚新元</a>又聊到模版，看到有人又要准备趟我之前踩过的坑，心中不忍，咬咬牙还是把这文债给还了。算起来，从起心动念到最终交付拖延了两年而已！</p>
+</div>
+<div id="setup" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> 软件配置</h1>
+<p>安装一些 R 包，一个轻量级 LaTeX 发行版 <a href="https://github.com/yihui/tinytex-releases">TinyTeX</a><span class="citation">[<a href="#ref-tinytex2019" role="doc-biblioref">1</a>]</span>，LaTeX 幻灯片主题 <a href="https://github.com/matze/mtheme">metropolis</a> 和 <a href="https://ctan.org/pkg/beamer-verona">beamer-verona</a>，一些字体。</p>
+<div id="setup-rpkgs" class="section level2" number="3.1">
+<h2><span class="header-section-number">3.1</span> 安装 R 包</h2>
+<p>默认大家已经安装了 R 软件和 RStudio IDE，这会让后面的操作变得更容易。
+因陆续会用到 R Markdown 生态的几个 R 包，所以先提前安装下：</p>
+<pre class="r"><code>install.packages(c(&quot;tinytex&quot;, &quot;knitr&quot;, &quot;rmarkdown&quot;, &quot;bookdown&quot;, &quot;binb&quot;))</code></pre>
+<p>其中， R 包 <strong>tinytex</strong> 用来安装轻量级的 LaTeX 发行版 TinyTeX，它是在构建在 LaTeX 宏包管理器 <a href="https://tug.org/texlive/tlmgr.html">tlmgr</a> 之上，默认去掉了 LaTeX 宏包源码和帮助文档，做到 200M～300M 的大小。 <strong>knitr</strong> 包 <span class="citation">[<a href="#ref-Xie2015" role="doc-biblioref">2</a>]</span> 自不必多说，只要使用 R Markdown 文档就离不开它，本文大部分内容可以被 <strong>rmarkdown</strong> 包 <span class="citation">[<a href="#ref-Xie2018" role="doc-biblioref">3</a>]</span> 的功能覆盖，仅使用 <strong>bookdown</strong> 包 <span class="citation">[<a href="#ref-Xie2016" role="doc-biblioref">4</a>]</span> 的交叉引用功能，使用 <strong>binb</strong> 包 <span class="citation">[<a href="#ref-Dirk2020" role="doc-biblioref">5</a>]</span> 内置的一份 beamer 幻灯片模版。</p>
+</div>
+<div id="setup-tinytex" class="section level2" number="3.2">
+<h2><span class="header-section-number">3.2</span> 安装 TinyTeX</h2>
+<p>平时要是常用 R Markdown 相关扩展包，R 包 <a href="https://github.com/yihui/tinytex"><strong>tinytex</strong></a> 已经被安装上了，下面用它安装 TinyTeX 这个发行版，在 R 环境里，这一切会比较顺畅，讲真，配置环境什么的最烦了，一次两次三四次，五次六次七八次，但是学什么的时候最好从配置环境开始，记录从第一次安装开始，后面会越来越快！</p>
+<pre class="r"><code>tinytex::install_tinytex()</code></pre>
+<p>遇到啥问题，先去益辉的网站瞅瞅 <a href="https://yihui.org/tinytex/" class="uri">https://yihui.org/tinytex/</a>，要还没找到解决方案，就来论坛 <a href="https://d.cosx.org/" class="uri">https://d.cosx.org/</a> 发帖。</p>
+</div>
+<div id="setup-fonts" class="section level2" number="3.3">
+<h2><span class="header-section-number">3.3</span> 安装字体</h2>
+<p>为了后续介绍 metropolis 主题，先安装和配置其所需字体，此过程分两步走：</p>
+<ol style="list-style-type: decimal">
+<li><p>这里用 <strong>tinytex</strong> 包安装 <a href="https://www.ctan.org/pkg/fira"><strong>fira</strong></a> 系列英文字体，<a href="https://github.com/firamath/firamath"><strong>firamath</strong></a> 和 <a href="https://www.ctan.org/pkg/xits"><strong>xits</strong></a> 数学字体，后续用作 beamer 幻灯片的主要字体，相信大家看惯了千篇一律的字体，也想换换口味吧！</p>
+<pre class="r"><code># 顺道把 beamertheme-metropolis 宏包也安装下
+tinytex::tlmgr_install(c(
+  &quot;beamertheme-metropolis&quot;, &quot;beamer-verona&quot;,
+  &quot;fira&quot;, &quot;firamath&quot;, &quot;firamath-otf&quot;, &quot;xits&quot;, &quot;montserrat&quot;))</code></pre></li>
+<li><p>通过「人工智能」查找，发现上面安装的字体都放在了 TinyTeX 的安装目录下，而且不能直接被调用，故而将它们拷贝到用户指定的字体目录，刷新字体目录后，通过 <strong>fontspec</strong> 宏包调用。为了加快复现的速度，我已经将这个复制粘贴的过程化作几行代码，如下：</p>
+<pre class="r"><code># TinyTeX 字体目录
+basedir &lt;- paste(tinytex::tinytex_root(), &quot;texmf-dist/fonts/opentype/public&quot;, sep = &quot;/&quot;)
+# MacOS 系统字体放在 ~/Library/Fonts/ 而 Linux 系统字体放在 ~/.fonts
+distdir &lt;- if (xfun::is_macos()) &quot;~/Library/Fonts/&quot; else &quot;~/.fonts&quot;
+# 如果目录不存在就创建一个
+xfun::dir_create(distdir)
+# 字体文件的目录
+fontdir &lt;- paste(basedir, c(&quot;fira&quot;, &quot;xits&quot;, &quot;firamath&quot;), sep = &quot;/&quot;)
+# 字体文件的路径
+fontfile &lt;- list.files(path = fontdir, full.names = T)
+# 拷贝到字体目录下
+file.copy(from = fontfile, to = distdir, overwrite = TRUE)</code></pre></li>
+</ol>
+</div>
+</div>
+<div id="beamer" class="section level1" number="4">
+<h1><span class="header-section-number">4</span> 制作 beamer 幻灯片</h1>
+<div id="latex" class="section level2" number="4.1">
+<h2><span class="header-section-number">4.1</span> LaTeX</h2>
+<p>下面以 metropolis 主题为例介绍一个完整的 beamer 幻灯片。metropolis 主题的特点就是简洁优雅！算上空行注释，只有二十几行代码。</p>
+<pre class="tex"><code>\documentclass[169]{beamer}
+
+\usetheme{metropolis}
+
+\setsansfont[BoldFont={Fira Sans SemiBold}]{Fira Sans Book}
+
+\usepackage[
+  mathrm=sym,
+  math-style=ISO,  % Greek letters also in italics
+  bold-style=ISO,  % bold letters also in italics
+]{unicode-math}
+
+\setmathfont{Fira Math} % https://github.com/firamath/firamath
+% top is still missing in Fira Math, get it from another font
+\setmathfont[range={\top}]{XITS Math}
+
+\begin{document}
+  \begin{frame}[t]{Example}
+    \begin{align}
+      \symbf{\theta} &amp;= (1, 2, 3)^\top \\
+            \theta_0 &amp;= 1
+    \end{align}
+  \end{frame}
+\end{document}</code></pre>
+<p>注意看加载 <strong>unicode-math</strong> 宏包时的选项设置，关于 <strong>unicode-math</strong> 数学符号的样式（比如选择 ISO 还是 TeX？） 说明见<a href="https://www.latex-project.org/publications/2010-wspr-TUG-unicode-mathematics-in-LaTeX-slides.pdf">文档</a>，对绝大多数的使用者来说，做个拿来主义就好，别看我洋洋洒洒写了这么多，我也不例外，喜欢哪个用哪个！</p>
+<p>将上面的模版内容保存到文件 <code>slide-metropolis.tex</code>，接下来，有两种编译 LaTeX 文件的方式，一种在 RStudio IDE 内打开，点击 <strong>Compile PDF</strong> 按钮，另一种是在 R 控制台里执行</p>
+<pre class="r"><code>tinytex::xelatex(file = &quot;slide-metropolis.tex&quot;)</code></pre>
+<p>编译出来的效果如下：</p>
+<div class="figure"><span style="display:block;" id="fig:latex-metropolis"></span>
+<img src="https://user-images.githubusercontent.com/12031874/116777926-a1722100-aaa1-11eb-92c7-034ebfb90922.png" alt="" />
+<p class="caption">图 4.1: metropolis 幻灯片主题</p>
+</div>
+<p>用 Adobe Acrobat Reader DC 打开 <code>文件-&gt;属性-&gt;字体</code> 可以看到 PDF 文档中确切使用的字体，如下图所示。</p>
+<div class="figure">
+<img src="https://user-images.githubusercontent.com/12031874/135288310-4dad120c-a883-4732-9033-72be7b8ffe28.png" alt="" />
+<p class="caption">检查文档实际使用的字体</p>
+</div>
+<div class="rmdnote">
+<p>在 Windows 系统上，需要选中字体右键安装并刷新字体缓存或者像下面这样指定字体路径。</p>
+<pre class="tex"><code>% 假定字体存放在目录 ~/.fonts/
+% 设置字体需要如下代码
+\setsansfont[Path = {\string~/.fonts/}, BoldFont={Fira Sans SemiBold}]{Fira Sans Book}
+\setmathfont[Path = {\string~/.fonts/}]{Fira Math}
+\setmathfont[Path = {\string~/.fonts/}, range={\top}]{XITS Math}</code></pre>
+</div>
+</div>
+<div id="pandoc-markdown" class="section level2" number="4.2">
+<h2><span class="header-section-number">4.2</span> Pandoc’s Markdown</h2>
+<p>R Markdown 背后是非常依赖 Pandoc 的，RStudio IDE 已经捆绑了 Pandoc 软件(<a href="https://pandoc.org/" class="uri">https://pandoc.org/</a>)，一般不需要用户再去下载，安装完 RStudio IDE 就可以直接用它了。</p>
+<div id="简单示例" class="section level3" number="4.2.1">
+<h3><span class="header-section-number">4.2.1</span> 简单示例</h3>
+<p>继续上面的例子，将幻灯片的内容用 Markdown 格式书写，非常简洁了，算上空行仅有 6 行代码，如下：</p>
+<pre class="md"><code>## Example
+
+\begin{align}
+    \symbf{\theta} &amp;= (1, 2, 3)^\top \\
+        \theta_0 &amp;= 1
+\end{align}</code></pre>
+<p>将内容保存为 <code>slide-template.md</code> 文件，接着，在命令行窗口中执行命令：</p>
+<pre class="bash"><code>pandoc --pdf-engine xelatex -t beamer \
+  slide-template.md -o slide-template.pdf</code></pre>
+<p>即可编译出 PDF 格式的 beamer 幻灯片，效果如下：</p>
+<div class="figure"><span style="display:block;" id="fig:md-default"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182017315-378a0472-c99b-4499-8d13-a5f409961cb0.png" alt="" />
+<p class="caption">图 4.2: Pandoc 转 Markdown 文档为 PDF 格式的幻灯片文档</p>
+</div>
+<div class="rmdtip">
+<p>上面用到的 Pandoc 的命令行参数：</p>
+<ul>
+<li><code>--pdf-engine</code> 指定文档编译引擎，因输出是 beamer 文档，需要选择一个 LaTeX 编译引擎，常用的有 <code>pdflatex</code> / <code>xelatex</code> / <code>lualatex</code>。</li>
+<li><code>-t FORMAT</code> 指定输出文件的格式，等价于 <code>--to=FORMAT</code>，这里输出 beamer 文档。</li>
+<li><code>-o FILE</code> 指定输出文件位置，等价于 <code>--output=FILE</code>，这里和输入文档 <code>slide-template.md</code> 一起输出 <code>slide-template.pdf</code>。</li>
+</ul>
+<p>更多详情见文档<a href="https://pandoc.org/MANUAL.html#general-options">Pandoc 通用选项</a>。</p>
+</div>
+</div>
+<div id="latex-模版" class="section level3" number="4.2.2">
+<h3><span class="header-section-number">4.2.2</span> LaTeX 模版</h3>
+<p>风格明显和之前的图<a href="#fig:latex-metropolis">4.1</a>不同，因为没有设置 beamer 幻灯片主题和字体，Pandoc 将调用内置的 LaTeX 模版。可以执行如下命令获取 Pandoc 内置的 LaTeX 模版 <code>custom-reference.tex</code>。</p>
+<pre class="bash"><code>pandoc -o custom-reference.tex --print-default-template latex</code></pre>
+<p>Pandoc 内置的 LaTeX 模版内容非常多，因为它是大一统的，支持书籍、报告、演示等等使用场景。通过传递模版变量，可以控制文档类型及其选项，如布局、字体等。下面是模版开头的几行内容：</p>
+<pre class="latex"><code>% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode$for(hyperrefoptions)$,$hyperrefoptions$$endfor$}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+$if(colorlinks)$
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+$endif$</code></pre>
+<p><code>hyperrefoptions</code> 和 <code>colorlinks</code> 就是两个变量，它们被一对美元符号前后包围。遇到 <code>if</code> 意味着可以传递布尔值 <code>true</code> / <code>false</code>，遇到 <code>for</code> 意味着可以传递一个数组，LaTeX 宏包 hyperref 参数选项非常多， 查看<a href="http://mirrors.ctan.org/macros/latex/contrib/hyperref/doc/hyperref-doc.pdf">其帮助文档</a>，可以知道能够传递的值有哪些。下面是一个例子：</p>
+<pre><code>hyperrefoptions:
+  - linktoc=all        # 目录带跳转链接
+  - bookmarksnumbered=true # 书签带编号
+  - pdfstartview=FitH  # 适合页面宽度</code></pre>
+<p>hyperref 帮助文档 5.5 节介绍 linktoc 选项，5.6 节介绍 bookmarksnumbered 选项，5.7 节介绍 pdfstartview 选项，通过帮助文档，就知道宏包有哪些控制选项及其取值。</p>
+<details>
+<summary>
+点击查看 Pandoc 内置的 LaTeX 模版内容
+</summary>
+<pre class="tex"><code>% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode$for(hyperrefoptions)$,$hyperrefoptions$$endfor$}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+$if(colorlinks)$
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+$endif$
+$if(CJKmainfont)$
+\PassOptionsToPackage{space}{xeCJK}
+$endif$
+%
+\documentclass[
+$if(fontsize)$
+  $fontsize$,
+$endif$
+$if(papersize)$
+  $papersize$paper,
+$endif$
+$if(beamer)$
+  ignorenonframetext,
+$if(handout)$
+  handout,
+$endif$
+$if(aspectratio)$
+  aspectratio=$aspectratio$,
+$endif$
+$endif$
+$for(classoption)$
+  $classoption$$sep$,
+$endfor$
+]{$documentclass$}
+$if(beamer)$
+$if(background-image)$
+\usebackgroundtemplate{%
+  \includegraphics[width=\paperwidth]{$background-image$}%
+}
+$endif$
+\usepackage{pgfpages}
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{caption label separator}{: }
+\setbeamercolor{caption name}{fg=normal text.fg}
+\beamertemplatenavigationsymbols$if(navigation)$$navigation$$else$empty$endif$
+$for(beameroption)$
+\setbeameroption{$beameroption$}
+$endfor$
+% Prevent slide breaks in the middle of a paragraph
+\widowpenalties 1 10000
+\raggedbottom
+$if(section-titles)$
+\setbeamertemplate{part page}{
+  \centering
+  \begin{beamercolorbox}[sep=16pt,center]{part title}
+    \usebeamerfont{part title}\insertpart\par
+  \end{beamercolorbox}
+}
+\setbeamertemplate{section page}{
+  \centering
+  \begin{beamercolorbox}[sep=12pt,center]{part title}
+    \usebeamerfont{section title}\insertsection\par
+  \end{beamercolorbox}
+}
+\setbeamertemplate{subsection page}{
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center]{part title}
+    \usebeamerfont{subsection title}\insertsubsection\par
+  \end{beamercolorbox}
+}
+\AtBeginPart{
+  \frame{\partpage}
+}
+\AtBeginSection{
+  \ifbibliography
+  \else
+    \frame{\sectionpage}
+  \fi
+}
+\AtBeginSubsection{
+  \frame{\subsectionpage}
+}
+$endif$
+$endif$
+$if(beamerarticle)$
+\usepackage{beamerarticle} % needs to be loaded first
+$endif$
+\usepackage{amsmath,amssymb}
+$if(fontfamily)$
+\usepackage[$for(fontfamilyoptions)$$fontfamilyoptions$$sep$,$endfor$]{$fontfamily$}
+$else$
+\usepackage{lmodern}
+$endif$
+$if(linestretch)$
+\usepackage{setspace}
+$endif$
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[$if(fontenc)$$fontenc$$else$T1$endif$]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+$if(mathspec)$
+  \ifXeTeX
+    \usepackage{mathspec}
+  \else
+    \usepackage{unicode-math}
+  \fi
+$else$
+  \usepackage{unicode-math}
+$endif$
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+$if(mainfont)$
+  \setmainfont[$for(mainfontoptions)$$mainfontoptions$$sep$,$endfor$]{$mainfont$}
+$endif$
+$if(sansfont)$
+  \setsansfont[$for(sansfontoptions)$$sansfontoptions$$sep$,$endfor$]{$sansfont$}
+$endif$
+$if(monofont)$
+  \setmonofont[$for(monofontoptions)$$monofontoptions$$sep$,$endfor$]{$monofont$}
+$endif$
+$for(fontfamilies)$
+  \newfontfamily{$fontfamilies.name$}[$for(fontfamilies.options)$$fontfamilies.options$$sep$,$endfor$]{$fontfamilies.font$}
+$endfor$
+$if(mathfont)$
+$if(mathspec)$
+  \ifXeTeX
+    \setmathfont(Digits,Latin,Greek)[$for(mathfontoptions)$$mathfontoptions$$sep$,$endfor$]{$mathfont$}
+  \else
+    \setmathfont[$for(mathfontoptions)$$mathfontoptions$$sep$,$endfor$]{$mathfont$}
+  \fi
+$else$
+  \setmathfont[$for(mathfontoptions)$$mathfontoptions$$sep$,$endfor$]{$mathfont$}
+$endif$
+$endif$
+$if(CJKmainfont)$
+  \ifXeTeX
+    \usepackage{xeCJK}
+    \setCJKmainfont[$for(CJKoptions)$$CJKoptions$$sep$,$endfor$]{$CJKmainfont$}
+  \fi
+$endif$
+$if(luatexjapresetoptions)$
+  \ifLuaTeX
+    \usepackage[$for(luatexjapresetoptions)$$luatexjapresetoptions$$sep$,$endfor$]{luatexja-preset}
+  \fi
+$endif$
+$if(CJKmainfont)$
+  \ifLuaTeX
+    \usepackage[$for(luatexjafontspecoptions)$$luatexjafontspecoptions$$sep$,$endfor$]{luatexja-fontspec}
+    \setmainjfont[$for(CJKoptions)$$CJKoptions$$sep$,$endfor$]{$CJKmainfont$}
+  \fi
+$endif$
+\fi
+$if(zero-width-non-joiner)$
+%% Support for zero-width non-joiner characters.
+\makeatletter
+\def\zerowidthnonjoiner{%
+  % Prevent ligatures and adjust kerning, but still support hyphenating.
+  \texorpdfstring{%
+    \textormath{\nobreak\discretionary{-}{}{\kern.03em}%
+      \ifvmode\else\nobreak\hskip\z@skip\fi}{}%
+  }{}%
+}
+\makeatother
+\ifPDFTeX
+  \DeclareUnicodeCharacter{200C}{\zerowidthnonjoiner}
+\else
+  \catcode`^^^^200c=\active
+  \protected\def ^^^^200c{\zerowidthnonjoiner}
+\fi
+%% End of ZWNJ support
+$endif$
+$if(beamer)$
+$if(theme)$
+\usetheme[$for(themeoptions)$$themeoptions$$sep$,$endfor$]{$theme$}
+$endif$
+$if(colortheme)$
+\usecolortheme{$colortheme$}
+$endif$
+$if(fonttheme)$
+\usefonttheme{$fonttheme$}
+$endif$
+$if(mainfont)$
+\usefonttheme{serif} % use mainfont rather than sansfont for slide text
+$endif$
+$if(innertheme)$
+\useinnertheme{$innertheme$}
+$endif$
+$if(outertheme)$
+\useoutertheme{$outertheme$}
+$endif$
+$endif$
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[$for(microtypeoptions)$$microtypeoptions$$sep$,$endfor$]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+$if(indent)$
+$else$
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+$endif$
+$if(verbatim-in-note)$
+\usepackage{fancyvrb}
+$endif$
+\usepackage{xcolor}
+$if(geometry)$
+$if(beamer)$
+\geometry{$for(geometry)$$geometry$$sep$,$endfor$}
+$else$
+\usepackage[$for(geometry)$$geometry$$sep$,$endfor$]{geometry}
+$endif$
+$endif$
+$if(beamer)$
+\newif\ifbibliography
+$endif$
+$if(listings)$
+\usepackage{listings}
+\newcommand{\passthrough}[1]{#1}
+\lstset{defaultdialect=[5.3]Lua}
+\lstset{defaultdialect=[x86masm]Assembler}
+$endif$
+$if(lhs)$
+\lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
+$endif$
+$if(highlighting-macros)$
+$highlighting-macros$
+$endif$
+$if(tables)$
+\usepackage{longtable,booktabs,array}
+$if(multirow)$
+\usepackage{multirow}
+$endif$
+\usepackage{calc} % for calculating minipage widths
+$if(beamer)$
+\usepackage{caption}
+% Make caption package work with longtable
+\makeatletter
+\def\fnum@table{\tablename~\thetable}
+\makeatother
+$else$
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+$endif$
+$endif$
+$if(graphics)$
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width&gt;\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height&gt;\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+$endif$
+$if(links-as-notes)$
+% Make links footnotes instead of hotlinks:
+\DeclareRobustCommand{\href}[2]{#2\footnote{\url{#1}}}
+$endif$
+$if(strikeout)$
+$-- also used for underline
+\usepackage[normalem]{ulem}
+$endif$
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+$if(numbersections)$
+\setcounter{secnumdepth}{$if(secnumdepth)$$secnumdepth$$else$5$endif$}
+$else$
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+$endif$
+$if(beamer)$
+$else$
+$if(block-headings)$
+% Make \paragraph and \subparagraph free-standing
+\ifx\paragraph\undefined\else
+  \let\oldparagraph\paragraph
+  \renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+  \let\oldsubparagraph\subparagraph
+  \renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+$endif$
+$endif$
+$if(pagestyle)$
+\pagestyle{$pagestyle$}
+$endif$
+$if(csl-refs)$
+\newlength{\cslhangindent}
+\setlength{\cslhangindent}{1.5em}
+\newlength{\csllabelwidth}
+\setlength{\csllabelwidth}{3em}
+\newlength{\cslentryspacingunit} % times entry-spacing
+\setlength{\cslentryspacingunit}{\parskip}
+\newenvironment{CSLReferences}[2] % #1 hanging-ident, #2 entry spacing
+ {% don&#39;t indent paragraphs
+  \setlength{\parindent}{0pt}
+  % turn on hanging indent if param 1 is 1
+  \ifodd #1
+  \let\oldpar\par
+  \def\par{\hangindent=\cslhangindent\oldpar}
+  \fi
+  % set entry spacing
+  \setlength{\parskip}{#2\cslentryspacingunit}
+ }%
+ {}
+\usepackage{calc}
+\newcommand{\CSLBlock}[1]{#1\hfill\break}
+\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{#1}}
+\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{#1}\break}
+\newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
+$endif$
+$if(lang)$
+\ifLuaTeX
+\usepackage[bidi=basic]{babel}
+\else
+\usepackage[bidi=default]{babel}
+\fi
+$if(babel-lang)$
+\babelprovide[main,import]{$babel-lang$}
+$endif$
+$for(babel-otherlangs)$
+\babelprovide[import]{$babel-otherlangs$}
+$endfor$
+% get rid of language-specific shorthands (see #6817):
+\let\LanguageShortHands\languageshorthands
+\def\languageshorthands#1{}
+$endif$
+$for(header-includes)$
+$header-includes$
+$endfor$
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+$if(dir)$
+\ifPDFTeX
+  \TeXXeTstate=1
+  \newcommand{\RL}[1]{\beginR #1\endR}
+  \newcommand{\LR}[1]{\beginL #1\endL}
+  \newenvironment{RTL}{\beginR}{\endR}
+  \newenvironment{LTR}{\beginL}{\endL}
+\fi
+$endif$
+$if(natbib)$
+\usepackage[$natbiboptions$]{natbib}
+\bibliographystyle{$if(biblio-style)$$biblio-style$$else$plainnat$endif$}
+$endif$
+$if(biblatex)$
+\usepackage[$if(biblio-style)$style=$biblio-style$,$endif$$for(biblatexoptions)$$biblatexoptions$$sep$,$endfor$]{biblatex}
+$for(bibliography)$
+\addbibresource{$bibliography$}
+$endfor$
+$endif$
+$if(nocite-ids)$
+\nocite{$for(nocite-ids)$$it$$sep$, $endfor$}
+$endif$
+$if(csquotes)$
+\usepackage{csquotes}
+$endif$
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+$if(verbatim-in-note)$
+\VerbatimFootnotes % allow verbatim text in footnotes
+$endif$
+\hypersetup{
+$if(title-meta)$
+  pdftitle={$title-meta$},
+$endif$
+$if(author-meta)$
+  pdfauthor={$author-meta$},
+$endif$
+$if(lang)$
+  pdflang={$lang$},
+$endif$
+$if(subject)$
+  pdfsubject={$subject$},
+$endif$
+$if(keywords)$
+  pdfkeywords={$for(keywords)$$keywords$$sep$, $endfor$},
+$endif$
+$if(colorlinks)$
+  colorlinks=true,
+  linkcolor={$if(linkcolor)$$linkcolor$$else$Maroon$endif$},
+  filecolor={$if(filecolor)$$filecolor$$else$Maroon$endif$},
+  citecolor={$if(citecolor)$$citecolor$$else$Blue$endif$},
+  urlcolor={$if(urlcolor)$$urlcolor$$else$Blue$endif$},
+$else$
+  hidelinks,
+$endif$
+  pdfcreator={LaTeX via pandoc}}
+
+$if(title)$
+\title{$title$$if(thanks)$\thanks{$thanks$}$endif$}
+$endif$
+$if(subtitle)$
+$if(beamer)$
+$else$
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\subtitle}[1]{% add subtitle to \maketitle
+  \apptocmd{\@title}{\par {\large #1 \par}}{}{}
+}
+\makeatother
+$endif$
+\subtitle{$subtitle$}
+$endif$
+\author{$for(author)$$author$$sep$ \and $endfor$}
+\date{$date$}
+$if(beamer)$
+$if(institute)$
+\institute{$for(institute)$$institute$$sep$ \and $endfor$}
+$endif$
+$if(titlegraphic)$
+\titlegraphic{\includegraphics{$titlegraphic$}}
+$endif$
+$if(logo)$
+\logo{\includegraphics{$logo$}}
+$endif$
+$endif$
+
+\begin{document}
+$if(has-frontmatter)$
+\frontmatter
+$endif$
+$if(title)$
+$if(beamer)$
+\frame{\titlepage}
+$else$
+\maketitle
+$endif$
+$if(abstract)$
+\begin{abstract}
+$abstract$
+\end{abstract}
+$endif$
+$endif$
+
+$for(include-before)$
+$include-before$
+
+$endfor$
+$if(toc)$
+$if(toc-title)$
+\renewcommand*\contentsname{$toc-title$}
+$endif$
+$if(beamer)$
+\begin{frame}[allowframebreaks]
+$if(toc-title)$
+  \frametitle{$toc-title$}
+$endif$
+  \tableofcontents[hideallsubsections]
+\end{frame}
+$else$
+{
+$if(colorlinks)$
+\hypersetup{linkcolor=$if(toccolor)$$toccolor$$else$$endif$}
+$endif$
+\setcounter{tocdepth}{$toc-depth$}
+\tableofcontents
+}
+$endif$
+$endif$
+$if(lof)$
+\listoffigures
+$endif$
+$if(lot)$
+\listoftables
+$endif$
+$if(linestretch)$
+\setstretch{$linestretch$}
+$endif$
+$if(has-frontmatter)$
+\mainmatter
+$endif$
+$body$
+
+$if(has-frontmatter)$
+\backmatter
+$endif$
+$if(natbib)$
+$if(bibliography)$
+$if(biblio-title)$
+$if(has-chapters)$
+\renewcommand\bibname{$biblio-title$}
+$else$
+\renewcommand\refname{$biblio-title$}
+$endif$
+$endif$
+$if(beamer)$
+\begin{frame}[allowframebreaks]{$biblio-title$}
+  \bibliographytrue
+$endif$
+  \bibliography{$for(bibliography)$$bibliography$$sep$,$endfor$}
+$if(beamer)$
+\end{frame}
+$endif$
+
+$endif$
+$endif$
+$if(biblatex)$
+$if(beamer)$
+\begin{frame}[allowframebreaks]{$biblio-title$}
+  \bibliographytrue
+  \printbibliography[heading=none]
+\end{frame}
+$else$
+\printbibliography$if(biblio-title)$[title=$biblio-title$]$endif$
+$endif$
+
+$endif$
+$for(include-after)$
+$include-after$
+
+$endfor$
+\end{document}</code></pre>
+</details>
+</div>
+<div id="幻灯主题" class="section level3" number="4.2.3">
+<h3><span class="header-section-number">4.2.3</span> 幻灯主题</h3>
+<p>在现有的基础上，通过 Pandoc 命令行参数 <code>--variable</code> 继续传递 <a href="https://pandoc.org/MANUAL.html#general-writer-options">模版变量</a>，如设置幻灯片主题：</p>
+<pre class="bash"><code>pandoc --pdf-engine xelatex -t beamer \
+  --variable theme=&quot;metropolis&quot; \
+  --variable fonttheme=&quot;professionalfonts&quot; \
+  -f markdown slide-template.md \
+  -o slide-template.pdf</code></pre>
+<div class="figure"><span style="display:block;" id="fig:md-theme"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182020012-da2f78d7-dfc7-4d47-9ed9-e326d4588a38.png" alt="" />
+<p class="caption">图 4.3: 设置幻灯片主题</p>
+</div>
+</div>
+<div id="英文字体" class="section level3" number="4.2.4">
+<h3><span class="header-section-number">4.2.4</span> 英文字体</h3>
+<p>或设置英文字体：</p>
+<pre class="bash"><code>pandoc --pdf-engine xelatex -t beamer \
+  --variable sansfont=&quot;Fira Sans Book&quot; \
+  --variable sansfontoptions=&quot;BoldFont={Fira Sans SemiBold}&quot; \
+  -f markdown slide-template.md \
+  -o slide-template.pdf</code></pre>
+<div class="figure"><span style="display:block;" id="fig:md-sansfont"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182020087-77c051d9-ca5d-4264-8208-3e707944a63a.png" alt="" />
+<p class="caption">图 4.4:  设置英文字体</p>
+</div>
+</div>
+<div id="数学字体" class="section level3" number="4.2.5">
+<h3><span class="header-section-number">4.2.5</span> 数学字体</h3>
+<p>或设置数学字体：</p>
+<pre class="bash"><code>pandoc --pdf-engine xelatex -t beamer \
+  --variable mathfont=&quot;XITS Math&quot; \
+  -f markdown slide-template.md \
+  -o slide-template.pdf</code></pre>
+<div class="figure"><span style="display:block;" id="fig:md-mathfont"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182020058-b9b7c05a-379f-49ec-8eef-3a84bbb45e90.png" alt="" />
+<p class="caption">图 4.5: 设置数学字体</p>
+</div>
+</div>
+<div id="幻灯首页" class="section level3" number="4.2.6">
+<h3><span class="header-section-number">4.2.6</span> 幻灯首页</h3>
+<p>除了支持传递模版变量控制文档类型和元素，还可以在 Markdown 文档中添加<a href="https://pandoc.org/MANUAL.html#metadata-variables">文档元数据</a>，比如幻灯片标题、副标题、作者等等，它们是一组 YAML 格式的键值对。效果和通过 Pandoc 命令行参数 <code>--metadata</code> 传值类似。</p>
+<pre class="md"><code>---
+title:  &#39;This is the title&#39;
+subtitle: &quot;This is the subtitle&quot;
+author:
+- Author One
+- Author Two
+institute: &quot;Capital of Statistics&quot;
+---
+
+## Example
+
+\begin{align}
+    \symbf{\theta} &amp;= (1, 2, 3)^\top \\
+        \theta_0 &amp;= 1
+\end{align}</code></pre>
+<p>与之前类似，执行如下命令：</p>
+<pre class="bash"><code>pandoc --pdf-engine xelatex -t beamer \
+  slide-template.md -o slide-template.pdf</code></pre>
+<p>渲染出来的效果如下：</p>
+<div class="figure"><span style="display:block;" id="fig:md-meta"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182020544-1c5ecce9-9e6c-4c93-beff-369349939e63.gif" alt="" />
+<p class="caption">图 4.6: 设置文档元数据</p>
+</div>
+</div>
+<div id="双栏排版" class="section level3" number="4.2.7">
+<h3><span class="header-section-number">4.2.7</span> 双栏排版</h3>
+<p>还可在文档中添加双栏排版，下面添加了两个双栏，第一个将页面等分，第二个将页面三七开，效果如图<a href="#fig:md-meta-columns">4.7</a>。</p>
+<pre class="md"><code>---
+title:  &#39;This is the title&#39;
+subtitle: &quot;This is the subtitle&quot;
+author:
+- Author One
+- Author Two
+institute: &quot;Capital of Statistics&quot;
+---
+
+## Example
+
+:::::::::::::: {.columns}
+::: {.column width=&quot;50%&quot;}
+\begin{align}
+    \symbf{\theta} &amp;= (1, 2, 3)^\top \\
+        \theta_0 &amp;= 1
+\end{align}
+:::
+::: {.column width=&quot;50%&quot;}
+\begin{align}
+    \symbf{\theta} &amp;= (1, 2, 3)^\top \\
+        \theta_0 &amp;= 1
+\end{align}
+:::
+::::::::::::::
+
+:::::::::::::: {.columns}
+::: {.column width=&quot;30%&quot;}
+\begin{align}
+    \symbf{\theta} &amp;= (1, 2, 3)^\top \\
+        \theta_0 &amp;= 1
+\end{align}
+:::
+::: {.column width=&quot;70%&quot;}
+\begin{align}
+    \symbf{\theta} &amp;= (1, 2, 3)^\top \\
+        \theta_0 &amp;= 1
+\end{align}
+:::
+::::::::::::::</code></pre>
+<p>渲染出来的效果如下：</p>
+<div class="figure"><span style="display:block;" id="fig:md-meta-columns"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182062362-c1d0e6cd-b1de-4095-933d-2624266ba9a5.gif" alt="" />
+<p class="caption">图 4.7: 设置文档双栏排版</p>
+</div>
+</div>
+<div id="页面暂停" class="section level3" number="4.2.8">
+<h3><span class="header-section-number">4.2.8</span> 页面暂停</h3>
+<p>还可以暂停显示幻灯片内容，这好像将一页的内容，分成几页展示，中间加了暂停键。只要在两段内容之间插入带空格的三个点 <code>. . .</code>，渲染效果如图<a href="#fig:md-meta-pauses">4.8</a>。</p>
+<pre class="md"><code>---
+title:  &#39;This is the title&#39;
+subtitle: &quot;This is the subtitle&quot;
+author:
+- Author One
+- Author Two
+institute: &quot;Capital of Statistics&quot;
+---
+
+## Example
+
+:::::::::::::: {.columns}
+::: {.column width=&quot;50%&quot;}
+\begin{align}
+    \symbf{\theta} &amp;= (1, 2, 3)^\top \\
+        \theta_0 &amp;= 1
+\end{align}
+:::
+::: {.column width=&quot;50%&quot;}
+\begin{align}
+    \symbf{\theta} &amp;= (1, 2, 3)^\top \\
+        \theta_0 &amp;= 1
+\end{align}
+:::
+::::::::::::::
+
+. . .
+
+:::::::::::::: {.columns}
+::: {.column width=&quot;30%&quot;}
+\begin{align}
+    \symbf{\theta} &amp;= (1, 2, 3)^\top \\
+        \theta_0 &amp;= 1
+\end{align}
+:::
+::: {.column width=&quot;70%&quot;}
+\begin{align}
+    \symbf{\theta} &amp;= (1, 2, 3)^\top \\
+        \theta_0 &amp;= 1
+\end{align}
+:::
+::::::::::::::</code></pre>
+<div class="figure"><span style="display:block;" id="fig:md-meta-pauses"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182080840-ca01d7b1-ba84-4b6a-95f2-68ff494f832e.gif" alt="" />
+<p class="caption">图 4.8: 添加暂停键，分页展示内容</p>
+</div>
+</div>
+<div id="滚动条目" class="section level3" number="4.2.9">
+<h3><span class="header-section-number">4.2.9</span> 滚动条目</h3>
+<p>与上面分段显示内容类似，还可逐条展示列表内容，效果如图<a href="#fig:md-meta-incremental">4.9</a>。</p>
+<pre class="md"><code>---
+title:  &#39;This is the title&#39;
+subtitle: &quot;This is the subtitle&quot;
+author:
+- Author One
+- Author Two
+institute: &quot;Capital of Statistics&quot;
+---
+
+## Example
+
+::: incremental
+
+- Eat spaghetti
+- Drink wine
+
+:::</code></pre>
+<div class="figure"><span style="display:block;" id="fig:md-meta-incremental"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182083227-2bd9084f-07b2-4eb3-8ddb-e01843dbdcd9.gif" alt="" />
+<p class="caption">图 4.9: 逐条展示列表条目</p>
+</div>
+</div>
+<div id="添加背景" class="section level3" number="4.2.10">
+<h3><span class="header-section-number">4.2.10</span> 添加背景</h3>
+<p>在 Markdown 文档的 YAML 里设置 <code>background-image</code> 指定背景图片，将背景图片和Markdown 文档放一起或指定背景图片的存放路径。</p>
+<pre class="md"><code>---
+title:  &#39;This is the title&#39;
+subtitle: &quot;This is the subtitle&quot;
+author:
+- Author One
+- Author Two
+institute: &quot;Capital of Statistics&quot;
+background-image: Rlogo.pdf
+---
+
+## Example
+
+\begin{align}
+    \symbf{\theta} &amp;= (1, 2, 3)^\top \\
+        \theta_0 &amp;= 1
+\end{align}</code></pre>
+<p>渲染效果，如图<a href="#fig:md-meta-background">4.10</a>所示。</p>
+<pre class="bash"><code>pandoc --pdf-engine xelatex -t beamer \
+  slide-template.md -o slide-template.pdf</code></pre>
+<div class="figure"><span style="display:block;" id="fig:md-meta-background"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182089094-a5b5fa8b-8527-4b82-bc1e-8e70cee98e87.gif" alt="" />
+<p class="caption">图 4.10: 添加幻灯片背景</p>
+</div>
+</div>
+<div id="插入表格" class="section level3" number="4.2.11">
+<h3><span class="header-section-number">4.2.11</span> 插入表格</h3>
+<p>Markdown 是支持显示表格的，其语法不再赘述，下面是一个插入表格的示例，渲染效果如图所示。</p>
+<pre class="md"><code>---
+title:  &#39;This is the title&#39;
+subtitle: &quot;This is the subtitle&quot;
+author:
+- Author One
+- Author Two
+institute: &quot;Capital of Statistics&quot;
+---
+
+## Example
+
+  Right     Left     Center     Default
+-------     ------ ----------   -------
+     12     12        12            12
+    123     123       123          123
+      1     1          1             1
+
+Table:  Demonstration of simple table syntax.</code></pre>
+<div class="figure"><span style="display:block;" id="fig:md-meta-table"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182091134-8e29b6ed-318c-4115-a275-2e4ab4f6f0af.gif" alt="" />
+<p class="caption">图 4.11: 插入表格</p>
+</div>
+<p>更多样式的表格见 Pandoc 帮助文档中<a href="https://pandoc.org/MANUAL.html#tables">表格部分</a>的介绍。</p>
+</div>
+<div id="插入图片" class="section level3" number="4.2.12">
+<h3><span class="header-section-number">4.2.12</span> 插入图片</h3>
+<p>继续使用之前的 R 语言 Logo 图片，Pandoc’s Markdown 扩展了原始 Markdown 的功能，插入图片的同时支持设置图片宽度，效果如图<a href="#fig:md-meta-figure">4.12</a>所示。</p>
+<pre class="md"><code>---
+title:  &#39;This is the title&#39;
+subtitle: &quot;This is the subtitle&quot;
+author:
+- Author One
+- Author Two
+institute: &quot;Capital of Statistics&quot;
+---
+
+## Example
+
+![This is the caption](Rlogo.pdf){ width=35% }</code></pre>
+<div class="figure"><span style="display:block;" id="fig:md-meta-figure"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182092322-f4d70149-0615-4261-be47-6fa711d8df0f.gif" alt="" />
+<p class="caption">图 4.12: 插入图片</p>
+</div>
+<p>更多功能见 Pandoc’s Markdown 帮助文档中<a href="https://pandoc.org/MANUAL.html#images">插入图片</a>一节。</p>
+</div>
+<div id="独立页面" class="section level3" number="4.2.13">
+<h3><span class="header-section-number">4.2.13</span> 独立页面</h3>
+<p>还可显示单独的一页，此页没有标题，常用于末尾 Q&amp;A 和致谢环节，给该页幻灯片设置 standout 属性。</p>
+<pre class="md"><code>---
+title:  &#39;This is the title&#39;
+subtitle: &quot;This is the subtitle&quot;
+author:
+- Author One
+- Author Two
+institute: &quot;Capital of Statistics&quot;
+---
+
+## Example
+
+\begin{align}
+    \symbf{\theta} &amp;= (1, 2, 3)^\top \\
+        \theta_0 &amp;= 1
+\end{align}
+
+## {.standout}
+
+Q &amp; A</code></pre>
+<p>因默认的幻灯片主题不支持设置 standout，下面采用 metropolis 主题，效果如图<a href="#fig:md-meta-standout">4.13</a>。</p>
+<pre class="bash"><code>pandoc --pdf-engine xelatex -t beamer \
+  --variable theme=&quot;metropolis&quot; \
+  --variable fonttheme=&quot;professionalfonts&quot; \
+  -f markdown slide-template.md \
+  -o slide-template.pdf</code></pre>
+<div class="figure"><span style="display:block;" id="fig:md-meta-standout"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182086098-bdc5dfc6-e291-4397-a2a9-778af18720d2.gif" alt="" />
+<p class="caption">图 4.13: 设置单独一页用于 Q&amp;A 环节</p>
+</div>
+</div>
+<div id="文献引用" class="section level3" number="4.2.14">
+<h3><span class="header-section-number">4.2.14</span> 文献引用</h3>
+<p>在 beamer 幻灯片中引用参考文献是再正常没有了，此过程稍有点复杂。类似先前的操作，先把下面的内容，保存为文件 <code>slide-template.md</code>。</p>
+<pre class="md"><code>---
+title: &#39;This is the title&#39;
+subtitle: &quot;This is the subtitle&quot;
+author:
+  - Author One
+  - Author Two
+institute: 
+  - Capital of Statistics
+  - University of xxx
+link-citations: true
+colorlinks: true
+section-titles: false
+---
+
+# knitr
+
+## Example
+
+**knitr** [@Xie2015] is a general-purpose package for dynamic report generation in R.</code></pre>
+<p>接着，把如下文献保存在文件 <code>refer.bib</code> 里，与文档 <code>slide-template.md</code> 待在一起。</p>
+<pre><code>@Book{Xie2015,
+  title = {Dynamic Documents with {R} and knitr},
+  author = {Yihui Xie},
+  publisher = {Chapman and Hall/CRC},
+  address = {Boca Raton, Florida},
+  year = {2015},
+  edition = {2nd},
+  note = {ISBN 978-1498716963},
+  url = {https://yihui.org/knitr/},
+}</code></pre>
+<p>再执行如下命令，渲染效果如图<a href="#fig:md-meta-refer">4.14</a>所示。</p>
+<pre class="bash"><code>pandoc --citeproc --pdf-engine xelatex -t beamer \
+  --bibliography=refer.bib \
+  -M reference-section-title=References \
+  --slide-level=2 \
+  -f markdown slide-template.md \
+  -o slide-template.pdf</code></pre>
+<div class="figure"><span style="display:block;" id="fig:md-meta-refer"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182161509-98fc10ce-c8e2-4007-ab7e-00be2d1de4ab.gif" alt="" />
+<p class="caption">图 4.14: 文献引用</p>
+</div>
+<p>最后，对上述命令参数说明一下：</p>
+<ul>
+<li>文档层级：Pandoc 参数 <a href="https://pandoc.org/MANUAL.html#option--slide-level">–slide-level</a> 控制 beamer 文档的层级。<code>--slide-level=2</code> 意味着 Markdown 文档中 <code>#</code> 表示一级标题，<code>##</code> 二级标题。文档 YAML 元数据中设置 <code>section-titles: false</code> 意味着隐藏一级标题。</li>
+<li>文献引用：参数 <code>--citeproc</code> 用来处理参考文献，<code>--bibliography</code> 指定参考文献文件的位置，参数<code>-M reference-section-title=References</code> 设置文献条目所在页面的标题，此处为 References。</li>
+<li>引用跳转：<code>link-citations: true</code> 幻灯片页面中引用的文献可以链接跳转到幻灯片末尾参考文献列表处，</li>
+<li>链接配色：<code>colorlinks: true</code> 幻灯片中有链接的地方都上色，比如链接、超链接、引用链接、目录链接等。</li>
+</ul>
+</div>
+<div id="更多功能" class="section level3" number="4.2.15">
+<h3><span class="header-section-number">4.2.15</span> 更多功能</h3>
+<p>Pandoc 还支持很多功能，比如添加封面图片、脚注、诗词格言引用、图表交叉引用、抄录代码块、自定义导言区等等，众多功能有待读者去探索发现。</p>
+<div class="rmdtip">
+<p>Pandoc 除了能将 Markdown 文档转化为 beamer 幻灯片，还可将其转化为 DOCX 格式的 Word 文档、PPTX 格式的 PowerPoint 文档等。除了前面介绍的 LaTeX 模版，Pandoc 还内建了 Word、PowerPoint 等诸多文档模版，获取其它文档格式的模版，稍有不同，比如 DOCX 文档。</p>
+<pre class="bash"><code>pandoc -o custom-reference.docx --print-default-data-file reference.docx</code></pre>
+<p>更多详情见<a href="https://pandoc.org/MANUAL.html#options-affecting-specific-writers">Pandoc 用户手册</a>。</p>
+</div>
+</div>
+</div>
+<div id="rmarkdown-basic" class="section level2" number="4.3">
+<h2><span class="header-section-number">4.3</span> R Markdown（基础篇）</h2>
+<div class="rmdtip">
+<p>呀，终于等来了这一句：<strong>Pandoc’s Markdown 支持的功能，R Markdown 都支持</strong>，相比于 Pandoc’s Markdown，在 RStudio IDE 内使用 R Markdown 可以省去命令行操作，使用起来简便些，代价是根据需要适当学习一下 R 语言及<strong>knitr</strong>、<strong>rmarkdown</strong> 和 <strong>bookdown</strong> 三个 R 包。</p>
+</div>
+<div id="从-pandocs-markdown-到-r-markdown" class="section level3" number="4.3.1">
+<h3><span class="header-section-number">4.3.1</span> 从 Pandoc’s Markdown 到 R Markdown</h3>
+<p>R Markdown 文档开头处为文档 YAML 元数据，它主要分三部分：</p>
+<ol style="list-style-type: decimal">
+<li><p>文档元数据设置：对应 Pandoc 命令行参数 <code>--metadata</code>，这部分内容也可直接放在 Markdown / R Markdown 文档中。如<code>title</code>、<code>subtitle</code> 、<code>author</code>、<code>institute</code> 等。</p></li>
+<li><p>文档输出设置：输出文档类型及相应文档的选项控制，如 beamer 文档，它有主题 <code>theme</code>、颜色主题<code>colortheme</code>、字体主题 <code>fonttheme</code> 等独特控制选项，也有 LaTeX 模版 <code>template</code>、编译引擎 <code>latex_engine</code>、文献处理 <code>citation_package</code>、语法高亮 <code>highlight</code> 等 PDF 文档通用的控制选项。</p></li>
+<li><p>模版变量设置：Pandoc 内建很多文档的模版，beamer 文档的模版包含在内建的 LaTeX 模版内，模版包含数以十计的控制变量，对应 Pandoc 命令行参数 <code>--variable</code>，如调用宏包 mathspec 处理数学公式 <code>--variable mathspec=true</code>。下面示例中 <code>mathspec: true</code> 传递给 Pandoc 内建的 LaTeX 模版，意味着不要采用宏包 unicode-math 处理数学公式，而使用宏包 mathspec 处理。</p></li>
+</ol>
+<pre><code>---
+title:  &#39;This is the title&#39;
+subtitle: &quot;This is the subtitle&quot;
+author:
+- Author One
+- Author Two
+institute: &quot;Capital of Statistics&quot;
+output: 
+  beamer_presentation: 
+    latex_engine: xelatex
+    theme: metropolis
+    template: null
+mathspec: true
+---
+
+## Example
+
+\begin{align}
+    \boldsymbol{\theta} &amp;= (1, 2, 3)^\top \\
+        \theta_0 &amp;= 1
+\end{align}</code></pre>
+<p><code>output</code> 行往下在设置文档类型及编译控制选项，完整的选项列表及其说明可从函数帮助文档 <code>?rmarkdown::beamer_presentation()</code> 处获得，下面是函数<code>beamer_presentation()</code>的参数列表：</p>
+<pre class="r"><code>beamer_presentation(
+  toc = FALSE,
+  slide_level = NULL,
+  number_sections = FALSE,
+  incremental = FALSE,
+  fig_width = 10,
+  fig_height = 7,
+  fig_crop = &quot;auto&quot;,
+  fig_caption = TRUE,
+  dev = &quot;pdf&quot;,
+  df_print = &quot;default&quot;,
+  theme = &quot;default&quot;,
+  colortheme = &quot;default&quot;,
+  fonttheme = &quot;default&quot;,
+  highlight = &quot;default&quot;,
+  template = &quot;default&quot;,
+  keep_tex = FALSE,
+  keep_md = FALSE,
+  latex_engine = &quot;pdflatex&quot;,
+  citation_package = c(&quot;default&quot;, &quot;natbib&quot;, &quot;biblatex&quot;),
+  self_contained = TRUE,
+  includes = NULL,
+  md_extensions = NULL,
+  pandoc_args = NULL
+)</code></pre>
+<p>下面简单说明一下参数情况：</p>
+<ol style="list-style-type: decimal">
+<li><p>属于 PDF 文档的通用控制选项：如是否显示目录 <code>toc</code>，是否显示编号<code>number_sections</code>。beamer 文档是一种特殊的 PDF 文档，它会继承 PDF 文档的很多通用控制选项。</p></li>
+<li><p>属于幻灯片文档的通用控制选项。beamer 文档也是一种幻灯片，它会继承一些幻灯片的通用控制选项，如幻灯片层级 <code>slide_level</code>、是否滚动显示列表条目 <code>incremental</code>。</p></li>
+<li><p>属于 R Markdown 特有的控制选项：R 语言代码生成的图片，设置图形宽度 <code>fig_width</code> 、图形高度 <code>fig_height</code> 、图形标题 <code>fig_caption</code>、图形设备 <code>dev</code>。R 语言代码生成的表格，设置表格样式 <code>df_print</code>。参数 <code>keep_md</code> 是否保存从 R Markdown 转化到 Markdown 的中间产物 — <code>*.md</code> 文档。参数 <code>keep_tex</code> 是否保存从 Markdown 到 LaTeX 的中间产物 — <code>*.tex</code> 文档。</p></li>
+<li><p>属于 beamer 文档的特有控制选项：如幻灯片主题 <code>theme</code>、颜色主题 <code>colortheme</code>、字体主题 <code>fonttheme</code>。</p></li>
+<li><p>属于 Pandoc 转化器的控制选项：PDF 格式文档和 beamer 幻灯片文档的通用控制选项也是 Pandoc 转化器的控制选项。除了前述内容外，LaTeX 编译引擎 <code>latex_engine</code> 对应于 <code>--pdf-engine</code>，参考文献处理 <code>citation_package</code> 对应于 <code>--citeproc</code>，是否自包含 <code>self_contained</code> 对应于 <code>--self-contained</code>，语法高亮 <code>highlight</code> 对应于 <code>--highlight-style</code>，LaTeX 模版 <code>template</code> 对应于 <code>--template</code>，导言区、前言、后记 <code>includes</code> 对应于三个参数 <code>--include-in-header</code> / <code>--include-before-body</code> / <code>--include-after-body</code>，参数 <code>md_extensions</code> 对应于 <a href="https://pandoc.org/MANUAL.html#headings-and-sections">Markdown 扩展</a>，参数 <code>pandoc_args</code> 对应于其他 Pandoc 参数。</p></li>
+</ol>
+<p>所以，若是除去属于 R Markdown 特有的部分，一定程度上，R Markdown 就是 Pandoc’s Markdown 的马甲。说 R Markdown 站在 Pandoc 的肩膀上是再合理没有了。</p>
+<p>上面示例渲染出来的 beamer 文档效果如下图<a href="#fig:rmd-metropolis">4.15</a>。</p>
+<div class="figure"><span style="display:block;" id="fig:rmd-metropolis"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182024613-97dcff19-8e9b-4428-98ff-dc9fa444d20e.gif" alt="" />
+<p class="caption">图 4.15: R Markdown 示例</p>
+</div>
+<p>下面拆解一下 R Markdown 编译出 beamer 幻灯片的过程。当用户点击 Knit 按钮，Render 窗口就会活动起来，knitr 包会根据文档中的代码块的情况，调各类解释器或编译器执行文档中的代码，并返回结果，生成中间产物 Markdown 文件。再调用 Pandoc 转化器，将 Markdown 文档转为 LaTeX 代码，再调用 LaTeX 编译器（如 XeLaTeX）编译出目标文件 — PDF 格式的 beamer 幻灯片。图<a href="#fig:rmd-metropolis-compile">4.16</a>左侧是示例文件，右侧是 Render 窗口的编译过程。注意看图<a href="#fig:rmd-metropolis-compile">4.16</a>右侧红框内的内容，是不是很熟悉的感觉，其实就是一个 Pandoc 转化命令。除了 Pandoc 参数 <code>--lua-filter</code>，其它都在上面介绍了。</p>
+<div class="figure"><span style="display:block;" id="fig:rmd-metropolis-compile"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182069798-33d77872-8cca-4903-8de6-9e42f3ee11f5.png" alt="" />
+<p class="caption">图 4.16: R Markdown 编译过程</p>
+</div>
+<p>所以将上述 R Markdown 文档简化为如下 Markdown 文档。</p>
+<pre class="md"><code>---
+title:  &#39;This is the title&#39;
+subtitle: &quot;This is the subtitle&quot;
+author:
+- Author One
+- Author Two
+institute: &quot;Capital of Statistics&quot;
+---
+
+## Example
+
+\begin{align}
+    \boldsymbol{\theta} &amp;= (1, 2, 3)^\top \\
+        \theta_0 &amp;= 1
+\end{align}</code></pre>
+<p>再调用如下 Pandoc 命令，会得到完全一样的图<a href="#fig:rmd-metropolis">4.15</a>。</p>
+<pre class="bash"><code>pandoc --pdf-engine xelatex -t beamer \
+  --variable theme=&quot;metropolis&quot; \
+  --variable mathspec=true \
+  -f markdown slide-template.md \
+  -o slide-template.pdf</code></pre>
+</div>
+<div id="中文-r-markdown-文档" class="section level3" number="4.3.2">
+<h3><span class="header-section-number">4.3.2</span> 中文 R Markdown 文档</h3>
+<p>接下来，将上面的英文 R Markdown 文档汉化一下，下面是一份完整的<strong>中文</strong> R Markdown 模版，有了前面关于英文 R Markdown 文档的介绍，此时，想必已不再感到陌生。 ctexbeamer 和 ctexart 文类都来自 <a href="https://ctan.org/pkg/ctex">ctex 宏包</a>，想汉化必须看看它的帮助文档。相比于上面的英文 R Markdown 文档，这里只添加两个 Pandoc 变量，一个设置中文 beamer 文类 <code>documentclass: ctexbeamer</code>，另一个在文类选项中设置中文字体 <code>classoption: "fontset=fandol"</code>，设置它们的效果类似在 LaTeX 文档中添加如下的一行代码。</p>
+<pre class="tex"><code>\documentclass[fontset=fandol]{ctexbeamer}</code></pre>
+<p>读者若有兴趣，可以查阅 <a href="https://ctan.org/pkg/ctex">ctex 宏包</a> 帮助文档，了解 ctexbeamer 文类的其它选项。</p>
+<pre><code>---
+title: &quot;R Markdown 制作 beamer 幻灯片&quot;
+author: &quot;黄湘云&quot;
+date: &quot;2021年10月01日&quot;
+institute: &quot;统计之都&quot;
+documentclass: ctexbeamer
+output: 
+  beamer_presentation: 
+    latex_engine: xelatex
+    theme: metropolis
+    template: null
+classoption: &quot;fontset=fandol&quot;
+---
+
+## 示例
+
+\begin{align}
+    \symbf{\theta} &amp;= (1, 2, 3)^\top \\
+        \theta_0 &amp;= 1
+\end{align}</code></pre>
+<div class="figure"><span style="display:block;" id="fig:rmd-metropolis-zh"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182027292-0b24fb9b-7804-4ad5-940c-591ff1fd695d.gif" alt="" />
+<p class="caption">图 4.17:  中文 R Markdown 示例</p>
+</div>
+</div>
+<div id="数学公式与引理定理" class="section level3" number="4.3.3">
+<h3><span class="header-section-number">4.3.3</span> 数学公式与引理定理</h3>
+<p>在日常使用中，beamer 幻灯片常用于学术性报告，各种各样的数学公式和符号随处可见。默认情形下，还是使用宏包 unicode-math 处理数学公式。</p>
+<pre><code>---
+title: &quot;R Markdown 制作 beamer 幻灯片&quot;
+author: &quot;黄湘云&quot;
+date: &quot;2021年10月01日&quot;
+institute: &quot;统计之都&quot;
+documentclass: ctexbeamer
+output: 
+  beamer_presentation: 
+    latex_engine: xelatex
+    theme: metropolis
+    template: null
+classoption: &quot;fontset=fandol&quot;
+---
+
+## 介绍
+
+数学公式还是用 LaTeX 排版的好， 
+$\symbf{\Sigma}$ 是希腊字母 $\Sigma$ 的加粗形式，
+$\mathcal{A}$ 是普通字母 $A$ 的花体形式。</code></pre>
+<p>编译后的效果如下：</p>
+<div class="figure"><span style="display:block;" id="fig:rmd-metropolis-zh-math"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182028411-e21c0d18-f1b8-4834-b41a-7ba618c9a9e4.gif" alt="" />
+<p class="caption">图 4.18:  中文 R Markdown 示例里添加数学公式</p>
+</div>
+<p>当然，还可以切换为大众喜闻乐见的样式，即采用宏包 mathspec 来处理数学公式，只需对上述 R Markdown 文档稍作调整。</p>
+<pre><code>---
+title: &quot;R Markdown 制作 beamer 幻灯片&quot;
+author: &quot;黄湘云&quot;
+date: &quot;2021年10月01日&quot;
+institute: &quot;统计之都&quot;
+documentclass: beamer
+output: 
+  beamer_presentation: 
+    latex_engine: xelatex
+    theme: metropolis
+    template: null
+header-includes:
+  - \usepackage[UTF8,fontset=fandol]{ctex}
+mathspec: true
+---
+
+## 介绍
+
+数学公式还是用 LaTeX 排版的好， 
+$\boldsymbol{\Sigma}$ 是希腊字母 $\Sigma$ 的加粗形式，
+$\mathcal{A}$ 是普通字母 $A$ 的花体形式。</code></pre>
+<p>使用基础的 beamer 文类，而不是 ctex 宏包提供的 ctexbeamer 文类，因为 ctexbeamer 文类与 mathspec 宏包有冲突，而汉化只需在导言区加载 ctex 宏包。最终编译出来的效果如图<a href="#fig:rmd-metropolis-zh-mathspec">4.19</a>所示。</p>
+<div class="figure"><span style="display:block;" id="fig:rmd-metropolis-zh-mathspec"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182320031-30c55e39-d52f-421e-baac-c7d684415dcb.gif" alt="" />
+<p class="caption">图 4.19:  中文 R Markdown 示例里添加数学公式</p>
+</div>
+<p>beamer 学术幻灯片的另一大特色是有很多定理、引理、推论等。在之前的基础上，继续添加定理、引理等文本块，内容如下：</p>
+<pre><code>---
+title: &quot;R Markdown 制作 beamer 幻灯片&quot;
+author: &quot;黄湘云&quot;
+date: &quot;2021年10月01日&quot;
+institute: &quot;统计之都&quot;
+documentclass: ctexbeamer
+output: 
+  beamer_presentation: 
+    latex_engine: xelatex
+    theme: metropolis
+    template: null
+classoption: &quot;fontset=fandol&quot;
+---
+
+## 介绍
+
+数学公式还是用 LaTeX 排版的好， 
+$\symbf{\Sigma}$ 是希腊字母 $\Sigma$ 的加粗形式，
+$\mathcal{A}$ 是普通字母 $A$ 的花体形式。
+
+::: {.theorem data-latex=&quot;[勾股定理]&quot;}
+这是定理内容
+:::
+
+::: {.lemma data-latex=&quot;[N-P 引理]&quot;}
+这是引理内容
+:::</code></pre>
+<p>渲染效果如下：</p>
+<div class="figure"><span style="display:block;" id="fig:rmd-metropolis-zh-block"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182034761-c7fee605-4729-487b-af20-e423ba7b2af0.gif" alt="" />
+<p class="caption">图 4.20:  中文 R Markdown 示例里添加定理、引理</p>
+</div>
+</div>
+<div id="r-markdown-专属功能" class="section level3" number="4.3.4">
+<h3><span class="header-section-number">4.3.4</span> R Markdown 专属功能</h3>
+<p>R Markdown 专属功能是指那些离不开 R 语言和 knitr 包的功能，比如幻灯片里插入 R 语言生成的图和表。一个简单示例如下：</p>
+<pre class="md"><code>---
+title: &quot;R Markdown 制作 beamer 幻灯片&quot;
+author: &quot;黄湘云&quot;
+date: &quot;2021年10月01日&quot;
+institute: &quot;统计之都&quot;
+documentclass: beamer
+output: 
+  beamer_presentation: 
+    latex_engine: xelatex
+    theme: metropolis
+    template: null
+header-includes:
+  - \usepackage[UTF8,fontset=fandol]{ctex}
+mathspec: true
+---
+
+## 图片
+
+```{r iris-figure, fig.cap=&quot;鸢尾花&quot;, fig.width=3, fig.height=2.5}
+library(lattice)
+xyplot(data = iris, Sepal.Length ~ Sepal.Width,
+  groups = Species, scales = &quot;free&quot;)
+```
+
+## 表格
+
+```{r iris-table}
+knitr::kable(head(iris, 3), caption = &quot;鸢尾花&quot;)
+```
+</code></pre>
+<p>编译生成的 beamer 文档如图<a href="#fig:rmd-metropolis-zh-rlang">4.21</a>所示。</p>
+<div class="figure"><span style="display:block;" id="fig:rmd-metropolis-zh-rlang"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182323860-3b206f90-55f5-4176-85ec-e65a90e2bb04.gif" alt="" />
+<p class="caption">图 4.21:  中文 R Markdown 示例里添加图片和表格</p>
+</div>
+</div>
+<div id="图表公式交叉引用" class="section level3" number="4.3.5">
+<h3><span class="header-section-number">4.3.5</span> 图、表、公式交叉引用</h3>
+<p>图、表、公式在幻灯片里交叉引用似乎并不常见，原因可能是现场环境下，观众和演讲者未必关注到或记得住编号。在基础的 rmarkdown 包里并不支持交叉引用，它是 bookdown 包里才有的高级功能，毕竟交叉引用在书里是必不可少的。使用起来也不复杂，只需在 R Markdown 文档的 YAML 元数据里将 <code>beamer_presentation</code> 替换为 <code>bookdown::beamer_presentation2</code>。 下面是一个小示例，在前文基础上添加图、表、公式的交叉引用。</p>
+<pre class="md"><code>---
+title: &quot;R Markdown 制作 beamer 幻灯片&quot;
+author: &quot;黄湘云&quot;
+date: &quot;2021年10月01日&quot;
+institute: &quot;统计之都&quot;
+documentclass: beamer
+output: 
+  bookdown::beamer_presentation2: 
+    latex_engine: xelatex
+    theme: metropolis
+    template: null
+    toc: false
+header-includes:
+  - \usepackage[UTF8,fontset=fandol]{ctex}
+mathspec: true
+colorlinks: true
+---
+
+## 图片
+
+```{r iris-figure, fig.cap=&quot;鸢尾花&quot;, fig.width=3, fig.height=2.5}
+library(lattice)
+xyplot(data = iris, Sepal.Length ~ Sepal.Width,
+  groups = Species, scales = &quot;free&quot;)
+```
+
+## 表格
+
+```{r iris-table}
+knitr::kable(head(iris, 3), caption = &quot;鸢尾花&quot;)
+```
+
+## 公式
+
+前两页幻灯片中的图片\@ref(fig:iris-figure)和表格\@ref(tab:iris-table)是使用 R 语言生成的，
+下面的公式\@ref(eq:euler)是著名的欧拉公式。
+
+\begin{align}
+  \mathrm{e}^{ix} = \cos x + i \sin x
+  (\#eq:euler)
+\end{align}</code></pre>
+<p>渲染出来的效果，如图<a href="#fig:rmd-metropolis-zh-cross-references">4.22</a>所示。</p>
+<div class="figure"><span style="display:block;" id="fig:rmd-metropolis-zh-cross-references"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182329702-1229b09b-b7ea-4ec5-958e-250c347c30bc.gif" alt="" />
+<p class="caption">图 4.22:  中文 R Markdown 示例里图、表、公式交叉引用</p>
+</div>
+</div>
+</div>
+<div id="rmarkdown-advanced" class="section level2" number="4.4">
+<h2><span class="header-section-number">4.4</span> R Markdown（高级篇）</h2>
+<div id="r-markdown-幻灯片模版" class="section level3" number="4.4.1">
+<h3><span class="header-section-number">4.4.1</span> R Markdown 幻灯片模版</h3>
+<p>前面介绍 R Markdown 功能涉及了两款主题，一款是 beamer 文类最基础的默认主题，另一款是 <a href="https://github.com/matze/mtheme">metropolis</a>主题。若读者觉得还行，往下的内容不看也罢，专注内容，专注质量其实更好。若读者觉得太过千篇一律，索然无味，下面几款聊胜于无。</p>
+<div id="beamer-文类内置主题" class="section level4" number="4.4.1.1">
+<h4><span class="header-section-number">4.4.1.1</span> beamer 文类内置主题</h4>
+<p>beamer 文类自带了诸多主题，网站(<a href="https://hartwork.org/beamer-theme-matrix/" class="uri">https://hartwork.org/beamer-theme-matrix/</a>)提供预览，读者可根据喜好选择。默认主题下将颜色主题更换为 seahorse，效果如图<a href="#fig:rmd-slide-seahorse">4.23</a>所示。</p>
+<pre><code>---
+title: &quot;R Markdown 制作 beamer 幻灯片&quot;
+author: &quot;黄湘云&quot;
+date: &quot;2021年10月01日&quot;
+institute: &quot;统计之都&quot;
+documentclass: beamer
+output: 
+  beamer_presentation: 
+    latex_engine: xelatex
+    theme: default
+    colortheme: seahorse
+    template: null
+header-includes:
+  - \usepackage[UTF8,fontset=fandol]{ctex}
+mathspec: true
+---
+
+## 介绍
+
+数学公式还是用 LaTeX 排版的好， 
+$\boldsymbol{\Sigma}$ 是希腊字母 $\Sigma$ 的加粗形式，
+$\mathcal{A}$ 是普通字母 $A$ 的花体形式。</code></pre>
+<div class="figure"><span style="display:block;" id="fig:rmd-slide-seahorse"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182384777-f66a292d-5846-40dd-bbe3-cc493d296b23.gif" alt="" />
+<p class="caption">图 4.23:  颜色主题 seahorse</p>
+</div>
+</div>
+<div id="beamer-幻灯片主题库latex" class="section level4" number="4.4.1.2">
+<h4><span class="header-section-number">4.4.1.2</span> beamer 幻灯片主题库（LaTeX）</h4>
+<p>除了 beamer 文类内置的主题，LaTeX 社区也开发了很多宏包，提供各种各样的主题模版，详见 <a href="https://ctan.org/topic/presentation" class="uri">https://ctan.org/topic/presentation</a>，下面以 <a href="https://ctan.org/pkg/beamer-verona">beamer-verona</a> 为例，且看如何用到 R Markdown 文档里。首先安装 LaTeX 宏包 beamer-verona：</p>
+<pre class="r"><code>tinytex::tlmgr_install(&#39;beamer-verona&#39;)</code></pre>
+<p>接着，查看宏包 beamer-verona <a href="http://mirrors.ctan.org/macros/latex/contrib/beamer-contrib/themes/beamer-verona/beamer-verona.pdf">帮助文档</a>，了解如何使用它。经过了解，此 beamer 主题的名称为 Verona，接着替换默认主题。</p>
+<pre><code>---
+title: &quot;R Markdown 制作 beamer 幻灯片&quot;
+author: &quot;黄湘云&quot;
+date: &quot;2021年10月01日&quot;
+institute: &quot;统计之都&quot;
+documentclass: beamer
+output: 
+  beamer_presentation: 
+    latex_engine: xelatex
+    theme: Verona
+    template: null
+header-includes:
+  - \usepackage[UTF8,fontset=fandol]{ctex}
+mathspec: true
+---
+
+## 介绍
+
+数学公式还是用 LaTeX 排版的好， 
+$\boldsymbol{\Sigma}$ 是希腊字母 $\Sigma$ 的加粗形式，
+$\mathcal{A}$ 是普通字母 $A$ 的花体形式。</code></pre>
+<p>渲染效果如图<a href="#fig:rmd-slide-Verona">4.24</a>所示。</p>
+<div class="figure"><span style="display:block;" id="fig:rmd-slide-Verona"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182385716-21d5f3de-4292-40a3-bcfb-25686b91585d.gif" alt="" />
+<p class="caption">图 4.24:  Verona 主题</p>
+</div>
+</div>
+<div id="beamer-幻灯片主题库r" class="section level4" number="4.4.1.3">
+<h4><span class="header-section-number">4.4.1.3</span> beamer 幻灯片主题库（R）</h4>
+<p>R 语言社区也有少量的 R 包打包了一些 R Markdown 格式的 beamer 模版，比如 <a href="https://github.com/eddelbuettel/binb"><strong>binb</strong></a> 和 <a href="https://github.com/illinois-r/uiucthemes"><strong>uiucthemes</strong></a> 包。下面以 <strong>binb</strong> 包内置的 Presento 主题的 R Markdown 模版 为例，首先安装 <strong>binb</strong> 包和一些字体宏包。</p>
+<pre class="r"><code>install.packages(&quot;binb&quot;)
+tinytex::tlmgr_install(c(&quot;montserrat&quot;, &quot;lato&quot;, &quot;noto&quot;, &quot;alegreya&quot;, &quot;inconsolata&quot;))</code></pre>
+<p>字体宏包安装后，需要将 TrueType 或 OpenType 字体复制到系统字体目录下，否则，beamer 主题 Presento 找不到字体。先找 TinyTeX 安装位置：</p>
+<pre class="r"><code># 找到 TinyTeX 根目录
+tinytex::tinytex_root()</code></pre>
+<p>进入根目录，查找字体，比如 alegreya 字体：</p>
+<pre class="bash"><code>find texmf-dist/fonts -name &#39;alegreya&#39;</code></pre>
+<pre><code>texmf-dist/fonts/tfm/huerta/alegreya
+texmf-dist/fonts/opentype/huerta/alegreya
+texmf-dist/fonts/vf/huerta/alegreya
+texmf-dist/fonts/type1/huerta/alegreya
+texmf-dist/fonts/enc/dvips/alegreya
+texmf-dist/fonts/map/dvips/alegreya</code></pre>
+<p>找到以上文件路径中含 opentype 的，再将目录 alegreya 下的字体复制到系统字体目录。之后，在 RStudio IDE 内，按路径 <code>File -&gt; New File -&gt; R Markdown</code> 新建 R Markdown 文件，期间看到如图<a href="#fig:rmd-slide-binb">4.25</a>所示窗口，选择 Presento 主题的 R Markdown 幻灯片模版。</p>
+<div class="figure"><span style="display:block;" id="fig:rmd-slide-binb"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182389055-f3ee3b7d-73eb-432f-acb2-429079b64b01.png" style="width:50.0%" alt="" />
+<p class="caption">图 4.25:  binb 包模版列表</p>
+</div>
+<p>Presento 主题下幻灯片的样式如图<a href="#fig:rmd-slide-binb-presento">4.26</a> 所示。</p>
+<div class="figure"><span style="display:block;" id="fig:rmd-slide-binb-presento"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182398952-998e9473-7ead-41ab-b113-b3010eca5980.gif" alt="" />
+<p class="caption">图 4.26:  binb 包 Presento 主题模版</p>
+</div>
+<p>掌握以上花样翻新的规律，beamer 主题任你玩，保证可以每次做演示不重样。</p>
+</div>
+</div>
+<div id="深度使用-beamer-幻灯片主题" class="section level3" number="4.4.2">
+<h3><span class="header-section-number">4.4.2</span> 深度使用 beamer 幻灯片主题</h3>
+<p>下面是一份基于 beamer 主题 <a href="https://ctan.org/pkg/beamer-verona">Verona</a> 的 R Markdown 幻灯片模版，内容十分丰富，将前面单个介绍的许多功能合在一个文档里了。</p>
+<details>
+<summary>
+点击查看 R Markdown 源文档及设置说明
+</summary>
+<pre class="md"><code>---
+title: &quot;R Markdown 制作 beamer 幻灯片&quot;
+subtitle: &quot;基于 beamer 主题 Verona&quot;
+author:
+  - 张三
+  - 李四
+institute: &quot;xxx 大学学院&quot;
+date: &quot;`r Sys.Date()`&quot;
+documentclass: beamer
+output: 
+  bookdown::beamer_presentation2: 
+    latex_engine: xelatex
+    citation_package: natbib
+    template: null
+    highlight: null
+    theme: Verona
+header-includes:
+  - \logo{\includegraphics[height=0.8cm]{`r file.path(R.home(&quot;doc&quot;), &quot;html&quot;, &quot;Rlogo&quot;)`}} # 插入 Logo
+  - \usepackage{pifont} # 提供 \ding 
+  - \usepackage{iitem} # 修改列表样式
+  - \setbeamertemplate{itemize item}{\ding{47}}
+  - \setbeamertemplate{itemize subitem}{\ding{46}}
+  - \usepackage[UTF8,fontset=fandol]{ctex} # 汉化文档
+themeoptions: 
+  - colorblocks # 彩色的 block
+  - showheader  # 展示页面顶部导航
+  - red   # Verona 主题为红色风格
+biblio-style: apalike # 参考文献样式
+natbiboptions: &quot;authoryear,round&quot; # 作者-年份样式，以圆括号包裹
+bibliography: 
+  - packages.bib # 文献
+link-citations: yes # 添加文献超链接
+section-titles: false # 不显示一级标题
+biblio-title: 参考文献 # 文献页添加标题
+toc-title: 目录 # 目录页添加标题
+colorlinks: yes # 给链接添加颜色
+mathspec: true # mathspec 处理数学公式符号
+---
+
+# 基础篇
+
+## 介绍
+
+::: {.quotation data-latex=&quot;[John Gruber]&quot;}
+A Markdown-formatted document should be publishable as-is, as plain text, 
+without looking like it’s been marked up with tags or formatting instructions.  
+:::
+
+数学公式还是用 LaTeX 排版的好， 
+$\boldsymbol{\Sigma}$ 是希腊字母 $\Sigma$ 的加粗形式，
+$\mathcal{A}$ 是普通字母 $A$ 的花体形式。
+
+```{r}
+rnorm(4)
+```
+
+![(\#fig:logo) R 语言徽标](`r file.path(R.home(&quot;doc&quot;), &quot;html&quot;, &quot;Rlogo&quot;)`){ width=10% }
+
+上图\@ref(fig:logo)来自 R 语言官网 &lt;https://cran.r-project.org/&gt;。
+
+# 高级篇
+
+## 自定义
+
+::: {.exampleblock data-latex=&quot;{提示}&quot;}
+记得安装一些 LaTeX 宏包，如果不记得也没关系，
+大多数情况下 tinytex [@Xie2019] 会找齐依赖安装好，只是初次运行会有点慢！
+
+```r
+tinytex::tlmgr_install(c(&quot;psnfss&quot;, &quot;iitem&quot;, &quot;beamer-verona&quot;))
+```
+:::
+
+:::::::::::::: {.columns}
+::: {.column width=&quot;50%&quot;}
+无序列表
+
+- 条目 1
+- 条目 2
+:::
+::: {.column width=&quot;50%&quot;}
+有序列表
+
+1. 条目 1
+1. 条目 2
+:::
+::::::::::::::</code></pre>
+</details>
+<p>编译渲染出来的效果如图<a href="#fig:rmd-slide-verona">4.27</a>所示。</p>
+<div class="figure"><span style="display:block;" id="fig:rmd-slide-verona"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182515142-9c5180b2-4b33-44d0-9153-597d5187e1a6.gif" alt="" />
+<p class="caption">图 4.27:  深度使用 beamer 幻灯片主题</p>
+</div>
+<p>Verona 主题提供了一些 block 样式，比如 exampleblock、alertblock、block 等。</p>
+<pre><code>::: {.exampleblock data-latex=&quot;{提示}&quot;}
+提示
+:::</code></pre>
+<p>Verona 主题还有自定义的 block 样式，像引用名人名言。</p>
+<pre><code>::: {.quotation data-latex=&quot;[John Gruber]&quot;}
+A Markdown-formatted document should be publishable as-is, as plain text, 
+without looking like it’s been marked up with tags or formatting instructions.  
+:::</code></pre>
+<p>此处，不一一介绍，详情见<span class="citation">[<a href="#ref-Alison2021" role="doc-biblioref">6</a>]</span>。</p>
+</div>
+</div>
+<div id="rmarkdown-ninja" class="section level2" number="4.5">
+<h2><span class="header-section-number">4.5</span> R Markdown（忍者篇）</h2>
+<p>beamer 幻灯忍者秘笈不在 R、不在 R Markdown 而在 LaTeX、在 Pandoc、在设计，选择合适的字体和色彩固然能让幻灯片眼前一亮，不过切忌喧宾夺主。设计，那么高大上的玩意，咱不懂，还是继续吭哧一下 Pandoc 的高级玩法，以及填补一下 LaTeX 中使用字体的巨坑。</p>
+<div id="pandoc-之-lua-外挂" class="section level3" number="4.5.1">
+<h3><span class="header-section-number">4.5.1</span> Pandoc 之 Lua 外挂</h3>
+<p>Lua 是一门脚本语言，类似 Python 和 R 语言，Pandoc 内置一个 Lua 解释器，通过 Lua 脚本，可以给 Pandoc 添加外挂，支持用户的个性化需求。</p>
+<p>比如，用户想自定义一些 block，这就可能用上 Lua 外挂，《R Markdown 食谱》中介绍了如何借助<a href="https://ctan.org/pkg/tcolorbox">tcolorbox</a>宏包<a href="https://bookdown.org/yihui/rmarkdown-cookbook/custom-blocks.html">自定义 block</a>。更加底层一点，介绍如何给 Pandoc 写 Lua 脚本，请看 Pandoc 官网给出了一份详细的材料<a href="https://pandoc.org/lua-filters.html">Lua 外挂</a>。下面是一个小示例，左侧是 R Markdown 文档内容，右侧是导言区内容，加载了 ctex 宏包，自定义了一个 block 环境。</p>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="rmd"><code>---
+documentclass: beamer
+output: 
+  beamer_presentation: 
+    latex_engine: xelatex
+    theme: metropolis
+    includes:
+      in_header: preamble.tex
+mathspec: true
+---
+
+## 示例
+
+::: {.rmdtip data-latex=&quot;{提示}&quot;}
+**rmarkdown** 包已经内置了一个
+处理 block 的 Lua 脚本 `latex-div.lua`，
+所以会用就行了。
+:::
+
+::: {.theorem #triangle data-latex=&quot;[勾股定理]&quot;}
+$$
+a^2 + b^2 = c^2
+$$
+其中，$a,b,c$ 是直角三角形的三条边长，
+$c$ 是直角三角形的斜边。
+:::</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<pre class="tex"><code>% 处理中文
+\usepackage[UTF8,fontset=fandol]{ctex}
+% 自定义 block
+\usepackage[skins]{tcolorbox}
+% 定义一个颜色
+\definecolor{colortip}{RGB}{81,183,73}
+% block 的全局设置
+\tcbset{
+  colbacktitle=white,
+  enhanced,
+  attach boxed title to top center={yshift=-2mm},
+  colback=white, % 背景色
+  coltext=black, % 文本色
+  leftrule=1mm,
+  rightrule=.25mm,
+  bottomrule=.25mm,
+  toprule=.25mm,
+  boxsep=1pt, % 文字和边框的空隙
+  arc=1pt % 圆角
+}
+% 新建一个 block
+\newtcolorbox{rmdtip}[1]{
+  title=#1,
+  coltitle=colortip,
+  colframe=colortip, % 边框色
+}</code></pre>
+</div>
+</div>
+<p>幻灯片渲染出来的效果如图<a href="#fig:slide-lua">4.28</a>。</p>
+<div class="figure"><span style="display:block;" id="fig:slide-lua"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182875614-d0c911f1-b6c0-48a4-8a83-874e0e5a8519.png" alt="" />
+<p class="caption">图 4.28:  使用 Lua 外挂制作 beamer 幻灯片</p>
+</div>
+</div>
+<div id="math-symbols" class="section level3" number="4.5.2">
+<h3><span class="header-section-number">4.5.2</span> 数学符号与数学字体</h3>
+<p>首先来说说数学符号和数学字体的坑，毕竟，beamer 这种学术型幻灯片很难离开数学公式。LaTeX 社区专门弄了一个 400 多页的大型文档《The Comprehensive LATEX Symbol List – Symbols accessible from LATEX》<span class="citation">[<a href="#ref-Pakin2021" role="doc-biblioref">7</a>]</span>，其中，数学符号的篇幅高达 90 多页，涉及数十个 LaTeX 宏包，可见坑不是一般的深。在 R Markdown 中，踩中此坑最常见的姿势是这样的。</p>
+<ol style="list-style-type: decimal">
+<li><p>根据 ctex 宏包的帮助文档指示，汉化文档直接用 <code>ctexbook</code>、 <code>ctexart</code> 或 <code>ctexbeamer</code> 等文类。</p></li>
+<li><p>因此，把 R Markdown 文档默认的文类设置从 <code>documentclass: beamer</code> 改为 <code>documentclass: ctexbeamer</code>，改完后 R Markdown 文档长这个样子：</p>
+<pre><code>---
+documentclass: ctexbeamer
+output: 
+  beamer_presentation: 
+    latex_engine: xelatex
+---
+
+## 示例
+
+\begin{align}
+    \boldsymbol{\theta} &amp;= (1, 2, 3)^\top \\
+        \theta_0 &amp;= 1
+\end{align}</code></pre></li>
+<li><p>接着，观察编译渲染出来的效果</p>
+<div class="figure"><span style="display:block;" id="fig:slide-math"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182594626-a9b33ba3-ac8f-4e92-8e1f-4e46d6a27e89.png" alt="" />
+<p class="caption">图 4.29:  含公式的中文 beamer 幻灯片</p>
+</div></li>
+<li><p>发现 LaTeX 命令 <code>\boldsymbol</code> 并没有加粗希腊字母 <span class="math inline">\(\theta\)</span>，回退至原英文 R Markdown 文档</p>
+<pre><code>---
+documentclass: beamer
+output: 
+  beamer_presentation: 
+    latex_engine: xelatex
+---
+
+## Example
+
+\begin{align}
+    \boldsymbol{\theta} &amp;= (1, 2, 3)^\top \\
+        \theta_0 &amp;= 1
+\end{align}</code></pre></li>
+<li><p>渲染后，发现希腊字母 <span class="math inline">\(\theta\)</span> 也没有正常加粗，继续回退至 Markdown 文档</p>
+<pre><code>## Example
+
+\begin{align}
+    \boldsymbol{\theta} &amp;= (1, 2, 3)^\top \\
+        \theta_0 &amp;= 1
+\end{align}</code></pre>
+<p>使用 Pandoc 命令直接转化为 PDF 格式幻灯片</p>
+<pre><code>pandoc --pdf-engine xelatex -t beamer \
+  slide-math.md -o slide-math.pdf</code></pre>
+<p>结果还是没有加粗，可见与 R Markdown 相关的包无关。获取从 Markdown 文档转化为 PDF 文档的中间产物 LaTeX 文档 <code>slide-math.tex</code></p>
+<pre><code>pandoc -t beamer --standalone \
+  slide-math.md -o slide-math.tex</code></pre></li>
+</ol>
+<details>
+<summary>
+点击查看 <code>slide-math.tex</code> 文档
+</summary>
+<pre class="tex"><code>% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+  ignorenonframetext,
+]{beamer}
+\usepackage{pgfpages}
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{caption label separator}{: }
+\setbeamercolor{caption name}{fg=normal text.fg}
+\beamertemplatenavigationsymbolsempty
+% Prevent slide breaks in the middle of a paragraph
+\widowpenalties 1 10000
+\raggedbottom
+\setbeamertemplate{part page}{
+  \centering
+  \begin{beamercolorbox}[sep=16pt,center]{part title}
+    \usebeamerfont{part title}\insertpart\par
+  \end{beamercolorbox}
+}
+\setbeamertemplate{section page}{
+  \centering
+  \begin{beamercolorbox}[sep=12pt,center]{part title}
+    \usebeamerfont{section title}\insertsection\par
+  \end{beamercolorbox}
+}
+\setbeamertemplate{subsection page}{
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center]{part title}
+    \usebeamerfont{subsection title}\insertsubsection\par
+  \end{beamercolorbox}
+}
+\AtBeginPart{
+  \frame{\partpage}
+}
+\AtBeginSection{
+  \ifbibliography
+  \else
+    \frame{\sectionpage}
+  \fi
+}
+\AtBeginSubsection{
+  \frame{\subsectionpage}
+}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\newif\ifbibliography
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+\begin{frame}{Example}
+\protect\hypertarget{example}{}
+\begin{align}
+    \boldsymbol{\theta} &amp;= (1, 2, 3)^\top \\
+        \theta_0 &amp;= 1
+\end{align}
+\end{frame}
+
+\end{document}</code></pre>
+</details>
+<p>通过观察<code>slide-math.tex</code> 文档，发现与数学符号相关的是如下一部分：</p>
+<pre class="tex"><code>\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi</code></pre>
+<p>上面，amsmath 和 amssymb 是两个定义了大量数学符号的宏包，lmodern 是字体包，因编译使用 XeLaTeX 引擎，还会调用 unicode-math 宏包。问题就出在 unicode-math 宏包身上，它会直接忽视命令 <code>\boldsymbol</code>，加粗希腊字母，它只认 <code>\symbf</code>。也许有读者已经看出来了，上面的代码块是个 <code>IF-ELSE</code> 的逻辑，可以选用 pdflatex 引擎编译呀！比如这样：</p>
+<pre class="bash"><code>pandoc --pdf-engine pdflatex -t beamer \
+  slide-math.md -o slide-math.pdf</code></pre>
+<p>确实可以渲染出来加粗效果 <span class="math inline">\(\boldsymbol{\theta}\)</span>，但是，pdflatex 处理中文是很弱的，在 MacOS 和 Ubuntu 等系统上比较麻烦，而且，未来主要方向是 XeLaTeX 引擎。</p>
+<p>本以为用 <code>\symbf</code> 替换 <code>\boldsymbol</code>，问题就此解决了，可以开开心心地继续使用 XeLaTeX 编译引擎，继续使用 unicode-math 宏包。可在遇到花体数学符号，如常用来表示代数空间的 <span class="math inline">\(\mathscr{A}\)</span>，概率空间的 <span class="math inline">\(\mathcal{A}\)</span>，<span class="math inline">\(n\)</span> 维实空间的 <span class="math inline">\(\mathbb{R}^n\)</span>，抑或是常见的损失函数符号 <span class="math inline">\(\mathcal{L}\)</span>。<strong>unicode-math</strong> 定义的数学样式有点怪，和通常见到的不一样，见下图<a href="#fig:slide-unicode-math">4.30</a>，以前排版毕业论文的时候<a href="https://d.cosx.org/d/419931">坑过我一回</a>，主要原因是 <strong>unicode-math</strong> 使用 Latin Modern Math 的 OpenType 字体 <span class="citation">[<a href="#ref-Zeng2020" role="doc-biblioref">8</a>]</span>。</p>
+<div class="figure"><span style="display:block;" id="fig:slide-unicode-math"></span>
+<img src="https://user-images.githubusercontent.com/12031874/135603599-00602d32-c007-4eb1-a8bc-c5a5a17f19f0.png" alt="" />
+<p class="caption">图 4.30:  unicode-math 宏包</p>
+</div>
+<p>那么，问题来了，是不是使用其他数学字体就好了呢？unicode-math 宏包的<a href="http://mirrors.ctan.org/macros/unicodetex/latex/unicode-math/unimath-symbols.pdf">官方文档</a> 对 XITS Math、Fira Math 等字体的数学符号的支持情况有说明，见下表。</p>
+<center>
+表1：不同的数学字体支持的符号数量不同
+</center>
+<table>
+<colgroup>
+<col width="71%" />
+<col width="28%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">数学字体</th>
+<th align="left">符号数量</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><a href="https://ctan.org/pkg/lm">Latin Modern Math</a></td>
+<td align="left">1585</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://ctan.org/pkg/xits">XITS Math</a></td>
+<td align="left">2427</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://ctan.org/pkg/stix2-otf">STIX Math Two</a></td>
+<td align="left">2422</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://ctan.org/pkg/tex-gyre-math-pagella">TeX Gyre Pagella Math</a></td>
+<td align="left">1638</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="https://ctan.org/pkg/tex-gyre-math-dejavu">DejaVu Math TeX Gyre</a></td>
+<td align="left">1640</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="https://ctan.org/pkg/firamath">Fira Math</a></td>
+<td align="left">1052</td>
+</tr>
+</tbody>
+</table>
+<p>可见，数学符号范围支持最广的是 XITS Math。Fira 系列字体配 metropolis 主题是比较常见的，却也因 Fira Math 提供的字符集有限，不得不借助 XITS Math 补位（比如矩阵转置的符号）。目前，仅有的数学字体支持的数学符号还不太全，但 unicode-math 未来是趋势，为啥？统一性，不需要调其它数学符号包，比如 <code>\mscrA</code> 和 <code>\BbbA</code> 分别等价于 <code>\mathscr{A}</code> 和 <code>\mathbb{A}</code>，而不需要额外加载 <strong>amsfonts</strong> 和 <strong>mathrsfs</strong> 宏包。</p>
+<div class="rmdtip">
+<p>RStudio IDE 使用 <a href="https://www.mathjax.org/">MathJaX</a> 来渲染 R Markdown 文档里的数学公式，MathJaX 不支持的数学符号命令是不能预览的。来自 <strong>unicode-math</strong> 的 <code>\symbf</code> 命令是不受支持的，会高亮成红色。那支持的有哪些呢？完整的支持列表见这个<a href="https://docs.mathjax.org/en/latest/input/tex/macros/index.html">文档</a>，常见的 <code>\mathbb</code> 空心体 <code>$\mathbb{A}$</code> 和 <code>\mathfrak</code> 火星体 <code>$\mathfrak{A}$</code> 来自宏包 amsfonts，<code>\mathscr</code> 花体 <code>$\mathscr{A}$</code> 和 <code>\bm</code> 粗体 <code>$\bm{A}$</code> 命令分别来自 mathrsfs 和 bm。amsmath 相关的大都支持，较为精细地调整数学公式可以去看<a href="https://www.latex-project.org/help/documentation/amsldoc.pdf">amsmath 文档</a>，此处仅摘抄一例 <code>$\sqrt{x} +\sqrt{y} + \sqrt{z}$</code> 和 <code>$\sqrt{x} +\sqrt{\smash[b]{y}} + \sqrt{z}$</code>，能看出来差别的一定有一双火眼金睛！坑就是有这么深，你踩到底了吗？</p>
+<div class="figure"><span style="display:block;" id="fig:rstudio-mathjax"></span>
+<img src="https://user-images.githubusercontent.com/12031874/140643778-c3527a55-1455-48c2-ac72-a43474f74e55.png" alt="" />
+<p class="caption">图 4.31:  RStudio IDE 预览加粗的希腊字母<span class="math inline">\(\bm{\Sigma}\)</span></p>
+</div>
+</div>
+<blockquote>
+<p><strong>有没有一种办法，既不用 unicode-math 宏包，也不用 pdflatex 编译引擎，还支持中文和最全的数学符号？有。</strong></p>
+</blockquote>
+<p>回到 4.2.2 节介绍的 Pandoc 内建的 LaTeX 模版，经过一番查找和研读，其中有下面一段逻辑，控制是否加载 unicode-math 宏包，发现 Pandoc 提供 <code>mathspec</code> 变量，它设置为 <code>true</code>，意味着不会加载 unicode-math 宏包，而是加载 mathspec 宏包。</p>
+<pre><code>$if(mathspec)$
+  \ifXeTeX
+    \usepackage{mathspec}
+  \else
+    \usepackage{unicode-math}
+  \fi
+$else$
+  \usepackage{unicode-math}
+$endif$</code></pre>
+<p>Pandoc 内建的 LaTeX 模版<strong>默认</strong>调用 <strong>unicode-math</strong> 宏包的，因此，编译 R Markdown 的时候，启用<a href="https://pandoc.org/MANUAL.html#using-variables-in-templates">LaTeX 变量</a> <code>mathspec: true</code>。</p>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="rmd"><code>---
+documentclass: beamer
+output: 
+  beamer_presentation: 
+    latex_engine: xelatex
+mathspec: true # 设置 mathspec 变量
+---
+
+## Example
+
+\begin{align}
+    \boldsymbol{\theta} &amp;= (1, 2, 3)^\top \\
+        \theta_0 &amp;= 1
+\end{align}</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<p>将下面的 Markdown 文本保存为 <code>slide-math.md</code></p>
+<pre class="md"><code>## Example
+
+\begin{align}
+    \boldsymbol{\theta} &amp;= (1, 2, 3)^\top \\
+        \theta_0 &amp;= 1
+\end{align}</code></pre>
+<p>调用如下命令可获得一样的结果。</p>
+<pre class="bash"><code>pandoc -t beamer --standalone \
+  --variable mathspec=true \
+  slide-math.md -o slide-math.tex</code></pre>
+</div>
+</div>
+<p>最后一步汉化，只需在导言区加载 ctex 宏包，即在 R Markdown 文档的 YAML 区域添加如下两行。</p>
+<pre><code>header-includes:
+  - \usepackage[UTF8,fontset=fandol]{ctex}</code></pre>
+<div class="rmdwarn">
+<p>以上关于数学符号与数学字体的坑表象很多，仅统计之都论坛就看到不少：</p>
+<p>关于数学字体的：</p>
+<ol style="list-style-type: decimal">
+<li><a href="https://d.cosx.org/d/422613">用 CTeX 模板生成中文 PDF 时，LaTeX 的加粗命令 <code>\mathbf</code> 或 <code>\bf</code> 不起作用</a></li>
+<li><a href="https://d.cosx.org/d/419931">Pandoc 的 LaTeX 模板关于数学公式的设置问题？</a></li>
+<li><a href="https://d.cosx.org/d/421770">TinyTex 生成中文 PDF 时出现字体缺失报错，如何安装相应字体？</a></li>
+<li>……</li>
+</ol>
+<p>当然，还有关于中文字体的：</p>
+<ol style="list-style-type: decimal">
+<li><a href="https://d.cosx.org/d/421834">Rmd 用 Knit to PDF (Beamer) 生成包含中文的演示文稿时弹出关于 CJK 的警告</a></li>
+<li><a href="https://d.cosx.org/d/422087">Ubuntu 下 R Markdown 生成 PDF 文档里部分中文字符的乱码问题</a></li>
+<li><a href="https://d.cosx.org/d/422343">R Markdown 文档生成的 PDF 文档里中文不显示</a></li>
+<li>……</li>
+</ol>
+</div>
+<p>下面继续谈谈文档汉化与中文字体的坑。</p>
+</div>
+<div id="chinese-document" class="section level3" number="4.5.3">
+<h3><span class="header-section-number">4.5.3</span> 文档汉化与中文字体</h3>
+<p>在前面汉化文档时，笔者推荐往导言区加载 ctex 宏包，同时设置字体为 <a href="https://ctan.org/pkg/fandol">fandol 字体</a>。</p>
+<pre class="tex"><code>% LaTeX 的导言区添加一行
+\usepackage[UTF8,fontset=fandol]{ctex}</code></pre>
+<p>有一点不足，<a href="https://ctan.org/pkg/fandol">fandol 字体</a>支持的汉字有限，比如「喆」字就渲染成了 <img height="20" alt="fandol-font" src="https://user-images.githubusercontent.com/12031874/135615813-cde3464d-21d3-43e1-b951-c247a6215e5b.png">，更别说<a href="https://zh.wikipedia.org/wiki/%E8%A8%B1%E5%AF%B6%E9%A8%84">许宝騄先生</a>的「騄」字了。</p>
+<p>大部分情况下，你可能遇不到这些不常用的字，但也保不齐，此时，开源替代的中文字体有 Adobe 的<a href="https://github.com/adobe-fonts">思源字体</a>或 Google 的<a href="https://github.com/googlefonts/noto-cjk">Noto 字体</a>。R Markdown 中使用 Noto 宋体和 Noto 黑体的示例如下：</p>
+<pre class="rmd"><code>---
+documentclass: beamer
+CJKmainfont: NotoSerifCJKsc-Regular
+CJKoptions: 
+ - Path=noto-fonts/
+ - BoldFont=NotoSansCJKsc-Regular
+ - Extension = .otf
+output: 
+  beamer_presentation: 
+    latex_engine: xelatex
+mathspec: true
+---
+
+## 示例
+
+- 正常宋体 示例
+- 加粗黑体 **示例**
+
+\begin{align}
+    \boldsymbol{\theta} &amp;= (1, 2, 3)^\top \\
+        \theta_0 &amp;= 1
+\end{align}</code></pre>
+<p>其中，目录 <code>noto-fonts/</code> 存放宋体 <code>NotoSerifCJKsc-Regular.otf</code> 和黑体 <code>NotoSansCJKsc-Regular.otf</code> 字体文件，与上述 R Markdown 文件放一起。渲染效果如下图</p>
+<div class="figure"><span style="display:block;" id="fig:slide-noto-cjk"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182798667-805a7ed1-2446-42b6-bfd1-1768f7b9d7e1.png" alt="" />
+<p class="caption">图 4.32:  beamer 幻灯片使用 Noto 中文字体</p>
+</div>
+<p>至此，关于 R Markdown 制作 beamer 幻灯片的主题介绍可以告一段落了！</p>
+</div>
+</div>
+<div id="beamer-quarto" class="section level2" number="4.6">
+<h2><span class="header-section-number">4.6</span> Quarto 制作 beamer 幻灯片</h2>
+<p>Quarto 是 R Markdown 的继任者，吸收了 R Markdown 生态的许多经验和教训，目前，好评如潮。类似 R Markdown， Quarto 也是站在 Pandoc 这位巨人的肩膀上，所以，前面关于 Pandoc’s Markdown 的功能介绍统统适用于 Quarto。当你知道了 Pandoc’s Markdown 制作 beamer 幻灯片的过程，你会发现 Quarto 制作 <a href="https://quarto.org/docs/presentations/beamer.html">beamer</a> 幻灯片的过程是如出一辙。下面准备用 Quarto 复现图<a href="#fig:rmd-slide-verona">4.27</a>， Quarto 文档如下：</p>
+<details>
+<summary>
+点击查看 Quarto 源文档及设置说明
+</summary>
+<pre class="qmd"><code>---
+title: &quot;Quarto 制作 beamer 幻灯片&quot;
+subtitle: &quot;基于 beamer 主题 Verona&quot;
+lang: zh # 本土化语言
+author:
+  - 张三
+  - 李四
+institute: &quot;xxx 大学学院&quot;
+date: &quot;`r Sys.Date()`&quot;
+format: 
+  beamer: 
+    theme: Verona
+header-includes:
+  # - \logo{\includegraphics[height=0.8cm]{`r file.path(R.home(&quot;doc&quot;), &quot;html&quot;, &quot;Rlogo&quot;)`}} # 插入 Logo
+  - \usepackage{pifont} # 提供 \ding 
+  - \usepackage{iitem} # 修改列表样式
+  - \setbeamertemplate{itemize item}{\ding{47}}
+  - \setbeamertemplate{itemize subitem}{\ding{46}}
+  - \usepackage[UTF8,fontset=fandol]{ctex} # 汉化文档
+themeoptions: 
+  - colorblocks # 彩色的 block
+  - showheader  # 展示页面顶部导航
+  - red   # Verona 主题为红色风格
+cite-method: natbib   # 参考文献处理方法
+highlight-style: github # 代码语法高亮
+biblio-style: apalike # 参考文献样式
+natbiboptions: &quot;authoryear,round&quot; # 作者-年份样式，以圆括号包裹
+bibliography: 
+  - packages.bib # 文献
+link-citations: true   # 添加文献超链接
+section-titles: false  # 不显示一级标题
+biblio-title: 参考文献 # 文献页添加标题
+toc: true        # 添加幻灯片目录
+toc-title: 目录  # 目录页添加标题
+colorlinks: true # 给链接添加颜色
+mathspec: true   # mathspec 处理数学公式符号
+---
+
+# 基础篇
+
+## 介绍
+
+::: {.quotation data-latex=&quot;[John Gruber]&quot;}
+A Markdown-formatted document should be publishable as-is, as plain text, 
+without looking like it’s been marked up with tags or formatting instructions.  
+:::
+
+数学公式还是用 LaTeX 排版的好， 
+$\boldsymbol{\Sigma}$ 是希腊字母 $\Sigma$ 的加粗形式，
+$\mathcal{A}$ 是普通字母 $A$ 的花体形式。
+
+```{r}
+#| echo: true
+
+rnorm(4)
+```
+
+![R 语言徽标](`r file.path(R.home(&quot;doc&quot;), &quot;html&quot;, &quot;Rlogo&quot;)`){#fig-logo width=10% }
+
+上 @fig-logo 来自 R 语言官网 &lt;https://cran.r-project.org/&gt;。
+
+# 高级篇
+
+## 自定义
+
+::: {.exampleblock data-latex=&quot;{提示}&quot;}
+记得安装一些 LaTeX 宏包，如果不记得也没关系，
+大多数情况下 tinytex [@Xie2019] 会找齐依赖安装好，只是初次运行会有点慢！
+
+```r
+tinytex::tlmgr_install(c(&quot;psnfss&quot;, &quot;iitem&quot;, &quot;beamer-verona&quot;))
+```
+:::
+
+:::::::::::::: {.columns}
+::: {.column width=&quot;50%&quot;}
+无序列表
+
+- 条目 1
+- 条目 2
+:::
+::: {.column width=&quot;50%&quot;}
+有序列表
+
+1. 条目 1
+1. 条目 2
+:::
+::::::::::::::</code></pre>
+</details>
+<p>编译渲染出来的效果如下图：</p>
+<div class="figure"><span style="display:block;" id="fig:quarto-beamer"></span>
+<img src="https://user-images.githubusercontent.com/12031874/182994531-97567685-29c2-402e-a9fa-98f3645351da.gif" alt="" />
+<p class="caption">图 4.33:  Quarto 制作 beamer 幻灯片</p>
+</div>
+<p>目前，发现一些差异点，也可以说是迁移成本。</p>
+<ol style="list-style-type: decimal">
+<li><p>功能方面：</p>
+<ol style="list-style-type: decimal">
+<li><p>Quarto 暂不支持在导言区 <code>header-includes:</code> 混入 R 代码。</p></li>
+<li><p>不再需要 rmarkdown 和 bookdown，如果使用 R 语言，则需要 knitr。</p></li>
+<li><p>添加变量 <code>lang:</code> 统一处理本土化语言。</p></li>
+</ol></li>
+<li><p>使用方式：</p>
+<ol style="list-style-type: decimal">
+<li><p>参数类型为布尔值的，一律为 <code>true/false</code> 不可以 <code>yes/no</code>。</p></li>
+<li><p>语法高亮参数 <code>highlight:</code> 改为 <code>highlight-style:</code>。</p></li>
+<li><p>控制文档输出的参数 <code>output:</code> 改为 <code>format:</code>。</p></li>
+<li><p>参考文献处理方法 <code>citation_package</code> 改为 <code>cite-method:</code>。</p></li>
+<li><p>交叉引用的方式 ，如引用图片<code>\@ref(fig:quarto-beamer)</code> 变为 <code>@fig-quarto-beamer</code>，引用表格、公式与之类似。</p></li>
+</ol></li>
+</ol>
+<p>更多细节差异，见 Quarto 官网对 <a href="https://quarto.org/docs/presentations/beamer.html">Beamer</a>格式的介绍。</p>
+<p>关于 Quarto 如何站在 Pandoc 这个巨人的肩膀上，下面就语法高亮为例说明。Pandoc 支持 <strong>147</strong> 种编程语言的语法高亮，通过命令 <code>pandoc --list-highlight-languages</code> 可以查看到。Pandoc 原生支持八种语法高亮主题，可用命令 <code>pandoc --list-highlight-styles</code> 查看，分别是：</p>
+<ul>
+<li><code>pygments</code></li>
+<li><code>tango</code></li>
+<li><code>espresso</code></li>
+<li><code>zenburn</code></li>
+<li><code>kate</code></li>
+<li><code>monochrome</code></li>
+<li><code>breezedark</code></li>
+<li><code>haddock</code></li>
+</ul>
+<p>它们也是 R Markdown 内置的一些高亮主题，Quarto 进一步提供了更多的语法高亮主题，比如上图<a href="#fig:quarto-beamer">4.33</a>使用的 <code>github</code>，更多内容见 Quarto 帮助文档<a href="https://quarto.org/docs/output-formats/html-code.html#highlighting">高亮主题</a>。</p>
+</div>
+</div>
+<div id="summary" class="section level1" number="5">
+<h1><span class="header-section-number">5</span> 本文小结</h1>
+<p>本文重点介绍了 Pandoc’s Markdown 制作 beamer 的过程，期间介绍了 Pandoc 众多的参数，在此基础上，相信读者可以很快接受 R Markdown 和 Quarto 制作 beamer 的过程。实际上，了解了 Markdown 到 beamer 的转化过程后，非常有助于了解其它 60 多种文档格式的转化过程。常见且常用的格式有 <code>pdf</code>、 <code>latex</code>、<code>pptx</code>、<code>docx</code> 和 <code>revealjs</code>，Pandoc 支持转化的全部输出格式见 <code>pandoc --list-output-formats</code>。</p>
+<p>其次，在 R Markdown 里介绍了常用的制作 beamer 幻灯片的功能，文档汉化、数学符号、定理、交叉引用等，以及 R 语言用户才会用到的 R Markdown 专属功能。</p>
+<p>接着，介绍 R Markdown 使用 beamer 幻灯片模版的几个方式，如切换 beamer 文类内置主题、从 LaTeX 社区找 beamer 主题、从 R 语言社区找 R Markdown 模版，以及如何深度使用模版的过程。</p>
+<p>再者，还介绍了 R Markdown 普通用户进阶忍者可能会遇到的问题，解剖了问题的过程，希望读者有所启发，能掌握此规律。最后，即使面对层出不穷的新工具，如 Quarto，也能快速地上手，并深入使用。</p>
+</div>
+<div id="refer" class="section level1" number="6">
+<h1><span class="header-section-number">6</span> 参考文献</h1>
+<div id="refs" class="references csl-bib-body">
+<div id="ref-tinytex2019" class="csl-entry">
+<div class="csl-left-margin">[1] </div><div class="csl-right-inline"><span class="smallcaps">Xie</span>, Y. (2019). <a href="https://tug.org/TUGboat/Contents/contents40-1.html">TinyTeX: A lightweight, cross-platform, and easy-to-maintain LaTeX distribution based on TeX live</a>. <em>TUGboat</em> 30–2.</div>
+</div>
+<div id="ref-Xie2015" class="csl-entry">
+<div class="csl-left-margin">[2] </div><div class="csl-right-inline"><span class="smallcaps">Xie</span>, Y. (2015). <em><a href="https://yihui.org/knitr/">Dynamic documents with <span>R</span> and knitr</a></em>. Chapman; Hall/CRC, Boca Raton, Florida.</div>
+</div>
+<div id="ref-Xie2018" class="csl-entry">
+<div class="csl-left-margin">[3] </div><div class="csl-right-inline"><span class="smallcaps">Xie</span>, Y., <span class="smallcaps">Allaire</span>, J. J. and <span class="smallcaps">Grolemund</span>, G. (2018). <em><a href="https://bookdown.org/yihui/rmarkdown">R markdown: The definitive guide</a></em>. Chapman; Hall/CRC, Boca Raton, Florida.</div>
+</div>
+<div id="ref-Xie2016" class="csl-entry">
+<div class="csl-left-margin">[4] </div><div class="csl-right-inline"><span class="smallcaps">Xie</span>, Y. (2016). <em><a href="https://bookdown.org/yihui/bookdown">Bookdown: Authoring books and technical documents with <span>R</span> markdown</a></em>. Chapman; Hall/CRC, Boca Raton, Florida.</div>
+</div>
+<div id="ref-Dirk2020" class="csl-entry">
+<div class="csl-left-margin">[5] </div><div class="csl-right-inline"><span class="smallcaps">Eddelbuettel</span>, D., <span class="smallcaps">Zahn</span>, I. and <span class="smallcaps">Hyndman</span>, R. (2020). <em><a href="https://CRAN.R-project.org/package=binb"><span class="nocase">binb</span>: ’Binb’ is not ’beamer’</a></em>.</div>
+</div>
+<div id="ref-Alison2021" class="csl-entry">
+<div class="csl-left-margin">[6] </div><div class="csl-right-inline"><span class="smallcaps">Hill</span>, A., <span class="smallcaps">Dervieux</span>, C. and <span class="smallcaps">Xie</span>, Y. (2021). <a href="https://blog.rstudio.com/2021/04/15/2021-spring-rmd-news/">Latest news from the <span>R Markdown</span> family</a>.</div>
+</div>
+<div id="ref-Pakin2021" class="csl-entry">
+<div class="csl-left-margin">[7] </div><div class="csl-right-inline"><span class="smallcaps">Pakin</span>, S. (2021). <a href="https://www.ctan.org/pkg/comprehensive/">The comprehensive <span>LaTeX</span> symbol list - symbols accessible from LaTeX</a>.</div>
+</div>
+<div id="ref-Zeng2020" class="csl-entry">
+<div class="csl-left-margin">[8] </div><div class="csl-right-inline"><span class="smallcaps">曾祥东</span>. (2020). <a href="https://stone-zeng.github.io/2020-05-02-use-opentype-fonts-iii/">在 LATEX 中使用 OpenType 字体（三）</a>.</div>
+</div>
+<div id="ref-Xie2017" class="csl-entry">
+<div class="csl-left-margin">[9] </div><div class="csl-right-inline"><span class="smallcaps">Xie</span>, Y., <span class="smallcaps">Hill</span>, A. P. and <span class="smallcaps">Thomas</span>, A. (2017). <em><a href="https://bookdown.org/yihui/blogdown/">Blogdown: Creating websites with <span>R</span> markdown</a></em>. Chapman; Hall/CRC, Boca Raton, Florida.</div>
+</div>
+</div>
+</div>
+<div id="session" class="section level1" number="7">
+<h1><span class="header-section-number">7</span> 环境信息</h1>
+<p>在 RStudio IDE 内编辑本文的 R Markdown 源文件，用 <strong>blogdown</strong> <span class="citation">[<a href="#ref-Xie2017" role="doc-biblioref">9</a>]</span>构建网站，<a href="https://github.com/gohugoio/hugo">Hugo</a> 渲染 knitr 之后的 Markdown 文件，得益于 <strong>blogdown</strong> 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息，供读者复现参考。</p>
+<pre class="r"><code>xfun::session_info(c(
+  &quot;tinytex&quot;, &quot;knitr&quot;, &quot;rmarkdown&quot;, 
+  &quot;bookdown&quot;, &quot;blogdown&quot;, &quot;binb&quot;
+), dependencies = FALSE)</code></pre>
+<pre><code>## R version 4.2.1 (2022-06-23)
+## Platform: x86_64-apple-darwin17.0 (64-bit)
+## Running under: macOS Big Sur ... 10.16
+## 
+## Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
+## 
+## Package version:
+##   binb_0.0.6     blogdown_1.10  bookdown_0.27  knitr_1.39    
+##   rmarkdown_2.14 tinytex_0.40  
+## 
+## LaTeX version used: 
+##   TeX Live 2022 (TinyTeX) with tlmgr 2022-04-18
+## 
+## Pandoc version: 2.18
+## 
+## Hugo version: 0.101.0</code></pre>
+</div>
+<div id="appendix" class="section level1" number="8">
+<h1><span class="header-section-number">8</span> 附录</h1>
+<!-- Windows 环境下安装和使用字体 -->
+<p>本文写作过程中遇到一些有用的小工具，比如将 PDF 文档转为 PNG 图片或 GIF 动图。</p>
+<div id="pdf-to-gif" class="section level2" number="8.1">
+<h2><span class="header-section-number">8.1</span> PDF 文档转 GIF 动图</h2>
+<p>将 PDF 格式的多页幻灯片转为 GIF 动图可以借助 <a href="https://imagemagick.org">ImageMagick</a> 一行命令搞定：</p>
+<pre class="bash"><code>convert -delay 250 -density 300x300 -geometry 960x720 beamer.pdf beamer.gif</code></pre>
+<p>值得注意的是在 Ubuntu 20.04 LTS 系统环境下，安装完 ImageMagick 还需执行如下命令：</p>
+<pre class="bash"><code>sudo sed -i_bak \
+&#39;s/rights=&quot;none&quot; pattern=&quot;PDF&quot;/rights=&quot;read | write&quot; pattern=&quot;PDF&quot;/&#39; \
+/etc/ImageMagick-6/policy.xml</code></pre>
+<p>此外，还可以安装 <a href="https://github.com/ropensci/magick"><strong>magick</strong></a> 包，用 R 代码实现转化过程：</p>
+<pre class="r"><code>library(magick)
+img = image_read_pdf(&quot;beamer.pdf&quot;, density = 300)
+img %&gt;% 
+  image_resize(geometry_size_pixels(960, 720)) %&gt;% 
+  image_animate(delay = 250) %&gt;% 
+  image_write(&quot;beamer.gif&quot;)</code></pre>
+</div>
+<div id="pdf-to-png" class="section level2" number="8.2">
+<h2><span class="header-section-number">8.2</span> PDF 文档转 PNG 图片</h2>
+<p>与上面是类似的，一行命令如下：</p>
+<pre class="bash"><code>convert -density 300x300 -geometry 960x720 beamer.pdf beamer.png</code></pre>
+</div>
+</div>
