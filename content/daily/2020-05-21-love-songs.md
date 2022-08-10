@@ -21,4 +21,5 @@ tags:
 
 最后，将这首《等一分钟》推荐给大家，愿彼此错过的少一点！
 
-<iframe src="//player.bilibili.com/player.html?aid=927077515&bvid=BV1LT4y1A74M&cid=232981231&page=1" width="800" height="500px" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+{{< bilibili BV1LT4y1A74M >}}
+
