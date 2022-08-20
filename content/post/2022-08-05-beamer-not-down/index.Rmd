@@ -4,7 +4,6 @@ author: 黄湘云
 date: '2022-08-05'
 meta_extra: "审稿：楚新元、谢益辉"
 slug: beamer-not-down
-math: true
 categories:
   - R 语言
 tags:
@@ -14,6 +13,7 @@ tags:
   - R Markdown
   - Pandoc
   - Quarto
+math: true
 output:
   blogdown::html_page:
     toc: true
@@ -21,12 +21,51 @@ output:
 bibliography: 
   - refer.bib
 link-citations: true
+forum_id: 423414
 csl: institute-of-mathematical-statistics.csl
 thumbnail: https://user-images.githubusercontent.com/12031874/182398952-998e9473-7ead-41ab-b113-b3010eca5980.gif
 description: "LaTeX 提供 beamer 文类主要用于学术报告，从面上来看，好多主题是大学开发的，大家不约而同地使用蓝调，看多了想睡觉。目前，现代风格的 beamer 主题已经陆续涌现出来，本文旨在介绍一条 R Markdown 制作 beamer 幻灯片的入坑路径，让 beamer 看起来更加清爽些！"
 ---
 
 
+
+```{css}
+#| echo: false
+
+table {
+  margin: 0 auto;            
+}
+th, td {
+  padding-left: 15px;
+  padding-right: 15px;
+  text-align: left;
+}
+
+div.figure {
+  text-align: center;
+  display: block; 
+  margin-left: auto; 
+  margin-right: auto;
+  width: 70%;
+}
+
+.columns {
+  display: flex;
+}
+
+pre > code.sourceCode > span {
+  display: initial;
+}
+```
+
+
+```{r}
+#| label: setup
+#| echo: false
+
+# 控制输出的宽度
+options(width = 69)
+```
 
 <!--
 最初计划
@@ -50,37 +89,9 @@ description: "LaTeX 提供 beamer 文类主要用于学术报告，从面上来�
 实际写作继续修改计划
 - 8-3 完成高级篇、完成 Quarto 制作 beamer 幻灯片，填了数学符号与数学字体坑
 - 8-4 继续填中文字体坑、Lua 外挂（Lua 外挂以简单的为例，找两个例子，自定义 block，rmarkdown 内置的一个 lua 脚本）、本文小结
-- 8-5 全文打磨，文字修改，PR 转正，周知 yihui
+- 8-5 全文打磨，文字修改，PR 转正，周知益辉
+- 8-14 陆续收到益辉反馈，并完成修改，定稿发布 
 -->
-
-```{css}
-#| echo: false
-
-div.figure {
-  text-align: center;
-  display: block; 
-  margin-left: auto; 
-  margin-right: auto;
-  width: 70%;
-}
-
-table {
-    margin: 0 auto;            
-}
-th, td {
-  padding: 5px;
-  text-align: left;
-}
-```
-
-```{r}
-#| label: setup
-#| echo: false
-
-# 控制输出的宽度
-options(width = 69)
-```
-
 
 ::: rmdinfo
 本文引用的所有信息均为公开信息，仅代表作者本人观点，与就职单位无关。
@@ -112,7 +123,7 @@ R Markdown 站在 Markdown、Pandoc 和 R 等诸多巨人的肩膀上，支持�
 
 LaTeX 在国外是比较流行的学术写作工具，在国内部分学校的数学或统计系会用它来排版毕业论文，相关的学习材料有很多，推荐 CTeX 开发小组翻译的[一份（不太）简短的LaTeX介绍](https://github.com/CTeX-org/lshort-zh-cn)。吴康隆的 [《简单粗暴LaTeX》](https://github.com/wklchris/Note-by-LaTeX)，盛文博翻译的[《LaTeX2e 插图指南, 第三版》](https://github.com/WenboSheng/epslatex-cn)，吕荐瑞的[科技文档排版课程材料](https://lvjr.bitbucket.io/tutorial/learn-latex.pdf)，曾祥东的[现代 LaTeX 入门讲座](https://github.com/stone-zeng/latex-talk)，都非常适合从零开始学习的。进阶的部分，根据需要去看宏包手册，LaTeX 宏包文档的长度一般都吓死个人，[PGF](https://github.com/pgf-tikz/pgf) 绘图 **1300** 多页，[pgfplots](https://ctan.org/pkg/pgfplots) 3D 绘图 **573** 页， [beamer](https://github.com/josephwright/beamer) 幻灯片制作 **247** 页，[geometry](https://github.com/davidcarlisle/geometry) 版面设置 **42** 页，[tcolorbox](https://github.com/T-F-S/tcolorbox) 箱子定制 **539**页，通常不需要从头到尾的看，除非遇到难处或需要自定义了。在对基础的 LaTeX 排版工具有一些了解后，日常使用过程中必备数学公式[速记小抄](https://gitlab.com/jim.hefferon/undergradmath) ，搭好梯子随时放狗去搜。
 
-2020 年 6 月份搬迁完[汉风主题](https://github.com/liantze/pgfornament-han)，在论坛开帖分享了[成果](https://d.cosx.org/d/421591)，又被撺掇着在主站[立了字句](https://github.com/cosname/cosx.org/issues/901)----要写一篇文章介绍 R Markdown 制作幻灯片模版的过程，一直囿于工作繁忙，难以抽身，去年在 WX 上和[楚新元](https://gitlab.com/chuxinyuan)又聊到模版，看到有人又要准备趟我之前踩过的坑，心中不忍，咬咬牙还是把这文债给还了。算起来，从起心动念到最终交付拖延了两年而已！
+2020 年 6 月份搬迁完[汉风主题](https://github.com/liantze/pgfornament-han)，在论坛开帖分享了[成果](https://d.cosx.org/d/421591)，又被撺掇着在主站[立了字据](https://github.com/cosname/cosx.org/issues/901)----要写一篇文章介绍 R Markdown 制作幻灯片模版的过程，一直囿于工作繁忙，难以抽身，去年在微信上和[楚新元](https://gitlab.com/chuxinyuan)又聊到模版，看到有人又要准备趟我之前踩过的坑，心中不忍，咬咬牙还是把这文债给还了。算起来，从起心动念到最终交付拖延了两年而已！
 
 
 # 软件配置 {#setup}
@@ -148,32 +159,21 @@ tinytex::install_tinytex()
 
 ## 安装字体 {#setup-fonts}
 
-为了后续介绍 metropolis 主题，先安装和配置其所需字体，此过程分两步走：
+为了后续介绍 metropolis 主题，先下载和配置其所需字体，此过程分两步走：
 
-1.  这里用 **tinytex** 包安装 [**fira**](https://www.ctan.org/pkg/fira) 系列英文字体，[**firamath**](https://github.com/firamath/firamath) 和 [**xits**](https://www.ctan.org/pkg/xits) 数学字体以及 [**fandol**](https://ctan.org/pkg/fandol) 开源中文字体，后续用作 beamer 幻灯片的主要字体，相信大家看惯了千篇一律的字体，也想换换口味吧！
+1.  这里用 **tinytex** 包下载 [**fira**](https://www.ctan.org/pkg/fira) 系列英文字体，[**firamath**](https://github.com/firamath/firamath) 和 [**xits**](https://www.ctan.org/pkg/xits) 数学字体以及 [**fandol**](https://ctan.org/pkg/fandol) 开源中文字体。
 
     ```{r}
     #| eval: false
     tinytex::tlmgr_install(c("fira", "firamath", "firamath-otf", "xits", "fandol"))
     ```
 
-2.  通过「人工智能」查找，发现上面安装的字体都放在了 TinyTeX 的安装目录下，而且不能直接被调用，故而将它们拷贝到用户指定的字体目录，刷新字体目录后，通过 **fontspec** 宏包调用。为了加快复现的速度，我已经将这个复制粘贴的过程化作几行代码，如下：
+2.  接下来，刷新字体缓存，如下：
 
     ```{r}
     #| eval: false
     
-    # TinyTeX 字体目录
-    basedir <- paste(tinytex::tinytex_root(), "texmf-dist/fonts/opentype/public", sep = "/")
-    # MacOS 系统字体放在 ~/Library/Fonts/ 而 Linux 系统字体放在 ~/.fonts
-    distdir <- if (xfun::is_macos()) "~/Library/Fonts/" else "~/.fonts"
-    # 如果目录不存在就创建一个
-    xfun::dir_create(distdir)
-    # 字体文件的目录
-    fontdir <- paste(basedir, c("fira", "xits", "firamath"), sep = "/")
-    # 字体文件的路径
-    fontfile <- list.files(path = fontdir, full.names = T)
-    # 拷贝到字体目录下
-    file.copy(from = fontfile, to = distdir, overwrite = TRUE)
+    tinytex:::refresh_all()
     ```
 
 ## 安装主题 {#beamer-theme}
@@ -191,7 +191,7 @@ tinytex::tlmgr_install(c(
 ## 其他配置 {#setup-others}
 
 
-1. 配置 Pandoc：将 RStudio IDE 内置的 Pandoc 软件的安装路径添加到系统环境变量 `PATH` 中，而后就可以在命令行中使用它。通过如下命令可以知道 Pandoc 可执行文件的完整路径，以下是笔者的 MacOS 系统下的文件路径。
+1. 配置 Pandoc：将 RStudio IDE 内置的 Pandoc 软件的安装路径添加到系统环境变量 `PATH` 中，后文有些篇幅介绍如何在命令行中使用它，因此，需要这一步，而普通 R Markdown 用户无须这一步配置。通过如下命令可以知道 Pandoc 可执行文件的完整路径，以下是笔者的 MacOS 系统下的文件路径。
 
     ```{r}
     #| echo: true
@@ -213,7 +213,6 @@ tinytex::tlmgr_install(c(
     ![编辑环境变量 Path](https://user-images.githubusercontent.com/12031874/183287307-b6f763ae-571f-4a29-ab8c-952a5b955323.png)
 
     然后点击确定，退出。重新打开 RStudio IDE，即可在 RStudio IDE 的卫星窗口 Terminal 内使用 Pandoc 工具。
-
 
 1. 安装 pdfcrop 和 ghostscript：如果幻灯片中包含 R 代码生成的图片，或插入 PDF 格式的图片， R Markdown 渲染时，默认会尝试调用 pdfcrop (<https://github.com/ho-tex/pdfcrop>) 和 ghostscript (<https://www.ghostscript.com/>) 两个工具来裁剪多余的边空，这是可选的。
     
@@ -279,7 +278,10 @@ tinytex::xelatex(file = "slide-metropolis.tex")
 
 ## Pandoc's Markdown {#pandoc-markdown}
 
-R Markdown 背后是非常依赖 Pandoc 的，RStudio IDE 已经捆绑了 Pandoc 软件(<https://pandoc.org/>)，一般不需要用户再去下载，安装完 RStudio IDE 就可以直接用它了。
+相比于[原始 Markdown](https://daringfireball.net/projects/markdown/) 支持的功能，Pandoc's Markdown 支持的功能多很多，一份详细的对比介绍见 Pandoc 核心开发者 John MacFarlane 在 TUG 2020 大会的报告[Pandoc for TeXnicians](https://tug.org/tug2020/preprints/MacFarlane-Keynote-slides.pdf)。R Markdown 背后是非常依赖 Pandoc 的，RStudio IDE 已经捆绑了 Pandoc 软件(<https://pandoc.org/>)，一般不需要用户再去下载，安装完 RStudio IDE 就可以直接用它了。R Markdown 生态的另一重器 blogdown [@Xie2017] 是非常依赖 Hugo (<https://gohugo.io/>) 的，Hugo 也支持很多 Markdown 语法和功能，大致来说， Markdown、Hugo’s Markdown、Pandoc’s Markdown 和 R Markdown 的关系如下：
+
+
+![(\#fig:md-family) Markdown 家族](img/markdown.svg){ width=60% }
 
 ### 简单示例
 
@@ -325,7 +327,7 @@ pandoc --pdf-engine xelatex -t beamer \
 pandoc -o custom-reference.tex --print-default-template latex
 ```
 
-Pandoc 内置的 LaTeX 模版内容非常多，因为它是大一统的，支持书籍、报告、演示等等使用场景。通过传递模版变量，可以控制文档类型及其选项，如布局、字体等。下面是模版开头的几行内容：
+[Pandoc 内置的 LaTeX 模版](https://github.com/jgm/pandoc/blob/master/data/templates/default.latex)内容非常多，因为它是大一统的，支持书籍、报告、演示等等使用场景。通过传递模版变量，可以控制文档类型及其选项，如布局、字体等。下面是模版开头的几行内容：
 
 ```latex
 % Options for packages loaded elsewhere
@@ -336,7 +338,7 @@ $if(colorlinks)$
 $endif$
 ```
 
-`hyperrefoptions` 和 `colorlinks` 就是两个变量，它们被一对美元符号前后包围。遇到 `if` 意味着可以传递布尔值 `true` / `false`，遇到 `for` 意味着可以传递一个数组，LaTeX 宏包 hyperref 参数选项非常多， 查看[其帮助文档](http://mirrors.ctan.org/macros/latex/contrib/hyperref/doc/hyperref-doc.pdf)，可以知道能够传递的值有哪些。下面是一个例子：
+`hyperrefoptions` 和 `colorlinks` 就是两个变量，它们被一对美元符号前后包围。遇到 `if` 意味着可以传递布尔值 `true` / `false`，遇到 `for` 意味着可以传递一个数组，LaTeX 宏包 hyperref 参数选项非常多，查看其[帮助文档](http://mirrors.ctan.org/macros/latex/contrib/hyperref/doc/hyperref-doc.pdf)，可以知道能够传递的值有哪些。下面是一个例子：
 
 ```
 hyperrefoptions:
@@ -346,15 +348,6 @@ hyperrefoptions:
 ```
 
 hyperref 帮助文档 5.5 节介绍 linktoc 选项，5.6 节介绍 bookmarksnumbered 选项，5.7 节介绍 pdfstartview 选项，通过帮助文档，就知道宏包有哪些控制选项及其取值。
-
-
-<details>
-<summary> 点击查看 Pandoc 内置的 LaTeX 模版内容 </summary>
-
-```{verbatim, file="examples/custom-reference.tex", lang="tex"}
-```
-
-</details>
 
 
 ### 幻灯主题
@@ -761,7 +754,7 @@ pandoc --citeproc --pdf-engine xelatex -t beamer \
 
 ### 更多功能
 
-Pandoc 还支持很多功能，比如添加封面图片、脚注、诗词格言引用、图表交叉引用、抄录代码块、自定义导言区等等，众多功能有待读者去探索发现。
+除了上面介绍的那些，Pandoc 还支持很多功能，比如添加封面图片、脚注、诗词格言引用、图表交叉引用、抄录代码块、自定义导言区等等，众多功能有待读者去探索发现。
 
 ::: rmdtip
 Pandoc 除了能将 Markdown 文档转化为 beamer 幻灯片，还可将其转化为 DOCX 格式的 Word 文档、PPTX 格式的 PowerPoint 文档等。除了前面介绍的 LaTeX 模版，Pandoc 还内建了 Word、PowerPoint 等诸多文档模版，获取其它文档格式的模版，稍有不同，比如 DOCX 文档。
@@ -1229,11 +1222,11 @@ Presento 主题下幻灯片的样式如图\@ref(fig:rmd-slide-binb-presento) 所
 ![(\#fig:rmd-slide-verona) 深度使用 beamer 幻灯片主题](https://user-images.githubusercontent.com/12031874/182515142-9c5180b2-4b33-44d0-9153-597d5187e1a6.gif)
 
 
-Verona 主题提供了一些 block 样式，比如 exampleblock、alertblock、block 等。
+Verona 主题提供了一些 beamer 文类通用的 block 样式，比如 exampleblock、alertblock、block 等。结合 Pandoc 的 [Divs and Spans](https://pandoc.org/MANUAL.html#divs-and-spans) 扩展功能和 bookdown 内置的 Lua 外挂，写起来就简便多了。
 
 ```
 ::: {.exampleblock data-latex="{提示}"}
-提示
+这里是提示内容。
 :::
 ```
 
@@ -1585,7 +1578,7 @@ mathspec: true
 
 ## Quarto 制作 beamer 幻灯片 {#beamer-quarto}
 
-Quarto 是 R Markdown 的继任者，吸收了 R Markdown 生态的许多经验和教训，目前，好评如潮。**类似 R Markdown， Quarto 也是站在 Pandoc 这位巨人的肩膀上，所以，前面关于 Pandoc's Markdown 的功能介绍统统适用于 Quarto**。当你知道了 Pandoc's Markdown 制作 beamer 幻灯片的过程，你会发现 Quarto 制作 [beamer](https://quarto.org/docs/presentations/beamer.html) 幻灯片的过程是如出一辙。下面准备用 Quarto 复现图\@ref(fig:rmd-slide-verona)， Quarto 文档如下：
+Quarto 是 R Markdown 的继任者，吸收了 R Markdown 生态的许多经验和教训，目前，好评如潮。类似 R Markdown， Quarto 也是站在 Pandoc 这位巨人的肩膀上，所以，前面关于 Pandoc's Markdown 的功能介绍统统适用于 Quarto。当你知道了 Pandoc's Markdown 制作 beamer 幻灯片的过程，你会发现 Quarto 制作 [beamer](https://quarto.org/docs/presentations/beamer.html) 幻灯片的过程是如出一辙。下面准备用 Quarto 复现图\@ref(fig:rmd-slide-verona)， Quarto 文档如下：
 
 
 <details>
@@ -1606,16 +1599,22 @@ Quarto 是 R Markdown 的继任者，吸收了 R Markdown 生态的许多经验�
 1.  功能方面：
 
     1.  Quarto 暂不支持在导言区 `header-includes:` 混入 R 代码。
+    
     1. 不再需要 rmarkdown 和 bookdown，如果使用 R 语言，则需要 knitr。
-    1. 添加变量 `lang:` 统一处理本土化语言，详见 (<https://quarto.org/docs/authoring/language.html>)。
+    
+    1. 添加变量 `lang:` 统一处理本土化语言。
 
 1.  使用方式：
 
     1. 参数类型为布尔值的，一律为 `true/false` 不可以 `yes/no`。
+
     1.  语法高亮参数 `highlight:` 改为 `highlight-style:`。
+
     1.  控制文档输出的参数 `output:` 改为 `format:`。
+
     1.  参考文献处理方法 `citation_package` 改为 `cite-method:`。
-    1.  交叉引用的方式 ，如引用图片`\@ref(fig:quarto-beamer)` 变为 `@fig-quarto-beamer`，引用表格、公式与之类似，详见 (<https://quarto.org/docs/authoring/cross-references.html>)。
+
+    1.  交叉引用的方式 ，如引用图片`\@ref(fig:quarto-beamer)` 变为 `@fig-quarto-beamer`，引用表格、公式与之类似。
 
 更多细节差异，见 Quarto 官网对 [Beamer](https://quarto.org/docs/presentations/beamer.html)格式的介绍。
 
