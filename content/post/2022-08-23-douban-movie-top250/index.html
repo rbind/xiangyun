@@ -22,12 +22,12 @@ thumbnail: /img/logo/rvest.svg
 description: "除了交互式网页图形可以展示数据，交互式表格作为一种数据展示的重要补充，准确刻画数据本身，相信它诞生的历史一定比图形早。作为数据分析和可视化领域的佼佼者，R 语言社区提供了大量制作表格的扩展包，支持导出各种各样的格式，如 LaTeX、Markdown 和 HTML 等，本文使用 reactable 制作豆瓣电影排行榜。"
 ---
 
-<script src="{{< blogdown/postref >}}index_files/core-js/shim.min.js"></script>
-<script src="{{< blogdown/postref >}}index_files/react/react.min.js"></script>
-<script src="{{< blogdown/postref >}}index_files/react/react-dom.min.js"></script>
-<script src="{{< blogdown/postref >}}index_files/reactwidget/react-tools.js"></script>
-<script src="{{< blogdown/postref >}}index_files/htmlwidgets/htmlwidgets.js"></script>
-<script src="{{< blogdown/postref >}}index_files/reactable-binding/reactable.js"></script>
+<script src="https://6304c6eb8bbe1a00085dcfc4--outlier.netlify.app/2022/08/douban-movie-top250/index_files/core-js/shim.min.js"></script>
+<script src="https://6304c6eb8bbe1a00085dcfc4--outlier.netlify.app/2022/08/douban-movie-top250/index_files/react/react.min.js"></script>
+<script src="https://6304c6eb8bbe1a00085dcfc4--outlier.netlify.app/2022/08/douban-movie-top250/index_files/react/react-dom.min.js"></script>
+<script src="https://6304c6eb8bbe1a00085dcfc4--outlier.netlify.app/2022/08/douban-movie-top250/index_files/reactwidget/react-tools.js"></script>
+<script src="https://6304c6eb8bbe1a00085dcfc4--outlier.netlify.app/2022/08/douban-movie-top250/index_files/htmlwidgets/htmlwidgets.js"></script>
+<script src="https://6304c6eb8bbe1a00085dcfc4--outlier.netlify.app/2022/08/douban-movie-top250/index_files/reactable-binding/reactable.js"></script>
 
 
 <p>首先，用 <strong>rvest</strong> 和 <strong>xml2</strong> 包抓取<a href="https://movie.douban.com/top250">豆瓣电影 Top 250</a> 排行榜数据，借此入坑网页抓取，实现基本的网页数据自由。接着，简单分析一下热门电影的时间分布，了解一点趋势。然后，用 <strong>reactable</strong> 包制作表格，展示排行榜数据。最后，简单谈谈 R 语言社区制作表格的一些 R 包。</p>
