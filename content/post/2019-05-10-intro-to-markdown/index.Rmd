@@ -27,7 +27,9 @@ blockquote > p:first-child {
 ```
 
 更新：[Hugo v0.100.0 移除了 Blackfriday](https://github.com/gohugoio/hugo/commit/0f8dc47037f59156c04540d97ed1b588e6bc1164)，目前 Hugo 只使用 [goldmark](https://github.com/yuin/goldmark)。
+
 ---
+
 这篇博文源自于 Yihui Xie 为 Hugo 主题 [hugo-xmag](https://themes.gohugo.io/hugo-xmag/) 写的英文介绍 [A Plain Markdown Post](https://xmag.yihui.name/post/2017/02/14/a-plain-markdown-post/)[^translation]。除翻译的内容外，补充了关于如何嵌入音频、视频和幻灯片的内容，也是这次 R 会上小伙伴们提问最多的地方。
 
 这篇博文主要面向 [**blogdown**](https://github.com/rstudio/blogdown) 用户，如果你不使用 **blogdown**，你可以跳过第一节。想知道更多关于 Markdown 的基础语法，请看 [John Gruber's Markdown 语法](https://daringfireball.net/projects/markdown/) 和 [R Markdown: The Definitive Guide](https://bookdown.org/yihui/rmarkdown/markdown-syntax.html)。
