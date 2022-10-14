@@ -24,6 +24,8 @@ blockquote > p:first-child {
   text-align: inherit;
 }
 </style>
+<p>更新：<a href="https://github.com/gohugoio/hugo/commit/0f8dc47037f59156c04540d97ed1b588e6bc1164">Hugo v0.100.0 移除了 Blackfriday</a>，目前 Hugo 只使用 <a href="https://github.com/yuin/goldmark">goldmark</a>。</p>
+<hr />
 <p>这篇博文源自于 Yihui Xie 为 Hugo 主题 <a href="https://themes.gohugo.io/hugo-xmag/">hugo-xmag</a> 写的英文介绍 <a href="https://xmag.yihui.name/post/2017/02/14/a-plain-markdown-post/">A Plain Markdown Post</a><a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>。除翻译的内容外，补充了关于如何嵌入音频、视频和幻灯片的内容，也是这次 R 会上小伙伴们提问最多的地方。</p>
 <p>这篇博文主要面向 <a href="https://github.com/rstudio/blogdown"><strong>blogdown</strong></a> 用户，如果你不使用 <strong>blogdown</strong>，你可以跳过第一节。想知道更多关于 Markdown 的基础语法，请看 <a href="https://daringfireball.net/projects/markdown/">John Gruber’s Markdown 语法</a> 和 <a href="https://bookdown.org/yihui/rmarkdown/markdown-syntax.html">R Markdown: The Definitive Guide</a>。</p>
 <div class="rmdnote">
@@ -41,14 +43,10 @@ blockquote > p:first-child {
 </div>
 <p>Pandoc 和 Blackfriday 一样都支持任务型列表<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>，而原始 Markdown 是不支持的</p>
 <ul class="task-list">
-<li><input type="checkbox" disabled="" checked="" />
-开发一个R包。</li>
-<li><input type="checkbox" disabled="" />
-写一本书。</li>
-<li><input type="checkbox" disabled="" />
-…</li>
-<li><input type="checkbox" disabled="" />
-搭建个人博客！</li>
+<li><input type="checkbox" disabled="" checked="" />开发一个R包。</li>
+<li><input type="checkbox" disabled="" />写一本书。</li>
+<li><input type="checkbox" disabled="" />…</li>
+<li><input type="checkbox" disabled="" />搭建个人博客！</li>
 </ul>
 <p><a href="https://github.com/russross/blackfriday">Blackfriday’s Markdown</a> 和 <a href="https://pandoc.org/MANUAL.html#pandocs-markdown">Pandoc’s Markdown</a> 之间有很多区别。比如 Blackfriday 不支持 LaTeX 数学公式，而 Pandoc 支持。 <a href="https://yihui.name/">谢益辉</a> 在 <a href="https://github.com/yihui/hugo-xmag">hugo-xmin</a> 主题中添加了 <a href="https://www.mathjax.org/">MathJax</a> 支持，在 Markdown 文档中必须把数学表达式放在一对反引号中，行内公式： <code>`$ $`</code>；行间公式： <code>`$$ $$`</code>，举个小栗子，<code>$S_n = \sum_{i=1}^n X_i$</code>，<code>$$S_n = \sum_{i=1}^n X_i.$$</code> 在 R Markdown 文档里，不需要反引号，因为 Pandoc 能识别和处理数学表达式。<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a></p>
 <p>总的来说， Markdown、Hugo’s Markdown、Pandoc’s Markdown 和 R Markdown 的关系大致如下：</p>
