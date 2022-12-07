@@ -47,3 +47,7 @@ Thumbs.db
 /public/
 /resources/
 *.zip
+
+# Spark
+logs/
+derby.log
