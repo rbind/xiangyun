@@ -10,13 +10,10 @@ tags:
   - MCMC
 thumbnail: /img/cmdstan.svg
 draft: true
+math: true
 description: "基于Docker的完全可重复的配置过程，意义在于省去 Stan 在Windows下配置的麻烦，以 CmdStan 为例介绍贝叶斯计算框架 Stan 的安装和使用。Stan 问世的时间比 TensorFlow Probability 早很多年，这么些年了，影响力远不如 TensorFlow Probability，笔者在多个场合提及 Stan 都没有人听说过。"
 ---
 
-
-> **注意**
-> 
-> 珍爱生命，远离 Windows ！！！
 
 
 ## 软件环境 
@@ -847,13 +844,6 @@ Platform #1: NVIDIA CUDA
  `-- Device #0: GeForce GTX 850M
 ```
 
----
-
-有待继续补充的地方，期待后续博文吧！
-
-- HMC/NUTS 采样算法如何调参？见 <https://mc-stan.org/docs/2_19/reference-manual/algorithms.html#algorithms>
-
-- CmdStan 和 [TensorFlow Probability](https://github.com/tensorflow/probability) 的性能比较，比如 [分层线性模型的 Stan vs TFP](https://github.com/tensorflow/probability/blob/master/tensorflow_probability/examples/jupyter_notebooks/HLM_TFP_R_Stan.ipynb) `lme4::lmer` (R 语言) `rstanarm::stan_lmer` (Stan 语言)，可以进一步考虑广义分层线性模型。广义线性模型对比，见 Jeff Pollock 的[新博文](https://jeffpollock9.github.io/maximum-likelihood-estimation-with-tensorflow-probability-and-stan-take-2/) 和 [旧博文](https://jeffpollock9.github.io/maximum-likelihood-estimation-with-tensorflow-probability-and-pystan/)
 
 ## 参考文献
 
