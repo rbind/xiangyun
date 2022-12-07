@@ -2,8 +2,8 @@
   command = "hugo"
   publish = "public"
 [build.environment]
-  HUGO_VERSION = "0.101.0"
-  PYTHON_VERSION = "3.8"
+  HUGO_VERSION = "0.108.0"
+  PYTHON_VERSION = "3.10"
 
 [context.branch-deploy]
   command = "hugo -F -b $DEPLOY_URL"
