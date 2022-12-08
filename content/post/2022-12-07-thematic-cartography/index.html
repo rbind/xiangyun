@@ -1,0 +1,868 @@
+---
+title: 探索美国的失业率
+author: 黄湘云
+date: '2022-12-07'
+slug: thematic-cartography
+categories:
+  - 统计图形
+tags: 
+  - 专题地图
+  - 地理可视化
+  - 空间分析
+  - 失业率
+  - maps
+  - lattice
+  - latticeExtra
+  - sf
+  - ggplot2
+  - tidycensus
+output:
+  blogdown::html_page:
+    toc: true
+    highlight: pygments
+    number_sections: true
+link-citations: true
+math: true
+csl: institute-of-mathematical-statistics.csl
+bibliography: refer.bib
+description: "首先挑选一些感兴趣的话题，我个人对社会经济方面的有兴趣，内在的动力在于我想了解自己所处的这个复杂的社会。在我掌握一些数据分析的工具后，想要自己动手去复现、验证看到或听到的结论，也很有兴趣提出自己的问题，并从某个角度切入。从收集数据、校验数据、探索数据、分析数据、解释数据等过程中，打磨自己的技能，同时，深入地了解社会。本文想完整展现自己的一段分析过程，以美国失业率数据为例。"
+---
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<div id="TOC">
+<ul>
+<li><a href="#overview" id="toc-overview"><span class="toc-section-number">1</span> 本文概览</a></li>
+<li><a href="#tools-review" id="toc-tools-review"><span class="toc-section-number">2</span> 探索工具</a></li>
+<li><a href="#data-access" id="toc-data-access"><span class="toc-section-number">3</span> 数据获取</a></li>
+<li><a href="#data-check" id="toc-data-check"><span class="toc-section-number">4</span> 数据探查</a></li>
+<li><a href="#data-explore" id="toc-data-explore"><span class="toc-section-number">5</span> 数据探索</a>
+<ul>
+<li><a href="#maps" id="toc-maps"><span class="toc-section-number">5.1</span> maps 包</a></li>
+<li><a href="#latticeExtra" id="toc-latticeExtra"><span class="toc-section-number">5.2</span> latticeExtra 包</a></li>
+<li><a href="#sf" id="toc-sf"><span class="toc-section-number">5.3</span> sf 包</a></li>
+<li><a href="#ggplot2" id="toc-ggplot2"><span class="toc-section-number">5.4</span> ggplot2 包</a></li>
+</ul></li>
+<li><a href="#data-analysis" id="toc-data-analysis"><span class="toc-section-number">6</span> 数据分析</a></li>
+<li><a href="#refer" id="toc-refer"><span class="toc-section-number">7</span> 参考文献</a></li>
+<li><a href="#session" id="toc-session"><span class="toc-section-number">8</span> 环境信息</a></li>
+</ul>
+</div>
+
+<div class="rmdinfo">
+<p>本文引用的所有信息均为公开信息，仅代表作者本人观点，与就职单位无关。</p>
+</div>
+<style type="text/css">
+.center {
+  text-align: center;
+}
+</style>
+<div id="overview" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> 本文概览</h1>
+<p>首先挑选一些感兴趣的话题，我个人对社会经济方面的有兴趣，内在的动力在于我想了解自己所处的这个复杂的社会。在我掌握一些数据分析的工具后，想要自己动手去复现、验证看到或听到的结论，也很有兴趣提出自己的问题，并从某个角度切入。从收集数据、校验数据、探索数据、分析数据、解释数据等过程中，打磨自己的技能，同时，深入地了解社会。本文想完整展现自己的一段分析过程，以美国失业率数据为例。</p>
+<p>约 6-7年前，我在 <strong>maps</strong> 包里了解到 unemp 数据集，是一份 2009 年美国各个郡县的失业率数据，它有三个变量，fips 郡县代码，pop 人口，unemp 失业率。还了解到另外一个数据集 county.fips，它有两个变量，fips 郡县代码， polyname 州郡名称。有这份数据，我们可以展示 2009 年美国各个地方的失业率，最直接的可视化方法就是直方图和地区分布图。
+直方图将连续型的数据，划分区间，统计每个失业率区间内，郡县的数量。地区分布图将每个郡县的失业率映射到美国郡县级的地图上，可以看到失业率在空间上的分布。时至今日，还可以收集尽可能多的历史数据，展示失业率的空间变化。进一步，收集和失业率紧密相关的数据指标，以及联邦政府、中央银行的经济政策。</p>
+<p>以美国的失业率数据为例，还有些原因，美国人口调查局发布的数据完整，有 R 包封装了相关数据接口，数据获取也方便。世界银行也发布了很多世界发展相关的数据，可以结合起来分析，有相互印证的作用。在当下的环境中，对大部分人来说，失业率不是陌生的指标，却是十分关注的指标，算是一个热门话题。</p>
+<p>R 语言实现数据分析的完整过程，尽可能使得计算和内容可重复。希望对那些用 R 语言来工作的人有一些启发，也希望引起一些读者的兴趣，去找到自己感兴趣的话题，亲自动手探索一番，将探索的过程和结果分享出来。</p>
+</div>
+<div id="tools-review" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> 探索工具</h1>
+<p>早些年， <strong>ggplot2</strong> 包 <span class="citation">[<a href="#ref-Wickham2016" role="doc-biblioref">1</a>]</span> 与 <strong>maps</strong> <span class="citation">[<a href="#ref-maps2021" role="doc-biblioref">2</a>]</span>、<strong>mapproj</strong> <span class="citation">[<a href="#ref-mapproj2022" role="doc-biblioref">3</a>]</span> 和 <strong>mapdata</strong> <span class="citation">[<a href="#ref-Becker2018" role="doc-biblioref">4</a>]</span> 一起提供基于 Base R 的地理可视化方案。而后，又出现了 <strong>grid</strong> <span class="citation">[<a href="#ref-Paul2002" role="doc-biblioref">5</a>]</span> 包、<strong>lattice</strong> 包 <span class="citation">[<a href="#ref-Sarkar2008" role="doc-biblioref">6</a>]</span> 及其插件 <strong>latticeExtra</strong> 包 <span class="citation">[<a href="#ref-Deepayan2022" role="doc-biblioref">7</a>]</span> 一起提供基于栅格绘图系统（Trellis Graphics）的地理可视化方案。近年来，<strong>ggplot2</strong> 包 <span class="citation">[<a href="#ref-Wickham2022" role="doc-biblioref">8</a>]</span> 与 <strong>sf</strong> 包 <span class="citation">[<a href="#ref-Pebesma2018" role="doc-biblioref">9</a>]</span>、<strong>tigris</strong> <span class="citation">[<a href="#ref-tigris2022" role="doc-biblioref">10</a>]</span> 和 <strong>tidycensus</strong> <span class="citation">[<a href="#ref-Walker2022" role="doc-biblioref">11</a>]</span> 一起彻底革新了绘图方案，在空间数据获取、处理和可视化方面都更加的高效。这使得空间数据读取 <strong>rgdal</strong> <span class="citation">[<a href="#ref-rgdal2022" role="doc-biblioref">12</a>]</span> 、空间数据处理 <strong>maptools</strong> <span class="citation">[<a href="#ref-Bivand2022" role="doc-biblioref">13</a>]</span> 和空间几何计算 <strong>rgeos</strong> <span class="citation">[<a href="#ref-rgeos2021" role="doc-biblioref">14</a>]</span> 完全可以被 <strong>sf</strong> 包替代，一下子还替代了好些个空间坐标投影的 <a href="https://github.com/hypertidy/reproj/"><strong>reproj</strong> 包</a> <span class="citation">[<a href="#ref-reproj2020" role="doc-biblioref">15</a>]</span>、<a href="https://github.com/hypertidy/PROJ"><strong>PROJ</strong> 包</a> <span class="citation">[<a href="#ref-PROJ2020" role="doc-biblioref">16</a>]</span>和 <a href="https://proj.org/"><strong>proj4</strong> 包</a> <span class="citation">[<a href="#ref-Urbanek2022" role="doc-biblioref">17</a>]</span>，基于 <strong>sp</strong> 包 <span class="citation">[<a href="#ref-Pebesma2005" role="doc-biblioref">18</a>]</span> 的栅格数据处理 <strong>raster</strong> 包也跟着升级，不再依赖 <strong>sp</strong> 包，替之以 <strong>terra</strong> 包，与国际开源空间统计分析社区更加接轨。连接使用 Google 地图服务的 <strong>ggmap</strong> <span class="citation">[<a href="#ref-Kahle2013" role="doc-biblioref">19</a>]</span> 、<strong>RgoogleMaps</strong> <span class="citation">[<a href="#ref-Loecher2015" role="doc-biblioref">20</a>]</span>、<strong>plotKML</strong> <span class="citation">[<a href="#ref-Hengl2015" role="doc-biblioref">21</a>]</span> 和 <strong>mapmisc</strong> <span class="citation">[<a href="#ref-Brown2016" role="doc-biblioref">22</a>]</span>，可以被 <strong>tmap</strong> 包 <span class="citation">[<a href="#ref-Tennekes2018" role="doc-biblioref">23</a>]</span> 替代。<strong>leaflet</strong> 包<span class="citation">[<a href="#ref-leaflet2022" role="doc-biblioref">24</a>]</span>提供开放街道地图数据的获取接口，同时提供许多地理数据可视化的方法，地图可以缩放交互。还有一些辅助作图的 R 包，常用的有处理中文字体的 <strong>showtext</strong> 包<span class="citation">[<a href="#ref-Qiu2015" role="doc-biblioref">25</a>]</span>，提供丰富层次的调色板 <strong>viridisLite</strong> 包<span class="citation">[<a href="#ref-Garnier2021" role="doc-biblioref">26</a>]</span>，制作动态图形的 <strong>gganimate</strong> 包<span class="citation">[<a href="#ref-gganimate2022" role="doc-biblioref">27</a>]</span>、<strong>echarts4r</strong> 包<span class="citation">[<a href="#ref-echarts4r2022" role="doc-biblioref">28</a>]</span>和 <strong>plotly</strong> 包<span class="citation">[<a href="#ref-Sievert2020" role="doc-biblioref">29</a>]</span>等。更多内容请看 R 语言官网提供的两个视图：<a href="https://cran.r-project.org/view=Spatial">Spatial</a>和<a href="https://cran.r-project.org/view=SpatioTemporal">SpatioTemporal</a>。</p>
+</div>
+<div id="data-access" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> 数据获取</h1>
+<p>本文获取的公开数据来源</p>
+<ul>
+<li><strong>maps</strong> 包内置的美国各郡县失业率数据，<a href="https://github.com/walkerke/tigris"><strong>tigris</strong></a> 包获取美国最新的比例尺 1:2000,0000 州、郡县级地图数据。</li>
+<li><a href="https://github.com/walkerke/tidycensus"><strong>tidycensus</strong></a> 包获取美国人口调查局发布的社会经济数据。</li>
+<li><a href="https://github.com/gshs-ornl/wbstats"><strong>wbstats</strong></a> 包获取世界银行发布的发展数据。</li>
+</ul>
+<p>获取数据的具体代码见后文。</p>
+<!-- 
+[**censusapi**](https://github.com/hrecht/censusapi)
+[**WDI**](https://github.com/vincentarelbundock/WDI)
+-->
+</div>
+<div id="data-check" class="section level1" number="4">
+<h1><span class="header-section-number">4</span> 数据探查</h1>
+<p><strong>maps</strong> 包内置了美国州、郡级地图数据，从下图 <a href="#fig:fig-usa-map">4.1</a> 不难看出，地图数据是不完整的。一眼看去，至少缺少阿拉斯加州、夏威夷州和波多黎各领地。</p>
+<div class="figure"><span style="display:block;" id="fig:fig-usa-map"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-usa-map-1.png" alt="美国州、郡地图" width="50%" /><img src="{{< blogdown/postref >}}index_files/figure-html/fig-usa-map-2.png" alt="美国州、郡地图" width="50%" />
+<p class="caption">
+图 4.1: 美国州、郡地图
+</p>
+</div>
+<p><strong>maps</strong> 包还内置了数据集 <code>county.fips</code>，记录了美国各郡县的行政代码及州郡名称，一共 3085 各郡县的 FIPS 代码 <code>fips</code> 和名称 <code>polyname</code>。</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(county.fips)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># &#39;data.frame&#39;: 3085 obs. of  2 variables:</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">#  $ fips    : int  1001 1003 1005 1007 1009 1011 1013 1015 1017 1019 ...</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">#  $ polyname: chr  &quot;alabama,autauga&quot; &quot;alabama,baldwin&quot; &quot;alabama,barbour&quot; &quot;alabama,bibb&quot; ...</span></span></code></pre></div>
+<p><strong>maps</strong> 包也内置了 <code>unemp</code> 数据集，记录了 2009 年美国各郡县的失业率，一共 3218 个郡县的失业率 <code>unemp</code>、人口 <code>pop</code> 和 FIPS 代码 <code>fips</code>。结合 <code>county.fips</code> 和 <code>unemp</code> 数据集来看，显然数据集 <code>county.fips</code> 要么早就过时了，要么收录不完整，导致至少缺少了 3218 - 3085 = 133 个郡县的 FIPS 代码。</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(unemp)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># &#39;data.frame&#39;: 3218 obs. of  3 variables:</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">#  $ fips : int  1001 1003 1005 1007 1009 1011 1013 1015 1017 1019 ...</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">#  $ pop  : int  23288 81706 9703 8475 25306 3527 8884 52055 13726 11583 ...</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">#  $ unemp: num  9.7 9.1 13.4 12.1 9.9 16.4 16.7 10.8 18.6 11.8 ...</span></span></code></pre></div>
+<p>数据初步探查的结果是：相对失业率数据集 unemp 来说，美国州、郡县级地图数据不完整，各郡县 FIPS 代码数据集 county.fips 不完整。</p>
+<div class="rmdtip">
+<p>美国各郡县的 FIPS 代码可类比我国<a href="http://www.mca.gov.cn/article/sj/xzqh/1980/">行政区划代码</a>，自1980年以来，每年都会发布一次，涉及一些市、区、县、乡、镇、街道等的变更。</p>
+</div>
+<p>county.fips 没有夏威夷、阿拉斯加、波多黎各的地图数据，导致 unemp 数据集里阿拉斯加、夏威夷、波多黎各和部分弗吉尼亚的小城市无法映射到地图上。</p>
+<p>相对于 unemp 数据集，county.fips 数据集少了哪些地区的 FIPS 代码，当采用左关联来检查数据情况时，发现 county.fips 缺少 143 个郡县的代码。</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>tmp <span class="ot">&lt;-</span> <span class="fu">merge</span>(<span class="at">x =</span> unemp, <span class="at">y =</span> county.fips, <span class="at">all.x =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>tmp2 <span class="ot">&lt;-</span> tmp[<span class="fu">is.na</span>(tmp<span class="sc">$</span>polyname), ]</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(tmp2)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># [1] 143   4</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(tmp2)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co">#    fips    pop unemp polyname</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 68 2013   1148  10.1     &lt;NA&gt;</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co"># 69 2016   2903   8.4     &lt;NA&gt;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co"># 70 2020 153264   7.0     &lt;NA&gt;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 71 2050   7061  14.8     &lt;NA&gt;</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co"># 72 2060   1159   3.6     &lt;NA&gt;</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co"># 73 2068   2300   3.4     &lt;NA&gt;</span></span></code></pre></div>
+<p>数据集 tmp2 中 fips 代码的前两位代表州，参考维基百科<a href="https://en.wikipedia.org/wiki/Federal_Information_Processing_Standard_state_code">联邦信息处理标准-州代码</a>，可知缺失的 FIPS 代码分布在 6个州或领地，分别是 20-Kansas 堪萨斯州、21-Kentucky 肯塔基州、22-Louisiana 路易斯安那州、15-Hawaii 夏威夷州、51-Virginia 弗吉尼亚州、72-Puerto Rico 波多黎各（领地）。</p>
+<p>相对于 unemp 数据集，分各州统计 county.fips 缺少的 FIPS 代码的数量。</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 从郡县 FIPS</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>tmp2<span class="sc">$</span>state_fips <span class="ot">&lt;-</span> <span class="fu">substr</span>(tmp2<span class="sc">$</span>fips, <span class="at">start =</span> <span class="dv">1</span>, <span class="at">stop =</span> <span class="dv">2</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">aggregate</span>(<span class="at">data =</span> tmp2, fips <span class="sc">~</span> state_fips, <span class="at">FUN =</span> length)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   state_fips fips</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 1         15    4</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co"># 2         20    8</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 3         21   10</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co"># 4         22    9</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co"># 5         51   34</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 6         72   78</span></span></code></pre></div>
+<p>数据集 <code>unemp</code> 和 <code>county.fips</code> 都用整型来存储 FIPS 代码，这是错误的，应该用字符型。没关联上的州编号都是 10 以上，所以上面才能用函数 <code>substr()</code> 抽取州的 FIPS 代码，否则得另想办法统计缺失的分布情况。</p>
+<div class="rmdtip">
+<p>在企业中，上面的数据质量探查操作是非常典型的，如果在数据库集群中，检查数据缺失情况，那最好用 SQL 操作，上述 Base R 数据操作等价的 SQL 语句（以 SQLite 为例）如下：</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> state_fips,</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>       <span class="fu">count</span>(<span class="dv">1</span>) <span class="kw">AS</span> cnt</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  (<span class="kw">SELECT</span> A.fips,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>          <span class="fu">substr</span>(A.fips, <span class="dv">1</span>, <span class="dv">2</span>) <span class="kw">AS</span> state_fips,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>          A.pop,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>          A.unemp,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>          B.polyname</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>   <span class="kw">FROM</span> unemp A</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>   <span class="kw">LEFT</span> <span class="kw">JOIN</span> county_fips B <span class="kw">ON</span> A.fips <span class="op">=</span> B.fips</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>   <span class="kw">WHERE</span> B.polyname <span class="kw">IS</span> <span class="kw">NULL</span> )</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="kw">GROUP</span> <span class="kw">BY</span> state_fips</span></code></pre></div>
+<div class="knitsql-table">
+<table>
+<caption><span id="tab:unnamed-chunk-8">表 4.1: </span>按州统计缺失的郡县数量</caption>
+<thead>
+<tr class="header">
+<th align="left">state_fips</th>
+<th align="right">cnt</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">15</td>
+<td align="right">4</td>
+</tr>
+<tr class="even">
+<td align="left">20</td>
+<td align="right">8</td>
+</tr>
+<tr class="odd">
+<td align="left">21</td>
+<td align="right">10</td>
+</tr>
+<tr class="even">
+<td align="left">22</td>
+<td align="right">9</td>
+</tr>
+<tr class="odd">
+<td align="left">51</td>
+<td align="right">34</td>
+</tr>
+<tr class="even">
+<td align="left">72</td>
+<td align="right">78</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="data-explore" class="section level1" number="5">
+<h1><span class="header-section-number">5</span> 数据探索</h1>
+<p>对于区域数据，描述其空间分布采用的常见图形是地区分布图（Choropleth maps）。也叫围栏图，一个个多边形围成的区域就好比大草原上的一个个围栏。也叫面量图，一块块区域加上该区域的属性、度量指标（经济的、人文的、社会的）。</p>
+<div id="maps" class="section level2" number="5.1">
+<h2><span class="header-section-number">5.1</span> maps 包</h2>
+<p><strong>maps</strong> 包的函数 <code>map()</code> 帮助文档 <code>?map</code> 给出了一个示例，地图数据就来自 <strong>maps</strong> 包，失业率数据 <code>unemp</code> 和行政编码数据 <code>county.fips</code> 也来自 <strong>maps</strong> 包。经过上面的数据探查，为美观起见，代码有所调整，结合下图 <a href="#fig:fig-unemp-maps">5.1</a>，除了验证数据质量外，2009 年美国各郡县的失业率分布非常直观了。美国东、西两岸经济比较发达，失业率也比较高，从沿海到内陆，失业率由高到低，有比较明显的层次感。</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(maps)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mapproj)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 失业率数据</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(unemp)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 行政编码</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(county.fips)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 准备调色板</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>colors <span class="ot">&lt;-</span> viridisLite<span class="sc">::</span><span class="fu">plasma</span>(<span class="dv">9</span>)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co"># 失业率划分区间</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>unemp<span class="sc">$</span>colorBuckets <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">cut</span>(</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  unemp<span class="sc">$</span>unemp,</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">10</span>, <span class="at">by =</span> <span class="dv">2</span>), <span class="dv">15</span>, <span class="dv">20</span>, <span class="dv">25</span>, <span class="dv">100</span>)</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>))</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="co"># 准备图例文本</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>leg.txt <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;   &lt;2%&quot;</span>, <span class="st">&quot;  2-4%&quot;</span>, <span class="st">&quot;  4-6%&quot;</span>,</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;  6-8%&quot;</span>, <span class="st">&quot; 8-10%&quot;</span>, <span class="st">&quot;10-15%&quot;</span>,</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;15-20%&quot;</span>, <span class="st">&quot;20-25%&quot;</span>, <span class="st">&quot;  &gt;25%&quot;</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="co"># 根据区域单元的名称匹配地图数据上每个区域的 FIPS</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>cnty.fips <span class="ot">&lt;-</span> county.fips<span class="sc">$</span>fips[<span class="fu">match</span>(</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map</span>(<span class="st">&quot;county&quot;</span>, <span class="at">plot =</span> <span class="cn">FALSE</span>)<span class="sc">$</span>names,</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>  county.fips<span class="sc">$</span>polyname</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>)]</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a><span class="co"># 根据 FIPS 给地图上每个区域的失业率匹配颜色</span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>colorsmatched <span class="ot">&lt;-</span> unemp<span class="sc">$</span>colorBuckets[<span class="fu">match</span>(cnty.fips, unemp<span class="sc">$</span>fips)]</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar =</span> <span class="fu">c</span>(<span class="fl">1.5</span>, <span class="dv">0</span>, <span class="dv">2</span>, <span class="dv">0</span>))</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a><span class="co"># 绘制区县地图</span></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a><span class="fu">map</span>(<span class="st">&quot;county&quot;</span>,</span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>  <span class="at">col =</span> colors[colorsmatched], <span class="at">fill =</span> <span class="cn">TRUE</span>, <span class="at">resolution =</span> <span class="dv">0</span>,</span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>  <span class="at">lty =</span> <span class="dv">0</span>, <span class="at">projection =</span> <span class="st">&quot;polyconic&quot;</span>, <span class="at">mar =</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="dv">2</span>, <span class="fl">0.5</span>)</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a><span class="co"># 添加州边界线</span></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a><span class="fu">map</span>(<span class="st">&quot;state&quot;</span>,</span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>  <span class="at">col =</span> <span class="st">&quot;white&quot;</span>, <span class="at">fill =</span> <span class="cn">FALSE</span>, <span class="at">add =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>  <span class="at">lty =</span> <span class="dv">1</span>, <span class="at">lwd =</span> <span class="fl">0.4</span>, <span class="at">projection =</span> <span class="st">&quot;polyconic&quot;</span></span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a><span class="co"># 添加图标题</span></span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a><span class="fu">title</span>(<span class="st">&quot;2009 年美国各郡县的失业率&quot;</span>)</span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a><span class="fu">mtext</span>(</span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>  <span class="at">text =</span> <span class="st">&quot;数据源：美国人口调查局&quot;</span>,</span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>  <span class="at">side =</span> <span class="dv">1</span>, <span class="at">adj =</span> <span class="dv">0</span></span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a><span class="co"># 添加图例</span></span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">&quot;bottomright&quot;</span>,</span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">&quot;失业率(%)&quot;</span>,</span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a>  <span class="at">legend =</span> leg.txt,</span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>  <span class="at">horiz =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a>  <span class="at">fill =</span> colors, <span class="at">cex =</span> <span class="fl">0.85</span>,</span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a>  <span class="at">box.col =</span> <span class="cn">NA</span>, <span class="at">border =</span> <span class="cn">NA</span></span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-unemp-maps"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-unemp-maps-1.png" alt="2009 年美国各郡县的失业率分布" width="672" />
+<p class="caption">
+图 5.1: 2009 年美国各郡县的失业率分布
+</p>
+</div>
+</div>
+<div id="latticeExtra" class="section level2" number="5.2">
+<h2><span class="header-section-number">5.2</span> latticeExtra 包</h2>
+<p>在数据探索的工具上，也可以用 <strong>latticeExtra</strong> 包来做，不过它也是依赖于 <strong>maps</strong> 包，依赖地图数据、坐标投影等。在绘制地区分布图方面，仅仅是提供一个新的绘图方式 — 基于 <strong>grid</strong> 的 <strong>lattice</strong> 绘图系统。实际操作下来，使用的复杂度不亚于 Base R 的基础绘图系统，而图形效果是基本一致的。更多详细介绍见另一篇文章<a href="https://cosx.org/2022/05/choropleth-map/">《地区分布图及其应用》</a>。</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 美国郡边界地图数据</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>us_county <span class="ot">&lt;-</span> <span class="fu">map</span>(<span class="st">&quot;county&quot;</span>,</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">plot =</span> <span class="cn">FALSE</span>, <span class="at">fill =</span> <span class="cn">TRUE</span>, <span class="at">projection =</span> <span class="st">&quot;polyconic&quot;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 美国州边界数据</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>us_state <span class="ot">&lt;-</span> <span class="fu">map</span>(<span class="st">&quot;state&quot;</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">plot =</span> <span class="cn">FALSE</span>, <span class="at">fill =</span> <span class="cn">TRUE</span>, <span class="at">projection =</span> <span class="st">&quot;polyconic&quot;</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co"># 失业率数据和行政区域名称关联</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>unemp_df <span class="ot">&lt;-</span> <span class="fu">merge</span>(unemp, county.fips, <span class="at">by =</span> <span class="st">&quot;fips&quot;</span>)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="co"># 绘图</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lattice)</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>latticeExtra<span class="sc">::</span><span class="fu">mapplot</span>(polyname <span class="sc">~</span> unemp, <span class="at">data =</span> unemp_df,</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 地图数据</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">map =</span> us_county,</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 配色采用 plasma 调色板</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">colramp =</span> viridisLite<span class="sc">::</span>plasma,</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 修改默认的面板函数</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">panel =</span> <span class="cf">function</span>(x, y, map, ...) {</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 对未收集到癌症死亡率数据的郡，添加郡边界线</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">panel.lines</span>(</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> us_county<span class="sc">$</span>x, <span class="at">y =</span> us_county<span class="sc">$</span>y,</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>      <span class="at">lty =</span> <span class="dv">1</span>, <span class="at">lwd =</span> <span class="fl">0.2</span>, <span class="at">col =</span> <span class="st">&quot;black&quot;</span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 地区分布图主体</span></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    latticeExtra<span class="sc">::</span><span class="fu">panel.mapplot</span>(x, y, map, ...)</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 添加州边界线</span></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>    <span class="fu">panel.lines</span>(</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> us_state<span class="sc">$</span>x, <span class="at">y =</span> us_state<span class="sc">$</span>y,</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>      <span class="at">lty =</span> <span class="dv">1</span>, <span class="at">lwd =</span> <span class="fl">0.2</span>, <span class="at">col =</span> <span class="st">&quot;white&quot;</span></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 去掉郡县边界线</span></span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>  <span class="at">border =</span> <span class="cn">NA</span>,</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>  <span class="co"># cuts = 10, # 等距分桶的数，和参数 breaks 二选一</span></span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>  <span class="at">breaks =</span> <span class="fu">c</span>(<span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">10</span>, <span class="at">by =</span> <span class="dv">2</span>), <span class="dv">15</span>, <span class="dv">20</span>, <span class="dv">25</span>, <span class="dv">30</span>, <span class="dv">35</span>),</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 仅绘制地图支持的那些失业率数据</span></span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>  <span class="at">subset =</span> polyname <span class="sc">%in%</span> us_county<span class="sc">$</span>names,</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 去掉坐标轴</span></span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>  <span class="at">scales =</span> <span class="fu">list</span>(<span class="at">draw =</span> F),</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 去掉横轴标签</span></span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>  <span class="at">xlab =</span> <span class="st">&quot;&quot;</span>,</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 全局图形参数设置</span></span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>  <span class="at">par.settings =</span> <span class="fu">list</span>(</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 副标题放在左下角</span></span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">par.sub.text =</span> <span class="fu">list</span>(</span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>      <span class="at">font =</span> <span class="dv">2</span>,</span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>      <span class="at">just =</span> <span class="st">&quot;left&quot;</span>,</span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> grid<span class="sc">::</span><span class="fu">unit</span>(<span class="dv">5</span>, <span class="st">&quot;mm&quot;</span>),</span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> grid<span class="sc">::</span><span class="fu">unit</span>(<span class="dv">5</span>, <span class="st">&quot;mm&quot;</span>)</span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 轴线设置白色以隐藏</span></span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.line =</span> <span class="fu">list</span>(<span class="at">col =</span> <span class="st">&quot;white&quot;</span>)</span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 副标题</span></span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a>  <span class="at">sub =</span> <span class="st">&quot;数据源：美国人口调查局&quot;</span>,</span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 主标题</span></span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">&quot;2009 年美国各郡县的失业率&quot;</span></span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-unemp-lattice"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-unemp-lattice-1.png" alt="2009 年美国各郡县的失业率分布" width="768" />
+<p class="caption">
+图 5.2: 2009 年美国各郡县的失业率分布
+</p>
+</div>
+</div>
+<div id="sf" class="section level2" number="5.3">
+<h2><span class="header-section-number">5.3</span> sf 包</h2>
+<p>从数据探查的结果可知，应该去获取更加完整的，和失业率数据能匹配上的地图数据。 <strong>tigris</strong> 包提供较新的美国州、郡县级矢量地图数据。地图数据的获取过程见文章<a href="https://cosx.org/2022/05/choropleth-map/">《地区分布图及其应用》</a>。</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># 准备地图数据</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>us_state_map <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="at">file =</span> <span class="st">&quot;data/us_state_map.rds&quot;</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>us_county_map <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="at">file =</span> <span class="st">&quot;data/us_county_map.rds&quot;</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 查看数据</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>us_county_map</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Simple feature collection with 3220 features and 9 fields</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Geometry type: GEOMETRY</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Dimension:     XY</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Bounding box:  xmin: -3112000 ymin: -1698000 xmax: 2258000 ymax: 1559000</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Projected CRS: USA_Contiguous_Albers_Equal_Area_Conic</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="co"># First 10 features:</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co">#    STATEFP COUNTYFP COUNTYNS       AFFGEOID GEOID       NAME LSAD     ALAND</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="co"># 1       29      227 00758566 0500000US29227 29227      Worth   06 6.906e+08</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="co"># 2       31      061 00835852 0500000US31061 31061   Franklin   06 1.491e+09</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="co"># 3       36      013 00974105 0500000US36013 36013 Chautauqua   06 2.746e+09</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="co"># 4       37      181 01008591 0500000US37181 37181      Vance   06 6.537e+08</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="co"># 5       47      183 01639799 0500000US47183 47183    Weakley   06 1.503e+09</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="co"># 6       44      003 01219778 0500000US44003 44003       Kent   06 4.366e+08</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a><span class="co"># 7       08      101 00198166 0500000US08101 08101     Pueblo   06 6.180e+09</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a><span class="co"># 8       17      175 00424288 0500000US17175 17175      Stark   06 7.462e+08</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a><span class="co"># 9       29      169 00758539 0500000US29169 29169    Pulaski   06 1.417e+09</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a><span class="co"># 10      19      151 00465264 0500000US19151 19151 Pocahontas   06 1.495e+09</span></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a><span class="co">#       AWATER                       geometry</span></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a><span class="co"># 1  4.939e+05 MULTIPOLYGON (((114836 3450...</span></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a><span class="co"># 2  4.879e+05 MULTIPOLYGON (((-267685 323...</span></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a><span class="co"># 3  1.139e+09 MULTIPOLYGON (((1324221 647...</span></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a><span class="co"># 4  4.218e+07 MULTIPOLYGON (((1544260 322...</span></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a><span class="co"># 5  3.707e+06 MULTIPOLYGON (((625934 -988...</span></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a><span class="co"># 6  5.069e+07 MULTIPOLYGON (((1977965 726...</span></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a><span class="co"># 7  3.022e+07 MULTIPOLYGON (((-783174 122...</span></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a><span class="co"># 8  6.848e+05 MULTIPOLYGON (((500559 4247...</span></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a><span class="co"># 9  1.131e+07 MULTIPOLYGON (((312852 4616...</span></span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a><span class="co"># 10 3.667e+06 MULTIPOLYGON (((88186 60633...</span></span></code></pre></div>
+<p>为了将失业率数据合并到地图数据上，需要将地理区域唯一标识 GEOID 作类型转化。GEOID 是两个字符型变量 STATEFP 和 COUNTYFP 拼接起来的字符串变量。根据这份地图数据，可以知道美国目前一共有 3220 个郡县。</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 地理区域唯一标识</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>us_county_map<span class="sc">$</span>GEOID <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(us_county_map<span class="sc">$</span>GEOID)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 将失业率数据和地图数据合并</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>us_county_data <span class="ot">&lt;-</span> <span class="fu">merge</span>(</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> us_county_map, <span class="at">y =</span> unemp,</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">by.x =</span> <span class="st">&quot;GEOID&quot;</span>, <span class="at">by.y =</span> <span class="st">&quot;fips&quot;</span>, <span class="at">all.x =</span> <span class="cn">TRUE</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<p>从这份地图数据来看，有 8 个郡县没有失业率数据，主要分布在地广人稀的阿拉斯加州 （02-Alaska）。具体原因是什么呢？留待读者思考。</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>us_county_data[<span class="fu">is.na</span>(us_county_data<span class="sc">$</span>unemp),]</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Simple feature collection with 8 features and 12 fields</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Geometry type: GEOMETRY</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Dimension:     XY</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Bounding box:  xmin: -2349000 ymin: -1537000 xmax: -492400 ymax: 712300</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Projected CRS: USA_Contiguous_Albers_Equal_Area_Conic</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co">#      GEOID STATEFP COUNTYFP COUNTYNS       AFFGEOID                  NAME LSAD</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="co"># 77    2105      02      105 02371430 0500000US02105         Hoonah-Angoon   05</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="co"># 82    2158      02      158 01419985 0500000US02158              Kusilvak   05</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 88    2195      02      195 02516404 0500000US02195            Petersburg   04</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="co"># 89    2198      02      198 01419980 0500000US02198 Prince of Wales-Hyder   05</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="co"># 91    2230      02      230 02339479 0500000US02230               Skagway   12</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="co"># 94    2275      02      275 02516402 0500000US02275              Wrangell   03</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a><span class="co"># 549  15005      15      005 01702380 0500000US15005               Kalawao   06</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="co"># 2413 46102      46      102 01266992 0500000US46102         Oglala Lakota   06</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="co">#          ALAND    AWATER pop unemp colorBuckets                       geometry</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="co"># 77   1.698e+10 7.802e+09  NA    NA           NA MULTIPOLYGON (((-1435018 -1...</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a><span class="co"># 82   4.422e+10 6.694e+09  NA    NA           NA MULTIPOLYGON (((-2348786 -1...</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a><span class="co"># 88   7.513e+09 2.386e+09  NA    NA           NA MULTIPOLYGON (((-1411642 -1...</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a><span class="co"># 89   1.363e+10 1.462e+10  NA    NA           NA MULTIPOLYGON (((-1304827 -1...</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a><span class="co"># 91   1.124e+09 2.878e+07  NA    NA           NA MULTIPOLYGON (((-1516456 -1...</span></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a><span class="co"># 94   6.620e+09 2.384e+09  NA    NA           NA MULTIPOLYGON (((-1389562 -1...</span></span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a><span class="co"># 549  3.106e+07 1.058e+08  NA    NA           NA POLYGON ((-846359 -1181798,...</span></span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a><span class="co"># 2413 5.422e+09 7.126e+06  NA    NA           NA MULTIPOLYGON (((-562220 704...</span></span></code></pre></div>
+<p>将失业率数据 unemp 视为左表，地图数据 us_county_map 视为右表，检查一下有多少失业率数据关联不上地图数据。实际情况是一共有 6 个郡县的失业率数据关联不上地图数据。</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>us_county_data_tmp <span class="ot">&lt;-</span> <span class="fu">merge</span>(</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> unemp, <span class="at">y =</span> us_county_map,</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">by.x =</span> <span class="st">&quot;fips&quot;</span>, <span class="at">by.y =</span> <span class="st">&quot;GEOID&quot;</span>, <span class="at">all.x =</span> <span class="cn">TRUE</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>us_county_data_tmp[<span class="fu">is.na</span>(us_county_data_tmp<span class="sc">$</span>STATEFP),]</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="co">#       fips  pop unemp colorBuckets STATEFP COUNTYFP COUNTYNS AFFGEOID NAME LSAD</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 86    2201 2507  13.6            6    &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="co"># 88    2232 2278   7.3            4    &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="co"># 91    2270 2807  20.4            8    &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 92    2280 2836   9.8            5    &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="co"># 2415 46113 3827  12.6            6    &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="co"># 2914 51515 2768   8.9            5    &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="co">#      ALAND AWATER                 geometry</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="co"># 86      NA     NA GEOMETRYCOLLECTION EMPTY</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a><span class="co"># 88      NA     NA GEOMETRYCOLLECTION EMPTY</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a><span class="co"># 91      NA     NA GEOMETRYCOLLECTION EMPTY</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a><span class="co"># 92      NA     NA GEOMETRYCOLLECTION EMPTY</span></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a><span class="co"># 2415    NA     NA GEOMETRYCOLLECTION EMPTY</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a><span class="co"># 2914    NA     NA GEOMETRYCOLLECTION EMPTY</span></span></code></pre></div>
+<p>经过上面的检查，失业率数据和这份地图数据<strong>不是完全匹配</strong>的，但是差距也不大。要想进一步改进，甚至达到完全匹配，应该怎么做呢？就是根据收集到的失业率数据所在的年份去找相应年份的郡县地图数据。也就是去找 2009 年美国郡县级多边形矢量地图数据。余下的工作留待读者操作。</p>
+<p>相比于前任 <strong>sp</strong> 包，<strong>sf</strong> 包将是新一代空间数据操作、分析和可视化的基石，引入 <a href="https://gdal.org/">GDAL</a>、<a href="https://proj.org/">PROJ</a> 和 <a href="https://github.com/libgeos/geos">GEOS</a> 三大空间数据处理的基础框架，和更庞大的空间数据社区接轨，不局限于 R 语言社区的一亩三分地。<strong>sf</strong> 包支持 Base R 绘图，以此绘制失业率专题地图，如图<a href="#fig:fig-unemp-sf">5.3</a>所示，可见效果丝毫不逊于 <strong>Base R</strong> 和 <strong>lattice</strong> 版本，而且在兼容性、代码量、稳定性和性能等方面有明显优势。</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">4</span>, <span class="dv">0</span>))</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co"># 添加郡县地图作为底图，失业率缺失的地方涂上灰色</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">st_geometry</span>(us_county_map),</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">reset =</span> <span class="cn">FALSE</span>, <span class="at">border =</span> <span class="st">&quot;grey90&quot;</span>,</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">col =</span> <span class="st">&quot;grey80&quot;</span>, <span class="at">main =</span> <span class="st">&quot;2009 年美国各郡县的失业率&quot;</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 绘制图形主体</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(us_county_data[<span class="st">&quot;unemp&quot;</span>],</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">pal =</span> viridisLite<span class="sc">::</span>plasma,</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">breaks =</span> <span class="fu">c</span>(<span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">10</span>, <span class="at">by =</span> <span class="dv">2</span>), <span class="dv">15</span>, <span class="dv">20</span>, <span class="dv">25</span>, <span class="dv">30</span>, <span class="dv">35</span>),</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">border =</span> <span class="cn">NA</span>, <span class="at">key.pos =</span> <span class="cn">NULL</span>, <span class="at">reset =</span> <span class="cn">FALSE</span>, <span class="at">add =</span> <span class="cn">TRUE</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="co"># 添加州边界</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">st_geometry</span>(us_state_map),</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">col =</span> <span class="cn">NA</span>, <span class="at">border =</span> <span class="st">&quot;gray90&quot;</span>,</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">add =</span> <span class="cn">TRUE</span>, <span class="at">lwd =</span> <span class="fl">0.2</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a><span class="fu">mtext</span>(</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">text =</span> <span class="st">&quot;数据源：美国人口调查局&quot;</span>, <span class="at">side =</span> <span class="dv">1</span>, <span class="at">adj =</span> <span class="fl">0.8</span></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a><span class="co"># 调色板</span></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>colors <span class="ot">&lt;-</span> viridisLite<span class="sc">::</span><span class="fu">plasma</span>(<span class="dv">10</span>)</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>breaks <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">10</span>, <span class="at">by =</span> <span class="dv">2</span>), <span class="dv">15</span>, <span class="dv">20</span>, <span class="dv">25</span>, <span class="dv">30</span>, <span class="dv">35</span>)</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a><span class="co"># 图例文本</span></span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>leg.txt <span class="ot">&lt;-</span> <span class="fu">mapply</span>(paste,</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>  breaks[<span class="sc">-</span><span class="fu">length</span>(breaks)],</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>  breaks[<span class="sc">-</span><span class="dv">1</span>],</span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>  <span class="at">collapse =</span> <span class="st">&quot; &quot;</span>, <span class="at">sep =</span> <span class="st">&quot;~&quot;</span></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a><span class="co"># 添加图例</span></span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">&quot;bottomright&quot;</span>,</span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>  <span class="at">legend =</span> <span class="fu">c</span>(leg.txt, <span class="st">&quot;NA&quot;</span>), <span class="at">title =</span> <span class="st">&quot;失业率(%)&quot;</span>,</span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>  <span class="at">box.col =</span> <span class="cn">NA</span>, <span class="at">border =</span> <span class="cn">NA</span>,</span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>  <span class="at">horiz =</span> <span class="cn">FALSE</span>, <span class="at">fill =</span> <span class="fu">c</span>(colors, <span class="st">&quot;grey80&quot;</span>),</span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>  <span class="at">cex =</span> <span class="fl">0.85</span>, <span class="at">xjust =</span> <span class="fl">0.5</span></span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-unemp-sf"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-unemp-sf-1.png" alt="2009 年美国各个郡县的失业率分布" width="768" />
+<p class="caption">
+图 5.3: 2009 年美国各个郡县的失业率分布
+</p>
+</div>
+</div>
+<div id="ggplot2" class="section level2" number="5.4">
+<h2><span class="header-section-number">5.4</span> ggplot2 包</h2>
+<p>站在 <strong>sf</strong> 包的肩膀上，<strong>ggplot2</strong> 包也可以绘制类似上图<a href="#fig:fig-unemp-sf">5.3</a>的效果。<strong>ggplot2</strong> 包的特点是有非常清晰的分层，图层层层叠加实现最终效果。优点是掌握其一般规律后，代码简洁易读，缺点是 <strong>ggplot2</strong> 包不太稳定，函数每隔一段时间会有不向后兼容的破坏性更改。复现下图必须采用与本文运行环境一致的 R 包，笔者当前采用的 <strong>ggplot2</strong> 版本是 3.4.0。添加郡县级失业率数据，添加州级多边形边界线，设置调色板和图形主题，添加图例标题和副标题，调整州、郡边界线以体现层次。</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> us_county_data, <span class="fu">aes</span>(<span class="at">fill =</span> unemp),</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> <span class="st">&quot;grey80&quot;</span>, <span class="at">linewidth =</span> <span class="fl">0.05</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> us_state_map,</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> <span class="st">&quot;grey80&quot;</span>, <span class="at">fill =</span> <span class="cn">NA</span>, <span class="at">linewidth =</span> <span class="fl">0.1</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_c</span>(</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">option =</span> <span class="st">&quot;plasma&quot;</span>, <span class="at">na.value =</span> <span class="st">&quot;white&quot;</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">&quot;失业率&quot;</span>, <span class="at">caption =</span> <span class="st">&quot;数据源：美国人口调查局&quot;</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div>
+<div class="figure"><span style="display:block;" id="fig:fig-us-unemp"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-us-unemp-1.png" alt="2009 年美国各郡县失业率分布" width="768" />
+<p class="caption">
+图 5.4: 2009 年美国各郡县失业率分布
+</p>
+</div>
+<p>请读者参考文章<a href="https://cosx.org/2022/05/choropleth-map/">《地区分布图及其应用》</a>给出失业率分段的地区分布图。</p>
+<p>以 1PP （即一个百分点，宏观经济指标波动 1 个百分点是很大的事情了）为间隔，统计美国各个郡县的失业率分布情况，如图 <a href="#fig:fig-us-unemp-dist">5.5</a> 所示，除少量人口多，经济发达的郡县失业率远高于其它外，剩余的呈现正态分布，失业率集中于 8% 左右。</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">data =</span> us_county_data[<span class="sc">!</span><span class="fu">is.na</span>(us_county_data<span class="sc">$</span>unemp),], <span class="fu">aes</span>(<span class="at">x =</span> unemp),</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>                 <span class="at">binwidth =</span> <span class="dv">1</span>, <span class="at">fill =</span> <span class="st">&quot;lightblue&quot;</span>, <span class="at">color =</span> <span class="st">&quot;white&quot;</span>) <span class="sc">+</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;失业率&quot;</span>, <span class="at">y =</span> <span class="st">&quot;郡县数量&quot;</span>)</span></code></pre></div>
+<div class="figure"><span style="display:block;" id="fig:fig-us-unemp-dist"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-us-unemp-dist-1.png" alt="2009 年美国失业率分布" width="672" />
+<p class="caption">
+图 5.5: 2009 年美国失业率分布
+</p>
+</div>
+<p>unemp 数据集还包含一列 pop 人口数（但未提供人口数指标的说明），各个郡县的人口数如图<a href="#fig:fig-us-pop">5.6</a>所示。</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> us_county_data, <span class="fu">aes</span>(<span class="at">fill =</span> pop),</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> <span class="st">&quot;grey80&quot;</span>, <span class="at">linewidth =</span> <span class="fl">0.05</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> us_state_map,</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> <span class="st">&quot;grey80&quot;</span>, <span class="at">fill =</span> <span class="cn">NA</span>, <span class="at">linewidth =</span> <span class="fl">0.1</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_c</span>(</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">option =</span> <span class="st">&quot;plasma&quot;</span>, <span class="at">na.value =</span> <span class="st">&quot;white&quot;</span>, <span class="at">trans =</span> <span class="st">&quot;log10&quot;</span>,</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">label_number</span>(<span class="at">scale_cut =</span> scales<span class="sc">::</span><span class="fu">cut_short_scale</span>())</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">&quot;人口数&quot;</span>, <span class="at">caption =</span> <span class="st">&quot;数据源：美国人口调查局&quot;</span></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div>
+<div class="figure"><span style="display:block;" id="fig:fig-us-pop"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-us-pop-1.png" alt="2009 年美国各郡县人口分布" width="768" />
+<p class="caption">
+图 5.6: 2009 年美国各郡县人口分布
+</p>
+</div>
+<p>据查，2009 年美国人口总数超过 3 亿，unemp 数据集显示 2009 年美国各郡县人口总共约 1.5 亿。unemp 数据集中包含的各个郡县人口数具体是何含义，未知。留待读者继续探查。</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(us_county_data<span class="sc">$</span>pop, <span class="at">na.rm =</span> T)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="co"># [1] 154919862</span></span></code></pre></div>
+</div>
+</div>
+<div id="data-analysis" class="section level1" number="6">
+<h1><span class="header-section-number">6</span> 数据分析</h1>
+<p>2008 年美国发生次贷危机，雷曼兄弟倒闭，随后席卷全球，2009 年失业率正处于历史高位。2019 年底出现新冠疫情，随后席卷全球，至今未消，2022 年俄乌爆发战争。俄罗斯作为世界上重要的能源输出国，乌克兰作为重要的粮食出口国，中国改革进入深水区，经济周期下行，去杠杆化的效应正在加速显现，失业率达到近30年以来的最高水平，国家正面临百年未有之大变局。</p>
+<p>2022年11月15日至16日，二十国集团领导人第十七次峰会在印度尼西亚的巴厘岛举行，峰会主题为「共同复苏、强劲复苏」。G20 包含 中国、韩国、印度、美国、英国、加拿大、德国、意大利、法国、俄罗斯、日本、欧洲联盟、印度尼西亚、墨西哥、南非共和国、沙特阿拉伯、土耳其、澳大利亚、阿根廷、巴西。首先看看 G20 各个国家的整体失业率情况。</p>
+<p>世界银行的数据获取参考文章<a href="https://xiangyun.rbind.io/2022/06/gapminder/">Gapminder：关注差异、理解变化</a>，美国人口调查局的数据获取参考文章<a href="https://cosx.org/2022/05/choropleth-map/">地区分布图及其应用</a>。</p>
+<dl>
+<dt>总失业人数（占劳动力总数的比例）（模拟劳工组织估计），指标 ID 为 SL.UEM.TOTL.ZS</dt>
+<dd>
+失业人数是指目前没有工作但可以参加工作且正在寻求工作的劳动力数量。各国对劳动力和失业人数的定义各有不同。详见<a href="https://data.worldbank.org.cn/indicator/SL.UEM.TOTL.ZS?locations=CN">世界银行网站</a>，经过比对，从数据 API 获得的数据和网站图表中显示的数据是一致的。
+</dd>
+<dt>按消费者价格指数衡量的通货膨胀（年通胀率），指标 ID 为 FP.CPI.TOTL.ZG</dt>
+<dd>
+按消费者价格指数衡量的通货膨胀反映出普通消费者在指定时间间隔（如年度）内购买固定或变动的一篮子货物和服务的成本的年百分比变化。通常采用拉斯佩尔公式进行计算。
+</dd>
+<dt>基尼 (GINI) 系数，指标 ID 为 SI.POV.GINI</dt>
+<dd>
+基尼系数用于衡量一个经济体中在个人或家庭中的收入分配（在某些情况下是消费支出）偏离完全平均分配的程度。洛伦兹曲线标示出总收入累积百分比与收入获得者累积人数的相对关系，曲线的起点为最贫困的个人或家庭。基尼系数测算洛伦兹曲线与假设的绝对平均线之间的面积，表示为在该线以下最大面积中所占的比例。因此，基尼系数为 0 表示完全平均，100% 则表示完全不平均。
+</dd>
+</dl>
+<p>从世界银行数据库获取最近 30 年宏观经济数据，实际上，据笔者了解，世界银行仅提供最近 30 年的数据。</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>wb_world_indicator <span class="ot">&lt;-</span> wbstats<span class="sc">::</span><span class="fu">wb_data</span>(</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">indicator =</span> <span class="fu">c</span>(</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;SL.UEM.TOTL&quot;</span>, <span class="co"># 失业人数 Number of people unemployed</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;SL.UEM.TOTL.ZS&quot;</span>, <span class="co"># 失业率 Unemployed (%) (modeled ILO estimate)</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;SL.UEM.TOTL.NE.ZS&quot;</span>, <span class="co"># 失业率 Unemployed (%) national estimate</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;NY.GDP.PCAP.KD.ZG&quot;</span>, <span class="co"># 人均 GDP 增速</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;NY.GDP.MKTP.CD&quot;</span>, <span class="co"># GDP 总量</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;NY.GDP.MKTP.KD.ZG&quot;</span>, <span class="co"># GDP 增速</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;FP.CPI.TOTL&quot;</span>, <span class="co"># 消费价格指数（以 2010 年为对比基数 100）</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;FP.CPI.TOTL.ZG&quot;</span>, <span class="co"># 通货膨胀率</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;SI.POV.GINI&quot;</span>, <span class="co"># Gini 指数</span></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;SP.DYN.LE00.IN&quot;</span>, <span class="co"># 预期寿命</span></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;NY.GDP.PCAP.CD&quot;</span>, <span class="co"># 人均 GDP</span></span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;SP.POP.TOTL&quot;</span> <span class="co"># 人口总数</span></span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">country =</span> <span class="st">&quot;countries_only&quot;</span>,</span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">return_wide =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">start_date =</span> <span class="dv">1991</span>, <span class="at">end_date =</span> <span class="dv">2021</span></span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a><span class="co"># 保存数据到本地，方便后续使用</span></span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(wb_world_indicator, <span class="at">file =</span> <span class="st">&quot;data/wb_world_indicator.rds&quot;</span>)</span></code></pre></div>
+<p>从 G20 中选取 11 个国家（中国、印度、美国、英国、德国、法国、俄罗斯、日本、南非共和国、沙特阿拉伯、澳大利亚）。失业率数据、通货膨胀率数据和基尼 (GINI) 系数数据。</p>
+<div class="figure"><span style="display:block;" id="fig:fig-uem"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-uem-1.png" alt="失业率数据" width="672" />
+<p class="caption">
+图 6.1: 失业率数据
+</p>
+</div>
+<p>南非失业率一直居高不下，余下的国家失业率表现比较平稳。2020 年后，美国的失业率上涨比较多。</p>
+<div class="figure"><span style="display:block;" id="fig:fig-cpi"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-cpi-1.png" alt="通货膨胀率数据" width="672" />
+<p class="caption">
+图 6.2: 通货膨胀率数据
+</p>
+</div>
+<p>苏联解体后，俄罗斯经济上经历了休克疗法，政局不平稳，2000 年前俄罗斯的通胀高得没边，就不去谈它了，图中也没有展示相关数据，重点关注余下的国家。</p>
+<div class="figure"><span style="display:block;" id="fig:fig-gini"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-gini-1.png" alt="基尼 (GINI) 系数数据" width="672" />
+<p class="caption">
+图 6.3: 基尼 (GINI) 系数数据
+</p>
+</div>
+<p>基尼 (GINI) 系数数据不太多，南非有很高的基尼系数，贫富差距巨大，大部分在 30% - 40% 之间。中国贫富差距比美国小，比俄罗斯大，整体属于高位。</p>
+<p>先看看美国各州、各郡县的失业情况。</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 读取数据</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>us_unemp_county <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="at">file =</span> <span class="st">&quot;data/us_unemp_county.rds&quot;</span>)</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>us_unemp_state <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="at">file =</span> <span class="st">&quot;data/us_unemp_state.rds&quot;</span>)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 绘图</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> us_unemp_state,</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">fill =</span> estimate <span class="sc">/</span> <span class="dv">10000</span>), <span class="at">colour =</span> <span class="cn">NA</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_c</span>(<span class="at">option =</span> <span class="st">&quot;plasma&quot;</span>, <span class="at">na.value =</span> <span class="st">&quot;grey80&quot;</span>) <span class="sc">+</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_sf</span>(<span class="at">crs =</span> <span class="fu">st_crs</span>(<span class="st">&quot;ESRI:102003&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">&quot;失业人口</span><span class="sc">\n</span><span class="st">（万）&quot;</span>, </span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;2016-2020 年度美国各州失业人口&quot;</span>,</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">&quot;数据源：美国人口调查局&quot;</span></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>(<span class="at">base_size =</span> <span class="dv">13</span>) <span class="sc">+</span></span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>),</span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.direction =</span> <span class="st">&quot;horizontal&quot;</span>,</span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">&quot;bottom&quot;</span>,</span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.justification =</span> <span class="st">&quot;right&quot;</span>,</span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>),</span>
+<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.caption =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="dv">0</span>, <span class="at">vjust =</span> <span class="dv">10</span>)</span>
+<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:fig-us-unemp-state"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-us-unemp-state-1.png" alt="2016-2020 年度美国各州失业人口" width="921.6" />
+<p class="caption">
+图 6.4: 2016-2020 年度美国各州失业人口
+</p>
+</div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 绘图</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> <span class="fu">st_geometry</span>(us_unemp_county), <span class="at">fill =</span> <span class="st">&quot;grey80&quot;</span>, <span class="at">colour =</span> <span class="cn">NA</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> us_unemp_county[us_unemp_county<span class="sc">$</span>estimate <span class="sc">&gt;</span> <span class="dv">0</span>,],</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">fill =</span> estimate), <span class="at">colour =</span> <span class="cn">NA</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> us_unemp_state,</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">colour =</span> <span class="fu">alpha</span>(<span class="st">&quot;gray80&quot;</span>, <span class="dv">1</span> <span class="sc">/</span> <span class="dv">4</span>), <span class="at">fill =</span> <span class="cn">NA</span>, <span class="at">size =</span> <span class="fl">0.15</span></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_c</span>(<span class="at">option =</span> <span class="st">&quot;plasma&quot;</span>, </span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>                       <span class="at">na.value =</span> <span class="st">&quot;grey80&quot;</span>, <span class="at">trans =</span> <span class="st">&quot;log10&quot;</span>) <span class="sc">+</span></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_sf</span>(<span class="at">crs =</span> <span class="fu">st_crs</span>(<span class="st">&quot;ESRI:102003&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">&quot;失业人口</span><span class="sc">\n</span><span class="st">&quot;</span>, </span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;2016-2020 年度美国各郡县失业人口&quot;</span>,</span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">&quot;数据源：美国人口调查局&quot;</span></span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>(<span class="at">base_size =</span> <span class="dv">13</span>) <span class="sc">+</span></span>
+<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb19-24"><a href="#cb19-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>),</span>
+<span id="cb19-25"><a href="#cb19-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.direction =</span> <span class="st">&quot;horizontal&quot;</span>,</span>
+<span id="cb19-26"><a href="#cb19-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">&quot;bottom&quot;</span>,</span>
+<span id="cb19-27"><a href="#cb19-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.justification =</span> <span class="st">&quot;right&quot;</span>,</span>
+<span id="cb19-28"><a href="#cb19-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>),</span>
+<span id="cb19-29"><a href="#cb19-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.caption =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="dv">0</span>, <span class="at">vjust =</span> <span class="dv">10</span>)</span>
+<span id="cb19-30"><a href="#cb19-30" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div>
+<div class="figure"><span style="display:block;" id="fig:fig-us-unemp-county"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-us-unemp-county-1.png" alt="2015-2020 年度美国各郡县失业人口" width="921.6" />
+<p class="caption">
+图 6.5: 2015-2020 年度美国各郡县失业人口
+</p>
+</div>
+<p>再以北卡州为例，看看各郡、各社区的失业情况。</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>nc_unemployed_county <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="at">file =</span> <span class="st">&quot;data/nc_unemployed_county.RDS&quot;</span>)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> nc_unemployed_county) <span class="sc">+</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="fu">aes</span>(<span class="at">fill =</span> B27011_008E), <span class="at">color =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_c</span>(<span class="at">option =</span> <span class="st">&quot;C&quot;</span>) <span class="sc">+</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>()</span></code></pre></div>
+<div class="figure"><span style="display:block;" id="fig:fig-nc-unemployed-county"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-nc-unemployed-county-1.png" alt="北卡州各郡县失业率" width="768" />
+<p class="caption">
+图 6.6: 北卡州各郡县失业率
+</p>
+</div>
+<div class="full-width">
+<div class="figure"><span style="display:block;" id="fig:fig-nc-unemployed-tract"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-nc-unemployed-tract-1.png" alt="北卡州各社区失业率" width="1152" />
+<p class="caption">
+图 6.7: 北卡州各社区失业率
+</p>
+</div>
+</div>
+<p>还有很多问题可以深入探索，比如根据美国历史至今的失业率变化情况，可否从中得到一些启示？美国人口调查局采用的失业率口径是什么？对失业率数据，采用空间区域平滑描述时空趋势变化。失业率居高不下，带来的连锁反应有哪些？继续以纽约、旧金山为例，犯罪率是否上升？CPI 是否上涨？利率是否变化？</p>
+</div>
+<div id="refer" class="section level1" number="7">
+<h1><span class="header-section-number">7</span> 参考文献</h1>
+<div id="refs" class="references csl-bib-body">
+<div id="ref-Wickham2016" class="csl-entry">
+<div class="csl-left-margin">[1] </div><div class="csl-right-inline"><span class="smallcaps">Wickham</span>, H. (2016). <em><a href="https://ggplot2.tidyverse.org"><span class="nocase">ggplot2</span>: Elegant graphics for data analysis</a></em>. Springer-Verlag New York.</div>
+</div>
+<div id="ref-maps2021" class="csl-entry">
+<div class="csl-left-margin">[2] </div><div class="csl-right-inline"><span class="smallcaps">Becker</span>, R. A., <span class="smallcaps">Wilks</span>, A. R., <span class="smallcaps">Brownrigg</span>, R., <span class="smallcaps">Minka</span>, T. P. and <span class="smallcaps">Deckmyn</span>, A. (2021). <em><a href="https://github.com/adeckmyn/maps"><span class="nocase">maps</span>: Draw geographical maps</a></em>.</div>
+</div>
+<div id="ref-mapproj2022" class="csl-entry">
+<div class="csl-left-margin">[3] </div><div class="csl-right-inline"><span class="smallcaps">McIlroy</span>, D., <span class="smallcaps">Brownrigg</span>, R., <span class="smallcaps">Minka</span>, T. P. and <span class="smallcaps">Bivand</span>, R. (2022). <em><a href="https://CRAN.R-project.org/package=mapproj"><span class="nocase">mapproj</span>: Map projections</a></em>.</div>
+</div>
+<div id="ref-Becker2018" class="csl-entry">
+<div class="csl-left-margin">[4] </div><div class="csl-right-inline"><span class="smallcaps">Becker</span>, R. A., <span class="smallcaps">Wilks</span>, A. R. and <span class="smallcaps">Brownrigg</span>, R. (2018). <em><a href="https://CRAN.R-project.org/package=mapdata"><span class="nocase">mapdata</span>: Extra map databases</a></em>.</div>
+</div>
+<div id="ref-Paul2002" class="csl-entry">
+<div class="csl-left-margin">[5] </div><div class="csl-right-inline"><span class="smallcaps">Murrell</span>, P. (2002). <a href="https://www.r-project.org/doc/Rnews/Rnews_2002-2.pdf">The <span class="nocase">grid</span> graphics package</a>. <em>R News</em> <strong>2</strong> 14–9.</div>
+</div>
+<div id="ref-Sarkar2008" class="csl-entry">
+<div class="csl-left-margin">[6] </div><div class="csl-right-inline"><span class="smallcaps">Sarkar</span>, D. (2008). <em><a href="http://lmdvr.r-forge.r-project.org"><span class="nocase">lattice</span>: Multivariate data visualization with <span>R</span></a></em>. Springer-Verlag, New York.</div>
+</div>
+<div id="ref-Deepayan2022" class="csl-entry">
+<div class="csl-left-margin">[7] </div><div class="csl-right-inline"><span class="smallcaps">Sarkar</span>, D. and <span class="smallcaps">Andrews</span>, F. (2022). <em><a href="https://CRAN.R-project.org/package=latticeExtra"><span class="nocase">latticeExtra</span>: Extra graphical utilities based on <span class="nocase">lattice</span></a></em>.</div>
+</div>
+<div id="ref-Wickham2022" class="csl-entry">
+<div class="csl-left-margin">[8] </div><div class="csl-right-inline"><span class="smallcaps">Wickham</span>, H. (2022). <em><a href="https://ggplot2-book.org/"><span class="nocase">ggplot2</span>: Elegant graphics for data analysis</a></em>. Springer-Verlag New York.</div>
+</div>
+<div id="ref-Pebesma2018" class="csl-entry">
+<div class="csl-left-margin">[9] </div><div class="csl-right-inline"><span class="smallcaps">Pebesma</span>, E. J. (2018). <a href="https://doi.org/10.32614/RJ-2018-009"><span class="nocase">Simple Features for R: Standardized Support for Spatial Vector Data</span></a>. <em><span>The R Journal</span></em> <strong>10</strong> 439–46.</div>
+</div>
+<div id="ref-tigris2022" class="csl-entry">
+<div class="csl-left-margin">[10] </div><div class="csl-right-inline"><span class="smallcaps">Walker</span>, K. (2022). <em><a href="https://CRAN.R-project.org/package=tigris"><span class="nocase">tigris</span>: Load census TIGER/line shapefiles</a></em>.</div>
+</div>
+<div id="ref-Walker2022" class="csl-entry">
+<div class="csl-left-margin">[11] </div><div class="csl-right-inline"><span class="smallcaps">Walker</span>, K. (2022). <em><a href="https://walker-data.com/census-r/">Analyzing US census data: Methods, maps, and models in r</a></em>. Chapman; Hall/CRC, Boca Raton, Florida.</div>
+</div>
+<div id="ref-rgdal2022" class="csl-entry">
+<div class="csl-left-margin">[12] </div><div class="csl-right-inline"><span class="smallcaps">Bivand</span>, R., <span class="smallcaps">Keitt</span>, T. and <span class="smallcaps">Rowlingson</span>, B. (2022). <em><a href="https://CRAN.R-project.org/package=rgdal"><span class="nocase">rgdal</span>: Bindings for the ’geospatial’ data abstraction library</a></em>.</div>
+</div>
+<div id="ref-Bivand2022" class="csl-entry">
+<div class="csl-left-margin">[13] </div><div class="csl-right-inline"><span class="smallcaps">Bivand</span>, R. and <span class="smallcaps">Lewin-Koh</span>, N. (2022). <em><a href="https://CRAN.R-project.org/package=maptools"><span class="nocase">maptools</span>: Tools for handling spatial objects</a></em>.</div>
+</div>
+<div id="ref-rgeos2021" class="csl-entry">
+<div class="csl-left-margin">[14] </div><div class="csl-right-inline"><span class="smallcaps">Bivand</span>, R. and <span class="smallcaps">Rundel</span>, C. (2021). <em><a href="https://CRAN.R-project.org/package=rgeos"><span class="nocase">rgeos</span>: Interface to geometry engine - open source (’GEOS’)</a></em>.</div>
+</div>
+<div id="ref-reproj2020" class="csl-entry">
+<div class="csl-left-margin">[15] </div><div class="csl-right-inline"><span class="smallcaps">Sumner</span>, M. D. (2020). <em><a href="https://CRAN.R-project.org/package=reproj"><span class="nocase">reproj</span>: Coordinate system transformations for generic map data</a></em>.</div>
+</div>
+<div id="ref-PROJ2020" class="csl-entry">
+<div class="csl-left-margin">[16] </div><div class="csl-right-inline"><span class="smallcaps">Sumner</span>, M. D. (2020). <em><a href="https://CRAN.R-project.org/package=PROJ"><span>PROJ</span>: Generic coordinate system transformations using ’PROJ’</a></em>.</div>
+</div>
+<div id="ref-Urbanek2022" class="csl-entry">
+<div class="csl-left-margin">[17] </div><div class="csl-right-inline"><span class="smallcaps">Urbanek</span>, S. (2022). <em><a href="https://CRAN.R-project.org/package=proj4"><span class="nocase">proj4</span>: A simple interface to the <span>PROJ.4</span> cartographic projections library</a></em>.</div>
+</div>
+<div id="ref-Pebesma2005" class="csl-entry">
+<div class="csl-left-margin">[18] </div><div class="csl-right-inline"><span class="smallcaps">Pebesma</span>, E. J. and <span class="smallcaps">Bivand</span>, R. S. (2005). <a href="https://CRAN.R-project.org/doc/Rnews/">Classes and methods for spatial data in <span>R</span></a>. <em>R News</em> <strong>5</strong> 9–13.</div>
+</div>
+<div id="ref-Kahle2013" class="csl-entry">
+<div class="csl-left-margin">[19] </div><div class="csl-right-inline"><span class="smallcaps">Kahle</span>, D. and <span class="smallcaps">Wickham</span>, H. (2013). <a href="https://journal.r-project.org/archive/2013-1/kahle-wickham.pdf"><span class="nocase">ggmap</span>: Spatial visualization with <span class="nocase">ggplot2</span></a>. <em>The R Journal</em> <strong>5</strong> 144–61.</div>
+</div>
+<div id="ref-Loecher2015" class="csl-entry">
+<div class="csl-left-margin">[20] </div><div class="csl-right-inline"><span class="smallcaps">Loecher</span>, M. and <span class="smallcaps">Ropkins</span>, K. (2015). <a href="http://www.jstatsoft.org/v63/i04/"><span>RgoogleMaps</span> and <span class="nocase">loa</span>: Unleashing <span>R</span> graphics power on map tiles</a>. <em>Journal of Statistical Software</em> <strong>63</strong> 1–18.</div>
+</div>
+<div id="ref-Hengl2015" class="csl-entry">
+<div class="csl-left-margin">[21] </div><div class="csl-right-inline"><span class="smallcaps">Hengl</span>, T., <span class="smallcaps">Roudier</span>, P., <span class="smallcaps">Beaudette</span>, D. and <span class="smallcaps">Pebesma</span>, E. (2015). <a href="https://www.jstatsoft.org/v63/i05/"><span class="nocase">plotKML</span>: Scientific visualization of spatio-temporal data</a>. <em>Journal of Statistical Software</em> <strong>63</strong> 1–25.</div>
+</div>
+<div id="ref-Brown2016" class="csl-entry">
+<div class="csl-left-margin">[22] </div><div class="csl-right-inline"><span class="smallcaps">Brown</span>, P. E. (2016). <a href="https://journal.r-project.org/archive/2016-1/brown.pdf">Maps, coordinate reference systems and visualising geographic data with <span class="nocase">mapmisc</span></a>. <em><span>R Journal</span></em> <strong>8</strong> 64–91.</div>
+</div>
+<div id="ref-Tennekes2018" class="csl-entry">
+<div class="csl-left-margin">[23] </div><div class="csl-right-inline"><span class="smallcaps">Tennekes</span>, M. (2018). <a href="https://doi.org/10.18637/jss.v084.i06"><span class="nocase">tmap</span>: Thematic maps in <span>R</span></a>. <em>Journal of Statistical Software</em> <strong>84</strong> 1–39.</div>
+</div>
+<div id="ref-leaflet2022" class="csl-entry">
+<div class="csl-left-margin">[24] </div><div class="csl-right-inline"><span class="smallcaps">Cheng</span>, J., <span class="smallcaps">Karambelkar</span>, B. and <span class="smallcaps">Xie</span>, Y. (2022). <em><a href="https://CRAN.R-project.org/package=leaflet">Leaflet: Create interactive web maps with the JavaScript ’leaflet’ library</a></em>.</div>
+</div>
+<div id="ref-Qiu2015" class="csl-entry">
+<div class="csl-left-margin">[25] </div><div class="csl-right-inline"><span class="smallcaps">Qiu</span>, Y. (2015). <a href="https://doi.org/10.32614/RJ-2015-008"><span class="nocase">showtext</span>: Using system fonts in <span>R</span> graphics</a>. <em><span>The R Journal</span></em> <strong>7</strong> 99–108.</div>
+</div>
+<div id="ref-Garnier2021" class="csl-entry">
+<div class="csl-left-margin">[26] </div><div class="csl-right-inline"><span class="smallcaps">Garnier</span>, <span class="smallcaps">Simon</span>, <span class="smallcaps">Ross</span>, <span class="smallcaps">Noam</span>, <span class="smallcaps">Rudis</span>, <span class="smallcaps">Robert</span>, <span class="smallcaps">Camargo</span>, <span class="smallcaps">Pedro</span>, A., <span class="smallcaps">Sciaini</span>, <span class="smallcaps">Marco</span>, <span class="smallcaps">Scherer</span> and <span class="smallcaps">Cédric</span>. (2021). <em><a href="https://doi.org/10.5281/zenodo.4679424"><span class="nocase">viridis</span> - colorblind-friendly color maps for r</a></em>.</div>
+</div>
+<div id="ref-gganimate2022" class="csl-entry">
+<div class="csl-left-margin">[27] </div><div class="csl-right-inline"><span class="smallcaps">Pedersen</span>, T. L. and <span class="smallcaps">Robinson</span>, D. (2022). <em><a href="https://CRAN.R-project.org/package=gganimate"><span class="nocase">gganimate</span>: A grammar of animated graphics</a></em>.</div>
+</div>
+<div id="ref-echarts4r2022" class="csl-entry">
+<div class="csl-left-margin">[28] </div><div class="csl-right-inline"><span class="smallcaps">Coene</span>, J. (2022). <em><a href="https://CRAN.R-project.org/package=echarts4r"><span class="nocase">echarts4r</span>: Create interactive graphs with <span>Echarts JavaScript</span> version 5</a></em>.</div>
+</div>
+<div id="ref-Sievert2020" class="csl-entry">
+<div class="csl-left-margin">[29] </div><div class="csl-right-inline"><span class="smallcaps">Sievert</span>, C. (2020). <em><a href="https://plotly-r.com">Interactive web-based data visualization with <span>R</span>, <span class="nocase">plotly</span>, and <span class="nocase">shiny</span></a></em>. Chapman; Hall/CRC.</div>
+</div>
+<div id="ref-Xie2018" class="csl-entry">
+<div class="csl-left-margin">[30] </div><div class="csl-right-inline"><span class="smallcaps">Xie</span>, Y., <span class="smallcaps">Allaire</span>, J. J. and <span class="smallcaps">Grolemund</span>, G. (2018). <em><a href="https://bookdown.org/yihui/rmarkdown"><span>R Markdown</span>: The definitive guide</a></em>. Chapman; Hall/CRC, Boca Raton, Florida.</div>
+</div>
+<div id="ref-Xie2017" class="csl-entry">
+<div class="csl-left-margin">[31] </div><div class="csl-right-inline"><span class="smallcaps">Xie</span>, Y., <span class="smallcaps">Hill</span>, A. P. and <span class="smallcaps">Thomas</span>, A. (2017). <em><a href="https://bookdown.org/yihui/blogdown/"><span class="nocase">blogdown</span>: Creating websites with <span>R</span> markdown</a></em>. Chapman; Hall/CRC, Boca Raton, Florida.</div>
+</div>
+</div>
+</div>
+<div id="session" class="section level1" number="8">
+<h1><span class="header-section-number">8</span> 环境信息</h1>
+<p>在 RStudio IDE 内编辑本文的 R Markdown 源文件<span class="citation">[<a href="#ref-Xie2018" role="doc-biblioref">30</a>]</span>，用 <strong>blogdown</strong> <span class="citation">[<a href="#ref-Xie2017" role="doc-biblioref">31</a>]</span>构建网站，<a href="https://github.com/gohugoio/hugo">Hugo</a> 渲染 knitr 之后的 Markdown 文件，得益于 <strong>blogdown</strong> 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>xfun<span class="sc">::</span><span class="fu">session_info</span>(<span class="at">packages =</span> <span class="fu">c</span>(</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;knitr&quot;</span>, <span class="st">&quot;rmarkdown&quot;</span>, <span class="st">&quot;blogdown&quot;</span>, </span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;maps&quot;</span>, <span class="st">&quot;mapproj&quot;</span>, <span class="st">&quot;lattice&quot;</span>, <span class="st">&quot;latticeExtra&quot;</span>,</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;sf&quot;</span>, <span class="st">&quot;tidycensus&quot;</span>, <span class="st">&quot;tigris&quot;</span>, <span class="st">&quot;showtext&quot;</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>), <span class="at">dependencies =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="co"># R version 4.2.2 (2022-10-31)</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Platform: x86_64-apple-darwin17.0 (64-bit)</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Running under: macOS Big Sur ... 10.16</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8</span></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Package version:</span></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a><span class="co">#   blogdown_1.15       knitr_1.41          lattice_0.20-45    </span></span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a><span class="co">#   latticeExtra_0.6-30 mapproj_1.2.9       maps_3.4.1         </span></span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a><span class="co">#   rmarkdown_2.18      sf_1.0-9            showtext_0.9-5     </span></span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a><span class="co">#   tidycensus_1.2.3    tigris_1.6.1       </span></span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Pandoc version: 2.19.2</span></span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Hugo version: 0.108.0</span></span></code></pre></div>
+</div>
