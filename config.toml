@@ -48,12 +48,6 @@ rssLimit = 10
 
     GithubEdit = "https://github.com/rbind/xiangyun/edit/master/content/"
 
-[params.logo]
-    url = "logo/hugo.svg"
-    width = 50
-    height = 50
-    alt = "Xiangyun Huang"
-
 [markup]
     [markup.goldmark.renderer]
       unsafe = true
