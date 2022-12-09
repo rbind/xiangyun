@@ -19,7 +19,6 @@ tags:
 output:
   blogdown::html_page:
     toc: true
-    highlight: pygments
     number_sections: true
 link-citations: true
 math: true
@@ -817,6 +816,7 @@ ggplot() +
 xfun::session_info(packages = c(
   "knitr", "rmarkdown", "blogdown", 
   "maps", "mapproj", "lattice", "latticeExtra",
-  "sf", "tidycensus", "tigris", "showtext"
+  "sf", "tidycensus", "tigris", "showtext",
+  "ggplot2", "RSQLite", "wbstats"
 ), dependencies = FALSE)
 ```
