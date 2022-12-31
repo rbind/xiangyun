@@ -5,6 +5,7 @@ options(
   blogdown.warn.future = FALSE,
   blogdown.method = 'html',
   digits = 4, formatR.indent = 2, 
+  servr.port = 4322,
   blogdown.yaml.empty = FALSE, 
   blogdown.rename_file = TRUE,
   blogdown.title_case = function(x) {
