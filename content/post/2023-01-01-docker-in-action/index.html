@@ -1,7 +1,7 @@
 ---
 title: Docker 从入门到实战
 author: 黄湘云
-date: '2023-01-03'
+date: '2023-01-04'
 slug: docker-in-action
 categories:
   - 统计软件
@@ -97,7 +97,7 @@ description: "以打造书籍配套的运行环境为例，学习 Docker 基本�
 <img src="img/docker.svg" style="width:35.0%" alt="" />
 <p class="caption">图 1.3:  Docker</p>
 </div>
-<p>目前打包了两个 Docker 镜像，本地开发推荐标准版 Docker 镜像，包含 Ｒ 软件、常见系统依赖、RStudio Server。本地复现书籍内容推荐专业版 Docker 镜像，包含更多的 Ｒ包、更多的系统依赖、Python 虚拟环境、CmdStan 框架、配置 Quarto 及 Pandoc等。专业版是在标准版的基础上又添加许多书籍开发和测试的软件工具。因为知道书籍项目的依赖很多，又存在前述诸多不熟悉的地方，开发 Dockerfile 是分阶段进行的，首先在本地开发的标准版 Dockerfile，然后是专业版，期间又学习了 GitHub Action，利用 GitHub Action提供的环境构建专业版 Docker镜像。<a href="https://github.com/actions/runner-images">GitHub Action 是基于虚拟机的</a>，使用自定义容器的目的是方便维护和复现书籍内容，可重复性的重要支持。</p>
+<p>目前打包了两个 Docker 镜像，本地开发推荐标准版 Docker 镜像，包含 Ｒ 软件、常见系统依赖、RStudio Server。本地复现书籍内容推荐专业版 Docker 镜像，包含更多的 Ｒ包、更多的系统依赖、Python 虚拟环境、CmdStan 框架、配置 Quarto 及 Pandoc等。专业版是在标准版的基础上又添加许多书籍开发和测试的软件工具。因为知道书籍项目的依赖很多，又存在前述诸多不熟悉的地方，开发 Dockerfile 是分阶段进行的，首先在本地开发的标准版 Dockerfile，然后是专业版，期间又学习了 GitHub Action，利用 GitHub Action提供的环境构建专业版 Docker镜像。<a href="https://github.com/actions/runner-images">GitHub Action 是基于虚拟机的</a>，使用自定义容器的目的是方便维护和复现书籍内容，提供可重复性的重要支持。</p>
 <div class="figure"><span style="display:block;" id="fig:data-analysis"></span>
 <img src="img/data-analysis.svg" alt="" />
 <p class="caption">图 1.4:  《R 语言数据分析实战》</p>
@@ -242,6 +242,9 @@ echo &#39;docker:docker123&#39; | chpasswd</code></pre>
 <pre><code>Error: Incorrect or invalid username/password</code></pre>
 <p>还可以顺便添加到 <code>/etc/sudoers</code> 文件中，以便使用 sudo 命令。下面将 docker 用户添加到 sudoers 文件中，以后可以在 RStudio 的 Terminal 窗口中使用 sudo 命令安装系统仓库中的软件。</p>
 <pre><code>echo &quot;docker	ALL=(ALL) 	ALL&quot; &gt;&gt; /etc/sudoers</code></pre>
+<p>进一步，如果想连密码都不需要输入就可以安装系统软件，那么可以</p>
+<pre><code>echo &quot;docker	ALL=(ALL) 	NOPASSWD: ALL&quot; &gt;&gt; /etc/sudoers</code></pre>
+<p>更多说明可以见文件 <code>/etc/sudoers</code> 的内容。</p>
 </div>
 <div id="setup-r" class="section level2" number="2.5">
 <h2><span class="header-section-number">2.5</span> 安装配置 R 软件</h2>
@@ -739,6 +742,9 @@ install_weak_deps=False</code></pre>
   --privileged=true -v &quot;/${PWD}:/home/docker&quot; \
   -e USER=docker -e PASSWORD=docker123 ghcr.io/xiangyunhuang/daar:latest</code></pre>
 <p>接着，将此用户作为登陆 RStudio 的用户，RStudio 不允许 root 账户登陆的。是否需要将该用户添加到 sudoers 文件中，也是可以通过这种方式控制的，比如再传递变量 <code>-e ROOT=true</code> 赋予用户管理员权限，这部分留待读者去实现。</p>
+<div class="rmdnote">
+<p>Github Action 调用自定义的镜像运行容器，仅支持在容器中以 root 身份运行命令，详见<a href="https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#docker-container-filesystem">链接</a>。以上配置的 docker 账户是不能在 Github Action 中使用的。<code>docker run</code> 命令 <code>-u</code> 参数指定以哪个账户在容器运行命令，本地是可以的。</p>
+</div>
 </div>
 </div>
 <div id="summary" class="section level1" number="4">
