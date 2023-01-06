@@ -77,8 +77,8 @@ description: "以打造书籍配套的运行环境为例，学习 Docker 基本�
 <p>首先我想说一下此番折腾和写作的目的：</p>
 <ol style="list-style-type: decimal">
 <li>记录折腾的过程，下次折腾的时候可以续上，而不是又一次从头来过，每一次梳理都产出一篇技术博客，培养写作能力，写书正好需要。</li>
-<li>构建书籍所需的开发、测试环境，满足书中代码和内容的可重复性，方便读者上机操作，也方便作者在同一环境下协作，更方便后期维护在线版书籍，与社区互动。</li>
-<li>CRAN 检查 R 包质量的机器中包含 Fedora 36（截止写作时间），在可预见的未来会继续使用 Fedora，打造一个基于 Fedora 的容器，以便将来开发、检查和发布 R 包。书籍写作待到合适时候，随附的数据和代码以Ｒ包的形式独立出来，涉及Ｒ包开发、测试和发布，也需要开发环境。</li>
+<li><a href="https://www.docker.com/">Docker</a> 构建书籍<a href="https://github.com/XiangyunHuang/data-analysis-in-action">《R 语言数据分析实战》</a>所需的开发、测试环境，满足书中代码和内容的可重复性，方便读者上机操作，也方便作者在同一环境下协作，更方便后期维护在线版书籍，与社区互动。</li>
+<li><a href="https://cran.r-project.org/">CRAN</a> 检查 R 包质量的机器中包含 Fedora 36（截止写作时间），在可预见的未来会继续使用 <a href="https://getfedora.org/">Fedora</a>，打造一个基于 Fedora 的容器，以便将来开发、检查和发布 R 包。书籍写作待到合适时候，随附的数据和代码以Ｒ包的形式独立出来，涉及Ｒ包开发、测试和发布，也需要开发环境。</li>
 </ol>
 <div class="rmdtip">
 <p>在没有特别说明的情况下，下文提及的 RStudio 表示 RStudio Server 2022.12.0，Fedora 表示 Fedora 37。</p>
@@ -87,18 +87,18 @@ description: "以打造书籍配套的运行环境为例，学习 Docker 基本�
 <img src="img/rstudio-fedora.svg" alt="" />
 <p class="caption">图 1.1:  本地和在线开发、测试环境</p>
 </div>
-<p>以前，我曾在 Windows 系统上安装虚拟机 Oracle VM VirtualBox，然后在<a href="/2019/05/rstudio-server-fedora/">虚拟机内安装 Fedora</a>，再从源码编译安装 RStudio Server，在 VM （Virtual Machine 虚拟机，我主要用的是 Oracle VM VirtualBox）和 Docker 里折腾过 CentOS 6/7 和 Ubuntu 等系统，基本属于浅尝辄止，干了不少从源码编译的事情，软件装好了，但是没咋用它。装软件比用软件的时间多，时间久了，越装越快，越装越多，把 Fedora、RedHat 和 openSUSE 也装了一遍。这几年，RStudio 对 Fedora 提供更好的支持，可以通过 Fedora 的官方软件仓库安装 RStudio Server，这极大地方便了用户 —- RStudio (Server) :heart: Fedora (Server)。</p>
+<p>以前，我曾在 Windows 系统上安装虚拟机 <a href="https://www.virtualbox.org/">Oracle VM VirtualBox</a>，然后在<a href="/2020/05/linux-distribution/">虚拟机内安装 Fedora</a>，再从<a href="/2019/05/rstudio-server-fedora/">源码编译安装 RStudio Server</a>，在 VM （Virtual Machine 虚拟机，我主要用的是 Oracle VM VirtualBox）和 <a href="https://www.docker.com/">Docker</a> 里折腾过 <a href="https://www.centos.org/">CentOS</a> 和 <a href="https://ubuntu.com/download/server">Ubuntu</a> 等系统，基本属于浅尝辄止，干了不少从源码编译的事情，软件装好了，但是没咋用它。装软件比用软件的时间多，时间久了，越装越快，越装越多，把 Fedora、RedHat 和 openSUSE 也装了一遍。这几年，RStudio 对 Fedora 提供更好的支持，可以通过 Fedora 的官方软件仓库安装 RStudio Server，这极大地方便了用户 —- RStudio (Server) :heart: Fedora (Server)。</p>
 <div class="figure"><span style="display:block;" id="fig:fedora"></span>
 <img src="img/fedora-logo.svg" style="width:55.0%" alt="" />
 <p class="caption">图 1.2:  Fedora</p>
 </div>
-<p>有了上面的基础，感觉打造基于 Fedora 的数据分析环境的时机到了。那么，先拿我的书籍项目来试水吧。借助 GitHub Action 构建 Docker 镜像，再让 GitHub Action 用自己构建的 Docker镜像编译书籍。对我来说会有一些挑战，需要了解一点Fedora 37 系统及其软件管理器 dnf，一些 Linux 常用命令，Docker 常用命令，Dockerfile 常用命令，Ｒ包及其依赖，笔者基础薄弱，边学边用，边折腾边积累。做完之后，感觉有点复杂，但是不难，本文会尽量详加介绍此番折腾的过程，作为入门级教程应该足够。对自己的这番折腾总结一下，就是对软件工具有所了解，但原理不清楚，做的是胶水工作，不够硬核和底层。</p>
+<p>有了上面的基础，感觉打造基于 Fedora 的数据分析环境的时机到了。那么，先拿我的书籍项目来试水吧。借助 GitHub Action 构建 Docker 镜像，再让 <a href="https://docs.github.com/en/actions">GitHub Action</a> 用自己构建的 Docker 镜像编译书籍。对我来说会有一些挑战，需要了解一点 Fedora 37 系统及其包管理器 dnf，一些 Linux 常用命令，Docker 常用命令，Dockerfile 常用命令，Ｒ包及其依赖，笔者基础薄弱，边学边用，边折腾边积累。做完之后，感觉有点复杂，但是不难，本文会尽量详加介绍此番折腾的过程，作为入门级教程应该足够。对自己的这番折腾总结一下，就是对软件工具有所了解，但原理不清楚，做的是胶水工作，不够硬核和底层。</p>
 <div class="figure"><span style="display:block;" id="fig:docker"></span>
 <img src="img/docker.svg" style="width:35.0%" alt="" />
 <p class="caption">图 1.3:  Docker</p>
 </div>
-<p>Docker 镜像以打包的方式处理依赖问题。其一软件依赖，比如书籍项目要求 Ｒ版本 4.2.0 及以上，截止本文发布时间，tensorflow 要求 Python 3.7 至 3.10。在不从源码编译的情况下，Fedora 37 只有 Python 3.11.x，Fedora 36 仅支持 R 4.1.x。其二 Ｒ包依赖，从Ｒ包官网了解 R 包依赖及其对系统软件的依赖。这次直接使用 Fedora 37 了事，不想在 Fedora 36 上从源码编译 R 软件，而 tensorflow 过段时间肯定会支持新版本 Python 3.11.x<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>。在构建 Docker 镜像时，没有从源码编译 R、Python、TinyTeX 等软件，是因为 Fedora 系统更新快，内置的软件版本比较新，足够满足书籍开发所需，用不着从源码编译，也省心省力，何乐不为。</p>
-<p>目前打包了两个 Docker 镜像，本地开发推荐标准版 Docker 镜像，包含 Ｒ 软件、常见系统依赖、RStudio Server。本地复现书籍内容推荐专业版 Docker 镜像，包含更多的 Ｒ包、更多的系统依赖、Python 虚拟环境、CmdStan 框架、配置 Quarto 及 Pandoc等。专业版是在标准版的基础上又添加许多书籍开发和测试的软件工具。因为知道书籍项目的依赖很多，又存在前述诸多不熟悉的地方，开发 Dockerfile 是分阶段进行的，首先在本地开发的标准版 Dockerfile，然后是专业版，期间又学习了 GitHub Action，利用 GitHub Action提供的环境构建专业版 Docker镜像。<a href="https://github.com/actions/runner-images">GitHub Action 是基于虚拟机的</a>，使用自定义容器的目的是方便维护和复现书籍内容，提供可重复性的重要支持。</p>
+<p>Docker 镜像以打包的方式处理依赖问题。其一软件依赖，比如书籍项目要求 Ｒ版本 4.2.0 及以上，截止本文发布时间，<a href="https://github.com/tensorflow/tensorflow">tensorflow</a> 要求 Python 3.7 至 3.10。在不从源码编译的情况下，Fedora 37 只有 Python 3.11.x，Fedora 36 仅支持 R 4.1.x。其二 Ｒ包依赖，从Ｒ包官网了解 R 包依赖及其对系统软件的依赖。这次直接使用 Fedora 37 了事，不想在 Fedora 36 上从源码编译 R 软件，而 tensorflow 过段时间肯定会支持新版本 Python 3.11.x<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>。在构建 Docker 镜像时，没有从源码编译 R、<a href="https://www.python.org/">Python</a>、<a href="https://github.com/rstudio/tinytex-releases">TinyTeX</a> 等软件，是因为 Fedora 系统更新快，内置的软件版本比较新，足够满足书籍开发所需，用不着从源码编译，也省心省力，何乐不为。</p>
+<p>目前打包了两个 Docker 镜像，本地开发推荐标准版 Docker 镜像，包含 Ｒ 软件、常见系统依赖、RStudio Server。本地复现书籍内容推荐专业版 Docker 镜像，包含更多的 Ｒ包、更多的系统依赖、Python <a href="https://github.com/pypa/virtualenv">虚拟环境</a>、<a href="https://github.com/stan-dev/cmdstan">CmdStan</a> 框架、配置 <a href="https://quarto.org/">Quarto</a> 及 <a href="https://github.com/jgm/pandoc">Pandoc</a> 等。专业版是在标准版的基础上又添加许多书籍开发和测试的软件工具。因为知道书籍项目的依赖很多，又存在前述诸多不熟悉的地方，开发 Dockerfile 是分阶段进行的，首先在本地开发的标准版 Dockerfile，然后是专业版，期间又学习了 GitHub Action，利用 GitHub Action提供的环境构建专业版 Docker 镜像。<a href="https://github.com/actions/runner-images">GitHub Action 是基于虚拟机的</a>，使用自定义容器的目的是方便维护和复现书籍内容，提供可重复性的重要支持。</p>
 <div class="figure"><span style="display:block;" id="fig:data-analysis"></span>
 <img src="img/data-analysis.svg" alt="" />
 <p class="caption">图 1.4:  《R 语言数据分析实战》</p>
@@ -106,7 +106,7 @@ description: "以打造书籍配套的运行环境为例，学习 Docker 基本�
 </div>
 <div id="develop-dockerfile" class="section level1" number="2">
 <h1><span class="header-section-number">2</span> 开发 Dockerfile — 入门篇</h1>
-<p>Dockerfile 文件主要包含一系列命令操作，看起来像是将 Shell 命令搬迁到文件中。接下来，陆续介绍 Dockerfile 里的内容，涉及常用的 Docker 命令，一起制作和使用 Docker 镜像。</p>
+<p>Dockerfile 文件主要包含一系列命令操作，看起来像是将 Shell 命令搬迁到文件中。接下来陆续介绍 Dockerfile 里的内容，让我们一起来制作和使用 Docker 镜像吧，这首先涉及一些基础的 Docker 命令。</p>
 <table>
 <thead>
 <tr class="header">
@@ -227,20 +227,23 @@ docker exec -it daar bash</code></pre>
 </dd>
 <dt><code>-v</code></dt>
 <dd>
-即 <code>--volume</code> 挂载主机目录到容器中的目录，主机和容器共享目录
+即 <code>--volume</code> 挂载主机目录到容器中的目录，主机和容器共享目录，这也是一种通信
 </dd>
 </dl>
 </div>
 <div id="配置标准用户账户" class="section level2" number="2.4">
 <h2><span class="header-section-number">2.4</span> 配置标准用户账户</h2>
-<p>先创建非 root 的普通用户账户，设置好密码。如下便是创建用户组 staff，再创建用户 docker 并把它添加到 staff 组中。</p>
+<p>先创建非 root 的普通用户账户，如下创建用户组 staff，再创建用户 docker 并把它添加到 staff 组中，最后设置密码。</p>
 <pre><code># 添加用户组 staff 及用户 docker
 groupadd staff \
   &amp;&amp; useradd -g staff -d /home/docker docker
 # 设置用户 docker 的密码为 docker123
 echo &#39;docker:docker123&#39; | chpasswd</code></pre>
-<p>如果用户账户及密码不对，则会报下面的错误。</p>
+<p>如果用户账户及密码不对，则登陆 RStudio Server 时会报下面的错误。</p>
 <pre><code>Error: Incorrect or invalid username/password</code></pre>
+<div class="rmdwarn">
+<p>RStudio Server 不允许以 root 账户登陆的，必须创建普通账户，可以给普通账户授予管理员权限，安装系统软件。</p>
+</div>
 <p>还可以顺便添加到 <code>/etc/sudoers</code> 文件中，以便使用 sudo 命令。下面将 docker 用户添加到 sudoers 文件中，以后可以在 RStudio 的 Terminal 窗口中使用 sudo 命令安装系统仓库中的软件。</p>
 <pre><code>echo &quot;docker	ALL=(ALL) 	ALL&quot; &gt;&gt; /etc/sudoers</code></pre>
 <p>进一步，如果想连密码都不需要输入就可以安装系统软件，那么可以</p>
@@ -249,7 +252,7 @@ echo &#39;docker:docker123&#39; | chpasswd</code></pre>
 </div>
 <div id="setup-r" class="section level2" number="2.5">
 <h2><span class="header-section-number">2.5</span> 安装配置 R 软件</h2>
-<p>安装 R-devel 自不必说，安装 R-littler 和 R-littler-examples 是为了在命令行快速地安装 R 包，配置软链接相当于快捷方式，再设置 CRAN 镜像、R 包安装目录和 R 运行的语言环境，最后用快捷方式安装两个 R 包。</p>
+<p>安装 R-devel 自不必说，安装 R-littler 和 R-littler-examples 是为了在命令行快速地安装 R 包，配置软链接相当于快捷方式，再设置 CRAN 镜像地址、R 包安装目录和 R 运行的语言环境，最后用快捷方式安装两个 R 包。</p>
 <pre><code># 安装 R 软件
 dnf -y R-devel R-littler R-littler-examples
 # 配置 R 软件
@@ -296,7 +299,7 @@ dnf -y install rstudio-server \
 </div>
 <p>RStudio Server 服务默认使用 8787 端口，浏览器登录使用服务，需要做主机端口和容器服务端口的映射，容器内需要暴露 8787 端口。</p>
 <pre><code>EXPOSE 8787/tcp</code></pre>
-<p>默认情况下，启动容器是不会启动任何服务的，包括一些系统服务，如 systemd。因此需要添加如下命令，告诉系统初始化。</p>
+<p>默认情况下，启动容器是不会启动任何服务的，包括一些系统服务，如 <a href="https://systemd.io/">systemd</a>。因此需要添加如下命令，告诉系统初始化。</p>
 <pre><code>CMD [ &quot;/sbin/init&quot; ]</code></pre>
 <div class="rmdwarn">
 <p>若系统初始化时不启动 systemd 服务，在使用 R 语言操作跟时区、日期相关的包和函数时，会报警告。</p>
@@ -313,7 +316,7 @@ Failed to connect to bus: Host is down</code></pre>
 </div>
 <div id="setup-latex" class="section level2" number="2.7">
 <h2><span class="header-section-number">2.7</span> 安装一些 LaTeX 宏包</h2>
-<p>在以上述方式安装 R 软件的同时，会安装不少 LaTeX 宏包，为了能在 R Markdown 文档中使用中文环境，编译出 PDF 格式文档，还需要安装一些额外的 LaTeX 宏包。</p>
+<p>在以上述方式安装 R 软件的同时，会安装不少 LaTeX 宏包，为了能在 R Markdown 文档中使用中文环境，编译出 PDF 格式文档，还需要安装一些额外的 LaTeX 宏包，如 <a href="https://ctan.org/pkg/ctex">texlive-ctex</a> 和 <a href="https://ctan.org/pkg/fandol">texlive-fandol</a> 等，英文字体包选用 <a href="https://ctan.org/pkg/sourceserifpro">texlive-sourceserifpro</a>、<a href="https://ctan.org/pkg/sourcecodepro">texlive-sourcecodepro</a>、<a href="https://ctan.org/pkg/sourcesanspro">texlive-sourcesanspro</a> 三件套。</p>
 <pre><code>dnf -y install texlive-sourceserifpro \
    texlive-sourcecodepro \
    texlive-sourcesanspro \
@@ -367,9 +370,9 @@ Failed to connect to bus: Host is down</code></pre>
 <li>passwd 提供 chpasswd 命令修改账户密码（必须）</li>
 <li>initscripts 连带 systemd 一起安装，系统初始化启动脚本（必须）</li>
 <li>bzip2 文件（夹）压缩命令（可选）</li>
+<li>python3-virtualenv 创建 Python 虚拟环境（可选）</li>
 <li>cargo R 包 gifski 需要（可选）</li>
 <li>firewalld 启用防火墙服务（可选）</li>
-<li>python3-virtualenv 创建 Python 虚拟环境（可选）</li>
 </ul>
 <pre><code>dnf -y install glibc-langpack-en \
    automake \
@@ -412,7 +415,7 @@ WORKDIR /home/docker/</code></pre>
 <h2><span class="header-section-number">2.11</span> 本地发布 Docker 镜像</h2>
 <p>一切正常后，推送到 Docker Hub。</p>
 <pre><code>docker push xiangyunhuang/daar:latest</code></pre>
-<p>常常不是一次性成功的，有时候需要修改镜像，进入容器中，添加一些环境依赖后，退出容器，想把新的内容加入镜像。从容器快照，打包镜像，提交容器，操作效果类似 <code>git commit -m</code>。</p>
+<p>常常不是一次性成功的，有时候需要修改镜像，进入容器中，添加一些环境依赖后，退出容器，再把新的内容加入镜像，从容器快照，打包镜像，提交容器，操作效果类似 <code>git commit -m</code>。</p>
 <pre class="bash"><code>docker commit -a &quot;Xiangyun Huang &lt;xiangyunfaith@outlook.com&gt;&quot; \
  -m &quot;Docker Image for Book&quot; f8bb7e701514 xiangyunhuang/daar:1.0.0</code></pre>
 <ul>
@@ -438,12 +441,12 @@ WORKDIR /home/docker/</code></pre>
 <img src="img/docker-image-size.png" alt="" />
 <p class="caption">图 2.3:  Docker 镜像解压缩后近 8.4 G</p>
 </div>
-<p>进入容器后，通过命令 top 可以看到启动的服务及其状态信息，可以看到 RStudio Server 服务随着容器启动后自动加载了。</p>
+<p>进入容器后，通过命令 top 可以看到启动的服务及其状态信息，看到 RStudio Server 服务随着容器启动后自动加载了。</p>
 <div class="figure"><span style="display:block;" id="fig:rstudio-server-status"></span>
 <img src="img/rstudio-server-status.png" alt="" />
 <p class="caption">图 2.4:  RStudio Server 服务以开机启动</p>
 </div>
-<p>容器中已安装的<a href="data/installed_fonts.txt">字体</a>、<a href="data/installed_packages.txt">软件包</a>、<a href="data/installed_r_packages.txt">R 包</a>和 <a href="data/installed_texlive.txt">texlive 发行版</a>，点击链接即可查看具体内容，可以搜索查找是否已安装<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>。</p>
+<p>容器中已安装的<a href="data/installed_fonts.txt">字体</a>、<a href="data/installed_packages.txt">软件包</a>、<a href="data/installed_r_packages.txt">R 包</a>和 <a href="data/installed_texlive.txt">texlive 发行版</a>，点击链接即可查看具体内容，以后若想加一些软件，可以搜索查找是否已安装<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>。</p>
 <p>现在，可以从浏览器网址 <a href="http://localhost:8383/" class="uri">http://localhost:8383/</a> 登陆 RStudio Server， 登陆页见下图 <a href="#fig:rstudio-server-login">2.5</a></p>
 <div class="figure"><span style="display:block;" id="fig:rstudio-server-login"></span>
 <img src="img/rstudio-server-login.png" alt="" />
@@ -474,8 +477,8 @@ WORKDIR /home/docker/</code></pre>
 <p class="caption">图 2.7:  RStudio Server 与主机共享文件和目录</p>
 </div>
 <ol style="list-style-type: decimal">
-<li>除了 X11、 aqua 和 libxml 都支持，已然足够使用。</li>
-<li>可以看到主机通过挂载方式共享的文件目录</li>
+<li>除了 X11（桌面版才可以有）、 aqua（macOS 专属）和 libxml 外，都支持，已然足够使用。</li>
+<li>可以看到主机通过挂载方式共享的文件目录。</li>
 </ol>
 <p><code>sessionInfo()</code> 查看当前运行窗口的会话（Session）信息</p>
 <div class="figure"><span style="display:block;" id="fig:rstudio-server-session"></span>
@@ -487,7 +490,7 @@ WORKDIR /home/docker/</code></pre>
 <h2><span class="header-section-number">2.13</span> Docker 参数作为环境变量</h2>
 <div id="设置-python-虚拟环境" class="section level3" number="2.13.1">
 <h3><span class="header-section-number">2.13.1</span> 设置 Python 虚拟环境</h3>
-<p>书中数据建模的部分打算介绍一些深度学习的内容，涉及 Python 模块 tensorflow，设置 Python 虚拟环境，让 R 包 reticulate 能够发现和使用它。</p>
+<p>书中数据建模的部分打算介绍一些深度学习的内容，涉及 Python 模块 tensorflow，设置 Python 虚拟环境，让 R 包 <a href="https://github.com/rstudio/reticulate">reticulate</a> 能够发现和使用它。</p>
 <pre><code># Set Python virtualenv
 ENV RETICULATE_PYTHON_ENV=$RETICULATE_PYTHON_ENV
 ENV RETICULATE_PYTHON=${RETICULATE_PYTHON_ENV}/bin/python
@@ -509,14 +512,14 @@ NOTE: Python version was forced by RETICULATE_PYTHON</code></pre>
 </div>
 <div id="安装开发版-r-包" class="section level3" number="2.13.2">
 <h3><span class="header-section-number">2.13.2</span> 安装开发版 R 包</h3>
-<p>书中使用了一些存放在 Github 上的 R 包，它们还没有发布在 CRAN 上或者书籍本身需要开发版的 R 包。Github 有访问量限制， 只有设置个人访问令牌才不会超额。从 Github 上安装 R 包时，借助 export 命令导入环境变量，一次性使用 GITHUB_PAT，防止个人的 GITHUB_PAT 随 Docker 镜像一起分发出去。</p>
+<p>书中使用了一些存放在 Github 上的 R 包，它们还没有发布在 CRAN 上或者书籍本身需要开发版的 R 包。Github 有访问量限制， 一般只有设置个人访问令牌才不会超额。从 Github 上安装 R 包时，借助 export 命令导入环境变量，一次性使用 GITHUB_PAT，防止个人的 GITHUB_PAT 随 Docker 镜像一起分发出去。</p>
 <pre><code># Set Extra R Packages
 COPY DESCRIPTION DESCRIPTION
 RUN export GITHUB_PAT=${GITHUB_PAT} &amp;&amp; Rscript -e &quot;remotes::install_deps(&#39;.&#39;, dependencies = TRUE)&quot;</code></pre>
 </div>
 <div id="安装-quarto-和-pandoc" class="section level3" number="2.13.3">
 <h3><span class="header-section-number">2.13.3</span> 安装 Quarto 和 Pandoc</h3>
-<p>Quarto 软件内置一份 Pandoc 软件，Quarto 1.2.280 包含 Pandoc 2.19.2，Fedora 37 系统软件仓库不提供 Quarto，需要从 Quarto 官网下载安装。考虑到将来可能升级 Quarto，下面设置了环境变量 <code>QUARTO_VERSION</code>。用 Quarto 内置的版本替换了 Fedora 37 提供的低版本 Pandoc 2.14.0.3。</p>
+<p>Quarto 软件内置一份 Pandoc 软件，Quarto 1.2.280 包含 Pandoc 2.19.2，Fedora 37 系统软件仓库不提供 Quarto，需要从 Quarto 官网下载安装。考虑到将来可能升级 Quarto，下面设置了环境变量 <code>QUARTO_VERSION</code>。用 Quarto 内置的版本替换了 Fedora 37 提供的低版本 Pandoc 2.14.0.3。顺便一提，网站 <a href="https://pkgs.org/" class="uri">https://pkgs.org/</a> 可以非常方便地查询软件在各大系统中的版本。</p>
 <pre><code># Set Quarto and Pandoc
 RUN curl -fLo quarto.tar.gz https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_VERSION}/quarto-${QUARTO_VERSION}-linux-amd64.tar.gz \
  &amp;&amp; mkdir -p /opt/quarto/ \
@@ -527,15 +530,15 @@ RUN curl -fLo quarto.tar.gz https://github.com/quarto-dev/quarto-cli/releases/do
  &amp;&amp; rm -rf quarto.tar.gz</code></pre>
 <p>最后，关于环境变量，简单总结一下：</p>
 <ol style="list-style-type: decimal">
-<li>Dockerfile 里 ENV 命令设置的环境变量是永久的，会随镜像一起打包。</li>
+<li>Dockerfile 里 ENV 命令设置的环境变量是永久的，会随镜像一起打包。软件安装配置都是在 root 账户下进行的，命令 ENV 设置的环境变量只在 root 账户下有效。</li>
 <li>Linux 里 export 命令设置的环境变量是一次性的，Dockerfile 里 RUN 命令运行结束就消失了。</li>
-<li>Dockerfile 里的环境变量是可以通过 Docker ARG 参数在构建镜像时传递进去的。</li>
+<li>Dockerfile 里的环境变量是可以通过 <code>docker build --build-arg</code> 参数在构建镜像时传递进去的。</li>
 </ol>
 </div>
 </div>
 <div id="清理-docker-镜像垃圾" class="section level2" number="2.14">
 <h2><span class="header-section-number">2.14</span> 清理 Docker 镜像垃圾</h2>
-<p>缺失软件依赖、R 包依赖、错误配置环境等导致从 Dockerfile 构建镜像的过程中报错。构建失败是很正常的，本地多次尝试构建镜像，会产生很多垃圾，不及时清理，Docker 会显示空间不足，而拉取失败，所以，每隔一段时间清理失败的构建及相关容器。</p>
+<p>缺失软件依赖、R 包依赖、错误配置环境等导致从 Dockerfile 构建镜像的过程中报错。构建失败是很正常的，本地多次尝试构建镜像，会产生很多垃圾，不及时清理，Docker 会显示空间不足（Docker 默认配置 20 G 空间，可以修改），而拉取失败，所以，每隔一段时间清理失败的构建及相关容器。</p>
 <pre><code># 查看镜像
 docker images
 # 删除镜像
@@ -547,10 +550,10 @@ docker rm 容器名称</code></pre>
 </div>
 <div id="github-action-docker" class="section level2" number="2.15">
 <h2><span class="header-section-number">2.15</span> Github Action :heart: Docker</h2>
-<p>Github Action 默认是虚拟机中运行任务，也可以配置为在容器中运行任务。分两步：</p>
+<p>Github Action 默认是在虚拟机中运行任务，也可以配置为在容器中运行任务。分两步：</p>
 <ol style="list-style-type: decimal">
 <li>利用 Github Action 在线构建和发布自定义的 Docker 镜像。</li>
-<li>利用 Github Action 从自定义的 Docker 镜像拉起容器，在容器里编译和部署书籍。</li>
+<li>利用 Github Action 从自定义的 Docker 镜像拉起容器，在容器里编译和部署书籍。此时，Github Action 要求操作系统必须选择 Ubuntu，比如 ubuntu-22.04。</li>
 </ol>
 <div id="在线构建和发布镜像" class="section level3" number="2.15.1">
 <h3><span class="header-section-number">2.15.1</span> 在线构建和发布镜像</h3>
@@ -649,7 +652,7 @@ docker pull ghcr.io/xiangyunhuang/daar:latest</code></pre>
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         timeout-minutes: 10</code></pre>
-<p>指定发布的文件目录，配置 Netlify 的访问令牌 <code>NETLIFY_AUTH_TOKEN</code> 和网站 ID <code>NETLIFY_SITE_ID</code>，这些都可以存储在书籍项目仓库的设置里。更多详情见 <code>nwtgck/actions-netlify@v2</code> 的官网 <a href="https://github.com/nwtgck/actions-netlify" class="uri">https://github.com/nwtgck/actions-netlify</a>。</p>
+<p>指定发布的文件目录，配置 Netlify 的访问令牌 <code>NETLIFY_AUTH_TOKEN</code> 和网站 ID <code>NETLIFY_SITE_ID</code>，这些都存储在书籍仓库的设置里。更多详情见 <code>nwtgck/actions-netlify@v2</code> 的官网 <a href="https://github.com/nwtgck/actions-netlify" class="uri">https://github.com/nwtgck/actions-netlify</a>。</p>
 </div>
 </div>
 </div>
@@ -660,14 +663,14 @@ docker pull ghcr.io/xiangyunhuang/daar:latest</code></pre>
 <li>Docker 镜像尽可能小一些，不必要的依赖能少则少。</li>
 <li>Dockerfile 配置更灵活些，维护更方便些。</li>
 </ol>
-<p>优化方法就是逐行思考命令优化的可能，像多次使用到的命令，如 dnf 值得重点关注。每个 Dockerfile 文件中的 RUN 命令会产生中间层，也是重点关注对象，该合并的合并。</p>
+<p>优化方法就是逐行思考命令优化的可能，像多次使用到的命令，如 dnf，值得重点关注。每个 Dockerfile 文件中的 RUN 命令会产生中间层，也是重点关注对象，该合并的合并。</p>
 <div class="rmdtip">
 <p>当前，就具体的书籍项目来说，按以上步骤构建的镜像体积大了些，但也小不了太多，目前是 3.29 G，毕竟用到的软件和 R 包很多。比如</p>
 <ul>
 <li>Edzer Pebesma, Roger Bivand 的书 <a href="https://github.com/edzer/sdsr">Spatial Data Science with applications in R</a> 配套镜像高达 18 G</li>
-<li>Robin Lovelace, Jakub Nowosad, Jannes Muenchow 的书<a href="https://github.com/Robinlovelace/geocompr">Geocomputation with R</a> 配套镜像 2G</li>
+<li>Robin Lovelace, Jakub Nowosad, Jannes Muenchow 的书<a href="https://github.com/Robinlovelace/geocompr">Geocomputation with R</a> 配套镜像 2G（已采用分段构建 Docker 镜像的方式）</li>
 </ul>
-<p>在书籍完成初稿后，所需软件和 R 包依赖基本稳定后，可以考虑集中一波优化操作。</p>
+<p>在书籍完成初稿后，所需软件和 R 包依赖基本稳定后，可以考虑再集中一波优化操作。</p>
 </div>
 <div id="重新组织项目结构" class="section level2" number="3.1">
 <h2><span class="header-section-number">3.1</span> 重新组织项目结构</h2>
@@ -675,11 +678,11 @@ docker pull ghcr.io/xiangyunhuang/daar:latest</code></pre>
 </div>
 <div id="安装二进制-r-包" class="section level2" number="3.2">
 <h2><span class="header-section-number">3.2</span> 安装二进制 R 包</h2>
-<p>后来，我也注意到 Fedora 社区提供编译好的 Ｒ包，约支持 CRAN 上发布的 18000个Ｒ包，编译和安装 Ｒ包本是费时费力的事情，需要处理 Ｒ包之间的依赖，以及Ｒ包对系统软件的依赖，现在通过 Fedora Copr <a href="https://github.com/Enchufa2/cran2copr">cran2copr</a> (RPM repo of CRAN packages for Fedora) 可以非常轻松地安装 Ｒ包。</p>
-<p>直接安装二进制包加快编译构建速度，比如益辉的项目<a href="https://github.com/yihui/homebrew-cran-extra">Extra Binary R packages for the Homebrew R</a>，提供一些 CRAN 上不再可用的二进制 R 包，对 macOS 用户就比较友好。</p>
+<p>后来，我也注意到 Fedora 社区提供编译好的 Ｒ包，约支持 CRAN 上发布的 18000 个Ｒ包，编译和安装 Ｒ包本是费时费力的事情，需要处理 Ｒ包之间的依赖，以及Ｒ包对系统软件的依赖，现在通过 Fedora Copr <a href="https://github.com/Enchufa2/cran2copr">cran2copr</a> (RPM repo of CRAN packages for Fedora) 可以非常轻松地安装 Ｒ包。</p>
+<p>直接安装二进制包加快 Docker 镜像构建速度，顺便一提，益辉的项目<a href="https://github.com/yihui/homebrew-cran-extra">Extra Binary R packages for the Homebrew R</a>，提供一些 CRAN 上不再可用的二进制 R 包，对 macOS 用户就比较友好，现在不维护了。</p>
 <pre class="bash"><code>dnf copr -y enable iucar/cran
 dnf install -y R-CoprManager</code></pre>
-<p>比如安装 R 包 ggplot2 就和安装软件的操作一样了，更多介绍详情可以参考<a href="https://cran.r-project.org/bin/linux/fedora/">Fedora Packages of R Software</a>。</p>
+<p>安装 R 包 ggplot2 就和安装系统软件的操作一样了，更多介绍详情可以参考<a href="https://cran.r-project.org/bin/linux/fedora/">Fedora Packages of R Software</a>。</p>
 <pre class="bash"><code>dnf install -y R-CRAN-ggplot2</code></pre>
 <div class="rmdnote">
 <p>如何从 DESCRIPTION 文件读取 R 包列表，又如何将安装 R 包转化为 Shell 命令？需要注意命名规则，比如 ggplot2 包对应 R-CRAN-ggplot2，而未在 CRAN 上发布的 R 包需要单独处理。</p>
@@ -704,7 +707,7 @@ RUN dnf -y copr enable iucar/cran \
   &amp;&amp; Rscript -e &quot;remotes::install_deps(&#39;.&#39;, dependencies = TRUE)&quot; \
   &amp;&amp; rm -f DESCRIPTION desc_pkgs.txt</code></pre>
 <div class="rmdwarn">
-<p>showtextdb 和 showtext 包是例外，必须从源码安装，否则，不能加载字体。</p>
+<p>showtextdb 和 showtext 包是例外，必须从源码安装，否则，不能加载使用系统安装的字体。</p>
 <pre><code>install2.r showtextdb showtext</code></pre>
 </div>
 <div class="rmdtip">
@@ -718,7 +721,7 @@ RUN dnf -y copr enable iucar/cran \
 <p>这操作基本相当于在 Ubuntu 系统上给 <code>apt-get</code> 命令加上 <code>--no-install-recommends</code> 参数。</p>
 <pre><code>apt-get install -y --no-install-recommends PKG</code></pre>
 <p>以安装软件 proj-devel 为例，配置不安装弱依赖，则只需占用 20 M 空间，而安装弱依赖则需要占用 589 M 空间，这有 <strong>30 倍的瘦身效果</strong>。当然，实际瘦身效果取决于软件本身的弱依赖大小。</p>
-<p>配置文件中还有好些个设置，比如下面一行表示不安装软件的帮助文档，这意味着 man 命令无法查看命令帮助手册 <a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>。</p>
+<p>配置文件中还有好些个设置，比如下面一行表示不安装软件的帮助文档，这意味着 man 命令无法查看命令帮助手册。这选项设置让我想起了 <a href="https://github.com/rstudio/tinytex">TinyTeX</a> 项目，为了瘦身，默认不安装 LaTeX 宏包的帮助文档。</p>
 <pre><code>tsflags=nodocs</code></pre>
 <p>当输入 <code>man ls</code> 结果是 <code>No manual entry for ls</code>。当前 <code>/etc/dnf/dnf.conf</code> 文件中的配置如下：</p>
 <pre><code># see `man dnf.conf` for defaults and possible options
@@ -738,11 +741,11 @@ install_weak_deps=False</code></pre>
 </div>
 <div id="自定义用户账户" class="section level2" number="3.4">
 <h2><span class="header-section-number">3.4</span> 自定义用户账户</h2>
-<p>从环境变量设置用户账户，在拉取 Docker 容器的时候，传递环境变量 USER 和 PASSWORD 进而自动设置账户，这也是 Rocker 项目的做法，设置<a href="https://github.com/rocker-org/rocker-versioned2/blob/master/scripts/default_user.sh">默认账户</a>和<a href="https://github.com/rocker-org/rocker-versioned2/blob/master/scripts/init_userconf.sh">初始化用户账户</a>。下面举个例子，就是这样将用户账户传递进容器的。</p>
+<p>从环境变量设置用户账户，在拉取 Docker 容器的时候，传递环境变量 USER 和 PASSWORD 进而自动设置账户，这是 Rocker 项目的做法，设置<a href="https://github.com/rocker-org/rocker-versioned2/blob/master/scripts/default_user.sh">默认账户</a>和<a href="https://github.com/rocker-org/rocker-versioned2/blob/master/scripts/init_userconf.sh">初始化用户账户</a>。下面举个例子，就是这样将用户账户传递进容器的。</p>
 <pre><code>docker run -itd -p 8484:8787 --name=daar \
   --privileged=true -v &quot;/${PWD}:/home/docker&quot; \
   -e USER=docker -e PASSWORD=docker123 ghcr.io/xiangyunhuang/daar:latest</code></pre>
-<p>接着，将此用户作为登陆 RStudio 的用户，RStudio 不允许 root 账户登陆的。是否需要将该用户添加到 sudoers 文件中，也是可以通过这种方式控制的，比如再传递变量 <code>-e ROOT=true</code> 赋予用户管理员权限，这部分留待读者去实现。</p>
+<p>接着，将此用户作为登陆 RStudio 的用户，是否需要将该用户添加到 sudoers 文件中，也是可以通过这种方式控制的，比如再传递变量 <code>-e ROOT=true</code> 赋予用户管理员权限，这部分留待读者去实现。</p>
 <div class="rmdnote">
 <p>Github Action 调用自定义的镜像运行容器，仅支持在容器中以 root 身份运行命令，详见<a href="https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#docker-container-filesystem">链接</a>。以上配置的 docker 账户是不能在 Github Action 中使用的。<code>docker run</code> 命令 <code>-u</code> 参数指定以哪个账户在容器运行命令，本地是可以的。</p>
 </div>
@@ -752,7 +755,7 @@ install_weak_deps=False</code></pre>
 <h1><span class="header-section-number">4</span> 本文小结</h1>
 <ol style="list-style-type: decimal">
 <li><p>归纳整理一些踩坑 Github Action / Docker Container / Fedora 37 / RStudio Server，它们的交互及连续测试 CI 和连续部署 CD 的经验。借助 Github Action 打造自定义的镜像，从自定义的镜像中拉起容器，继而编译、测试书稿，再将书籍托管在 Netlify / Github Pages 等服务上。</p></li>
-<li><p>学习 <a href="https://github.com/rocker-org/rocker">Rocker</a> 项目，产出一个镜像文件 Dockerfile，打造一个基于 Fedora 37 + RStudio Server 数据分析环境。Fedora 和 CentOS / RedHat 是一脉相承的，相比而言，Fedora 更新、更适合折腾，同情还在 CentOS 6/7 中<a href="https://yuanfan.rbind.io/project/installr/">挣扎的人</a>，话说 <a href="https://blog.centos.org/2020/12/future-is-centos-stream/">CentOS 已经不是以前的 CentOS 了</a>。填坑<a href="https://github.com/cosname/cosx.org/issues/904">从零搭建现代数据科学平台</a>，充实<a href="https://github.com/cosname/cosx.org/issues/1047">数据分析师的技能栈</a>。通过借鉴、模仿、抄袭等办法学习优秀的开源项目，融入自己的项目中解决问题。</p></li>
+<li><p>学习 <a href="https://github.com/rocker-org/rocker">Rocker</a> 项目，产出一个镜像文件 Dockerfile，打造一个基于 Fedora 37 + RStudio Server 数据分析环境。Fedora 和 CentOS / RedHat 是一脉相承的，相比而言，Fedora 更新、更适合折腾，同情还在 CentOS 6/7 中<a href="https://yuanfan.rbind.io/project/installr/">挣扎的人</a>，话说 <a href="https://blog.centos.org/2020/12/future-is-centos-stream/">CentOS 已经不是以前的 CentOS 了</a>，<a href="https://rockylinux.org/">Rocky Linux</a> 在补位。填坑<a href="https://github.com/cosname/cosx.org/issues/904">从零搭建现代数据科学平台</a>，充实<a href="https://github.com/cosname/cosx.org/issues/1047">数据分析师的技能栈</a>。通过借鉴、模仿、抄袭等办法学习优秀的开源项目，融入自己的项目中解决问题。</p></li>
 <li><p>写书的过程中，发现写作水平的提升空间还很大，写长博客是锻炼的方式。写作参考范叶亮的技术笔记 — <a href="https://leovan.me/tech101/">Tech 101</a> 详细记录在虚拟机里搭建 Hadoop / Spark / Hive 的过程。过程力求详细，坑记录完整，以后就省心省力。在这样一些基础繁琐的问题上解决得更好、更有效率是很有意义的，顺便可以就某个或某几个工具深入学习、交流、分享。</p></li>
 </ol>
 </div>
@@ -782,6 +785,5 @@ install_weak_deps=False</code></pre>
 fc-list | sort &gt;&gt; installed_fonts.txt
 dnf list installed | grep texlive &gt;&gt; installed_texlive.txt</code></pre>
 <a href="#fnref2" class="footnote-back">↩︎</a></li>
-<li id="fn3"><p>这选项设置让我想起了 <a href="https://github.com/rstudio/tinytex">TinyTeX</a> 项目，为了瘦身，默认不安装 LaTeX 宏包的帮助文档。<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
