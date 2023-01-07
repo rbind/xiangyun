@@ -62,6 +62,15 @@ Docker 镜像以打包的方式处理依赖问题。其一软件依赖，比如�
 
 ![(\#fig:data-analysis) 《R 语言数据分析实战》](img/data-analysis.svg)
 
+下面的入门篇和进阶篇是围绕两个 Dockerfile 文件展开的，都在书籍仓库里 ---
+<https://github.com/XiangyunHuang/data-analysis-in-action>。将本文和 Dockerfile 文件对照看，既具体到细节又不失整体的概况。
+
+-  [`fedora_rstudio.Dockerfile`](https://github.com/XiangyunHuang/data-analysis-in-action/blob/main/fedora_rstudio.Dockerfile) 对应标准版 Docker 镜像
+-  [`fedora_rstudio_pro.Dockerfile`](https://github.com/XiangyunHuang/data-analysis-in-action/blob/main/fedora_rstudio_pro.Dockerfile) 对应专业版 Docker 镜像
+
+
+当本文学习完，相信读者可以基于**任意**操作系统**任意**项目搭建环境，构建 Docker 镜像，复杂如 [rocker](https://github.com/rocker-org/rocker) 项目和[rstudio-docker-products](https://github.com/rstudio/rstudio-docker-products)项目也不难掌握。
+
 
 # 开发 Dockerfile --- 入门篇 {#develop-dockerfile}
 
@@ -160,6 +169,8 @@ echo 'docker:docker123' | chpasswd
 ```
 Error: Incorrect or invalid username/password
 ```
+
+![(\#fig:rstudio-server-account)配置标准账户](img/rstudio-server-login-error.png){ width=55% }
 
 ::: rmdwarn
 RStudio Server 不允许以 root 账户登陆的，必须创建普通账户，可以给普通账户授予管理员权限，安装系统软件。
@@ -289,8 +300,16 @@ timedatectl show --property=Timezone
 Timezone=Etc/UTC
 ```
 
-而在 R 控制台输入 `Sys.timezone()` 可以看到 `UTC`，这是我在 Dockerfile 里设置好的，是预期的输出。
+而在 R 控制台输入 `Sys.timezone()` 可以看到 `UTC`，这是我在 Dockerfile 里设置好的，是预期的输出。下面在 Dockerfile 里设置系统语言环境和时区。
 
+```
+# Set locale
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US.UTF-8
+
+# Set default timezone
+ENV TZ UTC
+```
 
 ## 安装一些 LaTeX 宏包 {#setup-latex}
 
@@ -372,16 +391,9 @@ dnf -y install glibc-langpack-en \
    python3-virtualenv 
 ```
 
-Dockerfile 里设置系统语言环境和时区，最后，将工作目录切换到 docker 用户主目录。
+最后，将工作目录切换到 docker 用户主目录。
 
 ```
-# Set locale
-ENV LANG=en_US.UTF-8 \
-    LANGUAGE=en_US.UTF-8
-
-# Set default timezone
-ENV TZ UTC
-
 WORKDIR /home/docker/
 ```
 
@@ -455,7 +467,7 @@ docker commit -a "Xiangyun Huang <xiangyunfaith@outlook.com>" \
 
 ![(\#fig:rstudio-server-status) RStudio Server 服务以开机启动](img/rstudio-server-status.png)
 
-容器中已安装的[字体](data/installed_fonts.txt)、[软件包](data/installed_packages.txt)、[R 包](data/installed_r_packages.txt)和 [texlive 发行版](data/installed_texlive.txt)，点击链接即可查看具体内容，以后若想加一些软件，可以搜索查找是否已安装[^installed]。
+容器中已安装的[字体](data/installed_fonts.txt)、[软件包](data/installed_packages.txt)、[R 包](data/installed_r_packages.txt)和 [texlive 发行版](data/installed_texlive.txt)，点击链接即可查看具体内容，以后若想加一些软件，可以搜索查找是否已安装[^installed]，不要在 Dockerfile 里重复地加内容。如果能进入容器，也可以用 `dnf info PKG` 或 `dnf list installed | grep PKG` 查看 PKG 是否已安装。
 
 [^installed]: 各个文件保存的内容分别是如下命令输出的结果：
 
@@ -473,13 +485,12 @@ docker commit -a "Xiangyun Huang <xiangyunfaith@outlook.com>" \
 登陆进来后，可以看到 RStudio Server 的界面，与桌面版没啥区别。
 
 
-
 ![(\#fig:rstudio-server-window) RStudio Server 界面窗口](img/rstudio-server-window.png)
 
 1. R 控制台，命令窗口
 1. 帮助子窗口，显示帮助文档
 1. 环境子窗口，显示当前运行环境中的变量信息。
-1. RStudio IDE 得主菜单栏
+1. RStudio IDE 的主菜单栏
 1. 当前登陆 RStudio Server 的用户。
 
 ::: rmdtip
