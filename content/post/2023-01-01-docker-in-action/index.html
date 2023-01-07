@@ -103,6 +103,13 @@ description: "以打造书籍配套的运行环境为例，学习 Docker 基本�
 <img src="img/data-analysis.svg" alt="" />
 <p class="caption">图 1.4:  《R 语言数据分析实战》</p>
 </div>
+<p>下面的入门篇和进阶篇是围绕两个 Dockerfile 文件展开的，都在书籍仓库里 —
+<a href="https://github.com/XiangyunHuang/data-analysis-in-action" class="uri">https://github.com/XiangyunHuang/data-analysis-in-action</a>。将本文和 Dockerfile 文件对照看，既具体到细节又不失整体的概况。</p>
+<ul>
+<li><a href="https://github.com/XiangyunHuang/data-analysis-in-action/blob/main/fedora_rstudio.Dockerfile"><code>fedora_rstudio.Dockerfile</code></a> 对应标准版 Docker 镜像</li>
+<li><a href="https://github.com/XiangyunHuang/data-analysis-in-action/blob/main/fedora_rstudio_pro.Dockerfile"><code>fedora_rstudio_pro.Dockerfile</code></a> 对应专业版 Docker 镜像</li>
+</ul>
+<p>当本文学习完，相信读者可以基于<strong>任意</strong>操作系统<strong>任意</strong>项目搭建环境，构建 Docker 镜像，复杂如 <a href="https://github.com/rocker-org/rocker">rocker</a> 项目和<a href="https://github.com/rstudio/rstudio-docker-products">rstudio-docker-products</a>项目也不难掌握。</p>
 </div>
 <div id="develop-dockerfile" class="section level1" number="2">
 <h1><span class="header-section-number">2</span> 开发 Dockerfile — 入门篇</h1>
@@ -241,6 +248,10 @@ groupadd staff \
 echo &#39;docker:docker123&#39; | chpasswd</code></pre>
 <p>如果用户账户及密码不对，则登陆 RStudio Server 时会报下面的错误。</p>
 <pre><code>Error: Incorrect or invalid username/password</code></pre>
+<div class="figure"><span style="display:block;" id="fig:rstudio-server-account"></span>
+<img src="img/rstudio-server-login-error.png" style="width:55.0%" alt="" />
+<p class="caption">图 2.1: 配置标准账户</p>
+</div>
 <div class="rmdwarn">
 <p>RStudio Server 不允许以 root 账户登陆的，必须创建普通账户，可以给普通账户授予管理员权限，安装系统软件。</p>
 </div>
@@ -312,7 +323,13 @@ Failed to connect to bus: Host is down</code></pre>
 <pre class="bash"><code>timedatectl show --property=Timezone</code></pre>
 <p>正常情况下，可以看到输出：</p>
 <pre><code>Timezone=Etc/UTC</code></pre>
-<p>而在 R 控制台输入 <code>Sys.timezone()</code> 可以看到 <code>UTC</code>，这是我在 Dockerfile 里设置好的，是预期的输出。</p>
+<p>而在 R 控制台输入 <code>Sys.timezone()</code> 可以看到 <code>UTC</code>，这是我在 Dockerfile 里设置好的，是预期的输出。下面在 Dockerfile 里设置系统语言环境和时区。</p>
+<pre><code># Set locale
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US.UTF-8
+
+# Set default timezone
+ENV TZ UTC</code></pre>
 </div>
 <div id="setup-latex" class="section level2" number="2.7">
 <h2><span class="header-section-number">2.7</span> 安装一些 LaTeX 宏包</h2>
@@ -340,7 +357,7 @@ Failed to connect to bus: Host is down</code></pre>
 <p><a href="https://www.ghostscript.com/">ghostscript</a> 做字体处理，<a href="https://optipng.sourceforge.net/">optipng</a> 做图片优化，<a href="https://imagemagick.org/">ImageMagick</a> 做图像处理。</p>
 <div class="figure"><span style="display:block;" id="fig:imagemagick"></span>
 <img src="img/imagemagick.png" style="width:35.0%" alt="" />
-<p class="caption">图 2.1:  ImageMagick</p>
+<p class="caption">图 2.2:  ImageMagick</p>
 </div>
 </div>
 <div id="安装一些-r-包依赖" class="section level2" number="2.8">
@@ -383,15 +400,8 @@ Failed to connect to bus: Host is down</code></pre>
    initscripts \
    firewalld \
    python3-virtualenv </code></pre>
-<p>Dockerfile 里设置系统语言环境和时区，最后，将工作目录切换到 docker 用户主目录。</p>
-<pre><code># Set locale
-ENV LANG=en_US.UTF-8 \
-    LANGUAGE=en_US.UTF-8
-
-# Set default timezone
-ENV TZ UTC
-
-WORKDIR /home/docker/</code></pre>
+<p>最后，将工作目录切换到 docker 用户主目录。</p>
+<pre><code>WORKDIR /home/docker/</code></pre>
 </div>
 <div id="本地构建-docker-镜像" class="section level2" number="2.10">
 <h2><span class="header-section-number">2.10</span> 本地构建 Docker 镜像</h2>
@@ -434,34 +444,34 @@ WORKDIR /home/docker/</code></pre>
 <p>最后，构建的 Docker 镜像包含 13 层，好些层还很大，动辄上 G。</p>
 <div class="figure"><span style="display:block;" id="fig:docker-image-layer"></span>
 <img src="img/docker-image-layer.png" alt="" />
-<p class="caption">图 2.2:  Docker 镜像包含 13 层</p>
+<p class="caption">图 2.3:  Docker 镜像包含 13 层</p>
 </div>
 <p><a href="https://hub.docker.com/">Docker Hub</a> 上显示 <a href="https://hub.docker.com/repository/docker/xiangyunhuang/daar/tags?page=1&amp;ordering=last_updated">3.29 G</a>，拉取到本地后，从图中可以看到 Docker 镜像的大小是 8.39 G，由此可知，Docker Hub 存储的镜像是压缩的。</p>
 <div class="figure"><span style="display:block;" id="fig:docker-image-size"></span>
 <img src="img/docker-image-size.png" alt="" />
-<p class="caption">图 2.3:  Docker 镜像解压缩后近 8.4 G</p>
+<p class="caption">图 2.4:  Docker 镜像解压缩后近 8.4 G</p>
 </div>
 <p>进入容器后，通过命令 top 可以看到启动的服务及其状态信息，看到 RStudio Server 服务随着容器启动后自动加载了。</p>
 <div class="figure"><span style="display:block;" id="fig:rstudio-server-status"></span>
 <img src="img/rstudio-server-status.png" alt="" />
-<p class="caption">图 2.4:  RStudio Server 服务以开机启动</p>
+<p class="caption">图 2.5:  RStudio Server 服务以开机启动</p>
 </div>
-<p>容器中已安装的<a href="data/installed_fonts.txt">字体</a>、<a href="data/installed_packages.txt">软件包</a>、<a href="data/installed_r_packages.txt">R 包</a>和 <a href="data/installed_texlive.txt">texlive 发行版</a>，点击链接即可查看具体内容，以后若想加一些软件，可以搜索查找是否已安装<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>。</p>
-<p>现在，可以从浏览器网址 <a href="http://localhost:8383/" class="uri">http://localhost:8383/</a> 登陆 RStudio Server， 登陆页见下图 <a href="#fig:rstudio-server-login">2.5</a></p>
+<p>容器中已安装的<a href="data/installed_fonts.txt">字体</a>、<a href="data/installed_packages.txt">软件包</a>、<a href="data/installed_r_packages.txt">R 包</a>和 <a href="data/installed_texlive.txt">texlive 发行版</a>，点击链接即可查看具体内容，以后若想加一些软件，可以搜索查找是否已安装<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>，不要在 Dockerfile 里重复地加内容。如果能进入容器，也可以用 <code>dnf info PKG</code> 或 <code>dnf list installed | grep PKG</code> 查看 PKG 是否已安装。</p>
+<p>现在，可以从浏览器网址 <a href="http://localhost:8383/" class="uri">http://localhost:8383/</a> 登陆 RStudio Server， 登陆页见下图 <a href="#fig:rstudio-server-login">2.6</a></p>
 <div class="figure"><span style="display:block;" id="fig:rstudio-server-login"></span>
 <img src="img/rstudio-server-login.png" alt="" />
-<p class="caption">图 2.5:  RStudio Server 登陆页面</p>
+<p class="caption">图 2.6:  RStudio Server 登陆页面</p>
 </div>
 <p>登陆进来后，可以看到 RStudio Server 的界面，与桌面版没啥区别。</p>
 <div class="figure"><span style="display:block;" id="fig:rstudio-server-window"></span>
 <img src="img/rstudio-server-window.png" alt="" />
-<p class="caption">图 2.6:  RStudio Server 界面窗口</p>
+<p class="caption">图 2.7:  RStudio Server 界面窗口</p>
 </div>
 <ol style="list-style-type: decimal">
 <li>R 控制台，命令窗口</li>
 <li>帮助子窗口，显示帮助文档</li>
 <li>环境子窗口，显示当前运行环境中的变量信息。</li>
-<li>RStudio IDE 得主菜单栏</li>
+<li>RStudio IDE 的主菜单栏</li>
 <li>当前登陆 RStudio Server 的用户。</li>
 </ol>
 <div class="rmdtip">
@@ -474,7 +484,7 @@ WORKDIR /home/docker/</code></pre>
 <p><code>capabilities()</code> 查看当前 R 软件的能力</p>
 <div class="figure"><span style="display:block;" id="fig:rstudio-server-volume"></span>
 <img src="img/rstudio-server-volume.png" alt="" />
-<p class="caption">图 2.7:  RStudio Server 与主机共享文件和目录</p>
+<p class="caption">图 2.8:  RStudio Server 与主机共享文件和目录</p>
 </div>
 <ol style="list-style-type: decimal">
 <li>除了 X11（桌面版才可以有）、 aqua（macOS 专属）和 libxml 外，都支持，已然足够使用。</li>
@@ -483,7 +493,7 @@ WORKDIR /home/docker/</code></pre>
 <p><code>sessionInfo()</code> 查看当前运行窗口的会话（Session）信息</p>
 <div class="figure"><span style="display:block;" id="fig:rstudio-server-session"></span>
 <img src="img/rstudio-server-session.png" alt="" />
-<p class="caption">图 2.8:  RStudio Server 控制台当前运行环境</p>
+<p class="caption">图 2.9:  RStudio Server 控制台当前运行环境</p>
 </div>
 </div>
 <div id="docker-arg-env" class="section level2" number="2.13">
