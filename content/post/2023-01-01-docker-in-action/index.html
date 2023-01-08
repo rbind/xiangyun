@@ -375,6 +375,7 @@ ENV TZ UTC</code></pre>
    igraph-devel \
    NLopt-devel</code></pre>
 <ul>
+<li>curl / openssl / git2r / xml2 / V8 等基础包</li>
 <li>（广义）线性混合效应模型包 <a href="https://github.com/lme4/lme4">lme4</a> 需要 nloptr 包，<a href="https://github.com/astamm/nloptr">nloptr</a> 包需要 NLopt-devel</li>
 <li>网络分析与可视化包 <a href="https://github.com/igraph/rigraph">igraph</a> 需要 libxml2-devel、glpk-devel、gmp-devel 等</li>
 </ul>
@@ -519,6 +520,9 @@ numpy:          /opt/.virtualenvs/r-tensorflow/lib64/python3.11/site-packages/nu
 numpy_version:  1.24.1
 
 NOTE: Python version was forced by RETICULATE_PYTHON</code></pre>
+<div class="rmdtip">
+<p>Dockerfile 里 COPY 命令的作用是将目录（与 Dockerfile 同一目录）下的文件复制到镜像里，一般在构建镜像的时候使用，如果不清理，会一直存在于镜像里，并随之分发。</p>
+</div>
 </div>
 <div id="安装开发版-r-包" class="section level3" number="2.13.2">
 <h3><span class="header-section-number">2.13.2</span> 安装开发版 R 包</h3>
@@ -529,7 +533,7 @@ RUN export GITHUB_PAT=${GITHUB_PAT} &amp;&amp; Rscript -e &quot;remotes::install
 </div>
 <div id="安装-quarto-和-pandoc" class="section level3" number="2.13.3">
 <h3><span class="header-section-number">2.13.3</span> 安装 Quarto 和 Pandoc</h3>
-<p>Quarto 软件内置一份 Pandoc 软件，Quarto 1.2.280 包含 Pandoc 2.19.2，Fedora 37 系统软件仓库不提供 Quarto，需要从 Quarto 官网下载安装。考虑到将来可能升级 Quarto，下面设置了环境变量 <code>QUARTO_VERSION</code>。用 Quarto 内置的版本替换了 Fedora 37 提供的低版本 Pandoc 2.14.0.3。顺便一提，网站 <a href="https://pkgs.org/" class="uri">https://pkgs.org/</a> 可以非常方便地查询软件在各大系统中的版本。</p>
+<p>Quarto 软件内置一份 Pandoc 软件，Quarto 1.2.280 包含 Pandoc 2.19.2，Fedora 37 系统软件仓库不提供 Quarto，需要从 Quarto 官网下载安装。考虑到将来可能升级 Quarto，下面设置了环境变量 <code>QUARTO_VERSION</code>。用 Quarto 内置的版本替换了 Fedora 37 提供的低版本 Pandoc 2.14.0.3。顺便一提，网站 <a href="https://pkgs.org/" class="uri">https://pkgs.org/</a> 可以非常方便地在各大系统中查询软件及其版本。</p>
 <pre><code># Set Quarto and Pandoc
 RUN curl -fLo quarto.tar.gz https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_VERSION}/quarto-${QUARTO_VERSION}-linux-amd64.tar.gz \
  &amp;&amp; mkdir -p /opt/quarto/ \
@@ -728,7 +732,7 @@ RUN dnf -y copr enable iucar/cran \
 <h2><span class="header-section-number">3.3</span> 不要安装弱依赖</h2>
 <p>配置 dnf 软件包管理器，不要安装软件弱依赖，弱依赖对软件正常运行是不必要的，类似 R 包的 Suggests 级依赖，给 Docker 镜像瘦身。</p>
 <pre class="bash"><code>echo &quot;install_weak_deps=False&quot; &gt;&gt; /etc/dnf/dnf.conf</code></pre>
-<p>这操作基本相当于在 Ubuntu 系统上给 <code>apt-get</code> 命令加上 <code>--no-install-recommends</code> 参数。</p>
+<p>这操作基本相当于在 Ubuntu 系统上给 <code>apt-get</code> 命令加上 <code>--no-install-recommends</code> 参数，在不同 Linux 系统上包管理器命令之间的对应关系见<a href="https://wiki.archlinux.org/title/Pacman/Rosetta">这里</a>，<a href="https://github.com/tldr-pages/tldr">tldr</a> 的<a href="https://tldr.finzzz.net/">网站</a>还提供命令的常用姿势。</p>
 <pre><code>apt-get install -y --no-install-recommends PKG</code></pre>
 <p>以安装软件 proj-devel 为例，配置不安装弱依赖，则只需占用 20 M 空间，而安装弱依赖则需要占用 589 M 空间，这有 <strong>30 倍的瘦身效果</strong>。当然，实际瘦身效果取决于软件本身的弱依赖大小。</p>
 <p>配置文件中还有好些个设置，比如下面一行表示不安装软件的帮助文档，这意味着 man 命令无法查看命令帮助手册。这选项设置让我想起了 <a href="https://github.com/rstudio/tinytex">TinyTeX</a> 项目，为了瘦身，默认不安装 LaTeX 宏包的帮助文档。</p>
@@ -757,7 +761,7 @@ install_weak_deps=False</code></pre>
   -e USER=docker -e PASSWORD=docker123 ghcr.io/xiangyunhuang/daar:latest</code></pre>
 <p>接着，将此用户作为登陆 RStudio 的用户，是否需要将该用户添加到 sudoers 文件中，也是可以通过这种方式控制的，比如再传递变量 <code>-e ROOT=true</code> 赋予用户管理员权限，这部分留待读者去实现。</p>
 <div class="rmdnote">
-<p>Github Action 调用自定义的镜像运行容器，仅支持在容器中以 root 身份运行命令，详见<a href="https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#docker-container-filesystem">链接</a>。以上配置的 docker 账户是不能在 Github Action 中使用的。<code>docker run</code> 命令 <code>-u</code> 参数指定以哪个账户在容器运行命令，本地是可以的。</p>
+<p>Github Action 调用自定义的镜像运行容器，仅支持在容器中以 root 身份运行命令，详见<a href="https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#docker-container-filesystem">链接</a>。以上配置的 docker 账户是不能在 Github Action 中使用的，而在本地是可以的。<code>docker run</code> 命令 <code>-u</code> 参数可以指定以哪个账户在容器运行命令。</p>
 </div>
 </div>
 </div>
@@ -765,7 +769,7 @@ install_weak_deps=False</code></pre>
 <h1><span class="header-section-number">4</span> 本文小结</h1>
 <ol style="list-style-type: decimal">
 <li><p>归纳整理一些踩坑 Github Action / Docker Container / Fedora 37 / RStudio Server，它们的交互及连续测试 CI 和连续部署 CD 的经验。借助 Github Action 打造自定义的镜像，从自定义的镜像中拉起容器，继而编译、测试书稿，再将书籍托管在 Netlify / Github Pages 等服务上。</p></li>
-<li><p>学习 <a href="https://github.com/rocker-org/rocker">Rocker</a> 项目，产出一个镜像文件 Dockerfile，打造一个基于 Fedora 37 + RStudio Server 数据分析环境。Fedora 和 CentOS / RedHat 是一脉相承的，相比而言，Fedora 更新、更适合折腾，同情还在 CentOS 6/7 中<a href="https://yuanfan.rbind.io/project/installr/">挣扎的人</a>，话说 <a href="https://blog.centos.org/2020/12/future-is-centos-stream/">CentOS 已经不是以前的 CentOS 了</a>，<a href="https://rockylinux.org/">Rocky Linux</a> 在补位。填坑<a href="https://github.com/cosname/cosx.org/issues/904">从零搭建现代数据科学平台</a>，充实<a href="https://github.com/cosname/cosx.org/issues/1047">数据分析师的技能栈</a>。通过借鉴、模仿、抄袭等办法学习优秀的开源项目，融入自己的项目中解决问题。</p></li>
+<li><p>学习 <a href="https://github.com/rocker-org/rocker">Rocker</a> 项目，产出一个镜像文件 Dockerfile，打造一个基于 Fedora 37 + RStudio Server 数据分析环境。Fedora 和 CentOS / RedHat 是一脉相承的，相比而言，Fedora 更新、更适合折腾，同情还在 CentOS 6/7 中<a href="https://yuanfan.rbind.io/project/installr/">挣扎的人</a>，话说 <a href="https://blog.centos.org/2020/12/future-is-centos-stream/">CentOS 已经不是以前的 CentOS 了</a>，<a href="https://rockylinux.org/">Rocky Linux</a>和<a href="https://almalinux.org/">AlmaLinux OS</a> 都在补位。填坑<a href="https://github.com/cosname/cosx.org/issues/904">从零搭建现代数据科学平台</a>，充实<a href="https://github.com/cosname/cosx.org/issues/1047">数据分析师的技能栈</a>。通过借鉴、模仿、抄袭等办法学习优秀的开源项目，融入自己的项目中解决问题。</p></li>
 <li><p>写书的过程中，发现写作水平的提升空间还很大，写长博客是锻炼的方式。写作参考范叶亮的技术笔记 — <a href="https://leovan.me/tech101/">Tech 101</a> 详细记录在虚拟机里搭建 Hadoop / Spark / Hive 的过程。过程力求详细，坑记录完整，以后就省心省力。在这样一些基础繁琐的问题上解决得更好、更有效率是很有意义的，顺便可以就某个或某几个工具深入学习、交流、分享。</p></li>
 </ol>
 </div>
