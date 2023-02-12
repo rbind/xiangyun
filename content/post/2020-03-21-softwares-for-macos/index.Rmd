@@ -17,14 +17,6 @@ description: "软件环境配置是个既麻烦又耗时的苦力活，笔者曾
 
 # 设置 MacOS
 
--   命令行工具 [Xcode](https://developer.apple.com/download/all/) 等，在线安装迷你版命令行工具。
-
-    ```bash
-    xcode-select --install
-    ```
-
--   软件包管理工具 [brew](https://mirrors.tuna.tsinghua.edu.cn/help/homebrew/)
-
 -   [Mac 截图去阴影等常用设置](https://macos-defaults.com/)
 
 -   [自定义终端的命令行提示符](https://stackoverflow.com/questions/37286971/)
@@ -50,9 +42,66 @@ description: "软件环境配置是个既麻烦又耗时的苦力活，笔者曾
     ```
 
 
+# 配置终端
 
+[pure](https://github.com/sindresorhus/pure) 是一个极简风格的终端配置工具
+
+```bash
+brew install pure
+```
+
+在 `~/.zshrc` 添加
+
+```
+# .zshrc
+autoload -U promptinit; promptinit
+prompt pure
+```
+
+安装插件 [zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting/) 语法高亮
+
+```bash
+brew install zsh-syntax-highlighting
+```
+
+安装插件 [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions) 自动建议
+
+```
+brew install zsh-autosuggestions
+```
+
+安装插件 [zsh-completions](https://github.com/zsh-users/zsh-completions) 补全
+
+```bash
+brew install zsh-completions
+```
+
+安装插件 [zsh-autocomplete](https://github.com/marlonrichert/zsh-autocomplete) 自动补全
+
+```bash
+brew install zsh-autocomplete
+```
+
+
+
+# 配置 Git
+
+```bash
+git config --global user.name "Xiangyun Huang"
+git config --global user.email "xiangyunfaith@outlook.com"
+```
 
 # 常用软件
+
+```bash
+brew install --cask font-noto-sans-cjk-sc font-noto-serif-cjk-sc
+brew install --cask font-noto-sans font-noto-serif
+brew install imagemagick proj gdal geos udunits libomp pkg-config
+```
+
+
+
+# 其它软件
 
 
 ## 办公软件
@@ -145,7 +194,7 @@ brew install --cask tableau
     
     将路径 `~/.cargo/bin` 添加到 PATH 变量里，接着就可以直接使用 gifski 命令行工具了，它有几个参数，如下：
     
-    ```{bash}
+    ```bash
     gifski --help
     ```
 
@@ -184,9 +233,7 @@ fc-list : family | sort
 ```
 
 
-# Python 虚拟环境
-
-##  用 miniconda 配置
+# 用 miniconda 配置 Python 虚拟环境
 
 `~/.condarc` 指定虚拟环境所在目录
 
@@ -226,95 +273,9 @@ conda env remove -p /opt/miniconda-virtualenvs/r-reticulate
 conda update conda
 ```
 
-## 用 virtualenv 配置
-
-安装 virtualenv
-
-``` bash
-brew install virtualenv
-```
-
-用 virtualenv 创建虚拟环境，虚拟环境的存放路径是 `/opt/.virtualenvs/r-tensorflow`，所以名字就是 `r-tensorflow`
-
-``` bash
-# 准备虚拟环境萼存放地址
-sudo mkdir -p /opt/.virtualenvs/r-tensorflow
-sudo chown -R $(whoami):staff /opt/.virtualenvs/r-tensorflow
-# 方便后续复用
-export RETICULATE_PYTHON_ENV=/opt/.virtualenvs/r-tensorflow
-# 创建虚拟环境
-virtualenv -p /usr/local/bin/python3 $RETICULATE_PYTHON_ENV
-```
-
-查看虚拟环境中 Python 版本
-
-``` bash
-python -V
-```
-
-激活虚拟环境
-
-``` bash
-source $RETICULATE_PYTHON_ENV/bin/activate
-# 取消激活
-deactivate
-```
-
-进入虚拟环境后，从 requirements.txt 安装 Python 模块
-
-``` bash
-pip install -r requirements.txt
-```
-
-查看已经安装的 Python 模块
-
-``` bash
-pip list --format=columns
-```
-
-在文件 `.Rprofile` 里设置环境变量 `RETICULATE_PYTHON` 和 `RETICULATE_PYTHON_ENV`，这样 **reticulate** 包就能发现和使用它了。
-
-``` bash
-Sys.setenv(RETICULATE_PYTHON="/usr/local/bin/python3")
-Sys.setenv(RETICULATE_PYTHON_ENV="/opt/.virtualenvs/r-tensorflow")
-```
-
-如果希望打开终端就进入虚拟环境，可以在 .zshrc 文件中添加两行
-
-``` bash
-export RETICULATE_PYTHON_ENV=/opt/.virtualenvs/r-tensorflow
-source $RETICULATE_PYTHON_ENV/bin/activate
-```
-
-> 注意
->
-> 要使用从 brew 安装的 Python3 即 `/usr/local/bin/python3` 而不是 MacOS 系统自带的 Python3，即 `/usr/bin/python3`
-
-在 RStudio IDE 里配置好 Python 及其虚拟环境，应该能看到
-
-``` r
-Sys.getenv("RETICULATE_PYTHON")
-```
-
-    [1] "/usr/local/bin/python3"
-
-``` r
-reticulate::py_discover_config()
-```
-
-    python:         /usr/local/bin/python3
-    libpython:      /usr/local/opt/python@3.9/Frameworks/Python.framework/Versions/3.9/lib/python3.9/config-3.9-darwin/libpython3.9.dylib
-    pythonhome:     /usr/local/Cellar/python@3.9/3.9.7/Frameworks/Python.framework/Versions/3.9
-    version:        3.9.7 (default, Sep  3 2021, 12:37:55)  [Clang 12.0.5 (clang-1205.0.22.9)]
-    numpy:          /usr/local/lib/python3.9/site-packages/numpy
-    numpy_version:  1.21.2
-
-    NOTE: Python version was forced by RETICULATE_PYTHON
 
 
-# 知识管理
-
-## Gollum
+# 用 Gollum 搭建知识管理系统
 
 用 [Gollum](https://github.com/gollum/gollum) 创建 wiki 随时记下个人笔记，gollum 源自电影《指环王》里的角色咕噜。系统环境如下
 
@@ -382,7 +343,5 @@ gollum /path/to/wiki
 gollum --ref main --emoji --allow-uploads=dir /path/to/wiki
 ```
 
-> 注意
->
-> 先想好目录结构，不然会很乱，以后改起来就麻烦了！
+> 注意：先想好目录结构，不然会很乱，以后改起来就麻烦了！
 
