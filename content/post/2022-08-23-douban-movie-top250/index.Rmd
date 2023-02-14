@@ -345,9 +345,7 @@ subset(douban_movie_top250,
 ```
 
 
-留了搜索的窗口，方便大家根据演员或导演来找电影，读者可以试试搜索「张国荣」或「斯皮尔伯格」。
-
-大致扫了几眼，好多电影都没看过，也许以后有时间，留着慢慢刷吧，还可以顺便写点影评什么的。那么多好看的电影还没来得及看呢，一想到这，现在快餐式的电影就没啥意思了。
+留了搜索的窗口，方便根据演员或导演来找电影，试试搜索「张国荣」或「斯皮尔伯格」。大致扫了几眼，好多电影都没看过，以后有时间了慢慢刷吧，顺便写点影评什么的。那么多好看的电影还没来得及看呢，一想到这，现在快餐式的电影就没啥意思了。
 
 
 # 表格概览 {#summary}
@@ -401,8 +399,7 @@ Table:(\#tab:table-summary) R 语言社区制作表格的主要 R 包
 
 xfun::session_info(packages = c(
   "knitr", "rmarkdown", "blogdown",
-  "reactable", "reactablefmtr",
-  "xml2", "rvest", "scales", "ggplot2", "showtext"
+  "reactable", "xml2", "rvest", "ggplot2", "showtext"
 ), dependencies = FALSE)
 ```
 
