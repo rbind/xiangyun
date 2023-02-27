@@ -27,8 +27,8 @@ description: "除了交互式网页图形可以展示数据，交互式表格作
 <script src="{{< blogdown/postref >}}index_files/react/react-dom.min.js"></script>
 <script src="{{< blogdown/postref >}}index_files/reactwidget/react-tools.js"></script>
 <script src="{{< blogdown/postref >}}index_files/htmlwidgets/htmlwidgets.js"></script>
-<link href="{{< blogdown/postref >}}index_files/reactable/reactable.css" rel="stylesheet" />
-<script src="{{< blogdown/postref >}}index_files/reactable-binding/reactable.js"></script>
+<link href="https://cdn.jsdelivr.net/gh/glin/reactable@main/inst/htmlwidgets/reactable.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/gh/glin/reactable@main/inst/htmlwidgets/reactable.js"></script>
 
 
 <p>首先，用 <strong>rvest</strong> 和 <strong>xml2</strong> 包抓取<a href="https://movie.douban.com/top250">豆瓣电影 Top 250</a> 排行榜数据，借此入坑网页抓取，实现基本的网页数据自由。接着，简单分析一下热门电影的时间分布，了解一点趋势。然后，用 <strong>reactable</strong> 包制作表格，展示排行榜数据。最后，简单谈谈 R 语言社区制作表格的一些 R 包。</p>
