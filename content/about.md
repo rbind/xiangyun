@@ -6,9 +6,10 @@ title: 关于
 
 | 年份 | 文章 |
 |:-----|:----------|
+| 2023 | [地震越来越频繁了吗？](https://cosx.org/2023/02/earthquake/)|
 | 2022 | [R Markdown 制作 beamer 幻灯片](https://cosx.org/2022/08/beamer-not-down/)|
 | 2022 | [R 语言制作地区分布图及其动画](https://cosx.org/2022/07/choropleth-map-animation/)|
-| 2022| [地区分布图及其应用](https://cosx.org/2022/05/choropleth-map/)|
+| 2022 | [地区分布图及其应用](https://cosx.org/2022/05/choropleth-map/)|
 | 2021 | [从 R 连接 MySQL](https://cosx.org/2020/06/connect-mysql-from-r/) |
 | 2017 | [漫谈条形图](https://cosx.org/2017/10/discussion-about-bar-graph/) |
 | 2017 | [随机数生成及其在统计模拟中的应用](https://cosx.org/2017/05/random-number-generation/)  |
