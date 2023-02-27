@@ -385,9 +385,6 @@ Table:(\#tab:table-summary) R 语言社区制作表格的主要 R 包
 目前，**reactable** 包有好些常用的效率性的功能还未就绪，已知问题清单见[此处](https://github.com/glin/reactable/issues/167)。比如，不支持向量化的方式对多个列应用同样的格式化方法，即有 A、B、C 三个列需要以百分比的格式展示，使用 **reactable** 包需要写三段类似的代码，造成一定冗余。唯一的好处是在未来修改某个列，其它列相互不受影响。**reactable** 不支持像 **DT** 包那样导出数据，需要另外借助 Shiny 制作[下载按钮](https://shiny.rstudio.com/reference/shiny/latest/downloadHandler.html)。
 
 
-
-
-
 # 环境信息 {#session}
 
 本文是在 RStudio IDE 内用 R Markdown 编辑的，用 **blogdown** 构建网站，[Hugo](https://github.com/gohugoio/hugo) 渲染 knitr 之后的 Markdown 文件，得益于 **blogdown** 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：
