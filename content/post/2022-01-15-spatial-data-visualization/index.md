@@ -1,5 +1,5 @@
 ---
-title: 空间数据可视化与 R 语言（下篇）
+title: 空间数据可视化与 R 语言（中篇）
 author: 黄湘云
 date: '2022-02-22'
 slug: spatial-data-visualization
