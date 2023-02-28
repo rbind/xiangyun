@@ -65,7 +65,7 @@ ggplot(gapminder_2007, aes(x = income_level)) +
 </p>
 </div>
 <div class="rmdtip">
-<p><a href="#fig:fig-gapminder-2007-income">1.1</a> 等价于 <a href="#fig:fig-gapminder-2007-income-stat">1.2</a></p>
+<p>图<a href="#fig:fig-gapminder-2007-income">1.1</a> 等价于图 <a href="#fig:fig-gapminder-2007-income-stat">1.2</a></p>
 <pre class="r"><code>ggplot(gapminder_2007, aes(x = income_level, y = after_stat(count))) + 
   geom_bar(stat = &quot;count&quot;) +
   theme_classic() +
@@ -176,16 +176,15 @@ ggplot(gapminder_2007, aes(x = income_level)) +
 </div>
 <div id="sec-math" class="section level1" number="2">
 <h1><span class="header-section-number">2</span> 插入公式</h1>
-<p><strong>ggplot2</strong> 包内置了一些的数学公式解析和表达能力</p>
-<p>形状参数分别为 <span class="math inline">\(a\)</span> 和 <span class="math inline">\(b\)</span> 的贝塔分布的概率密度函数如下：</p>
+<p><strong>ggplot2</strong> 包内置了一些的数学公式解析和表达能力。形状参数分别为 <span class="math inline">\(a\)</span> 和 <span class="math inline">\(b\)</span> 的贝塔分布的概率密度函数如下：</p>
 <p><span class="math display">\[
 f(x;a,b) = \frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)}x^{a-1}(1-x)^{b-1}, \quad a&gt;0,b&gt;0,0\leq x \leq 1
 \]</span></p>
 <div id="plotmath" class="section level2" number="2.1">
 <h2><span class="header-section-number">2.1</span> plotmath</h2>
 <!-- 适合全英文的环境 -->
-<p>Base R 内置的 plotmath 提供一套处理数学公式的方法，详见 <code>?plotmath</code></p>
-<p><a href="#fig:fig-beta-plotmath">2.1</a> 中红线对应贝塔分布 <span class="math inline">\(B(3,0.9)\)</span> 而蓝线对应贝塔分布 <span class="math inline">\(B(3,9)\)</span></p>
+<p>Base R 内置的 plotmath 提供一套处理数学公式的方法，详见 <code>?plotmath</code>。</p>
+<p>图<a href="#fig:fig-beta-plotmath">2.1</a> 中红线对应贝塔分布 <span class="math inline">\(B(3,0.9)\)</span> 而蓝线对应贝塔分布 <span class="math inline">\(B(3,9)\)</span></p>
 <pre class="r"><code>ggplot() +
   geom_function(
     fun = dbeta, args = list(shape1 = 3, shape2 = 0.9),
@@ -266,9 +265,9 @@ ggplot() +
 #&gt; 	XeTeX 3.141592653-2.6-0.999993 (TeX Live 2021)
 #&gt; 	kpathsea version 6.3.3</code></pre>
 <pre><code>#&gt; Measuring dimensions of: A</code></pre>
-<pre><code>#&gt; Running command: &#39;/usr/bin/xelatex&#39; -interaction=batchmode -halt-on-error -output-directory &#39;/tmp/Rtmpve8Jom/tikzDevice7fe47c5f19e&#39; &#39;tikzStringWidthCalc.tex&#39;</code></pre>
+<pre><code>#&gt; Running command: &#39;/usr/bin/xelatex&#39; -interaction=batchmode -halt-on-error -output-directory &#39;/tmp/Rtmp3rzvw0/tikzDevicea892c1f4404&#39; &#39;tikzStringWidthCalc.tex&#39;</code></pre>
 <pre><code>#&gt; [1] 7.903</code></pre>
-<p>确认没有问题后，下面 <a href="#fig:fig-tikz-beta">2.3</a> 的坐标轴标签，标题，图例等位置都支持数学公式，也支持中文，使用 <strong>tikzDevice</strong> 打造出版级的效果图。更多功能的介绍见 <a href="https://www.daqana.org/tikzDevice/" class="uri">https://www.daqana.org/tikzDevice/</a>。</p>
+<p>确认没有问题后，下面图 <a href="#fig:fig-tikz-beta">2.3</a> 的坐标轴标签，标题，图例等位置都支持数学公式，也支持中文，使用 <strong>tikzDevice</strong> 打造出版级的效果图。更多功能的介绍见 <a href="https://www.daqana.org/tikzDevice/" class="uri">https://www.daqana.org/tikzDevice/</a>。</p>
 <pre class="r"><code>library(ggplot2)
 ggplot() +
   geom_function(
@@ -376,7 +375,7 @@ ggplot(dat, aes(x = fruits_emo, y = weight)) +
 图 3.2: emoji 字体
 </p>
 </div>
-<p><a href="https://github.com/GuangchuangYu/emojifont"><strong>emojifont</strong></a> 包将 <a href="https://github.com/ikatyang/emoji-cheat-sheet">Emoji 字体</a>引入 <strong>ggplot2</strong> 绘图，如 <a href="#fig:fig-emojifont">3.3</a> 所示。</p>
+<p><a href="https://github.com/GuangchuangYu/emojifont"><strong>emojifont</strong></a> 包将 <a href="https://github.com/ikatyang/emoji-cheat-sheet">Emoji 字体</a>引入 <strong>ggplot2</strong> 绘图，如图 <a href="#fig:fig-emojifont">3.3</a> 所示。</p>
 <pre class="r"><code># emojifont::load.emojifont()
 library(emojifont)
 dat$fruits_emo &lt;- emojifont::emoji(dat$fruits)
@@ -432,12 +431,7 @@ ggplot(data = gapminder, aes(x = gdpPercap, y = lifeExp)) +
     y = &quot;预期寿命&quot;, size = &quot;人口总数&quot;, color = &quot;区域&quot;
   ) +
   transition_time(time = year)</code></pre>
-<video controls loop>
-<source src="index_files/figure-html/fig-animate-facets.webm" />
-<p>
-生成 GIF 动画
-</p>
-</video>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/fig-animate-facets-1.gif" /></p>
 <pre class="r"><code>ggplot(data = gapminder, aes(x = gdpPercap, y = lifeExp)) +
   geom_point(aes(color = income_level, size = pop),
     show.legend = c(color = TRUE, size = TRUE)
@@ -457,12 +451,7 @@ ggplot(data = gapminder, aes(x = gdpPercap, y = lifeExp)) +
     y = &quot;预期寿命&quot;, size = &quot;人口总数&quot;, color = &quot;收入水平&quot;
   ) +
   transition_time(time = year)</code></pre>
-<video controls loop>
-<source src="index_files/figure-html/fig-animate-region.webm" />
-<p>
-生成 GIF 动画
-</p>
-</video>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/fig-animate-region-1.gif" /></p>
 <p>去掉分面</p>
 <pre class="r"><code># 刻度线位置
 mb &lt;- unique(as.numeric(1:10 %o% 10^(1:4)))
@@ -491,16 +480,11 @@ ggplot(data = gapminder, aes(x = gdpPercap, y = lifeExp)) +
     y = &quot;预期寿命&quot;, size = &quot;人口总数&quot;, color = &quot;区域&quot;
   ) +
   transition_time(time = year)</code></pre>
-<video controls loop>
-<source src="index_files/figure-html/fig-animate-scale.webm" />
-<p>
-生成 GIF 动画
-</p>
-</video>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/fig-animate-scale-1.gif" /></p>
 </div>
 <div id="sec-patchwork" class="section level1" number="5">
 <h1><span class="header-section-number">5</span> 组合图形</h1>
-<p><a href="https://github.com/thomasp85/patchwork"><strong>patchwork</strong></a> 包提供了一套非常简洁的语法，用来组合多个 ggplot2 图形。如 <a href="#fig:fig-patchwork">5.1</a> 所示，用散点图分别绘制 2002 年和 2007 年的数据，并将图形肩并肩的并排展示。</p>
+<p><a href="https://github.com/thomasp85/patchwork"><strong>patchwork</strong></a> 包提供了一套非常简洁的语法，用来组合多个 ggplot2 图形。如图 <a href="#fig:fig-patchwork">5.1</a> 所示，用散点图分别绘制 2002 年和 2007 年的数据，并将图形肩并肩的并排展示。</p>
 <pre class="r"><code>p1 &lt;- ggplot(data = gapminder, aes(x = gdpPercap, y = lifeExp)) +
   geom_point(data = function(x) subset(x, year == 2020),
              aes(color = income_level, size = pop)) +
@@ -535,7 +519,7 @@ p1 | p2</code></pre>
 图 5.1: 左右组合
 </p>
 </div>
-<p>除了用竖线 <code>|</code> 左右并排，还可以用斜杠 <code>/</code> 做上下排列，见下 <a href="#fig:fig-patchwork-updown">5.2</a> 。</p>
+<p>除了用竖线 <code>|</code> 左右并排，还可以用斜杠 <code>/</code> 做上下排列，见下图 <a href="#fig:fig-patchwork-updown">5.2</a> 。</p>
 <pre class="r"><code>p1 / p2</code></pre>
 <div class="figure"><span style="display:block;" id="fig:fig-patchwork-updown"></span>
 <img src="{{< blogdown/postref >}}index_files/figure-html/fig-patchwork-updown-1.png" alt="上下组合" width="576" />
@@ -543,7 +527,7 @@ p1 | p2</code></pre>
 图 5.2: 上下组合
 </p>
 </div>
-<p>还可以引入括号 <code>()</code>，实现更加复杂的图形组合，见下 <a href="#fig:fig-patchwork-grid">5.3</a> 。</p>
+<p>还可以引入括号 <code>()</code>，实现更加复杂的图形组合，见下图 <a href="#fig:fig-patchwork-grid">5.3</a> 。</p>
 <pre class="r"><code>p3 &lt;- ggplot(data = gapminder, aes(x = gdpPercap, y = lifeExp)) +
   geom_point(data = function(x) subset(x, year == 2000),
              aes(color = income_level, size = pop)) +
@@ -564,7 +548,7 @@ p1 / (p2 | p3)</code></pre>
 图 5.3: 多图组合
 </p>
 </div>
-<p>结合上面的介绍，不难看出，竖线 <code>|</code> 用于左右分割，斜杠 <code>/</code> 用于上下分割，而括号 <code>()</code> 用于范围的限定，下 <a href="#fig:fig-patchwork-layout">5.4</a> 是去掉括号后的效果。</p>
+<p>结合上面的介绍，不难看出，竖线 <code>|</code> 用于左右分割，斜杠 <code>/</code> 用于上下分割，而括号 <code>()</code> 用于范围的限定，下图 <a href="#fig:fig-patchwork-layout">5.4</a> 是去掉括号后的效果。</p>
 <pre class="r"><code>p1 / p2 | p3</code></pre>
 <div class="figure"><span style="display:block;" id="fig:fig-patchwork-layout"></span>
 <img src="{{< blogdown/postref >}}index_files/figure-html/fig-patchwork-layout-1.png" alt="多图组合" width="768" />
@@ -606,7 +590,7 @@ p1 / (p4 | p5) +
 </div>
 <div id="sec-image-text" class="section level1" number="7">
 <h1><span class="header-section-number">7</span> 图文混合</h1>
-<p><a href="https://github.com/AllanCameron/geomtextpath"><strong>geomtextpath</strong></a> 包新添文本路径图层，文本随路径变化，实现图文混合的效果，也省了图例，如 <a href="#fig:fig-text-path">7.1</a> 所示。</p>
+<p><a href="https://github.com/AllanCameron/geomtextpath"><strong>geomtextpath</strong></a> 包新添文本路径图层，文本随路径变化，实现图文混合的效果，也省了图例，如图 <a href="#fig:fig-text-path">7.1</a> 所示。</p>
 <pre class="r"><code>library(geomtextpath)
 ggplot(gapminder_2007, aes(x = gdpPercap, y = lifeExp, 
                            color = income_level)) +
@@ -676,7 +660,7 @@ p + inset_element(
 </div>
 <div id="sec-chernoff" class="section level1" number="10">
 <h1><span class="header-section-number">10</span> 表情符号</h1>
-<p><a href="https://github.com/Selbosh/ggChernoff"><strong>ggChernoff</strong></a> 包受 Chernoff 表达多元数据的启发，借助从笑脸到苦脸的 Emoji 表情符号来表达数据指标。比如从低收入到高收入的连续型数据，从非常喜欢到非常不喜欢的有序分类型数据，用表情表达此类数据，显得非常形象。下 <a href="#fig:fig-chernoff">10.1</a> 以收入水平分类，在每个分类中，将预期寿命与表情结合，越长寿越开心。</p>
+<p><a href="https://github.com/Selbosh/ggChernoff"><strong>ggChernoff</strong></a> 包受 Chernoff 表达多元数据的启发，借助从笑脸到苦脸的 Emoji 表情符号来表达数据指标。比如从低收入到高收入的连续型数据，从非常喜欢到非常不喜欢的有序分类型数据，用表情表达此类数据，显得非常形象。下图 <a href="#fig:fig-chernoff">10.1</a> 以收入水平分类，在每个分类中，将预期寿命与表情结合，越长寿越开心。</p>
 <pre class="r"><code>library(ggChernoff)
 library(data.table)
 gapminder_2007 &lt;- as.data.table(gapminder_2007)
@@ -725,9 +709,10 @@ ggplot(gapminder_2007, aes(x = gdpPercap, y = lifeExp)) +
 #&gt;   emojifont_0.5.5     evaluate_0.20       fansi_1.0.4        
 #&gt;   farver_2.1.1        fastmap_1.1.0       filehash_2.4-5     
 #&gt;   fs_1.6.1            generics_0.1.3      geomtextpath_0.1.1 
-#&gt;   ggChernoff_0.3.0    ggforce_0.4.1       ggplot2_3.4.1      
-#&gt;   glue_1.6.2          graphics_4.2.2      grDevices_4.2.2    
-#&gt;   grid_4.2.2          gtable_0.3.1        highr_0.10         
+#&gt;   gganimate_1.0.8     ggChernoff_0.3.0    ggforce_0.4.1      
+#&gt;   ggplot2_3.4.1       gifski_1.6.6-1      glue_1.6.2         
+#&gt;   graphics_4.2.2      grDevices_4.2.2     grid_4.2.2         
+#&gt;   gtable_0.3.1        highr_0.10          hms_1.1.2          
 #&gt;   htmltools_0.5.4     httpuv_1.6.9        isoband_0.2.7      
 #&gt;   jquerylib_0.1.4     jsonlite_1.8.4      knitr_1.42         
 #&gt;   labeling_0.4.2      later_1.3.0         latex2exp_0.9.6    
@@ -737,8 +722,9 @@ ggplot(gapminder_2007, aes(x = gdpPercap, y = lifeExp)) +
 #&gt;   mgcv_1.8-41         mime_0.12           munsell_0.5.0      
 #&gt;   nlme_3.1-162        patchwork_1.1.2     pdftools_3.3.3     
 #&gt;   pillar_1.8.1        pkgconfig_2.0.3     png_0.1-8          
-#&gt;   polyclip_1.10-4     promises_1.2.0.1    proto_1.0.0        
-#&gt;   purrr_1.0.1         qpdf_1.3.0          R6_2.5.1           
+#&gt;   polyclip_1.10-4     prettyunits_1.1.1   progress_1.2.2     
+#&gt;   promises_1.2.0.1    proto_1.0.0         purrr_1.0.1        
+#&gt;   qpdf_1.3.0          R6_2.5.1            ragg_1.2.5         
 #&gt;   rappdirs_0.3.3      RColorBrewer_1.1-3  Rcpp_1.0.10        
 #&gt;   RcppEigen_0.3.3.9.3 rlang_1.0.6         rmarkdown_2.20     
 #&gt;   rstudioapi_0.14     sass_0.4.5          scales_1.2.1       
