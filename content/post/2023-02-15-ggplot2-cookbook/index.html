@@ -1,0 +1,754 @@
+---
+date: "2023-02-28"
+slug: ggplot2-cookbook
+title: ggplot2 食谱
+categories:
+  - 统计图形
+tags:
+  - ggplot2
+  - tikzDevice
+  - patchwork
+  - geomtextpath
+  - ggforce
+  - gganimate
+  - ggChernoff
+math: true
+thumbnail: /img/logo/ggplot2.svg
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+description: "本文记录一些实用的 ggplot2 食谱，涉及公式、字体、动画、布局等多个方面。"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#sec-coord" id="toc-sec-coord"><span class="toc-section-number">1</span> 坐标系统</a></li>
+<li><a href="#sec-math" id="toc-sec-math"><span class="toc-section-number">2</span> 插入公式</a>
+<ul>
+<li><a href="#plotmath" id="toc-plotmath"><span class="toc-section-number">2.1</span> plotmath</a></li>
+<li><a href="#latex2exp" id="toc-latex2exp"><span class="toc-section-number">2.2</span> latex2exp</a></li>
+<li><a href="#tikzdevice" id="toc-tikzdevice"><span class="toc-section-number">2.3</span> tikzDevice</a></li>
+</ul></li>
+<li><a href="#sec-font" id="toc-sec-font"><span class="toc-section-number">3</span> 设置字体</a>
+<ul>
+<li><a href="#sec-noto-fonts" id="toc-sec-noto-fonts"><span class="toc-section-number">3.1</span> Noto 字体</a></li>
+<li><a href="#sec-emoji-fonts" id="toc-sec-emoji-fonts"><span class="toc-section-number">3.2</span> Emoji 字体</a></li>
+</ul></li>
+<li><a href="#sec-animation" id="toc-sec-animation"><span class="toc-section-number">4</span> 制作动画</a></li>
+<li><a href="#sec-patchwork" id="toc-sec-patchwork"><span class="toc-section-number">5</span> 组合图形</a></li>
+<li><a href="#sec-save-image" id="toc-sec-save-image"><span class="toc-section-number">6</span> 保存图形</a></li>
+<li><a href="#sec-image-text" id="toc-sec-image-text"><span class="toc-section-number">7</span> 图文混合</a></li>
+<li><a href="#sec-zoom-out" id="toc-sec-zoom-out"><span class="toc-section-number">8</span> 局部缩放</a></li>
+<li><a href="#sec-watermark" id="toc-sec-watermark"><span class="toc-section-number">9</span> 添加水印</a></li>
+<li><a href="#sec-chernoff" id="toc-sec-chernoff"><span class="toc-section-number">10</span> 表情符号</a></li>
+<li><a href="#环境信息" id="toc-环境信息"><span class="toc-section-number">11</span> 环境信息</a></li>
+</ul>
+</div>
+
+<div id="sec-coord" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> 坐标系统</h1>
+<p>基于数据集 gapminder 展示坐标变换在柱状图、条形图、饼图中的作用，首先来看笛卡尔坐标系下的柱状图。</p>
+<pre class="r"><code>library(ggplot2)
+library(scales)
+gapminder &lt;- readRDS(file = &quot;data/gapminder-2020.rds&quot;)
+gapminder_2007 &lt;- gapminder[gapminder$year == 2007, ]
+ggplot(gapminder_2007, aes(x = income_level)) + 
+  geom_bar(stat = &quot;count&quot;) +
+  theme_classic() +
+  labs(x = &quot;收入水平&quot;, y = &quot;国家数量&quot;)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-gapminder-2007-income"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-gapminder-2007-income-1.png" alt="笛卡尔坐标系下的柱形图" width="384" />
+<p class="caption">
+图 1.1: 笛卡尔坐标系下的柱形图
+</p>
+</div>
+<div class="rmdtip">
+<p><a href="#fig:fig-gapminder-2007-income">1.1</a> 等价于 <a href="#fig:fig-gapminder-2007-income-stat">1.2</a></p>
+<pre class="r"><code>ggplot(gapminder_2007, aes(x = income_level, y = after_stat(count))) + 
+  geom_bar(stat = &quot;count&quot;) +
+  theme_classic() +
+  labs(x = &quot;收入水平&quot;, y = &quot;国家数量&quot;)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-gapminder-2007-income-stat"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-gapminder-2007-income-stat-1.png" alt="笛卡尔坐标系下的柱形图" width="384" />
+<p class="caption">
+图 1.2: 笛卡尔坐标系下的柱形图
+</p>
+</div>
+</div>
+<p>翻转</p>
+<pre class="r"><code>ggplot(gapminder_2007, aes(x = income_level)) + 
+  geom_bar(stat = &quot;count&quot;) +
+  coord_flip() +
+  theme_classic() +
+  labs(x = &quot;收入水平&quot;, y = &quot;国家数量&quot;)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-gapminder-2007-income-flip"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-gapminder-2007-income-flip-1.png" alt="笛卡尔坐标系下的条形图" width="384" />
+<p class="caption">
+图 1.3: 笛卡尔坐标系下的条形图
+</p>
+</div>
+<p>极坐标变换</p>
+<pre class="r"><code>ggplot(gapminder_2007, aes(x = income_level)) + 
+  geom_bar(stat = &quot;count&quot;) +
+  coord_polar() +
+  theme_minimal() +
+  labs(x = NULL, y = NULL)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-gapminder-2007-income-polar"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-gapminder-2007-income-polar-1.png" alt="极坐标系下的条形图" width="384" />
+<p class="caption">
+图 1.4: 极坐标系下的条形图
+</p>
+</div>
+<p>极坐标变换</p>
+<pre class="r"><code>ggplot(gapminder_2007, aes(x = income_level)) + 
+  geom_bar(stat = &quot;count&quot;) +
+  coord_polar(theta = &quot;y&quot;) +
+  theme_minimal() +
+  labs(x = NULL, y = NULL)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-gapminder-2007-income-polar-theta"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-gapminder-2007-income-polar-theta-1.png" alt="极坐标系下的柱形图" width="384" />
+<p class="caption">
+图 1.5: 极坐标系下的柱形图
+</p>
+</div>
+<p>笛卡尔坐标系下的分组堆积柱形图</p>
+<pre class="r"><code>ggplot(gapminder_2007, aes(x = income_level, fill = region)) + 
+  geom_bar(stat = &quot;count&quot;) +
+  theme_classic() +
+  labs(x = &quot;收入水平&quot;, y = &quot;国家数量&quot;, fill = &quot;区域&quot;)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-gapminder-2007-income-region"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-gapminder-2007-income-region-1.png" alt="笛卡尔坐标系下的分组堆积柱形图" width="576" />
+<p class="caption">
+图 1.6: 笛卡尔坐标系下的分组堆积柱形图
+</p>
+</div>
+<p>笛卡尔坐标系下的分组百分比堆积条形图</p>
+<pre class="r"><code>ggplot(gapminder_2007, aes(x = income_level, fill = region)) + 
+  geom_bar(stat = &quot;count&quot;, position = &quot;fill&quot;) +
+  scale_y_continuous(labels = scales::percent) +
+  theme_classic() +
+  labs(x = &quot;收入水平&quot;, y = &quot;国家数量的占比&quot;, fill = &quot;区域&quot;)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-gapminder-2007-income-region-fill"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-gapminder-2007-income-region-fill-1.png" alt="笛卡尔坐标系下的分组百分比堆积条形图" width="576" />
+<p class="caption">
+图 1.7: 笛卡尔坐标系下的分组百分比堆积条形图
+</p>
+</div>
+<p>极坐标系下的分组柱形图</p>
+<pre class="r"><code>ggplot(gapminder_2007, aes(x = income_level, fill = region)) +
+  geom_bar(stat = &quot;count&quot;) +
+  coord_polar() +
+  theme_minimal() +
+  labs(x = &quot;收入水平&quot;, y = &quot;国家数量&quot;, fill = &quot;区域&quot;)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-gapminder-2007-clarity-polar"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-gapminder-2007-clarity-polar-1.png" alt="极坐标系下的分组柱形图" width="480" />
+<p class="caption">
+图 1.8: 极坐标系下的分组柱形图
+</p>
+</div>
+<p>极坐标系下的分组柱形图</p>
+<pre class="r"><code>ggplot(gapminder_2007, aes(x = income_level, fill = region)) +
+  geom_bar(stat = &quot;count&quot;, position = &quot;fill&quot;) +
+  scale_y_continuous(labels = scales::percent) +
+  coord_polar() +
+  theme_minimal() +
+  labs(x = &quot;收入水平&quot;, y = &quot;国家数量的占比&quot;, fill = &quot;区域&quot;)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-gapminder-2007-clarity-polar-fill"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-gapminder-2007-clarity-polar-fill-1.png" alt="极坐标系下的分组百分比堆积柱形图" width="480" />
+<p class="caption">
+图 1.9: 极坐标系下的分组百分比堆积柱形图
+</p>
+</div>
+<p>极坐标系下的分组柱形图</p>
+<pre class="r"><code>ggplot(gapminder_2007, aes(x = income_level, fill = region)) + 
+  geom_bar(stat = &quot;count&quot;) +
+  coord_polar(theta = &quot;y&quot;) +
+  theme_minimal() +
+  labs(x = NULL, y = NULL, fill = &quot;区域&quot;)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-gapminder-2007-clarity-polar-theta"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-gapminder-2007-clarity-polar-theta-1.png" alt="极坐标系下的分组柱形图" width="480" />
+<p class="caption">
+图 1.10: 极坐标系下的分组柱形图
+</p>
+</div>
+</div>
+<div id="sec-math" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> 插入公式</h1>
+<p><strong>ggplot2</strong> 包内置了一些的数学公式解析和表达能力</p>
+<p>形状参数分别为 <span class="math inline">\(a\)</span> 和 <span class="math inline">\(b\)</span> 的贝塔分布的概率密度函数如下：</p>
+<p><span class="math display">\[
+f(x;a,b) = \frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)}x^{a-1}(1-x)^{b-1}, \quad a&gt;0,b&gt;0,0\leq x \leq 1
+\]</span></p>
+<div id="plotmath" class="section level2" number="2.1">
+<h2><span class="header-section-number">2.1</span> plotmath</h2>
+<!-- 适合全英文的环境 -->
+<p>Base R 内置的 plotmath 提供一套处理数学公式的方法，详见 <code>?plotmath</code></p>
+<p><a href="#fig:fig-beta-plotmath">2.1</a> 中红线对应贝塔分布 <span class="math inline">\(B(3,0.9)\)</span> 而蓝线对应贝塔分布 <span class="math inline">\(B(3,9)\)</span></p>
+<pre class="r"><code>ggplot() +
+  geom_function(
+    fun = dbeta, args = list(shape1 = 3, shape2 = 0.9),
+    colour = &quot;#E41A1C&quot;, linewidth = 1.2,
+  ) +
+  geom_function(
+    fun = dbeta, args = list(shape1 = 3, shape2 = 9),
+    colour = &quot;#377EB8&quot;, linewidth = 1.2
+  ) +
+  theme_classic() +
+  labs(
+    x = expression(x), y = expression(f(x)),
+    title = expression(f(x) == frac(
+      Gamma(a + b),
+      Gamma(a) * Gamma(b)
+    ) * x^{
+      a - 1
+    } * (1 - x)^{
+      b - 1
+    })
+  )</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-beta-plotmath"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-beta-plotmath-1.png" alt="贝塔分布的概率密度函数" width="480" />
+<p class="caption">
+图 2.1: 贝塔分布的概率密度函数
+</p>
+</div>
+<div class="rmdwarn">
+<p>启用 showtext 包会导致数学公式中的括号 () 倾斜，公式和中文混合的情况还不好处理，还不能使用 <code>cairo_pdf</code> 设备保存图形。</p>
+</div>
+</div>
+<div id="latex2exp" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span> latex2exp</h2>
+<p><a href="https://github.com/stefano-meschiari/latex2exp"><strong>latex2exp</strong></a> 包仍然基于 plotmath，但提供 LaTeX 数学公式的书写方式，相比于 plotmath，使用上会更加方便。</p>
+<pre class="r"><code>library(latex2exp)
+ggplot() +
+  geom_function(
+    fun = dbeta, args = list(shape1 = 3, shape2 = 0.9),
+    colour = &quot;#E41A1C&quot;, linewidth = 1.2,
+  ) +
+  geom_function(
+    fun = dbeta, args = list(shape1 = 3, shape2 = 9),
+    colour = &quot;#377EB8&quot;, linewidth = 1.2
+  ) +
+  theme_classic() +
+  labs(
+    x = TeX(r&#39;($x$)&#39;), y = TeX(r&#39;($f(x)$)&#39;),
+    title = TeX(r&#39;($f(x) = \frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)}x^{a-1}(1-x)^{b-1}$)&#39;)
+  )</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-beta-latex2exp"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-beta-latex2exp-1.png" alt="贝塔分布的概率密度函数" width="480" />
+<p class="caption">
+图 2.2: 贝塔分布的概率密度函数
+</p>
+</div>
+</div>
+<div id="tikzdevice" class="section level2" number="2.3">
+<h2><span class="header-section-number">2.3</span> tikzDevice</h2>
+<p>Ralf Stubner 维护的 <a href="https://github.com/daqana/tikzDevice"><strong>tikzDevice</strong></a> 包提供了另一种嵌入数学字体的方式，其提供的 <code>tikzDevice::tikz()</code> 绘图设备将图形对象转化为 TikZ 代码，调用 LaTeX 引擎编译成 PDF 文档。<a href="https://github.com/daqana/tikzDevice"><strong>tikzDevice</strong></a>包大大扩展了数学公式的处理能力，相比于 <strong>latex2exp</strong> 包，<strong>tikzDevice</strong> 调用 LaTeX 编译引擎处理数学公式，渲染的公式效果更加精美，支持的数学公式符号更多，不再局限于 plotmath 的能力。</p>
+<p>首先安装一些所需的 LaTeX 宏包。</p>
+<pre class="r"><code>tinytex::tlmgr_install(&quot;ctex&quot;, &quot;fandol&quot;, &quot;standalone&quot;, &quot;sourcesanspro&quot;, &quot;jknapltx&quot;)</code></pre>
+<p>设置默认的 LaTeX 编译引擎为 XeLaTeX，相比于 PDFLaTeX，它对中文的兼容性更好，支持多平台下的中文环境，中文字体这里采用了开源的 Fandol 字体，默认加载了 mathrsfs 宏包支持 <code>\mathcal</code>、<code>\mathscr</code> 等命令，此外， LaTeX 发行版采用谢益辉自定义的 <a href="https://yihui.org/tinytex/">TinyTeX</a>。推荐的全局 LaTeX 环境配置如下：</p>
+<pre class="r"><code>options(
+  tinytex.engine = &quot;xelatex&quot;,
+  tikzDefaultEngine = &quot;xetex&quot;,
+  tikzDocumentDeclaration = &quot;\\documentclass[tikz]{standalone}\n&quot;,
+  tikzXelatexPackages = c(
+    &quot;\\usepackage[fontset=fandol]{ctex}&quot;,
+    &quot;\\usepackage[default,semibold]{sourcesanspro}&quot;,
+    &quot;\\usepackage{amsfonts,mathrsfs,amssymb}\n&quot;
+  )
+)</code></pre>
+<p>再测试一下 LaTeX 编译环境是否正常。</p>
+<pre class="r"><code>tikzDevice::tikzTest()</code></pre>
+<pre><code>#&gt; 
+#&gt; Active compiler:
+#&gt; 	/usr/bin/xelatex
+#&gt; 	XeTeX 3.141592653-2.6-0.999993 (TeX Live 2021)
+#&gt; 	kpathsea version 6.3.3</code></pre>
+<pre><code>#&gt; Measuring dimensions of: A</code></pre>
+<pre><code>#&gt; Running command: &#39;/usr/bin/xelatex&#39; -interaction=batchmode -halt-on-error -output-directory &#39;/tmp/Rtmpve8Jom/tikzDevice7fe47c5f19e&#39; &#39;tikzStringWidthCalc.tex&#39;</code></pre>
+<pre><code>#&gt; [1] 7.903</code></pre>
+<p>确认没有问题后，下面 <a href="#fig:fig-tikz-beta">2.3</a> 的坐标轴标签，标题，图例等位置都支持数学公式，也支持中文，使用 <strong>tikzDevice</strong> 打造出版级的效果图。更多功能的介绍见 <a href="https://www.daqana.org/tikzDevice/" class="uri">https://www.daqana.org/tikzDevice/</a>。</p>
+<pre class="r"><code>library(ggplot2)
+ggplot() +
+  geom_function(
+    fun = dbeta, args = list(shape1 = 3, shape2 = 0.9),
+    colour = &quot;#E41A1C&quot;, linewidth = 1.5,
+  ) +
+  geom_function(
+    fun = dbeta, args = list(shape1 = 3, shape2 = 9),
+    colour = &quot;#377EB8&quot;, linewidth = 1.5
+  ) +
+  theme_classic() +
+  labs(
+    x = &quot;$x$&quot;, y = &quot;$f(x)$&quot;,
+    title = &quot;$f(x) = \\frac{\\Gamma(a+b)}{\\Gamma(a)\\Gamma(b)}x^{a-1}(1-x)^{b-1}$&quot;
+  )</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-tikz-beta"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-tikz-beta-1.png" alt="TikZ 渲染的贝塔函数公式" width="480" />
+<p class="caption">
+图 2.3: TikZ 渲染的贝塔函数公式
+</p>
+</div>
+<p>绘制独立的 PDF 图形的过程如下：</p>
+<pre class="r"><code>library(tikzDevice)
+tf &lt;- file.path(getwd(), &quot;tikz-beta.tex&quot;)
+tikz(tf, width = 3, height = 2.5, pointsize = 30, standAlone = TRUE)
+## 绘图代码 ##
+dev.off()
+# 编译成 PDF 图形
+tinytex::latexmk(file = &quot;tikz-beta.tex&quot;)</code></pre>
+</div>
+</div>
+<div id="sec-font" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> 设置字体</h1>
+<div id="sec-noto-fonts" class="section level2" number="3.1">
+<h2><span class="header-section-number">3.1</span> Noto 字体</h2>
+<p><strong>showtext</strong> 是一个专用于处理中英文字体的 R 包，支持 Base R 和 <strong>ggplot2</strong> 绘图，支持调用系统已安装的字体，也支持调用给定路径下的字体，还支持各种奇形怪状的表情字体，更多内容见 (<a href="https://github.com/yixuan/showtext" class="uri">https://github.com/yixuan/showtext</a>)，好玩的字体配合好玩的图形，可以玩出很多花样。</p>
+<pre class="r"><code>## 简体中文宋体字
+sysfonts::font_add(
+  family = &quot;Noto Serif CJK SC&quot;,
+  regular = &quot;NotoSerifCJKsc-Regular.otf&quot;,
+  bold = &quot;NotoSerifCJKsc-Bold.otf&quot;
+)
+## 无衬线英文字体
+sysfonts::font_add(
+  family = &quot;Noto Sans&quot;,
+  regular = &quot;NotoSans-Regular.ttf&quot;,
+  bold = &quot;NotoSans-Bold.ttf&quot;,
+  italic = &quot;NotoSans-Italic.ttf&quot;,
+  bolditalic = &quot;NotoSans-BoldItalic.ttf&quot;
+)</code></pre>
+<p>接下来查看在当前运行环境下，可供 <strong>showtext</strong> 包使用的字体。如果配置成功，输出的字体列表中会包含 <code>Noto Serif CJK SC</code> 和 <code>Noto Sans</code> 两款字体。</p>
+<pre class="r"><code>sysfonts::font_families()</code></pre>
+<pre><code>#&gt; [1] &quot;sans&quot;              &quot;serif&quot;             &quot;mono&quot;             
+#&gt; [4] &quot;Noto Serif CJK SC&quot; &quot;Noto Sans CJK SC&quot;  &quot;Noto Serif&quot;       
+#&gt; [7] &quot;Noto Sans&quot;         &quot;wqy-microhei&quot;</code></pre>
+<p>确认字体配置好了以后，全局默认字体为 Noto 无衬线英文字体，将所有标题处的字体设置为 Noto 系列的简体中文字体。</p>
+<pre class="r"><code>ggplot(data = gapminder, aes(x = gdpPercap, y = lifeExp)) +
+  geom_point(data = function(x) subset(x, year == 2007),
+             aes(fill = region, size = pop),
+    show.legend = c(fill = TRUE, size = FALSE),
+    shape = 21, col = &quot;white&quot;
+  ) +
+  scale_fill_manual(values = c(
+    `拉丁美洲与加勒比海地区` = &quot;#E41A1C&quot;, `撒哈拉以南非洲地区` = &quot;#377EB8&quot;,
+    `欧洲与中亚地区` = &quot;#4DAF4A&quot;, `中东与北非地区` = &quot;#984EA3&quot;,
+    `东亚与太平洋地区` = &quot;#FF7F00&quot;, `南亚` = &quot;#FFFF33&quot;, `北美` = &quot;#A65628&quot;
+  )) +
+  scale_size(range = c(2, 12)) +
+  scale_x_log10(labels = label_log(), limits = c(100, 110000)) +
+  facet_wrap(facets = ~income_level, ncol = 3) +
+  theme_classic(base_family = &quot;Noto Sans&quot;) +
+  theme(
+    title = element_text(family = &quot;Noto Serif CJK SC&quot;),
+    text = element_text(family = &quot;Noto Serif CJK SC&quot;),
+    legend.position =  c(0.9, 0.20)
+  ) +
+  labs(x = &quot;人均 GDP&quot;, y = &quot;预期寿命&quot;, fill = &quot;区域&quot;)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-font"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-font-1.png" alt="Noto 系列中英文字体" width="672" />
+<p class="caption">
+图 3.1: Noto 系列中英文字体
+</p>
+</div>
+<p><strong>ragg</strong> 包 (<a href="https://github.com/r-lib/ragg" class="uri">https://github.com/r-lib/ragg</a>) 无需手动配置字体，只要是系统已经安装的字体，在 <strong>ggplot2</strong> 绘图时，将字体名称传递给 <code>family</code> 即可。</p>
+</div>
+<div id="sec-emoji-fonts" class="section level2" number="3.2">
+<h2><span class="header-section-number">3.2</span> Emoji 字体</h2>
+<pre class="r"><code>dat &lt;- data.frame(
+  fruits = c(&quot;pineapple&quot;, &quot;apple&quot;, &quot;watermelon&quot;, &quot;pear&quot;),
+  weight = c(5, 4, 3, 2)
+)
+# emo 字体
+dat$fruits_emo &lt;- sapply(dat$fruits, emo::ji)
+ggplot(dat, aes(x = fruits_emo, y = weight)) +
+  geom_text(aes(label = fruits_emo),
+    size = 12, vjust = -0.5
+  ) +
+  scale_y_continuous(limits = c(2, 7)) +
+  theme_classic() +
+  theme(axis.title = element_text(family = &quot;Noto Serif CJK SC&quot;)) +
+  labs(x = &quot;水果&quot;, y = &quot;重量&quot;)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-emoji"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-emoji-1.png" alt="emoji 字体" width="480" />
+<p class="caption">
+图 3.2: emoji 字体
+</p>
+</div>
+<p><a href="https://github.com/GuangchuangYu/emojifont"><strong>emojifont</strong></a> 包将 <a href="https://github.com/ikatyang/emoji-cheat-sheet">Emoji 字体</a>引入 <strong>ggplot2</strong> 绘图，如 <a href="#fig:fig-emojifont">3.3</a> 所示。</p>
+<pre class="r"><code># emojifont::load.emojifont()
+library(emojifont)
+dat$fruits_emo &lt;- emojifont::emoji(dat$fruits)
+ggplot(dat, aes(x = fruits_emo, y = weight)) +
+  geom_text(aes(label = fruits_emo, color = fruits_emo),
+    size = 12, vjust = -0.5, family = &quot;EmojiOne&quot;, show.legend = FALSE
+  ) +
+  scale_y_continuous(limits = c(2, 7)) +
+  theme_classic() +
+  theme(axis.text.x = element_text(size = 20, family = &quot;EmojiOne&quot;),
+        axis.text.y = element_text(family = &quot;Noto Sans&quot;),
+        axis.title = element_text(family = &quot;Noto Serif CJK SC&quot;)) +
+  labs(x = &quot;水果&quot;, y = &quot;重量&quot;)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-emojifont"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-emojifont-1.png" alt="制作含 Emoji 的图形" width="480" />
+<p class="caption">
+图 3.3: 制作含 Emoji 的图形
+</p>
+</div>
+<div class="rmdwarn">
+<ol style="list-style-type: decimal">
+<li><p>先加载 emojifont 包会导致 emo 包无法使用彩色字体，因为 emojifont 自动加载了字体和设备，emo 不能与 showtext 包同时使用。而且 plotmath 数学符号会变形，所以插入公式放在设置字体前面。</p></li>
+<li><p>加载 emojifont 包会自动加载 Emoji 字体，而从命名空间导入字体 <code>emojifont::load.emojifont()</code> 同样会导致插入公式一节不能正常使用</p></li>
+</ol>
+</div>
+</div>
+</div>
+<div id="sec-animation" class="section level1" number="4">
+<h1><span class="header-section-number">4</span> 制作动画</h1>
+<p>从 1991 年至2020 年，gapminder 数据集一共是 30 年的数据。 <a href="#sec-font">3</a> 根据 2007 年的数据绘制了 <a href="#fig:fig-font">3.1</a> ，每年的数据绘制一幅图像，30 年总共可获得 30 帧图像，再以每秒播放 5 帧图像的速度将 30 帧图像合成 GIF 动画。因此，设置这个动画总共 30 帧，每秒播放的图像数为 5。</p>
+<pre class="r"><code>options(gganimate.nframes = 30, gganimate.fps = 5)</code></pre>
+<p><strong>gganimate</strong> 包提供一套代码风格类似 <strong>ggplot2</strong> 包的动态图形语法，可以非常顺滑地与之连接。在了解了 ggplot2 绘制图形的过程后，用 <strong>gganimate</strong> 包制作动画是非常容易的。<strong>gganimate</strong> 包会调用 <strong>gifski</strong> (<a href="https://github.com/r-rust/gifski" class="uri">https://github.com/r-rust/gifski</a>) 包来合成动画，因此，除了安装 <strong>gganimate</strong> 包，还需要安装 <strong>gifski</strong> 包。接着，在已有的 <strong>ggplot2</strong> 绘图代码基础上，再追加一个转场图层函数 <code>transition_time()</code>，这里是按年逐帧展示图像，因此，其转场的时间变量为 gapminder 数据集中的变量 <code>year</code>。</p>
+<pre class="r"><code>library(gganimate)
+ggplot(data = gapminder, aes(x = gdpPercap, y = lifeExp)) +
+  geom_point(aes(color = region, size = pop),
+    show.legend = c(color = TRUE, size = TRUE)
+  ) +
+  scale_color_manual(values = c(
+    `拉丁美洲与加勒比海地区` = &quot;#E41A1C&quot;, `撒哈拉以南非洲地区` = &quot;#377EB8&quot;,
+    `欧洲与中亚地区` = &quot;#4DAF4A&quot;, `中东与北非地区` = &quot;#984EA3&quot;,
+    `东亚与太平洋地区` = &quot;#FF7F00&quot;, `南亚` = &quot;#FFFF33&quot;, `北美` = &quot;#A65628&quot;
+  )) +
+  scale_size(range = c(2, 12), labels = label_number(scale_cut = cut_short_scale())) +
+  scale_x_log10(labels = label_log(), limits = c(10, 130000)) +
+  facet_wrap(facets = ~income_level) +
+  theme_classic(base_family = &quot;Noto Sans&quot;) +
+  theme(
+    title = element_text(family = &quot;Noto Serif CJK SC&quot;),
+    text = element_text(family = &quot;Noto Serif CJK SC&quot;)
+  ) +
+  labs(
+    title = &quot;{frame_time} 年&quot;, x = &quot;人均 GDP&quot;,
+    y = &quot;预期寿命&quot;, size = &quot;人口总数&quot;, color = &quot;区域&quot;
+  ) +
+  transition_time(time = year)</code></pre>
+<video controls loop>
+<source src="index_files/figure-html/fig-animate-facets.webm" />
+<p>
+生成 GIF 动画
+</p>
+</video>
+<pre class="r"><code>ggplot(data = gapminder, aes(x = gdpPercap, y = lifeExp)) +
+  geom_point(aes(color = income_level, size = pop),
+    show.legend = c(color = TRUE, size = TRUE)
+  ) +
+  scale_color_brewer(palette = &quot;RdYlGn&quot;) +
+  scale_radius(range = c(1, 6), trans = &quot;log10&quot;,
+             labels = label_number(scale_cut = cut_short_scale())) +
+  scale_x_log10(labels = label_log(), limits = c(10, 130000)) +
+  facet_wrap(facets = ~region, ncol = 3) +
+  theme_classic(base_family = &quot;Noto Sans&quot;) +
+  theme(
+    title = element_text(family = &quot;Noto Serif CJK SC&quot;),
+    text = element_text(family = &quot;Noto Serif CJK SC&quot;)
+  ) +
+  labs(
+    title = &quot;{frame_time} 年&quot;, x = &quot;人均 GDP&quot;,
+    y = &quot;预期寿命&quot;, size = &quot;人口总数&quot;, color = &quot;收入水平&quot;
+  ) +
+  transition_time(time = year)</code></pre>
+<video controls loop>
+<source src="index_files/figure-html/fig-animate-region.webm" />
+<p>
+生成 GIF 动画
+</p>
+</video>
+<p>去掉分面</p>
+<pre class="r"><code># 刻度线位置
+mb &lt;- unique(as.numeric(1:10 %o% 10^(1:4)))
+ggplot(data = gapminder, aes(x = gdpPercap, y = lifeExp)) +
+  geom_point(aes(color = region, size = pop),
+             show.legend = c(color = TRUE, size = TRUE)
+  ) +
+  scale_color_manual(values = c(
+    `拉丁美洲与加勒比海地区` = &quot;#E41A1C&quot;, `撒哈拉以南非洲地区` = &quot;#377EB8&quot;,
+    `欧洲与中亚地区` = &quot;#4DAF4A&quot;, `中东与北非地区` = &quot;#984EA3&quot;,
+    `东亚与太平洋地区` = &quot;#FF7F00&quot;, `南亚` = &quot;#FFFF33&quot;, `北美` = &quot;#A65628&quot;
+  )) +
+  scale_radius(range = c(1, 6), trans = &quot;log10&quot;,
+             labels = label_number(scale_cut = cut_short_scale())) +
+  scale_x_log10(labels = label_dollar(), minor_breaks = mb, limits = c(10, 130000)) +
+  scale_y_continuous(n.breaks = 6) +
+  theme_classic(base_family = &quot;Noto Sans&quot;) +
+  theme(
+    title = element_text(family = &quot;Noto Serif CJK SC&quot;),
+    text = element_text(family = &quot;Noto Serif CJK SC&quot;),
+    panel.grid.major = element_line(),
+    panel.grid.minor.x = element_line()
+  ) +
+  labs(
+    title = &quot;{frame_time} 年&quot;, x = &quot;人均 GDP&quot;,
+    y = &quot;预期寿命&quot;, size = &quot;人口总数&quot;, color = &quot;区域&quot;
+  ) +
+  transition_time(time = year)</code></pre>
+<video controls loop>
+<source src="index_files/figure-html/fig-animate-scale.webm" />
+<p>
+生成 GIF 动画
+</p>
+</video>
+</div>
+<div id="sec-patchwork" class="section level1" number="5">
+<h1><span class="header-section-number">5</span> 组合图形</h1>
+<p><a href="https://github.com/thomasp85/patchwork"><strong>patchwork</strong></a> 包提供了一套非常简洁的语法，用来组合多个 ggplot2 图形。如 <a href="#fig:fig-patchwork">5.1</a> 所示，用散点图分别绘制 2002 年和 2007 年的数据，并将图形肩并肩的并排展示。</p>
+<pre class="r"><code>p1 &lt;- ggplot(data = gapminder, aes(x = gdpPercap, y = lifeExp)) +
+  geom_point(data = function(x) subset(x, year == 2020),
+             aes(color = income_level, size = pop)) +
+  scale_color_brewer(palette = &quot;RdYlGn&quot;) +
+  scale_radius(range = c(1, 6), trans = &quot;log10&quot;,
+               labels = label_number(scale_cut = cut_short_scale())) +
+  scale_x_log10(labels = label_log(), limits = c(10, 130000)) +
+  theme_minimal() +
+  labs(
+    title = &quot;2020 年&quot;, x = &quot;人均 GDP&quot;,
+    y = &quot;预期寿命&quot;, size = &quot;人口总数&quot;, color = &quot;收入水平&quot;
+  )
+
+p2 &lt;- ggplot(data = gapminder, aes(x = gdpPercap, y = lifeExp)) +
+  geom_point(data = function(x) subset(x, year == 2010),
+             aes(color = income_level, size = pop)) +
+  scale_color_brewer(palette = &quot;RdYlGn&quot;) +
+  scale_radius(range = c(1, 6), trans = &quot;log10&quot;,
+               labels = label_number(scale_cut = cut_short_scale())) +
+  scale_x_log10(labels = label_log(), limits = c(10, 130000)) +
+  theme_minimal() +
+  labs(
+    title = &quot;2010 年&quot;, x = &quot;人均 GDP&quot;,
+    y = &quot;预期寿命&quot;, size = &quot;人口总数&quot;, color = &quot;收入水平&quot;
+  )
+
+library(patchwork)
+p1 | p2</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-patchwork"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-patchwork-1.png" alt="左右组合" width="768" />
+<p class="caption">
+图 5.1: 左右组合
+</p>
+</div>
+<p>除了用竖线 <code>|</code> 左右并排，还可以用斜杠 <code>/</code> 做上下排列，见下 <a href="#fig:fig-patchwork-updown">5.2</a> 。</p>
+<pre class="r"><code>p1 / p2</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-patchwork-updown"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-patchwork-updown-1.png" alt="上下组合" width="576" />
+<p class="caption">
+图 5.2: 上下组合
+</p>
+</div>
+<p>还可以引入括号 <code>()</code>，实现更加复杂的图形组合，见下 <a href="#fig:fig-patchwork-grid">5.3</a> 。</p>
+<pre class="r"><code>p3 &lt;- ggplot(data = gapminder, aes(x = gdpPercap, y = lifeExp)) +
+  geom_point(data = function(x) subset(x, year == 2000),
+             aes(color = income_level, size = pop)) +
+  scale_color_brewer(palette = &quot;RdYlGn&quot;) +
+  scale_radius(range = c(1, 6), trans = &quot;log10&quot;,
+               labels = label_number(scale_cut = cut_short_scale())) +
+  scale_x_log10(labels = label_log(), limits = c(10, 130000)) +
+  theme_minimal() +
+  labs(
+    title = &quot;2000 年&quot;, x = &quot;人均 GDP&quot;,
+    y = &quot;预期寿命&quot;, size = &quot;人口总数&quot;, color = &quot;收入水平&quot;
+  )
+
+p1 / (p2 | p3)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-patchwork-grid"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-patchwork-grid-1.png" alt="多图组合" width="768" />
+<p class="caption">
+图 5.3: 多图组合
+</p>
+</div>
+<p>结合上面的介绍，不难看出，竖线 <code>|</code> 用于左右分割，斜杠 <code>/</code> 用于上下分割，而括号 <code>()</code> 用于范围的限定，下 <a href="#fig:fig-patchwork-layout">5.4</a> 是去掉括号后的效果。</p>
+<pre class="r"><code>p1 / p2 | p3</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-patchwork-layout"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-patchwork-layout-1.png" alt="多图组合" width="768" />
+<p class="caption">
+图 5.4: 多图组合
+</p>
+</div>
+<p>还可以将图例收集起来，合并放置在一处。p1 、p2 和 p3 的图例是一样的，可以将 p2 和 p3 的图例隐藏起来，将 p1 的图例放置在右侧居中的位置。</p>
+<pre class="r"><code>p4 &lt;- p2 +
+  theme(legend.position = &quot;none&quot;)
+p5 &lt;- p3 +
+  theme(legend.position = &quot;none&quot;)
+p1 / (p4 | p5) +
+  plot_layout(guides = &quot;collect&quot;)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-patchwork-collect"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-patchwork-collect-1.png" alt="多图组合" width="768" />
+<p class="caption">
+图 5.5: 多图组合
+</p>
+</div>
+<p>看起来，有点像分面绘图，但是一个图占两列又表示它不是分面绘图，而是多图布局的效果。</p>
+<p>最常用的功能就是这些啦，更多内容可以去 <strong>patchwork</strong> 包官网了解。其它可以用来组合多个 ggplot2 图形的 R 包有 <strong>cowplot</strong> (<a href="https://github.com/wilkelab/cowplot" class="uri">https://github.com/wilkelab/cowplot</a>)、<strong>gridExra</strong> (<a href="https://cran.r-project.org/package=gridExtra" class="uri">https://cran.r-project.org/package=gridExtra</a>) 和 <strong>gghalves</strong> (<a href="https://github.com/erocoar/gghalves" class="uri">https://github.com/erocoar/gghalves</a>) 等。</p>
+</div>
+<div id="sec-save-image" class="section level1" number="6">
+<h1><span class="header-section-number">6</span> 保存图形</h1>
+<p><strong>ggplot2</strong> 包提供保存图形的函数 <code>ggsave()</code>，它可以将 ggplot2 对象导出为各种格式的图片，比如 PNG 位图图片、 SVG 矢量图片等。</p>
+<pre class="r"><code>p &lt;- ggplot(gapminder_2007, aes(x = gdpPercap, y = lifeExp)) +
+  geom_point(aes(color = income_level)) +
+  scale_x_log10(labels = scales::label_log()) +
+  theme_classic()</code></pre>
+<p>位图是由像素（Pixel）构成的，单位 units 是 px，分辨率取决于单位面积上像素的数量，参数 dpi 往往根据显示设备而定，出版打印常用 300。</p>
+<pre class="r"><code>ggsave(filename = &quot;gapminder.png&quot;, plot = p, 
+       width = 800, height = 600, units = &quot;px&quot;,
+       device = &quot;png&quot;, dpi = 300)</code></pre>
+<p>矢量图是由点构成的，由点及线，由线构成路径，在一定坐标系统下，每个点都记录了坐标及方向。</p>
+<pre class="r"><code>ggsave(filename = &quot;gapminder.svg&quot;, plot = p, 
+       width = 8, height = 6, units = &quot;in&quot;,
+       device = &quot;svg&quot;)</code></pre>
+</div>
+<div id="sec-image-text" class="section level1" number="7">
+<h1><span class="header-section-number">7</span> 图文混合</h1>
+<p><a href="https://github.com/AllanCameron/geomtextpath"><strong>geomtextpath</strong></a> 包新添文本路径图层，文本随路径变化，实现图文混合的效果，也省了图例，如 <a href="#fig:fig-text-path">7.1</a> 所示。</p>
+<pre class="r"><code>library(geomtextpath)
+ggplot(gapminder_2007, aes(x = gdpPercap, y = lifeExp, 
+                           color = income_level)) +
+  geom_point(show.legend = FALSE) +
+  scale_x_log10(labels = scales::label_log()) +
+  geom_labelsmooth(aes(label = year),
+    text_smoothing = 30, fill = &quot;#F6F6FF&quot;,
+    method = &quot;lm&quot;, formula = y ~ log10(x), show.legend = FALSE,
+    size = 4, linewidth = 1, boxlinewidth = 0.3
+  ) +
+  theme_classic() +
+  labs(
+    title = &quot;2007 年&quot;, x = &quot;人均 GDP&quot;,
+    y = &quot;预期寿命&quot;, color = &quot;收入水平&quot;
+  )</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-text-path"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-text-path-1.png" alt="图文混合" width="480" />
+<p class="caption">
+图 7.1: 图文混合
+</p>
+</div>
+</div>
+<div id="sec-zoom-out" class="section level1" number="8">
+<h1><span class="header-section-number">8</span> 局部缩放</h1>
+<p>局部缩放是非常常用的一个绘图需求，有时候就是需要将局部细节放大，再绘制，以展示图形的重点关注区域。 <a href="https://github.com/thomasp85/ggforce"><strong>ggforce</strong></a> 包的 <code>facet_zoom()</code> 函数将目标区域作为单独的一个分面展示。</p>
+<pre class="r"><code>library(ggforce)
+ggplot(gapminder_2007, aes(x = gdpPercap, y = lifeExp)) +
+  geom_point(aes(colour = income_level)) +
+  facet_zoom(x = income_level == &quot;低收入&quot;) +
+  labs(x = &quot;人均 GDP&quot;, y = &quot;预期寿命&quot;, color = &quot;收入水平&quot;)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-zoom-out"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-zoom-out-1.png" alt="局部缩放" width="576" />
+<p class="caption">
+图 8.1: 局部缩放
+</p>
+</div>
+</div>
+<div id="sec-watermark" class="section level1" number="9">
+<h1><span class="header-section-number">9</span> 添加水印</h1>
+<p><strong>patchwork</strong> 包的函数 <code>inset_element()</code> 可以给图片上添加某公司的徽标或水印文字，以示版权归属。</p>
+<pre class="r"><code># 绘图展示数据
+p &lt;- ggplot(gapminder_2007, aes(x = gdpPercap, y = lifeExp)) +
+  geom_point(aes(color = income_level)) +
+  scale_x_log10(labels = scales::label_log()) +
+  theme_classic() +
+  labs(x = &quot;人均 GDP&quot;, y = &quot;预期寿命&quot;, color = &quot;收入水平&quot;)
+# 提供水印图片
+logo_file &lt;- system.file(&quot;help&quot;, &quot;figures&quot;, &quot;logo.png&quot;,
+                         package = &quot;patchwork&quot;)
+# 读取 PNG 图片
+img &lt;- png::readPNG(logo_file, native = TRUE)
+# 添加水印图片
+p + inset_element(
+  p = img,
+  left = 0.8,
+  bottom = 0.8,
+  right = 1,
+  top = 1,
+  align_to = &quot;full&quot;
+)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-watermark"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-watermark-1.png" alt="添加水印图片和文字" width="576" />
+<p class="caption">
+图 9.1: 添加水印图片和文字
+</p>
+</div>
+</div>
+<div id="sec-chernoff" class="section level1" number="10">
+<h1><span class="header-section-number">10</span> 表情符号</h1>
+<p><a href="https://github.com/Selbosh/ggChernoff"><strong>ggChernoff</strong></a> 包受 Chernoff 表达多元数据的启发，借助从笑脸到苦脸的 Emoji 表情符号来表达数据指标。比如从低收入到高收入的连续型数据，从非常喜欢到非常不喜欢的有序分类型数据，用表情表达此类数据，显得非常形象。下 <a href="#fig:fig-chernoff">10.1</a> 以收入水平分类，在每个分类中，将预期寿命与表情结合，越长寿越开心。</p>
+<pre class="r"><code>library(ggChernoff)
+library(data.table)
+gapminder_2007 &lt;- as.data.table(gapminder_2007)
+gapminder_2007[, smile := scales::rescale(lifeExp), by = &quot;income_level&quot;]
+
+ggplot(gapminder_2007, aes(x = gdpPercap, y = lifeExp)) +
+  geom_chernoff(aes(smile = smile, fill = income_level), 
+                alpha = 0.85, color = &quot;white&quot;,
+                show.legend = c(smile = FALSE, fill = TRUE)) +
+  scale_x_log10(labels = scales::label_log()) +
+  scale_fill_brewer(palette = &quot;Spectral&quot;, 
+                    guide = guide_legend(reverse = TRUE)) +
+  scale_smile_continuous(midpoint = 0.5) +
+  theme_classic() +
+  labs(x = &quot;人均 GDP&quot;, y = &quot;预期寿命&quot;, fill = &quot;收入水平&quot;)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-chernoff"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-chernoff-1.png" alt="切尔诺夫脸谱图" width="624" />
+<p class="caption">
+图 10.1: 切尔诺夫脸谱图
+</p>
+</div>
+</div>
+<div id="环境信息" class="section level1" number="11">
+<h1><span class="header-section-number">11</span> 环境信息</h1>
+<p>在 RStudio IDE 内编辑本文的 R Markdown 源文件，用 <strong>blogdown</strong> 构建网站，<a href="https://github.com/gohugoio/hugo">Hugo</a> 渲染 knitr 之后的 Markdown 文件，得益于 <strong>blogdown</strong> 对 R Markdown 格式的支持，图、表和参考文献的交叉引用非常方便，省了不少文字编辑功夫。文中使用了多个 R 包，为方便复现本文内容，下面列出详细的环境信息：</p>
+<pre class="r"><code>xfun::session_info()</code></pre>
+<pre><code>#&gt; R version 4.2.2 (2022-10-31)
+#&gt; Platform: x86_64-redhat-linux-gnu (64-bit)
+#&gt; Running under: Fedora Linux 37 (Container Image)
+#&gt; 
+#&gt; Locale:
+#&gt;   LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+#&gt;   LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+#&gt;   LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+#&gt;   LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+#&gt;   LC_ADDRESS=C               LC_TELEPHONE=C            
+#&gt;   LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+#&gt; 
+#&gt; Package version:
+#&gt;   askpass_1.1         assertthat_0.2.1    base64enc_0.1.3    
+#&gt;   blogdown_1.16       bookdown_0.32       bslib_0.4.2        
+#&gt;   cachem_1.0.6        cli_3.6.0           colorspace_2.1-0   
+#&gt;   compiler_4.2.2      cpp11_0.4.3         crayon_1.5.2       
+#&gt;   curl_5.0.0          data.table_1.14.8   digest_0.6.31      
+#&gt;   dplyr_1.1.0         ellipsis_0.3.2      emo_0.0.0.9000     
+#&gt;   emojifont_0.5.5     evaluate_0.20       fansi_1.0.4        
+#&gt;   farver_2.1.1        fastmap_1.1.0       filehash_2.4-5     
+#&gt;   fs_1.6.1            generics_0.1.3      geomtextpath_0.1.1 
+#&gt;   ggChernoff_0.3.0    ggforce_0.4.1       ggplot2_3.4.1      
+#&gt;   glue_1.6.2          graphics_4.2.2      grDevices_4.2.2    
+#&gt;   grid_4.2.2          gtable_0.3.1        highr_0.10         
+#&gt;   htmltools_0.5.4     httpuv_1.6.9        isoband_0.2.7      
+#&gt;   jquerylib_0.1.4     jsonlite_1.8.4      knitr_1.42         
+#&gt;   labeling_0.4.2      later_1.3.0         latex2exp_0.9.6    
+#&gt;   lattice_0.20-45     lifecycle_1.0.3     lubridate_1.9.2    
+#&gt;   magick_2.7.3        magrittr_2.0.3      MASS_7.3-58.2      
+#&gt;   Matrix_1.5-3        memoise_2.0.1       methods_4.2.2      
+#&gt;   mgcv_1.8-41         mime_0.12           munsell_0.5.0      
+#&gt;   nlme_3.1-162        patchwork_1.1.2     pdftools_3.3.3     
+#&gt;   pillar_1.8.1        pkgconfig_2.0.3     png_0.1-8          
+#&gt;   polyclip_1.10-4     promises_1.2.0.1    proto_1.0.0        
+#&gt;   purrr_1.0.1         qpdf_1.3.0          R6_2.5.1           
+#&gt;   rappdirs_0.3.3      RColorBrewer_1.1-3  Rcpp_1.0.10        
+#&gt;   RcppEigen_0.3.3.9.3 rlang_1.0.6         rmarkdown_2.20     
+#&gt;   rstudioapi_0.14     sass_0.4.5          scales_1.2.1       
+#&gt;   servr_0.25          showtext_0.9-5      showtextdb_3.0     
+#&gt;   splines_4.2.2       stats_4.2.2         stringi_1.7.12     
+#&gt;   stringr_1.5.0       sys_3.4.1           sysfonts_0.8.8     
+#&gt;   systemfonts_1.0.4   textshaping_0.3.6   tibble_3.1.8       
+#&gt;   tidyselect_1.2.0    tikzDevice_0.12.4   timechange_0.2.0   
+#&gt;   tinytex_0.44        tools_4.2.2         tweenr_2.0.2       
+#&gt;   utf8_1.2.3          utils_4.2.2         vctrs_0.5.2        
+#&gt;   viridisLite_0.4.1   withr_2.5.0         xfun_0.37          
+#&gt;   yaml_2.3.7</code></pre>
+</div>
