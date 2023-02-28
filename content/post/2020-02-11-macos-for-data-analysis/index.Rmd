@@ -45,28 +45,6 @@ brew install --cask font-noto-emoji font-noto-color-emoji
 brew install --cask font-arial font-andale-mono font-times-new-roman
 ```
 
-## 字体使用
-
-LaTeX 宏包 **xecjk** 支持中文，不必使用 **ctex** 宏包，MacOS 系统上，在 LaTeX 文档里使用 Windows 系统上的黑体、宋体、仿宋、楷体四款中文字体。
-
-```tex
-\setCJKmainfont[ItalicFont={KaiTi_GB2312}, BoldFont={SimHei}]{SimSun}
-\setCJKsansfont{SimHei}
-\setCJKmonofont{FangSong_GB2312}
-
-\setCJKfamilyfont{heiti}{SimHei}             
-\newcommand{\heiti}{\CJKfamily{heiti}}
-
-\setCJKfamilyfont{kaishu}{KaiTi_GB2312}             
-\newcommand{\kaishu}{\CJKfamily{kaishu}}
-
-\setCJKfamilyfont{songti}{SimSun}             
-\newcommand{\songti}{\CJKfamily{songti}}
-
-\setCJKfamilyfont{fangsong}{FangSong_GB2312}             
-\newcommand{\fangsong}{\CJKfamily{fangsong}}
-```
-
 
 # 编辑器
 
