@@ -1,0 +1,1051 @@
+---
+date: "2023-03-05"
+slug: data-visualization-with-r
+title: 数据可视化与 R 语言
+categories:
+  - 统计图形
+tags:
+  - Base R
+  - lattice
+  - ggplot2
+  - rgl
+  - plotly
+  - echarts4r
+math: true
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+description: "本文从二维到三维，从静态到交互概览 R 语言做数据可视化的工具包。简单分类和罗列一些做数据可视化的 R 包"
+---
+
+<script src="{{< blogdown/postref >}}index_files/htmlwidgets/htmlwidgets.js"></script>
+<script src="{{< blogdown/postref >}}index_files/rglWebGL-binding/rglWebGL.js"></script>
+<link href="{{< blogdown/postref >}}index_files/rglwidgetClass/rgl.css" rel="stylesheet" />
+<script src="{{< blogdown/postref >}}index_files/rglwidgetClass/rglClass.src.js"></script>
+<script src="{{< blogdown/postref >}}index_files/rglwidgetClass/utils.src.js"></script>
+<script src="{{< blogdown/postref >}}index_files/rglwidgetClass/buffer.src.js"></script>
+<script src="{{< blogdown/postref >}}index_files/rglwidgetClass/subscenes.src.js"></script>
+<script src="{{< blogdown/postref >}}index_files/rglwidgetClass/shaders.src.js"></script>
+<script src="{{< blogdown/postref >}}index_files/rglwidgetClass/textures.src.js"></script>
+<script src="{{< blogdown/postref >}}index_files/rglwidgetClass/projection.src.js"></script>
+<script src="{{< blogdown/postref >}}index_files/rglwidgetClass/mouse.src.js"></script>
+<script src="{{< blogdown/postref >}}index_files/rglwidgetClass/init.src.js"></script>
+<script src="{{< blogdown/postref >}}index_files/rglwidgetClass/pieces.src.js"></script>
+<script src="{{< blogdown/postref >}}index_files/rglwidgetClass/draw.src.js"></script>
+<script src="{{< blogdown/postref >}}index_files/rglwidgetClass/controls.src.js"></script>
+<script src="{{< blogdown/postref >}}index_files/rglwidgetClass/selection.src.js"></script>
+<script src="{{< blogdown/postref >}}index_files/rglwidgetClass/rglTimer.src.js"></script>
+<script src="{{< blogdown/postref >}}index_files/rglwidgetClass/pretty.src.js"></script>
+<script src="{{< blogdown/postref >}}index_files/rglwidgetClass/axes.src.js"></script>
+<script src="{{< blogdown/postref >}}index_files/rglwidgetClass/animation.src.js"></script>
+<!--html_preserve--><script type = "text/plain" id = "rgl-vertex-shader">
+#line 2 1
+// File 1 is the vertex shader
+#ifdef GL_ES
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+#endif
+
+attribute vec3 aPos;
+attribute vec4 aCol;
+uniform mat4 mvMatrix;
+uniform mat4 prMatrix;
+varying vec4 vCol;
+varying vec4 vPosition;
+
+#ifdef NEEDS_VNORMAL
+attribute vec3 aNorm;
+uniform mat4 normMatrix;
+varying vec4 vNormal;
+#endif
+
+#if defined(HAS_TEXTURE) || defined (IS_TEXT)
+attribute vec2 aTexcoord;
+varying vec2 vTexcoord;
+#endif
+
+#ifdef FIXED_SIZE
+uniform vec3 textScale;
+#endif
+
+#ifdef FIXED_QUADS
+attribute vec3 aOfs;
+#endif
+
+#ifdef IS_TWOSIDED
+#ifdef HAS_NORMALS
+varying float normz;
+uniform mat4 invPrMatrix;
+#else
+attribute vec3 aPos1;
+attribute vec3 aPos2;
+varying float normz;
+#endif
+#endif // IS_TWOSIDED
+
+#ifdef FAT_LINES
+attribute vec3 aNext;
+attribute vec2 aPoint;
+varying vec2 vPoint;
+varying float vLength;
+uniform float uAspect;
+uniform float uLwd;
+#endif
+
+
+void main(void) {
+  
+#ifndef IS_BRUSH
+#if defined(NCLIPPLANES) || !defined(FIXED_QUADS) || defined(HAS_FOG)
+  vPosition = mvMatrix * vec4(aPos, 1.);
+#endif
+  
+#ifndef FIXED_QUADS
+  gl_Position = prMatrix * vPosition;
+#endif
+#endif // !IS_BRUSH
+  
+#ifdef IS_POINTS
+  gl_PointSize = POINTSIZE;
+#endif
+  
+  vCol = aCol;
+  
+#ifdef NEEDS_VNORMAL
+  vNormal = normMatrix * vec4(-aNorm, dot(aNorm, aPos));
+#endif
+  
+#ifdef IS_TWOSIDED
+#ifdef HAS_NORMALS
+  /* normz should be calculated *after* projection */
+  normz = (invPrMatrix*vNormal).z;
+#else
+  vec4 pos1 = prMatrix*(mvMatrix*vec4(aPos1, 1.));
+  pos1 = pos1/pos1.w - gl_Position/gl_Position.w;
+  vec4 pos2 = prMatrix*(mvMatrix*vec4(aPos2, 1.));
+  pos2 = pos2/pos2.w - gl_Position/gl_Position.w;
+  normz = pos1.x*pos2.y - pos1.y*pos2.x;
+#endif
+#endif // IS_TWOSIDED
+  
+#ifdef NEEDS_VNORMAL
+  vNormal = vec4(normalize(vNormal.xyz/vNormal.w), 1);
+#endif
+  
+#if defined(HAS_TEXTURE) || defined(IS_TEXT)
+  vTexcoord = aTexcoord;
+#endif
+  
+#if defined(FIXED_SIZE) && !defined(ROTATING)
+  vec4 pos = prMatrix * mvMatrix * vec4(aPos, 1.);
+  pos = pos/pos.w;
+  gl_Position = pos + vec4(aOfs*textScale, 0.);
+#endif
+  
+#if defined(IS_SPRITES) && !defined(FIXED_SIZE)
+  vec4 pos = mvMatrix * vec4(aPos, 1.);
+  pos = pos/pos.w + vec4(aOfs,  0.);
+  gl_Position = prMatrix*pos;
+#endif
+  
+#ifdef FAT_LINES
+  /* This code was inspired by Matt Deslauriers' code in 
+   https://mattdesl.svbtle.com/drawing-lines-is-hard */
+  vec2 aspectVec = vec2(uAspect, 1.0);
+  mat4 projViewModel = prMatrix * mvMatrix;
+  vec4 currentProjected = projViewModel * vec4(aPos, 1.0);
+  currentProjected = currentProjected/currentProjected.w;
+  vec4 nextProjected = projViewModel * vec4(aNext, 1.0);
+  vec2 currentScreen = currentProjected.xy * aspectVec;
+  vec2 nextScreen = (nextProjected.xy / nextProjected.w) * aspectVec;
+  float len = uLwd;
+  vec2 dir = vec2(1.0, 0.0);
+  vPoint = aPoint;
+  vLength = length(nextScreen - currentScreen)/2.0;
+  vLength = vLength/(vLength + len);
+  if (vLength > 0.0) {
+    dir = normalize(nextScreen - currentScreen);
+  }
+  vec2 normal = vec2(-dir.y, dir.x);
+  dir.x /= uAspect;
+  normal.x /= uAspect;
+  vec4 offset = vec4(len*(normal*aPoint.x*aPoint.y - dir), 0.0, 0.0);
+  gl_Position = currentProjected + offset;
+#endif
+  
+#ifdef IS_BRUSH
+  gl_Position = vec4(aPos, 1.);
+#endif
+}
+</script>
+<script type = "text/plain" id = "rgl-fragment-shader">
+#line 2 2
+// File 2 is the fragment shader
+#ifdef GL_ES
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+#endif
+varying vec4 vCol; // carries alpha
+varying vec4 vPosition;
+#if defined(HAS_TEXTURE) || defined (IS_TEXT)
+varying vec2 vTexcoord;
+uniform sampler2D uSampler;
+#endif
+
+#ifdef HAS_FOG
+uniform int uFogMode;
+uniform vec3 uFogColor;
+uniform vec4 uFogParms;
+#endif
+
+#if defined(IS_LIT) && !defined(FIXED_QUADS)
+varying vec4 vNormal;
+#endif
+
+#if NCLIPPLANES > 0
+uniform vec4 vClipplane[NCLIPPLANES];
+#endif
+
+#if NLIGHTS > 0
+uniform mat4 mvMatrix;
+#endif
+
+#ifdef IS_LIT
+uniform vec3 emission;
+uniform float shininess;
+#if NLIGHTS > 0
+uniform vec3 ambient[NLIGHTS];
+uniform vec3 specular[NLIGHTS]; // light*material
+uniform vec3 diffuse[NLIGHTS];
+uniform vec3 lightDir[NLIGHTS];
+uniform bool viewpoint[NLIGHTS];
+uniform bool finite[NLIGHTS];
+#endif
+#endif // IS_LIT
+
+#ifdef IS_TWOSIDED
+uniform bool front;
+varying float normz;
+#endif
+
+#ifdef FAT_LINES
+varying vec2 vPoint;
+varying float vLength;
+#endif
+
+void main(void) {
+  vec4 fragColor;
+#ifdef FAT_LINES
+  vec2 point = vPoint;
+  bool neg = point.y < 0.0;
+  point.y = neg ? (point.y + vLength)/(1.0 - vLength) :
+                 -(point.y - vLength)/(1.0 - vLength);
+#if defined(IS_TRANSPARENT) && defined(IS_LINESTRIP)
+  if (neg && length(point) <= 1.0) discard;
+#endif
+  point.y = min(point.y, 0.0);
+  if (length(point) > 1.0) discard;
+#endif // FAT_LINES
+  
+#ifdef ROUND_POINTS
+  vec2 coord = gl_PointCoord - vec2(0.5);
+  if (length(coord) > 0.5) discard;
+#endif
+  
+#if NCLIPPLANES > 0
+  for (int i = 0; i < NCLIPPLANES; i++)
+    if (dot(vPosition, vClipplane[i]) < 0.0) discard;
+#endif
+    
+#ifdef FIXED_QUADS
+    vec3 n = vec3(0., 0., 1.);
+#elif defined(IS_LIT)
+    vec3 n = normalize(vNormal.xyz);
+#endif
+    
+#ifdef IS_TWOSIDED
+    if ((normz <= 0.) != front) discard;
+#endif
+    
+#ifdef IS_LIT
+    vec3 eye = normalize(-vPosition.xyz/vPosition.w);
+    vec3 lightdir;
+    vec4 colDiff;
+    vec3 halfVec;
+    vec4 lighteffect = vec4(emission, 0.);
+    vec3 col;
+    float nDotL;
+#ifdef FIXED_QUADS
+    n = -faceforward(n, n, eye);
+#endif
+    
+#if NLIGHTS > 0
+    for (int i=0;i<NLIGHTS;i++) {
+      colDiff = vec4(vCol.rgb * diffuse[i], vCol.a);
+      lightdir = lightDir[i];
+      if (!viewpoint[i])
+        lightdir = (mvMatrix * vec4(lightdir, 1.)).xyz;
+      if (!finite[i]) {
+        halfVec = normalize(lightdir + eye);
+      } else {
+        lightdir = normalize(lightdir - vPosition.xyz/vPosition.w);
+        halfVec = normalize(lightdir + eye);
+      }
+      col = ambient[i];
+      nDotL = dot(n, lightdir);
+      col = col + max(nDotL, 0.) * colDiff.rgb;
+      col = col + pow(max(dot(halfVec, n), 0.), shininess) * specular[i];
+      lighteffect = lighteffect + vec4(col, colDiff.a);
+    }
+#endif
+    
+#else // not IS_LIT
+    vec4 colDiff = vCol;
+    vec4 lighteffect = colDiff;
+#endif
+    
+#ifdef IS_TEXT
+    vec4 textureColor = lighteffect*texture2D(uSampler, vTexcoord);
+#endif
+    
+#ifdef HAS_TEXTURE
+#ifdef TEXTURE_rgb
+    vec4 textureColor = lighteffect*vec4(texture2D(uSampler, vTexcoord).rgb, 1.);
+#endif
+    
+#ifdef TEXTURE_rgba
+    vec4 textureColor = lighteffect*texture2D(uSampler, vTexcoord);
+#endif
+    
+#ifdef TEXTURE_alpha
+    vec4 textureColor = texture2D(uSampler, vTexcoord);
+    float luminance = dot(vec3(1.,1.,1.), textureColor.rgb)/3.;
+    textureColor =  vec4(lighteffect.rgb, lighteffect.a*luminance);
+#endif
+    
+#ifdef TEXTURE_luminance
+    vec4 textureColor = vec4(lighteffect.rgb*dot(texture2D(uSampler, vTexcoord).rgb, vec3(1.,1.,1.))/3., lighteffect.a);
+#endif
+    
+#ifdef TEXTURE_luminance_alpha
+    vec4 textureColor = texture2D(uSampler, vTexcoord);
+    float luminance = dot(vec3(1.,1.,1.),textureColor.rgb)/3.;
+    textureColor = vec4(lighteffect.rgb*luminance, lighteffect.a*textureColor.a);
+#endif
+    
+    fragColor = textureColor;
+
+#elif defined(IS_TEXT)
+    if (textureColor.a < 0.1)
+      discard;
+    else
+      fragColor = textureColor;
+#else
+    fragColor = lighteffect;
+#endif // HAS_TEXTURE
+    
+#ifdef HAS_FOG
+    // uFogParms elements: x = near, y = far, z = fogscale, w = (1-sin(FOV/2))/(1+sin(FOV/2))
+    // In Exp and Exp2: use density = density/far
+    // fogF will be the proportion of fog
+    // Initialize it to the linear value
+    float fogF;
+    if (uFogMode > 0) {
+      fogF = (uFogParms.y - vPosition.z/vPosition.w)/(uFogParms.y - uFogParms.x);
+      if (uFogMode > 1)
+        fogF = mix(uFogParms.w, 1.0, fogF);
+      fogF = fogF*uFogParms.z;
+      if (uFogMode == 2)
+        fogF = 1.0 - exp(-fogF);
+      // Docs are wrong: use (density*c)^2, not density*c^2
+      // https://gitlab.freedesktop.org/mesa/mesa/-/blob/master/src/mesa/swrast/s_fog.c#L58
+      else if (uFogMode == 3)
+        fogF = 1.0 - exp(-fogF*fogF);
+      fogF = clamp(fogF, 0.0, 1.0);
+      gl_FragColor = vec4(mix(fragColor.rgb, uFogColor, fogF), fragColor.a);
+    } else gl_FragColor = fragColor;
+#else
+    gl_FragColor = fragColor;
+#endif // HAS_FOG
+    
+}
+</script><!--/html_preserve-->
+<script src="{{< blogdown/postref >}}index_files/CanvasMatrix4/CanvasMatrix.src.js"></script>
+<script src="{{< blogdown/postref >}}index_files/plotly-binding/plotly.js"></script>
+<script src="{{< blogdown/postref >}}index_files/typedarray/typedarray.min.js"></script>
+<script src="{{< blogdown/postref >}}index_files/jquery/jquery.min.js"></script>
+<link href="{{< blogdown/postref >}}index_files/crosstalk/css/crosstalk.min.css" rel="stylesheet" />
+<script src="{{< blogdown/postref >}}index_files/crosstalk/js/crosstalk.min.js"></script>
+<link href="{{< blogdown/postref >}}index_files/plotly-htmlwidgets-css/plotly-htmlwidgets.css" rel="stylesheet" />
+<script src="{{< blogdown/postref >}}index_files/plotly-main/plotly-latest.min.js"></script>
+<script src="{{< blogdown/postref >}}index_files/echarts4r/echarts-en.min.js"></script>
+<script src="{{< blogdown/postref >}}index_files/echarts4r/ecStat.min.js"></script>
+<script src="{{< blogdown/postref >}}index_files/echarts4r/dataTool.min.js"></script>
+<script src="{{< blogdown/postref >}}index_files/echarts4r-binding/echarts4r.js"></script>
+<script src="{{< blogdown/postref >}}index_files/echarts-gl/echarts-gl.min.js"></script>
+
+<div id="TOC">
+<ul>
+<li><a href="#sec-overview" id="toc-sec-overview"><span class="toc-section-number">1</span> 概览</a></li>
+<li><a href="#sec-non-interactive-graphs" id="toc-sec-non-interactive-graphs"><span class="toc-section-number">2</span> 非交互图形</a>
+<ul>
+<li><a href="#sec-base-graphics" id="toc-sec-base-graphics"><span class="toc-section-number">2.1</span> Base R</a></li>
+<li><a href="#sec-trellis-graphics" id="toc-sec-trellis-graphics"><span class="toc-section-number">2.2</span> lattice</a></li>
+<li><a href="#sec-grammar-of-graphics" id="toc-sec-grammar-of-graphics"><span class="toc-section-number">2.3</span> ggplot2</a></li>
+</ul></li>
+<li><a href="#sec-interactive-graphs" id="toc-sec-interactive-graphs"><span class="toc-section-number">3</span> 交互式图形</a>
+<ul>
+<li><a href="#sec-opengl-rgl" id="toc-sec-opengl-rgl"><span class="toc-section-number">3.1</span> OpenGL 与 rgl</a></li>
+<li><a href="#sec-webgl-plotly" id="toc-sec-webgl-plotly"><span class="toc-section-number">3.2</span> WebGL 与 plotly</a></li>
+<li><a href="#sec-echarts4r" id="toc-sec-echarts4r"><span class="toc-section-number">3.3</span> echarts4r 等</a></li>
+</ul></li>
+</ul>
+</div>
+
+<div id="sec-overview" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> 概览</h1>
+<p>从 R 包的下载量（流行度）、函数功能、使用语法简要介绍。</p>
+<ol style="list-style-type: decimal">
+<li><p><a href="https://github.com/r-hub/cranlogs"><strong>cranlogs</strong></a> 获取 <strong>ggplot2</strong>、<strong>rgl</strong>、<strong>plotly</strong>、<strong>lattice</strong> 和 <strong>echarts4r</strong> 包的每日的下载量，下图展示 2020-01-01 至 2022-12-31 的下载量趋势。</p>
+<pre class="r"><code>cran_downloads_pkgs &lt;- readRDS(file = &quot;data/cran_downloads_pkgs.rds&quot;)
+library(ggplot2)
+ggplot(data = cran_downloads_pkgs, aes(x = date, y = count, color = package)) +
+  geom_line() +
+  scale_color_discrete(breaks = c(&quot;ggplot2&quot;, &quot;rgl&quot;, &quot;plotly&quot;, &quot;lattice&quot;, &quot;echarts4r&quot;)) +
+  scale_y_continuous(n.breaks = 7,
+                     labels = scales::label_number(scale_cut = scales::cut_short_scale())) +
+  scale_x_date(limits = as.Date(c(&quot;2020-01-01&quot;, &quot;2023-01-01&quot;)), date_labels = &quot;%B\n%Y&quot;) +
+  theme_classic()  + 
+  coord_cartesian(expand = FALSE) +
+  labs(x = &quot;日期&quot;, y = &quot;下载次数&quot;, color = &quot;R 包&quot;)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-cranlogs"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-cranlogs-1.png" alt="2020-2022 年下载量的趋势变化" width="576" />
+<p class="caption">
+图 1.1: 2020-2022 年下载量的趋势变化
+</p>
+</div></li>
+<li><p>Base R、<strong>lattice</strong> 和 <strong>ggplot2</strong> 三个作图工具已经提供了许多函数，支持的图形种类是不同的。下表中<a href="https://github.com/haleyjeppson/ggmosaic"><strong>ggmosaic</strong></a> 包提供函数 <code>geom_mosaic()</code> 绘制马赛克图，<a href="https://github.com/ggobi/ggally"><strong>ggally</strong></a> 包提供函数 <code>ggpairs()</code> 绘制矩阵图。<a href="https://github.com/m-jahn/lattice-tools"><strong>latticetools</strong></a> 包提供函数 <code>panel.piechart()</code> 绘制饼图。</p>
+<table>
+<colgroup>
+<col width="12%" />
+<col width="20%" />
+<col width="19%" />
+<col width="27%" />
+<col width="20%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">作用</th>
+<th align="left">图形</th>
+<th align="left">graphics</th>
+<th align="left">lattice</th>
+<th align="left">ggplot2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">描述关系</td>
+<td align="left">散点图</td>
+<td align="left">plot</td>
+<td align="left">xyplot</td>
+<td align="left">geom_point</td>
+</tr>
+<tr class="even">
+<td align="left">描述关系</td>
+<td align="left">三维散点图</td>
+<td align="left">scatterplot3d</td>
+<td align="left">cloud</td>
+<td align="left">-</td>
+</tr>
+<tr class="odd">
+<td align="left">描述关系</td>
+<td align="left">矩阵图</td>
+<td align="left">pairs</td>
+<td align="left">splom</td>
+<td align="left">ggpairs</td>
+</tr>
+<tr class="even">
+<td align="left">描述关系</td>
+<td align="left">符号图</td>
+<td align="left">symbols</td>
+<td align="left">panel.superpose</td>
+<td align="left">geom_point</td>
+</tr>
+<tr class="odd">
+<td align="left">描述关系</td>
+<td align="left">二维平滑散点图</td>
+<td align="left">smoothScatter</td>
+<td align="left">panel.smoothScatter</td>
+<td align="left">geom_smooth</td>
+</tr>
+<tr class="even">
+<td align="left">描述关系</td>
+<td align="left">向日葵图</td>
+<td align="left">sunflowerplot</td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">描述关系</td>
+<td align="left">四瓣图</td>
+<td align="left">fourfoldplot</td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">描述关系</td>
+<td align="left">关联图</td>
+<td align="left">assocplot</td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">描述趋势</td>
+<td align="left">轮廓图</td>
+<td align="left">contour</td>
+<td align="left">contourplot</td>
+<td align="left">geom_contour</td>
+</tr>
+<tr class="even">
+<td align="left">描述趋势</td>
+<td align="left">栅格图</td>
+<td align="left">image</td>
+<td align="left">levelplot</td>
+<td align="left">geom_raster</td>
+</tr>
+<tr class="odd">
+<td align="left">描述趋势</td>
+<td align="left">曲线图</td>
+<td align="left">curve</td>
+<td align="left">panel.curve</td>
+<td align="left">geom_curve</td>
+</tr>
+<tr class="even">
+<td align="left">描述趋势</td>
+<td align="left">三维透视图</td>
+<td align="left">persp</td>
+<td align="left">wireframe</td>
+<td align="left">-</td>
+</tr>
+<tr class="odd">
+<td align="left">描述趋势</td>
+<td align="left">条件图</td>
+<td align="left">coplot</td>
+<td align="left">xyplot</td>
+<td align="left">geom_point</td>
+</tr>
+<tr class="even">
+<td align="left">描述趋势</td>
+<td align="left">折线图</td>
+<td align="left">lines</td>
+<td align="left">panel.lines</td>
+<td align="left">geom_line</td>
+</tr>
+<tr class="odd">
+<td align="left">描述分布</td>
+<td align="left">直方图</td>
+<td align="left">hist</td>
+<td align="left">histogram</td>
+<td align="left">geom_histogram</td>
+</tr>
+<tr class="even">
+<td align="left">描述分布</td>
+<td align="left">箱线图</td>
+<td align="left">boxplot</td>
+<td align="left">bwplot</td>
+<td align="left">geom_boxplot</td>
+</tr>
+<tr class="odd">
+<td align="left">描述分布</td>
+<td align="left">密度图</td>
+<td align="left">plot.density</td>
+<td align="left">densityplot</td>
+<td align="left">geom_density</td>
+</tr>
+<tr class="even">
+<td align="left">描述分布</td>
+<td align="left">QQ 图</td>
+<td align="left">qqplot</td>
+<td align="left">qq</td>
+<td align="left">geom_qq</td>
+</tr>
+<tr class="odd">
+<td align="left">描述分布</td>
+<td align="left">一维散点图</td>
+<td align="left">stripchart</td>
+<td align="left">stripplot</td>
+<td align="left">geom_point</td>
+</tr>
+<tr class="even">
+<td align="left">描述分布</td>
+<td align="left">茎叶图</td>
+<td align="left">stem</td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">描述分布</td>
+<td align="left">条件密度图</td>
+<td align="left">cdplot</td>
+<td align="left">densityplot</td>
+<td align="left">geom_density</td>
+</tr>
+<tr class="even">
+<td align="left">描述分布</td>
+<td align="left">轴须图</td>
+<td align="left">rug</td>
+<td align="left">panel.rug</td>
+<td align="left">geom_rug</td>
+</tr>
+<tr class="odd">
+<td align="left">描述对比</td>
+<td align="left">条形图</td>
+<td align="left">barplot</td>
+<td align="left">barchart</td>
+<td align="left">geom_bar</td>
+</tr>
+<tr class="even">
+<td align="left">描述对比</td>
+<td align="left">克利夫兰点图</td>
+<td align="left">dotchart</td>
+<td align="left">dotplot</td>
+<td align="left">geom_point</td>
+</tr>
+<tr class="odd">
+<td align="left">描述对比</td>
+<td align="left">星图</td>
+<td align="left">stars</td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">描述占比</td>
+<td align="left">饼图</td>
+<td align="left">pie</td>
+<td align="left">panel.piechart</td>
+<td align="left">geom_col</td>
+</tr>
+<tr class="odd">
+<td align="left">描述占比</td>
+<td align="left">堆积图</td>
+<td align="left">spineplot</td>
+<td align="left">barchart</td>
+<td align="left">geom_col</td>
+</tr>
+<tr class="even">
+<td align="left">描述占比</td>
+<td align="left">马赛克图</td>
+<td align="left">mosaicplot</td>
+<td align="left"></td>
+<td align="left">geom_mosaic</td>
+</tr>
+</tbody>
+</table>
+<p>Base R 的函数 <code>plot()</code> 是泛型函数，<strong>lattice</strong> 包的 <code>xyplot()</code> 也是。以绘制条件图为例，Base R 提供函数 <code>coplot()</code>，<strong>lattice</strong> 包也支持公式语法，以竖线 <code>|</code> 分割主变量和条件变量，比如 <code>~ x | y</code>，右侧符号 y 表示条件变量。</p></li>
+<li><p>三个作图工具的使用方法截然不同，提供 Base R 、lattice 和 ggplot2 的等价作图代码是一件不太容易的事，渲染出来的图片风格迥异。以条件密度图为例，Base R 的作图函数为 <code>cdplot()</code>， <strong>lattice</strong> 包的作图函数为 <code>densityplot()</code>，<strong>ggplot2</strong> 包的作图函数为 <code>geom_density()</code>，代码如下：</p>
+<pre class="r"><code>with(iris, cdplot(x = Sepal.Length, y = Species, bw = .2))
+library(lattice)
+densityplot(~ Sepal.Length, groups = Species, 
+            data = iris, bw = .2, scales = &quot;free&quot;)
+library(ggplot2)
+ggplot(iris, aes(x = Sepal.Length, y = after_stat(count))) +
+  geom_density(aes(fill = Species), position = &quot;fill&quot;, 
+               show.legend = FALSE, bw = .2)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-cdplot"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-cdplot-1.png" alt="条件密度图" width="384" /><img src="{{< blogdown/postref >}}index_files/figure-html/fig-cdplot-2.png" alt="条件密度图" width="384" /><img src="{{< blogdown/postref >}}index_files/figure-html/fig-cdplot-3.png" alt="条件密度图" width="384" />
+<p class="caption">
+图 1.2: 条件密度图
+</p>
+</div>
+<p>Base R 扩展包 <strong>scatterplot3d</strong> 可以绘制三维散点图，<strong>lattice</strong> 扩展包 <strong>latticeExtra</strong> 补充了很多绘图函数，见下表 。<a href="https://github.com/edzer/sp/"><strong>sp</strong></a> 包和 <a href="https://github.com/oscarperpinan/rastervis/"><strong>rasterVis</strong></a> 包 分别针对空间点和栅格数据，大大扩充了 <strong>lattice</strong> 在空间数据可视化方面的功能。</p>
+<table>
+<caption><strong>lattice</strong> 和 <strong>latticeExtra</strong> 包的一些函数</caption>
+<thead>
+<tr class="header">
+<th align="left">R 包</th>
+<th align="left">函数</th>
+<th align="left">图形</th>
+<th align="left">作用</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><strong>lattice</strong></td>
+<td align="left"><code>parallelplot</code></td>
+<td align="left">平行坐标图</td>
+<td align="left">描述对比</td>
+</tr>
+<tr class="even">
+<td align="left"><strong>lattice</strong></td>
+<td align="left"><code>tmd</code></td>
+<td align="left">Tukey 均值差异图</td>
+<td align="left">描述对比</td>
+</tr>
+<tr class="odd">
+<td align="left"><strong>latticeExtra</strong></td>
+<td align="left"><code>ecdfplot</code></td>
+<td align="left">经验分布图</td>
+<td align="left">描述分布</td>
+</tr>
+<tr class="even">
+<td align="left"><strong>latticeExtra</strong></td>
+<td align="left"><code>rootogram</code></td>
+<td align="left">Tukey 悬挂根图</td>
+<td align="left">描述分布</td>
+</tr>
+<tr class="odd">
+<td align="left"><strong>latticeExtra</strong></td>
+<td align="left"><code>horizonplot</code></td>
+<td align="left">水平线图</td>
+<td align="left">描述趋势</td>
+</tr>
+<tr class="even">
+<td align="left"><strong>latticeExtra</strong></td>
+<td align="left"><code>mapplot</code></td>
+<td align="left">地区分布图</td>
+<td align="left">描述空间分布</td>
+</tr>
+<tr class="odd">
+<td align="left"><strong>latticeExtra</strong></td>
+<td align="left"><code>tileplot</code></td>
+<td align="left">Voronoi 图</td>
+<td align="left">描述空间分布</td>
+</tr>
+<tr class="even">
+<td align="left"><strong>latticeExtra</strong></td>
+<td align="left"><code>segplot</code></td>
+<td align="left">置信区间图</td>
+<td align="left">描述不确定性</td>
+</tr>
+</tbody>
+</table></li>
+</ol>
+</div>
+<div id="sec-non-interactive-graphs" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> 非交互图形</h1>
+<div id="sec-base-graphics" class="section level2" number="2.1">
+<h2><span class="header-section-number">2.1</span> Base R</h2>
+<p>尽管 <strong>ggplot2</strong> 非常流行，但并不意味着它比前辈们如 Base R 或 <strong>lattice</strong> 更加优秀，它们只是各领风骚。知晓各自的优缺点，更加有助于你选择合适的工具应用到合适的场景中。</p>
+<p>这里以 Base R 内置的地震数据集 quakes 为例，如下图所示，展示太平洋岛国斐济及其周边的地震分布，左图是一行 <strong>ggplot2</strong> 绘图代码生成的图形，如果你的目的是看看数据情况，那到此结束。甚至还可以更快、更简单点，直接调用 Base R 的函数 <code>plot()</code>，这是探索数据，而不是表达洞见。</p>
+<pre class="r"><code># ggplot2 绘图
+library(ggplot2)
+ggplot(data = quakes, aes(x = long, y = lat)) + geom_point()
+# Base R 绘图
+plot(data = quakes, lat ~ long)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-quakes"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-quakes-1.png" alt="太平洋岛国斐济及其周边的地震分布" width="384" /><img src="{{< blogdown/postref >}}index_files/figure-html/fig-quakes-2.png" alt="太平洋岛国斐济及其周边的地震分布" width="384" />
+<p class="caption">
+图 2.1: 太平洋岛国斐济及其周边的地震分布
+</p>
+</div>
+<p>所以，若以出版级的要求， <strong>ggplot2</strong> 绘图并不简单，那比 Base R 又如何呢？以 Base R 内置的 pressure 数据集为例，展示汞蒸气的压力随温度的变化趋势，如下图所示，左子图用区区 3 行 Base R 代码就搞定了，而右子图用 15 行 <strong>ggplot2</strong> 代码才勉强达到相似的效果。类似的情况绝不仅限于描述趋势的点线图，归根结底，是刻画图形细节的要素都差不多，只是表达方式不同罢了。比如示例(<a href="https://stackoverflow.com/questions/27934840/" class="uri">https://stackoverflow.com/questions/27934840/</a>)用 Base R 复现一张直方图，示例(<a href="https://stackoverflow.com/questions/3932038/" class="uri">https://stackoverflow.com/questions/3932038/</a>)给 Base R 图形添加图例，网站(<a href="http://motioninsocial.com/tufte/" class="uri">http://motioninsocial.com/tufte/</a>)更是用 Base R、<strong>ggplot2</strong> 和 <strong>lattice</strong> 分别绘制了 9 种常见统计图形。反之，用 Base R 实现 <strong>ggplot2</strong> 风格图形，也不那么简单，以分类散点图为例，详见博客 <a href="https://www.tenderisthebyte.com/blog/2021/05/09/pretty-plots-with-base-r-grahpics/">Styling plots in base R graphics to match ggplot2 classic theme</a>。</p>
+<div class="figure"><span style="display:block;" id="fig:fig-pressure"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-pressure-1.png" alt="汞蒸气的压力随温度的指数级变化" width="432" /><img src="{{< blogdown/postref >}}index_files/figure-html/fig-pressure-2.png" alt="汞蒸气的压力随温度的指数级变化" width="432" />
+<p class="caption">
+图 2.2: 汞蒸气的压力随温度的指数级变化
+</p>
+</div>
+<p>上图所用数据集 pressure 来自 Base R 自带的 <strong>datasets</strong> 包，描述汞蒸气压力（以毫米计）随温度（以摄氏度计）的变化。为美观起见，除了设置字体外，右图以黑白主题替换了默认的灰色主题，调整了横、纵坐标轴标题到坐标轴的距离，面板边界线从灰色调为黑色，取消背景网格线，轴须增加至0.25厘米，适当增加了刻度标签的大小和位置。再和原始的 ggplot2 的图形对比，见下图，美颜前后已不可同日而语，能解决最重要的 20% 细节问题就能让整个档次显著提升，达到让大多数人认可的水准。当然，一味地追求统一 Base R 风格或 ggplot2 风格是没有必要的，举此例也无意宣扬 Base R 绘图的简便，展示 ggplot2 绘图的复杂，简便和复杂往往不是由工具决定的，而是数据本身和工具使用的场景。将错误的工具放在错误的数据上，除了能带来实现上的技术挑战，造出一堆难以理解的图形垃圾，还可能误导受众。</p>
+<div class="figure"><span style="display:block;" id="fig:fig-pressure-ugly"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-pressure-ugly-1.png" alt="ggplot2 默认的风格" width="432" />
+<p class="caption">
+图 2.3: ggplot2 默认的风格
+</p>
+</div>
+<p>既然这样，为什么我仍然选择介绍 <strong>ggplot2</strong> 呢？对新手来说比较友好，有一套紧凑、一致的语法，掌握规律后，学习曲线比较低，可以非常高效地绘制中等质量的图形。此外，衍生包 <strong>gganimate</strong> 可以与 ggplot2 如丝般顺滑衔接，以成本极低的方式绘制动态图形，而且，<strong>ggplot2</strong> 的绘图语法已经出圈到交互式可视化领域，举例来说，R 包 <strong>plotly</strong> 和 <strong>leaflet</strong> 等都提供一套相似度极高的管道语法，学习成本进一步摊薄了。总而言之，软件成熟，生态庞大，社区活跃。</p>
+<p>地震发生的位置（包括纬度、经度和深度），地震的震级和检测地震的站点编号。</p>
+<table>
+<thead>
+<tr class="header">
+<th align="right">纬度</th>
+<th align="right">经度</th>
+<th align="right">深度</th>
+<th align="right">震级</th>
+<th align="right">站点</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">-20.42</td>
+<td align="right">181.6</td>
+<td align="right">562</td>
+<td align="right">4.8</td>
+<td align="right">41</td>
+</tr>
+<tr class="even">
+<td align="right">-20.62</td>
+<td align="right">181.0</td>
+<td align="right">650</td>
+<td align="right">4.2</td>
+<td align="right">15</td>
+</tr>
+<tr class="odd">
+<td align="right">-26.00</td>
+<td align="right">184.1</td>
+<td align="right">42</td>
+<td align="right">5.4</td>
+<td align="right">43</td>
+</tr>
+<tr class="even">
+<td align="right">-17.97</td>
+<td align="right">181.7</td>
+<td align="right">626</td>
+<td align="right">4.1</td>
+<td align="right">19</td>
+</tr>
+<tr class="odd">
+<td align="right">-20.42</td>
+<td align="right">182.0</td>
+<td align="right">649</td>
+<td align="right">4.0</td>
+<td align="right">11</td>
+</tr>
+<tr class="even">
+<td align="right">-19.68</td>
+<td align="right">184.3</td>
+<td align="right">195</td>
+<td align="right">4.0</td>
+<td align="right">12</td>
+</tr>
+</tbody>
+</table>
+<p><strong>scatterplot3d</strong> 包是基于 Base R 基础绘图系统的，专门用于三维可视化。</p>
+<pre class="r"><code># 将连续型数据向量转化为颜色向量
+colorize_numeric &lt;- function(x) {
+  scales::col_numeric(palette = &quot;viridis&quot;, domain = range(x))(x)
+}
+# 在数据集 quakes 上添加新的数据 color
+quakes &lt;- within(quakes, {
+  color &lt;- colorize_numeric(mag)
+})
+# 三维散点图
+library(scatterplot3d)
+with(quakes, {
+  scatterplot3d(
+    x = long, y = lat, z = - depth,
+    color = color, pch = 20,
+    mar = c(3, 3, 0, 3) + 0.1, 
+    xlab = &quot;经度&quot;, ylab = &quot;纬度&quot;, zlab = &quot;深度&quot;
+  )
+})</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-quakes-scatterplot3d"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-quakes-scatterplot3d-1.png" alt="Base R 图形" width="576" />
+<p class="caption">
+图 2.4: Base R 图形
+</p>
+</div>
+</div>
+<div id="sec-trellis-graphics" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span> lattice</h2>
+<p><strong>lattice</strong> 包是继承自 <strong>grid</strong> 包的栅格绘图系统。 <strong>lattice</strong> 绘图的一般模式见<a href="/2022/04/choropleth-map/">《地区分布图及其应用》</a>。</p>
+<pre class="r"><code>library(lattice)
+# 三维气泡图
+cloud(-depth ~ long * lat,
+  data = quakes, pch = 19,
+  col = quakes$color, # 气泡颜色映射震级
+  cex = quakes$mag - 4, # 气泡大小映射震级
+  xlab = &quot;经度&quot;,
+  ylab = &quot;纬度&quot;,
+  zlab = list(&quot;深度&quot;, rot = 90),
+  # z 轴标签旋转 90 度
+  scales = list(
+    arrows = FALSE, col = &quot;black&quot;,
+    z = list(rot = 90)
+  ),
+  # 减少三维图形的边空
+  lattice.options = list(
+    layout.widths = list(
+      left.padding = list(x = -.6, units = &quot;inches&quot;),
+      right.padding = list(x = -1.0, units = &quot;inches&quot;)
+    ),
+    layout.heights = list(
+      bottom.padding = list(x = -.8, units = &quot;inches&quot;),
+      top.padding = list(x = -1.0, units = &quot;inches&quot;)
+    )
+  ),
+  # 设置坐标轴字体大小
+  par.settings = list(
+    axis.line = list(col = &quot;transparent&quot;),
+    fontsize = list(text = 15, points = 10)
+  ),
+  # 设置三维图的观察方位
+  screen = list(z = 30, x = -65, y = 0)
+)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-quakes-lattice"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-quakes-lattice-1.png" alt="lattice 图形" width="576" />
+<p class="caption">
+图 2.5: lattice 图形
+</p>
+</div>
+<ul>
+<li><code>lattice.options</code> 全局控制选项，比如绘图区域的边空布局等。</li>
+<li><code>par.settings</code> 设置图形参数，比如轴线颜色，字体大小等。</li>
+<li><code>screen</code> 设置三维图的观察方位，参数 <code>x</code> 、<code>y</code> 和 <code>z</code> 分别设置数据绕 x 轴、y 轴和 z 轴旋转的角度，负数表示按逆时针旋转。</li>
+<li><code>scales</code> 设置坐标轴上的刻度，如刻度线的颜色，刻度标签位置。</li>
+</ul>
+</div>
+<div id="sec-grammar-of-graphics" class="section level2" number="2.3">
+<h2><span class="header-section-number">2.3</span> ggplot2</h2>
+<p><strong>ggplot2</strong> 是一个 R 语言扩展包，专用于绘制各种各样的统计图形，是数据探索和可视化的利器。2007 年 6 月 1 日 <strong>ggplot2</strong> 在 CRAN 上发布第一个正式版本 0.5，截止写作时间，<strong>ggplot2</strong> 已经持续迭代 10 多年了，发布了 40 多个版本，形成了一个非常庞大的生态，直接依赖 <strong>ggplot2</strong> 的 R 包接近 3000 个。从如下三个地方，可以窥见 <strong>ggplot2</strong> 生态的一角，感受其魅力。</p>
+<ul>
+<li><p>Daniel Emaasit 收集了 110 多个 <strong>ggplot2</strong> 衍生包，维护了一个 <a href="https://exts.ggplot2.tidyverse.org/gallery/">网站</a>，统一组织、展示这些 R 包。本文会精心挑选一些高质量的 R 包予以介绍。</p></li>
+<li><p>Tom Mock 发起的 <a href="https://github.com/rfordatascience/tidytuesday/">tidytuesday</a> 项目吸引了数以千计的数据科学爱好者参与数据分析、探索和可视化项目，涌现了一批批优秀的基于 <strong>ggplot2</strong> 的可视化作品，极大地提升了 <strong>ggplot2</strong> 生态的影响力。本文也会基于真实的数据介绍每一个统计图形。</p></li>
+<li><p>Yan Holtz 整理了数以百计的统计图形，分门别类地在<a href="https://r-graph-gallery.com/">网站</a>上展示，方便读者预览效果、选择合适的图形。也是受该网站启发，本文在介绍完 <strong>ggplot2</strong> 绘图的基础要素后，从统计图形的作用出发，按照趋势、关系、占比、对比、分布和不确定性等六大方面予以介绍。</p></li>
+</ul>
+</div>
+</div>
+<div id="sec-interactive-graphs" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> 交互式图形</h1>
+<p>R 语言社区有很多 R 包可以绘制动态交互图形，有的 R 包功能非常综合，如 <strong>echarts4r</strong> 包、 <strong>plotly</strong> 包等，有的 R 包功能非常专门化，如 <strong>rgl</strong> 包和 <strong>leaflet</strong>包。</p>
+<div id="sec-opengl-rgl" class="section level2" number="3.1">
+<h2><span class="header-section-number">3.1</span> OpenGL 与 rgl</h2>
+<p><a href="https://github.com/dmurdoch/rgl">rgl</a> 是制作三维交互图形的专门化 R 包。相比于用函数 <code>persp()</code> 制作的三维透视图，<strong>rgl</strong> 算是非常<strong>早</strong>的实现<strong>真</strong>三维图形绘制的 R 包，它在 2004 年就发布在 CRAN 上了，时间一晃，18 年过去了。</p>
+<p><a href="https://coolbutuseless.github.io/">mikefc</a> 戏称自己造了中看不中用的 <a href="https://github.com/coolbutuseless/ggrgl">ggrgl</a> 包，其 Github ID 正是 coolbutuseless，按字面意思拆开来就是「cool but useless」，不过，mikefc 的个人博客干货很多，而且非常高产，推荐读者看看。这让我一下想到贾宝玉在假山下和林黛玉一起偷看《西厢记》的场景，宝玉问：银样蜡枪头是什么意思？黛玉回答说：中看不中用。有些图形实在没有必要升维做成立体的，比如条形图或柱形图，一些反面例子可以在<a href="https://cosx.org/2017/10/discussion-about-bar-graph">漫谈条形图</a>和<a href="https://msg2020.pzhao.org/qa/">你问我答</a>两篇文章中找到。</p>
+<p><a href="https://github.com/tylermorganwall/rayrender"><strong>rayrender</strong></a> 不依赖 rgl 包，主打 3D 建模，渲染复杂场景，没有外部依赖，可制作三维立体感的 <strong>ggplot2</strong> 图形，推荐其替代 <strong>rgl</strong> 制作三维动画。<a href="https://github.com/tylermorganwall/rayshader"><strong>rayshader</strong></a> 依赖 <strong>rgl</strong> 和 <strong>rayrender</strong> 等提供阴影特效，适合地形景观图，Tyler Morgan-Wall 也曾在 RStudio 大会上介绍过 <strong>rayshader</strong>，Github 星赞超过 1500，算是比较流行的 R 包了。</p>
+<p><a href="https://imagemagick.org/">imagemagick</a> 是一个独立的图像后期处理软件，它可以将一系列静态图片合成 GIF 动图，<a href="https://github.com/ropensci/magick"><strong>magick</strong></a> 是 Jeroen Ooms 开发的又一 R 接口包，<a href="https://www.ffmpeg.org/">ffmpeg</a> 是一个独立的视频处理软件。</p>
+<p>LaTeX 宏包 <a href="https://ctan.org/pkg/animate">animate</a>，常用于 <a href="https://ctan.org/pkg/beamer">beamer</a> 幻灯片或 PDF 文档中，将一系列 PNG/PDF 图片合成动画，就是将一幅幅图片以快速地方式播放，形成动画效果，需要使用 Adobe 阅读器播放才可见效果。</p>
+<pre class="r"><code># 将连续型数据向量转化为颜色向量
+colorize_numeric &lt;- function(x) {
+  scales::col_numeric(palette = &quot;viridis&quot;, domain = range(x))(x)
+}
+library(rgl)
+# 设置视角 
+view3d(
+  theta = 30, phi = 45, fov = 30,
+  zoom = 1, interactive = TRUE
+)
+# 绘制图形
+with(quakes, {
+  # 在数据集 quakes 上添加新的数据 color
+  color &lt;- colorize_numeric(mag)
+  plot3d(
+    x = long, y = lat, z = -depth,
+    xlab = &quot;经度&quot;,
+    ylab = &quot;纬度&quot;,
+    zlab = &quot;深度&quot;,
+    col = color, size = mag - 4, type = &quot;s&quot;
+  )
+})</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-quakes-rgl"></span>
+<div id="rgl21195" style="width:672px;height:480px;" class="rglWebGL html-widget "></div>
+<script type="application/json" data-for="rgl21195">{"x":{"material":{"color":"#000000","alpha":1,"lit":true,"ambient":"#000000","specular":"#FFFFFF","emission":"#000000","shininess":50,"smooth":true,"front":"filled","back":"filled","size":3,"lwd":1,"fog":true,"point_antialias":false,"line_antialias":false,"texture":null,"textype":"rgb","texmipmap":false,"texminfilter":"linear","texmagfilter":"linear","texenvmap":false,"depth_mask":true,"depth_test":"less","isTransparent":false,"polygon_offset":[0,0],"margin":"","floating":false,"tag":"","blend":["src_alpha","one_minus_src_alpha"]},"rootSubscene":1,"objects":{"9":{"id":9,"type":"spheres","material":{},"vertices":"0","colors":"1","radii":[[4.93442153930664],[1.23360538482666],[8.63523769378662],[0.61680269241333],[0],[0],[4.93442153930664],[2.46721076965332],[4.31761884689331],[1.85040807723999],[2.46721076965332],[3.70081615447998],[2.46721076965332],[2.46721076965332],[12.9528560638428],[1.85040807723999],[12.3360538482666],[3.08401346206665],[2.46721076965332],[2.46721076965332],[3.08401346206665],[1.23360538482666],[2.46721076965332],[4.31761884689331],[8.63523769378662],[0],[3.70081615447998],[7.40163230895996],[3.08401346206665],[2.46721076965332],[3.70081615447998],[4.31761884689331],[4.93442153930664],[0],[3.08401346206665],[1.85040807723999],[3.08401346206665],[3.70081615447998],[0.61680269241333],[2.46721076965332],[4.31761884689331],[3.70081615447998],[2.46721076965332],[1.85040807723999],[3.70081615447998],[5.55122423171997],[3.08401346206665],[2.46721076965332],[1.85040807723999],[6.78482961654663],[1.23360538482666],[0],[3.70081615447998],[1.85040807723999],[1.23360538482666],[2.46721076965332],[3.08401346206665],[0],[2.46721076965332],[1.85040807723999],[4.31761884689331],[0.61680269241333],[6.1680269241333],[3.70081615447998],[5.55122423171997],[4.31761884689331],[0.61680269241333],[6.1680269241333],[3.08401346206665],[9.25203990936279],[0],[3.08401346206665],[1.85040807723999],[7.40163230895996],[2.46721076965332],[1.85040807723999],[0.61680269241333],[3.08401346206665],[1.23360538482666],[8.01843452453613],[7.40163230895996],[3.08401346206665],[3.70081615447998],[1.85040807723999],[0],[1.85040807723999],[4.31761884689331],[3.08401346206665],[1.23360538482666],[1.85040807723999],[6.78482961654663],[4.31761884689331],[7.40163230895996],[1.23360538482666],[1.23360538482666],[0],[3.08401346206665],[7.40163230895996],[6.78482961654663],[4.31761884689331],[0.61680269241333],[3.70081615447998],[4.31761884689331],[4.31761884689331],[3.70081615447998],[1.23360538482666],[2.46721076965332],[3.70081615447998],[10.4856452941895],[6.1680269241333],[3.08401346206665],[1.23360538482666],[0],[4.93442153930664],[2.46721076965332],[1.23360538482666],[8.01843452453613],[4.31761884689331],[4.93442153930664],[1.23360538482666],[4.93442153930664],[1.85040807723999],[4.31761884689331],[3.08401346206665],[2.46721076965332],[6.78482961654663],[1.23360538482666],[6.1680269241333],[4.93442153930664],[1.85040807723999],[3.08401346206665],[1.23360538482666],[3.08401346206665],[3.70081615447998],[1.85040807723999],[4.31761884689331],[6.78482961654663],[3.70081615447998],[5.55122423171997],[1.23360538482666],[3.70081615447998],[0],[6.1680269241333],[2.46721076965332],[1.23360538482666],[1.23360538482666],[2.46721076965332],[5.55122423171997],[8.01843452453613],[0],[10.4856452941895],[14.8032646179199],[1.85040807723999],[1.23360538482666],[4.31761884689331],[4.31761884689331],[1.23360538482666],[1.85040807723999],[5.55122423171997],[3.70081615447998],[0.61680269241333],[4.93442153930664],[3.70081615447998],[3.70081615447998],[4.93442153930664],[6.1680269241333],[9.86884307861328],[8.01843452453613],[4.31761884689331],[3.08401346206665],[1.85040807723999],[3.70081615447998],[0.61680269241333],[0.61680269241333],[0.61680269241333],[10.4856452941895],[6.1680269241333],[3.08401346206665],[0.61680269241333],[3.70081615447998],[3.08401346206665],[1.85040807723999],[2.46721076965332],[1.23360538482666],[0.61680269241333],[5.55122423171997],[1.85040807723999],[5.55122423171997],[3.70081615447998],[3.70081615447998],[8.01843452453613],[4.31761884689331],[3.70081615447998],[0.61680269241333],[3.70081615447998],[1.23360538482666],[3.70081615447998],[3.08401346206665],[1.85040807723999],[7.40163230895996],[1.85040807723999],[0],[4.31761884689331],[3.08401346206665],[3.08401346206665],[1.85040807723999],[7.40163230895996],[3.08401346206665],[4.31761884689331],[1.23360538482666],[4.31761884689331],[1.85040807723999],[0.61680269241333],[8.63523769378662],[1.85040807723999],[1.85040807723999],[1.23360538482666],[3.70081615447998],[2.46721076965332],[1.23360538482666],[4.31761884689331],[3.70081615447998],[5.55122423171997],[1.23360538482666],[3.08401346206665],[5.55122423171997],[1.23360538482666],[3.08401346206665],[6.1680269241333],[6.1680269241333],[4.31761884689331],[1.85040807723999],[2.46721076965332],[5.55122423171997],[3.08401346206665],[0],[2.46721076965332],[6.1680269241333],[4.31761884689331],[4.93442153930664],[3.08401346206665],[0.61680269241333],[8.01843452453613],[4.93442153930664],[6.1680269241333],[3.70081615447998],[1.85040807723999],[4.31761884689331],[8.01843452453613],[1.23360538482666],[4.31761884689331],[3.08401346206665],[6.78482961654663],[5.55122423171997],[2.46721076965332],[1.23360538482666],[3.70081615447998],[4.31761884689331],[1.23360538482666],[5.55122423171997],[6.78482961654663],[4.31761884689331],[2.46721076965332],[2.46721076965332],[1.23360538482666],[5.55122423171997],[3.70081615447998],[2.46721076965332],[3.70081615447998],[3.08401346206665],[2.46721076965332],[5.55122423171997],[0.61680269241333],[1.23360538482666],[10.4856452941895],[3.70081615447998],[6.1680269241333],[1.85040807723999],[3.08401346206665],[7.40163230895996],[2.46721076965332],[1.23360538482666],[3.70081615447998],[0],[2.46721076965332],[4.31761884689331],[1.23360538482666],[4.31761884689331],[3.08401346206665],[6.1680269241333],[6.1680269241333],[4.93442153930664],[3.70081615447998],[3.70081615447998],[6.1680269241333],[6.1680269241333],[9.86884307861328],[0],[0],[3.70081615447998],[2.46721076965332],[4.93442153930664],[4.31761884689331],[3.70081615447998],[1.85040807723999],[4.31761884689331],[0.61680269241333],[5.55122423171997],[3.70081615447998],[4.93442153930664],[5.55122423171997],[6.78482961654663],[8.63523769378662],[3.08401346206665],[5.55122423171997],[2.46721076965332],[0.61680269241333],[8.01843452453613],[3.08401346206665],[5.55122423171997],[4.93442153930664],[7.40163230895996],[2.46721076965332],[2.46721076965332],[5.55122423171997],[2.46721076965332],[1.23360538482666],[3.70081615447998],[3.70081615447998],[8.01843452453613],[8.01843452453613],[3.08401346206665],[2.46721076965332],[6.1680269241333],[6.78482961654663],[3.08401346206665],[3.08401346206665],[8.63523769378662],[3.08401346206665],[4.31761884689331],[1.23360538482666],[4.93442153930664],[3.08401346206665],[1.85040807723999],[1.85040807723999],[1.85040807723999],[3.70081615447998],[3.08401346206665],[6.1680269241333],[3.70081615447998],[3.70081615447998],[5.55122423171997],[0.61680269241333],[9.25203990936279],[4.31761884689331],[6.1680269241333],[6.78482961654663],[9.25203990936279],[3.70081615447998],[4.31761884689331],[1.23360538482666],[0],[8.63523769378662],[1.85040807723999],[2.46721076965332],[3.70081615447998],[6.78482961654663],[3.08401346206665],[1.23360538482666],[0.61680269241333],[6.78482961654663],[8.63523769378662],[6.78482961654663],[6.78482961654663],[2.46721076965332],[10.4856452941895],[2.46721076965332],[6.78482961654663],[3.70081615447998],[9.25203990936279],[6.78482961654663],[2.46721076965332],[6.1680269241333],[6.1680269241333],[6.78482961654663],[6.78482961654663],[1.23360538482666],[3.08401346206665],[0],[5.55122423171997],[1.85040807723999],[4.93442153930664],[2.46721076965332],[1.23360538482666],[5.55122423171997],[1.23360538482666],[8.01843452453613],[6.1680269241333],[10.4856452941895],[8.01843452453613],[4.31761884689331],[3.70081615447998],[1.85040807723999],[8.63523769378662],[2.46721076965332],[1.85040807723999],[1.85040807723999],[4.31761884689331],[2.46721076965332],[1.23360538482666],[3.08401346206665],[4.93442153930664],[4.93442153930664],[1.85040807723999],[2.46721076965332],[6.78482961654663],[2.46721076965332],[2.46721076965332],[1.85040807723999],[4.93442153930664],[1.85040807723999],[3.08401346206665],[0.61680269241333],[6.78482961654663],[4.31761884689331],[3.70081615447998],[4.31761884689331],[3.70081615447998],[2.46721076965332],[1.23360538482666],[0.61680269241333],[4.31761884689331],[0],[4.93442153930664],[2.46721076965332],[1.85040807723999],[2.46721076965332],[3.08401346206665],[3.08401346206665],[4.31761884689331],[1.85040807723999],[4.31761884689331],[4.93442153930664],[3.70081615447998],[6.78482961654663],[4.31761884689331],[1.85040807723999],[6.78482961654663],[9.25203990936279],[3.08401346206665],[1.85040807723999],[1.85040807723999],[4.31761884689331],[1.85040807723999],[1.85040807723999],[3.70081615447998],[3.08401346206665],[3.08401346206665],[8.63523769378662],[3.70081615447998],[2.46721076965332],[6.1680269241333],[7.40163230895996],[2.46721076965332],[6.78482961654663],[2.46721076965332],[2.46721076965332],[4.93442153930664],[2.46721076965332],[4.31761884689331],[4.31761884689331],[2.46721076965332],[1.85040807723999],[6.1680269241333],[3.08401346206665],[3.70081615447998],[8.63523769378662],[3.70081615447998],[3.08401346206665],[2.46721076965332],[3.08401346206665],[0.61680269241333],[0],[5.55122423171997],[0.61680269241333],[7.40163230895996],[2.46721076965332],[0.61680269241333],[5.55122423171997],[3.70081615447998],[3.08401346206665],[4.93442153930664],[1.23360538482666],[1.23360538482666],[0.61680269241333],[9.25203990936279],[2.46721076965332],[4.93442153930664],[1.23360538482666],[4.93442153930664],[5.55122423171997],[3.70081615447998],[3.08401346206665],[2.46721076965332],[3.70081615447998],[1.23360538482666],[4.31761884689331],[2.46721076965332],[3.08401346206665],[5.55122423171997],[4.31761884689331],[9.25203990936279],[4.31761884689331],[3.70081615447998],[0.61680269241333],[4.31761884689331],[3.70081615447998],[1.85040807723999],[2.46721076965332],[4.31761884689331],[1.85040807723999],[0.61680269241333],[4.31761884689331],[3.08401346206665],[9.25203990936279],[3.08401346206665],[3.70081615447998],[6.78482961654663],[2.46721076965332],[4.31761884689331],[9.25203990936279],[3.70081615447998],[0],[3.70081615447998],[4.93442153930664],[4.31761884689331],[4.31761884689331],[1.23360538482666],[8.63523769378662],[3.70081615447998],[9.25203990936279],[1.23360538482666],[3.08401346206665],[3.08401346206665],[4.93442153930664],[3.70081615447998],[8.63523769378662],[3.70081615447998],[6.1680269241333],[1.85040807723999],[1.85040807723999],[4.93442153930664],[4.31761884689331],[4.31761884689331],[4.93442153930664],[1.23360538482666],[1.23360538482666],[11.7192506790161],[3.70081615447998],[3.08401346206665],[5.55122423171997],[4.31761884689331],[5.55122423171997],[8.01843452453613],[1.23360538482666],[1.23360538482666],[3.08401346206665],[7.40163230895996],[3.08401346206665],[9.86884307861328],[7.40163230895996],[4.93442153930664],[3.08401346206665],[6.1680269241333],[2.46721076965332],[3.08401346206665],[3.70081615447998],[3.08401346206665],[7.40163230895996],[6.78482961654663],[4.93442153930664],[1.85040807723999],[6.78482961654663],[4.31761884689331],[3.70081615447998],[4.93442153930664],[3.70081615447998],[2.46721076965332],[3.70081615447998],[6.78482961654663],[1.85040807723999],[2.46721076965332],[4.31761884689331],[4.93442153930664],[0.61680269241333],[3.70081615447998],[5.55122423171997],[0],[4.31761884689331],[4.31761884689331],[7.40163230895996],[3.70081615447998],[3.70081615447998],[5.55122423171997],[10.4856452941895],[4.31761884689331],[2.46721076965332],[5.55122423171997],[4.93442153930664],[3.70081615447998],[2.46721076965332],[4.93442153930664],[4.31761884689331],[1.23360538482666],[6.78482961654663],[4.93442153930664],[5.55122423171997],[6.78482961654663],[1.85040807723999],[2.46721076965332],[4.31761884689331],[4.31761884689331],[8.01843452453613],[6.78482961654663],[5.55122423171997],[3.08401346206665],[4.31761884689331],[1.23360538482666],[6.78482961654663],[4.93442153930664],[1.23360538482666],[4.93442153930664],[2.46721076965332],[3.08401346206665],[1.85040807723999],[9.86884307861328],[0],[6.1680269241333],[1.23360538482666],[3.70081615447998],[3.70081615447998],[3.08401346206665],[6.1680269241333],[4.31761884689331],[3.70081615447998],[4.93442153930664],[3.70081615447998],[2.46721076965332],[9.86884307861328],[1.23360538482666],[8.63523769378662],[4.93442153930664],[9.86884307861328],[2.46721076965332],[4.31761884689331],[3.70081615447998],[6.78482961654663],[3.70081615447998],[3.08401346206665],[1.23360538482666],[4.93442153930664],[5.55122423171997],[9.25203990936279],[6.1680269241333],[1.23360538482666],[7.40163230895996],[4.93442153930664],[2.46721076965332],[4.93442153930664],[2.46721076965332],[0.61680269241333],[5.55122423171997],[3.70081615447998],[3.08401346206665],[8.01843452453613],[4.93442153930664],[3.70081615447998],[4.93442153930664],[4.31761884689331],[5.55122423171997],[8.01843452453613],[2.46721076965332],[3.70081615447998],[1.85040807723999],[2.46721076965332],[1.23360538482666],[0.61680269241333],[1.23360538482666],[6.1680269241333],[0.61680269241333],[1.85040807723999],[7.40163230895996],[1.23360538482666],[3.08401346206665],[2.46721076965332],[2.46721076965332],[6.1680269241333],[0],[4.93442153930664],[6.1680269241333],[1.23360538482666],[7.40163230895996],[7.40163230895996],[3.08401346206665],[1.85040807723999],[3.08401346206665],[3.70081615447998],[6.78482961654663],[2.46721076965332],[1.85040807723999],[4.31761884689331],[9.86884307861328],[5.55122423171997],[6.78482961654663],[3.70081615447998],[2.46721076965332],[4.93442153930664],[1.23360538482666],[4.31761884689331],[0.61680269241333],[4.31761884689331],[0],[5.55122423171997],[6.1680269241333],[3.08401346206665],[2.46721076965332],[0],[3.08401346206665],[4.31761884689331],[2.46721076965332],[4.31761884689331],[4.31761884689331],[0],[1.23360538482666],[3.08401346206665],[4.31761884689331],[3.08401346206665],[0.61680269241333],[3.70081615447998],[1.85040807723999],[3.70081615447998],[7.40163230895996],[3.70081615447998],[4.31761884689331],[6.1680269241333],[7.40163230895996],[2.46721076965332],[3.70081615447998],[3.08401346206665],[0],[1.23360538482666],[8.01843452453613],[11.7192506790161],[5.55122423171997],[3.08401346206665],[2.46721076965332],[8.63523769378662],[8.01843452453613],[6.78482961654663],[0.61680269241333],[1.85040807723999],[3.08401346206665],[0.61680269241333],[6.78482961654663],[8.01843452453613],[3.08401346206665],[0.61680269241333],[2.46721076965332],[4.31761884689331],[0],[6.78482961654663],[0],[1.85040807723999],[1.85040807723999],[0],[0.61680269241333],[2.46721076965332],[1.85040807723999],[1.23360538482666],[0],[3.08401346206665],[4.31761884689331],[6.1680269241333],[1.85040807723999],[6.78482961654663],[4.31761884689331],[8.01843452453613],[6.1680269241333],[3.08401346206665],[6.1680269241333],[0.61680269241333],[5.55122423171997],[0.61680269241333],[0],[2.46721076965332],[3.08401346206665],[2.46721076965332],[3.08401346206665],[1.85040807723999],[1.85040807723999],[6.1680269241333],[3.08401346206665],[3.08401346206665],[2.46721076965332],[3.08401346206665],[0.61680269241333],[5.55122423171997],[4.31761884689331],[1.85040807723999],[3.70081615447998],[3.70081615447998],[7.40163230895996],[3.08401346206665],[1.85040807723999],[3.70081615447998],[0],[3.08401346206665],[4.93442153930664],[3.70081615447998],[0.61680269241333],[5.55122423171997],[4.31761884689331],[0.61680269241333],[1.85040807723999],[2.46721076965332],[0],[4.93442153930664],[2.46721076965332],[2.46721076965332],[3.70081615447998],[1.23360538482666],[0.61680269241333],[1.23360538482666],[0],[0.61680269241333],[0.61680269241333],[4.31761884689331],[4.93442153930664],[6.78482961654663],[6.1680269241333],[4.93442153930664],[2.46721076965332],[6.1680269241333],[7.40163230895996],[1.23360538482666],[0.61680269241333],[4.93442153930664],[3.08401346206665],[6.1680269241333],[6.78482961654663],[0.61680269241333],[4.31761884689331],[7.40163230895996],[4.93442153930664],[3.08401346206665],[0],[4.31761884689331],[0.61680269241333],[1.85040807723999],[1.85040807723999],[0],[4.31761884689331],[0.61680269241333],[1.23360538482666],[4.93442153930664],[4.93442153930664],[1.23360538482666],[1.23360538482666],[10.4856452941895],[12.3360538482666],[1.23360538482666],[3.08401346206665],[5.55122423171997],[2.46721076965332],[0],[1.85040807723999],[1.23360538482666],[3.08401346206665],[4.93442153930664],[2.46721076965332],[1.23360538482666],[1.23360538482666],[6.1680269241333],[1.23360538482666],[7.40163230895996],[3.08401346206665],[3.70081615447998],[6.1680269241333],[6.1680269241333],[8.63523769378662],[4.93442153930664],[1.23360538482666],[9.25203990936279],[1.85040807723999],[0.61680269241333],[2.46721076965332],[5.55122423171997],[3.08401346206665],[5.55122423171997],[0],[3.08401346206665],[6.1680269241333],[5.55122423171997],[3.08401346206665],[1.23360538482666],[1.23360538482666],[1.23360538482666],[7.40163230895996],[1.85040807723999],[6.78482961654663],[3.70081615447998],[3.70081615447998],[2.46721076965332],[2.46721076965332],[5.55122423171997],[6.78482961654663],[1.23360538482666],[4.31761884689331],[0],[9.86884307861328],[8.01843452453613],[6.1680269241333],[1.85040807723999],[0.61680269241333],[6.78482961654663],[3.08401346206665],[5.55122423171997],[8.63523769378662],[4.31761884689331],[4.93442153930664],[3.08401346206665],[1.23360538482666],[3.70081615447998],[3.70081615447998],[9.86884307861328],[8.63523769378662],[0],[7.40163230895996],[1.23360538482666],[4.31761884689331],[1.85040807723999],[4.93442153930664],[3.70081615447998],[8.63523769378662],[4.93442153930664],[3.70081615447998],[1.23360538482666],[9.25203990936279],[4.31761884689331],[4.31761884689331],[3.08401346206665],[9.25203990936279],[3.08401346206665],[0.61680269241333],[0],[1.85040807723999],[4.31761884689331],[5.55122423171997],[3.08401346206665],[4.31761884689331],[3.08401346206665],[4.93442153930664],[1.85040807723999],[0.61680269241333],[8.63523769378662],[0.61680269241333],[4.93442153930664],[1.23360538482666],[4.93442153930664],[8.63523769378662],[2.46721076965332],[7.40163230895996],[4.31761884689331],[5.55122423171997],[5.55122423171997],[1.23360538482666],[2.46721076965332],[2.46721076965332],[1.85040807723999],[5.55122423171997],[6.1680269241333],[4.31761884689331],[5.55122423171997],[1.85040807723999],[3.08401346206665],[1.23360538482666],[7.40163230895996],[4.93442153930664],[0],[4.31761884689331],[1.85040807723999],[1.85040807723999],[5.55122423171997],[0],[1.23360538482666],[2.46721076965332],[4.31761884689331],[3.08401346206665],[3.08401346206665],[12.3360538482666]],"centers":"2","ignoreExtent":false,"fastTransparency":true,"flags":32771},"11":{"id":11,"type":"text","material":{"lit":false,"margin":0,"floating":true,"edge":[0,1,1]},"vertices":"3","colors":"4","texts":[["经度"]],"cex":[[1]],"adj":[[0.5,0.5,0.5]],"centers":"5","family":[["sans"]],"font":[[1]],"ignoreExtent":true,"flags":33808},"12":{"id":12,"type":"text","material":{"lit":false,"margin":1,"floating":true,"edge":[1,1,1]},"vertices":"6","colors":"7","texts":[["纬度"]],"cex":[[1]],"adj":[[0.5,0.5,0.5]],"centers":"8","family":[["sans"]],"font":[[1]],"ignoreExtent":true,"flags":33808},"13":{"id":13,"type":"text","material":{"lit":false,"margin":2,"floating":true,"edge":[1,1,1]},"vertices":"9","colors":"10","texts":[["深度"]],"cex":[[1]],"adj":[[0.5,0.5,0.5]],"centers":"11","family":[["sans"]],"font":[[1]],"ignoreExtent":true,"flags":33808},"5":{"id":5,"type":"light","vertices":[[0,0,1]],"colors":[[1,1,1,1],[1,1,1,1],[1,1,1,1]],"viewpoint":true,"finite":false},"4":{"id":4,"type":"background","material":{},"colors":"12","centers":"13","sphere":false,"fogtype":"none","fogscale":1,"flags":32768},"6":{"id":6,"type":"background","material":{"lit":false,"back":"lines"},"colors":"14","centers":"15","sphere":false,"fogtype":"none","fogscale":1,"flags":32768},"10":{"id":10,"type":"bboxdeco","material":{"front":"lines","back":"lines"},"vertices":"16","colors":"17","axes":{"mode":["pretty","pretty","pretty"],"step":[5,5,100],"nticks":[5,5,5],"marklen":[15,15,15],"expand":[1.02999997138977,1.02999997138977,1.02999997138977]},"draw_front":true,"flags":32769},"1":{"id":1,"type":"subscene","par3d":{"antialias":8,"FOV":30,"ignoreExtent":false,"listeners":1,"mouseMode":{"none":"none","left":"trackball","right":"zoom","middle":"fov","wheel":"pull"},"observer":[0,0,1618.19702148438],"modelMatrix":[[14.1913156509399,0,-0.289125323295593,-2611.60302734375],[-5.79358053207397,9.43998718261719,-0.354104727506638,1132.4716796875],[5.79358053207397,9.43998718261719,0.354104727506638,-2285.7041015625],[0,0,0,1]],"projMatrix":[[3.73205089569092,0,0,0],[0,3.73205089569092,0,0],[0,0,-3.86370348930359,-5833.4130859375],[0,0,-1,0]],"skipRedraw":false,"userMatrix":[[0.866025388240814,0,-0.5,0],[-0.353553384542465,0.70710676908493,-0.612372398376465,0],[0.353553384542465,0.70710676908493,0.612372398376465,0],[0,0,0,1]],"userProjection":[[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]],"scale":[16.3867206573486,13.3501586914062,0.578250646591187],"viewport":{"x":0,"y":0,"width":1,"height":1},"zoom":1,"bbox":[165.20719909668,188.506408691406,-38.9268264770508,-10.3279809951782,-682.133361816406,-21.8666076660156],"windowRect":[0,0,256,256],"family":"sans","font":1,"cex":1,"useFreeType":true,"fontname":"NULL","maxClipPlanes":2147483647,"glVersion":"NA","activeSubscene":0},"embeddings":{"viewport":"replace","projection":"replace","model":"replace","mouse":"replace"},"objects":[6,10,9,11,12,13,5],"subscenes":[],"flags":34067}},"crosstalk":{"key":[],"group":[],"id":[],"options":[]},"width":672,"height":480,"buffer":{"accessors":[{"bufferView":0,"componentType":5126,"count":1000,"type":"VEC3"},{"bufferView":1,"componentType":5121,"count":1000,"type":"VEC4","normalized":true},{"bufferView":2,"componentType":5126,"count":1000,"type":"VEC3"},{"bufferView":3,"componentType":5126,"count":1,"type":"VEC3"},{"bufferView":4,"componentType":5121,"count":1,"type":"VEC4"},{"bufferView":5,"componentType":5126,"count":1,"type":"VEC3"},{"bufferView":6,"componentType":5126,"count":1,"type":"VEC3"},{"bufferView":7,"componentType":5121,"count":1,"type":"VEC4"},{"bufferView":8,"componentType":5126,"count":1,"type":"VEC3"},{"bufferView":9,"componentType":5126,"count":1,"type":"VEC3"},{"bufferView":10,"componentType":5121,"count":1,"type":"VEC4"},{"bufferView":11,"componentType":5126,"count":1,"type":"VEC3"},{"bufferView":12,"componentType":5126,"count":1,"type":"VEC4"},{"bufferView":13,"componentType":5121,"count":1,"type":"VEC3"},{"bufferView":14,"componentType":5121,"count":1,"type":"VEC4"},{"bufferView":15,"componentType":5121,"count":1,"type":"VEC3"},{"bufferView":16,"componentType":5126,"count":15,"type":"VEC3"},{"bufferView":17,"componentType":5121,"count":1,"type":"VEC4"}],"bufferViews":[{"buffer":0,"byteLength":12000,"byteOffset":0},{"buffer":0,"byteLength":4000,"byteOffset":12000},{"buffer":0,"byteLength":12000,"byteOffset":16000},{"buffer":0,"byteLength":12,"byteOffset":28000},{"buffer":0,"byteLength":4,"byteOffset":28012},{"buffer":0,"byteLength":12,"byteOffset":28016},{"buffer":0,"byteLength":12,"byteOffset":28028},{"buffer":0,"byteLength":4,"byteOffset":28040},{"buffer":0,"byteLength":12,"byteOffset":28044},{"buffer":0,"byteLength":12,"byteOffset":28056},{"buffer":0,"byteLength":4,"byteOffset":28068},{"buffer":0,"byteLength":12,"byteOffset":28072},{"buffer":0,"byteLength":16,"byteOffset":28084},{"buffer":0,"byteLength":3,"byteOffset":28100},{"buffer":0,"byteLength":4,"byteOffset":28103},{"buffer":0,"byteLength":3,"byteOffset":28107},{"buffer":0,"byteLength":180,"byteOffset":28112},{"buffer":0,"byteLength":4,"byteOffset":28292}],"buffers":[{"byteLength":28296,"bytes":"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\njv87Uov/JIaO/zZdjf9HLXv/JIaO/yetgf9ARoj/Ry17/0cte/82XY3/Ry17/0cte/87Uov/\nQEaI/0BGiP8gpIb/O1KL/0Q6g/8ofI7/IZCN/0Q6g/8kho7/RDqD/0Q6g/8xaI7/RDqD/zZd\njf82XY3/RDqD/0cte/8ofI7/QEaI/ztSi/8gpIb/O1KL/0BGiP9EOoP/QEaI/0cRZP9EAVT/\nLHKO/0cRZP8hkI3/RDqD/0cRZP8sco7/O1KL/0BGiP8xaI7/SB9w/0gfcP9HEWT/J62B/0Q6\ng/8xaI7/SB9w/zFojv8sco7/O1KL/0BGiP9EOoP/O1KL/0gfcP82XY3/RDqD/0BGiP8sco7/\nNl2N/yetgf82XY3/O1KL/0cRZP82XY3/O1KL/0cte/9EOoP/Nl2N/0cte/9HEWT/Nl2N/0BG\niP8nrYH/QEaI/ztSi/8kho7/RDqD/zZdjf8nrYH/O1KL/0QBVP87Uov/MWiO/zZdjf82XY3/\nSB9w/yCkhv87Uov/J62B/0gfcP9ARoj/QEaI/zFojv87Uov/IKSG/ztSi/8ofI7/Ry17/0ct\ne/8xaI7/Nl2N/zZdjf8xaI7/SB9w/0gfcP910FT/O1KL/0BGiP8sco7/Nl2N/yxyjv8fmor/\nSB9w/0gfcP9ARoj/IZCN/0BGiP81t3n/IZCN/zFojv9ARoj/KHyO/0Q6g/9ARoj/O1KL/0BG\niP8hkI3/JIaO/zFojv9HLXv/JIaO/zZdjf87Uov/MWiO/ztSi/9EOoP/O1KL/ySGjv9HLXv/\nRDqD/zZdjf8xaI7/RxFk/ztSi/8sco7/RAFU/zZdjf82XY3/IZCN/ztSi/87Uov/LHKO/0fB\nbv82XY3/RDqD/yxyjv8xaI7/O1KL/0Q6g/8xaI7/Nl2N/0gfcP8kho7/MWiO/yxyjv8kho7/\nRy17/0Q6g/82XY3/Nl2N/x+aiv8kho7/LHKO/0BGiP82XY3/SB9w/ySGjv8xaI7/SB9w/zFo\njv9EOoP/QEaI/0cte/81t3n/RAFU/yh8jv9IH3D/O1KL/ztSi/9ARoj/KHyO/zZdjf87Uov/\nMWiO/ztSi/9EOoP/Nbd5/0gfcP8gpIb/MWiO/zW3ef9EOoP/Nl2N/ztSi/8kho7/O1KL/0BG\niP9IH3D/MWiO/yxyjv8nrYH/KHyO/0gfcP8hkI3/MWiO/0Q6g/8xaI7/RDqD/0cRZP8sco7/\n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\n"}]},"context":{"shiny":false,"rmarkdown":"blogdown::html_page"},"vertexShader":"#line 2 1\n// File 1 is the vertex shader\n#ifdef GL_ES\n#ifdef GL_FRAGMENT_PRECISION_HIGH\nprecision highp float;\n#else\nprecision mediump float;\n#endif\n#endif\n\nattribute vec3 aPos;\nattribute vec4 aCol;\nuniform mat4 mvMatrix;\nuniform mat4 prMatrix;\nvarying vec4 vCol;\nvarying vec4 vPosition;\n\n#ifdef NEEDS_VNORMAL\nattribute vec3 aNorm;\nuniform mat4 normMatrix;\nvarying vec4 vNormal;\n#endif\n\n#if defined(HAS_TEXTURE) || defined (IS_TEXT)\nattribute vec2 aTexcoord;\nvarying vec2 vTexcoord;\n#endif\n\n#ifdef FIXED_SIZE\nuniform vec3 textScale;\n#endif\n\n#ifdef FIXED_QUADS\nattribute vec3 aOfs;\n#endif\n\n#ifdef IS_TWOSIDED\n#ifdef HAS_NORMALS\nvarying float normz;\nuniform mat4 invPrMatrix;\n#else\nattribute vec3 aPos1;\nattribute vec3 aPos2;\nvarying float normz;\n#endif\n#endif // IS_TWOSIDED\n\n#ifdef FAT_LINES\nattribute vec3 aNext;\nattribute vec2 aPoint;\nvarying vec2 vPoint;\nvarying float vLength;\nuniform float uAspect;\nuniform float uLwd;\n#endif\n\n\nvoid main(void) {\n  \n#ifndef IS_BRUSH\n#if defined(NCLIPPLANES) || !defined(FIXED_QUADS) || defined(HAS_FOG)\n  vPosition = mvMatrix * vec4(aPos, 1.);\n#endif\n  \n#ifndef FIXED_QUADS\n  gl_Position = prMatrix * vPosition;\n#endif\n#endif // !IS_BRUSH\n  \n#ifdef IS_POINTS\n  gl_PointSize = POINTSIZE;\n#endif\n  \n  vCol = aCol;\n  \n#ifdef NEEDS_VNORMAL\n  vNormal = normMatrix * vec4(-aNorm, dot(aNorm, aPos));\n#endif\n  \n#ifdef IS_TWOSIDED\n#ifdef HAS_NORMALS\n  /* normz should be calculated *after* projection */\n  normz = (invPrMatrix*vNormal).z;\n#else\n  vec4 pos1 = prMatrix*(mvMatrix*vec4(aPos1, 1.));\n  pos1 = pos1/pos1.w - gl_Position/gl_Position.w;\n  vec4 pos2 = prMatrix*(mvMatrix*vec4(aPos2, 1.));\n  pos2 = pos2/pos2.w - gl_Position/gl_Position.w;\n  normz = pos1.x*pos2.y - pos1.y*pos2.x;\n#endif\n#endif // IS_TWOSIDED\n  \n#ifdef NEEDS_VNORMAL\n  vNormal = vec4(normalize(vNormal.xyz/vNormal.w), 1);\n#endif\n  \n#if defined(HAS_TEXTURE) || defined(IS_TEXT)\n  vTexcoord = aTexcoord;\n#endif\n  \n#if defined(FIXED_SIZE) && !defined(ROTATING)\n  vec4 pos = prMatrix * mvMatrix * vec4(aPos, 1.);\n  pos = pos/pos.w;\n  gl_Position = pos + vec4(aOfs*textScale, 0.);\n#endif\n  \n#if defined(IS_SPRITES) && !defined(FIXED_SIZE)\n  vec4 pos = mvMatrix * vec4(aPos, 1.);\n  pos = pos/pos.w + vec4(aOfs,  0.);\n  gl_Position = prMatrix*pos;\n#endif\n  \n#ifdef FAT_LINES\n  /* This code was inspired by Matt Deslauriers' code in \n   https://mattdesl.svbtle.com/drawing-lines-is-hard */\n  vec2 aspectVec = vec2(uAspect, 1.0);\n  mat4 projViewModel = prMatrix * mvMatrix;\n  vec4 currentProjected = projViewModel * vec4(aPos, 1.0);\n  currentProjected = currentProjected/currentProjected.w;\n  vec4 nextProjected = projViewModel * vec4(aNext, 1.0);\n  vec2 currentScreen = currentProjected.xy * aspectVec;\n  vec2 nextScreen = (nextProjected.xy / nextProjected.w) * aspectVec;\n  float len = uLwd;\n  vec2 dir = vec2(1.0, 0.0);\n  vPoint = aPoint;\n  vLength = length(nextScreen - currentScreen)/2.0;\n  vLength = vLength/(vLength + len);\n  if (vLength > 0.0) {\n    dir = normalize(nextScreen - currentScreen);\n  }\n  vec2 normal = vec2(-dir.y, dir.x);\n  dir.x /= uAspect;\n  normal.x /= uAspect;\n  vec4 offset = vec4(len*(normal*aPoint.x*aPoint.y - dir), 0.0, 0.0);\n  gl_Position = currentProjected + offset;\n#endif\n  \n#ifdef IS_BRUSH\n  gl_Position = vec4(aPos, 1.);\n#endif\n}","fragmentShader":"#line 2 2\n// File 2 is the fragment shader\n#ifdef GL_ES\n#ifdef GL_FRAGMENT_PRECISION_HIGH\nprecision highp float;\n#else\nprecision mediump float;\n#endif\n#endif\nvarying vec4 vCol; // carries alpha\nvarying vec4 vPosition;\n#if defined(HAS_TEXTURE) || defined (IS_TEXT)\nvarying vec2 vTexcoord;\nuniform sampler2D uSampler;\n#endif\n\n#ifdef HAS_FOG\nuniform int uFogMode;\nuniform vec3 uFogColor;\nuniform vec4 uFogParms;\n#endif\n\n#if defined(IS_LIT) && !defined(FIXED_QUADS)\nvarying vec4 vNormal;\n#endif\n\n#if NCLIPPLANES > 0\nuniform vec4 vClipplane[NCLIPPLANES];\n#endif\n\n#if NLIGHTS > 0\nuniform mat4 mvMatrix;\n#endif\n\n#ifdef IS_LIT\nuniform vec3 emission;\nuniform float shininess;\n#if NLIGHTS > 0\nuniform vec3 ambient[NLIGHTS];\nuniform vec3 specular[NLIGHTS]; // light*material\nuniform vec3 diffuse[NLIGHTS];\nuniform vec3 lightDir[NLIGHTS];\nuniform bool viewpoint[NLIGHTS];\nuniform bool finite[NLIGHTS];\n#endif\n#endif // IS_LIT\n\n#ifdef IS_TWOSIDED\nuniform bool front;\nvarying float normz;\n#endif\n\n#ifdef FAT_LINES\nvarying vec2 vPoint;\nvarying float vLength;\n#endif\n\nvoid main(void) {\n  vec4 fragColor;\n#ifdef FAT_LINES\n  vec2 point = vPoint;\n  bool neg = point.y < 0.0;\n  point.y = neg ? (point.y + vLength)/(1.0 - vLength) :\n                 -(point.y - vLength)/(1.0 - vLength);\n#if defined(IS_TRANSPARENT) && defined(IS_LINESTRIP)\n  if (neg && length(point) <= 1.0) discard;\n#endif\n  point.y = min(point.y, 0.0);\n  if (length(point) > 1.0) discard;\n#endif // FAT_LINES\n  \n#ifdef ROUND_POINTS\n  vec2 coord = gl_PointCoord - vec2(0.5);\n  if (length(coord) > 0.5) discard;\n#endif\n  \n#if NCLIPPLANES > 0\n  for (int i = 0; i < NCLIPPLANES; i++)\n    if (dot(vPosition, vClipplane[i]) < 0.0) discard;\n#endif\n    \n#ifdef FIXED_QUADS\n    vec3 n = vec3(0., 0., 1.);\n#elif defined(IS_LIT)\n    vec3 n = normalize(vNormal.xyz);\n#endif\n    \n#ifdef IS_TWOSIDED\n    if ((normz <= 0.) != front) discard;\n#endif\n    \n#ifdef IS_LIT\n    vec3 eye = normalize(-vPosition.xyz/vPosition.w);\n    vec3 lightdir;\n    vec4 colDiff;\n    vec3 halfVec;\n    vec4 lighteffect = vec4(emission, 0.);\n    vec3 col;\n    float nDotL;\n#ifdef FIXED_QUADS\n    n = -faceforward(n, n, eye);\n#endif\n    \n#if NLIGHTS > 0\n    for (int i=0;i<NLIGHTS;i++) {\n      colDiff = vec4(vCol.rgb * diffuse[i], vCol.a);\n      lightdir = lightDir[i];\n      if (!viewpoint[i])\n        lightdir = (mvMatrix * vec4(lightdir, 1.)).xyz;\n      if (!finite[i]) {\n        halfVec = normalize(lightdir + eye);\n      } else {\n        lightdir = normalize(lightdir - vPosition.xyz/vPosition.w);\n        halfVec = normalize(lightdir + eye);\n      }\n      col = ambient[i];\n      nDotL = dot(n, lightdir);\n      col = col + max(nDotL, 0.) * colDiff.rgb;\n      col = col + pow(max(dot(halfVec, n), 0.), shininess) * specular[i];\n      lighteffect = lighteffect + vec4(col, colDiff.a);\n    }\n#endif\n    \n#else // not IS_LIT\n    vec4 colDiff = vCol;\n    vec4 lighteffect = colDiff;\n#endif\n    \n#ifdef IS_TEXT\n    vec4 textureColor = lighteffect*texture2D(uSampler, vTexcoord);\n#endif\n    \n#ifdef HAS_TEXTURE\n#ifdef TEXTURE_rgb\n    vec4 textureColor = lighteffect*vec4(texture2D(uSampler, vTexcoord).rgb, 1.);\n#endif\n    \n#ifdef TEXTURE_rgba\n    vec4 textureColor = lighteffect*texture2D(uSampler, vTexcoord);\n#endif\n    \n#ifdef TEXTURE_alpha\n    vec4 textureColor = texture2D(uSampler, vTexcoord);\n    float luminance = dot(vec3(1.,1.,1.), textureColor.rgb)/3.;\n    textureColor =  vec4(lighteffect.rgb, lighteffect.a*luminance);\n#endif\n    \n#ifdef TEXTURE_luminance\n    vec4 textureColor = vec4(lighteffect.rgb*dot(texture2D(uSampler, vTexcoord).rgb, vec3(1.,1.,1.))/3., lighteffect.a);\n#endif\n    \n#ifdef TEXTURE_luminance_alpha\n    vec4 textureColor = texture2D(uSampler, vTexcoord);\n    float luminance = dot(vec3(1.,1.,1.),textureColor.rgb)/3.;\n    textureColor = vec4(lighteffect.rgb*luminance, lighteffect.a*textureColor.a);\n#endif\n    \n    fragColor = textureColor;\n\n#elif defined(IS_TEXT)\n    if (textureColor.a < 0.1)\n      discard;\n    else\n      fragColor = textureColor;\n#else\n    fragColor = lighteffect;\n#endif // HAS_TEXTURE\n    \n#ifdef HAS_FOG\n    // uFogParms elements: x = near, y = far, z = fogscale, w = (1-sin(FOV/2))/(1+sin(FOV/2))\n    // In Exp and Exp2: use density = density/far\n    // fogF will be the proportion of fog\n    // Initialize it to the linear value\n    float fogF;\n    if (uFogMode > 0) {\n      fogF = (uFogParms.y - vPosition.z/vPosition.w)/(uFogParms.y - uFogParms.x);\n      if (uFogMode > 1)\n        fogF = mix(uFogParms.w, 1.0, fogF);\n      fogF = fogF*uFogParms.z;\n      if (uFogMode == 2)\n        fogF = 1.0 - exp(-fogF);\n      // Docs are wrong: use (density*c)^2, not density*c^2\n      // https://gitlab.freedesktop.org/mesa/mesa/-/blob/master/src/mesa/swrast/s_fog.c#L58\n      else if (uFogMode == 3)\n        fogF = 1.0 - exp(-fogF*fogF);\n      fogF = clamp(fogF, 0.0, 1.0);\n      gl_FragColor = vec4(mix(fragColor.rgb, uFogColor, fogF), fragColor.a);\n    } else gl_FragColor = fragColor;\n#else\n    gl_FragColor = fragColor;\n#endif // HAS_FOG\n    \n}","players":[],"webGLoptions":{"preserveDrawingBuffer":true}},"evals":[],"jsHooks":[]}</script>
+<p class="caption">
+图 3.1: rgl 绘制交互三维图形
+</p>
+</div>
+<p>极坐标参考系下， theta 绕垂直轴的旋转角度， phi 绕水平轴旋转的角度，zoom 表示缩放因子，interactive 是否允许旋转图形。下面是不同视角下保存的截图。</p>
+<div id="fig-quakes-rgl-screenshots" layout-ncol="2">
+<div class="figure">
+<img src="screenshots/quakes-rgl-01.png" id="fig-quakes-rgl-01" style="width:65.0%" alt="" />
+<p class="caption">视角 1</p>
+</div>
+<div class="figure">
+<img src="screenshots/quakes-rgl-02.png" id="fig-quakes-rgl-02" style="width:65.0%" alt="" />
+<p class="caption">视角 2</p>
+</div>
+<p>不同视角下的三维图形</p>
+</div>
+<p>专业动画制作软件有<a href="https://github.com/mrdoob/three.js">three.js</a>和<a href="https://www.blender.org/">Blender</a>，都是支持 GPU 渲染的。</p>
+</div>
+<div id="sec-webgl-plotly" class="section level2" number="3.2">
+<h2><span class="header-section-number">3.2</span> WebGL 与 plotly</h2>
+<p><a href="https://www.khronos.org/webgl/">WebGL</a>是一种 JavaScript API，可以使用计算机的 GPU 硬件资源加速 2D 和 3D 图形渲染，2011 年发布 1.0 规范，2017 年完成 2.0 规范，目前，主流浏览器 Safari、Chrome、Edge 和 Firefox 等均已支持。Google 搜索在 2012 年应用了这一技术，只要在搜索框内输入一个函数曲线，比如 <code>arcsin(x*y)/(x*y)</code>，那么结果页会展示这个图像。</p>
+<p><a href="https://github.com/plotly/plotly.js">plotly.js</a> 提供很多图层用于绘制各类图形，见<a href="https://github.com/plotly/plotly.js/tree/master/src/traces">plotly.js 源码库</a>，其中支持 WebGL 的有热力图 <code>heatmapgl</code>、 散点图 <code>scattergl</code> 和极坐标系下的散点图 <code>scatterpolargl</code>。</p>
+<p><a href="https://github.com/plotly/plotly.R"><strong>plotly</strong></a> 可以与 <strong>ggplot2</strong> 紧密结合，提供函数 <code>ggplotly()</code> 直接将静态的 ggplot2 图形转化为交互式的 plotly 图形，函数 <code>plot_ly()</code> 也提供一致的使用语法。</p>
+<pre class="r"><code># 更多详情见 https://plot.ly/r/reference/#scatter3d
+plotly::plot_ly(
+  data = quakes, x = ~long, y = ~lat, z = ~depth,
+  type = &quot;scatter3d&quot;, mode = &quot;markers&quot;,
+  marker = list(
+    size = ~mag, color = ~mag,
+    colorscale = &quot;Viridis&quot;,
+    colorbar = list(title = list(text = &quot;震级&quot;))
+  )
+) |&gt;
+  plotly::layout(scene = list(
+    xaxis = list(title = &quot;经度&quot;),
+    yaxis = list(title = &quot;纬度&quot;),
+    zaxis = list(title = &quot;深度&quot;)
+  ))</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-quakes-plotly"></span>
+<div class="plotly html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-1" style="width:672px;height:480px;"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"visdat":{"11314555f2922":["function () ","plotlyVisDat"]},"cur_data":"11314555f2922","attrs":{"11314555f2922":{"x":{},"y":{},"z":{},"mode":"markers","marker":{"size":{},"color":{},"colorscale":"Viridis","colorbar":{"title":{"text":"震级"}}},"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter3d"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"scene":{"xaxis":{"title":"经度"},"yaxis":{"title":"纬度"},"zaxis":{"title":"深度"}},"hovermode":"closest","showlegend":false},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"x":[181.62,181.03,184.1,181.66,181.96,184.31,166.1,181.93,181.74,179.59,180.69,167,182.11,181.66,169.92,184.95,165.96,181.5,179.78,180.31,181.16,166.32,180.16,182,180.28,181.49,167.51,180.79,181.47,182.37,179.24,166.74,185.05,180.8,186,179.33,169.23,181.28,181.4,169.33,176.78,186.1,179.82,186.04,169.41,182.3,181.7,166.32,180.08,185.25,182.35,184.42,173.2,180.67,182.16,182.13,181,180.6,181.35,179.2,181.55,182.4,172.38,166.22,181.41,184.93,181.6,179.62,181.86,187.81,185.8,184.35,166.2,179.99,181.23,180.04,184.7,167.06,181.71,181.11,180.21,180.99,182.38,183.4,181.7,184.31,170.5,179.96,186.3,186.44,167.53,167.06,182.02,169.71,185.26,182.4,181.11,183.41,166.54,179.92,185.61,178.41,180.39,181.6,180.69,183.5,180.6,169.49,185.9,177.81,185.23,182.31,182.45,178.3,178.35,178.31,172.23,172.29,167.4,169.48,166.97,178.9,180.4,182.43,180.6,167.89,183.84,178.57,181.7,183.51,185.43,181.22,168.98,180.3,180.82,168.02,187.32,182.8,182.6,184.16,169.46,181.4,167.1,181.43,173.5,184.4,185.17,173.49,180.17,181.5,184.5,167.62,182.56,165.8,167.68,181.32,166.07,180,169.84,166.24,180.5,179.52,167.16,180.2,179.9,179.43,182.12,183.84,180,169.42,181.83,180.34,180.9,184.68,182.29,180.2,180.64,185.16,181.48,184.24,181.75,183.5,184.3,183,181.85,187.09,181.9,181.85,179.88,185.13,184.09,169.31,182,179.5,179.61,181.19,182.53,182.75,181.74,180.3,182.18,182.2,183.59,183.35,169.09,182.32,180.54,181.69,180.62,182.3,180.13,184.1,181.71,185.68,180.27,181.58,182.4,181.52,183.83,182.39,185.7,171.65,184.48,182.1,180.16,166.66,182.9,185.75,182.53,171.52,180.94,180.81,182.82,185.35,180.13,179.93,182.68,180.63,166.53,180.22,182.74,182.84,166,183.68,185.51,181.67,181.65,186.9,180.01,169.5,166.26,167.24,181.38,170.4,182.1,180.88,184.89,169.33,179.36,179.89,184.23,181.51,169.01,181.47,183.05,184.2,167.24,168.8,182.37,180.85,181.41,180.38,179.9,181.99,180.38,181.4,180.18,179.22,180.52,182.51,180.1,180.54,177.77,185,184.68,179.85,180.6,185.32,181.57,182.28,181.49,166.2,181.5,179.69,186.21,185.86,178.4,181.51,181.2,169.32,169.28,184.14,185.74,181.38,171.39,179.7,181.36,180.53,181.39,181.5,169.58,169.63,181.91,181.41,183.78,181.02,181.03,169.24,179.5,167.1,167.32,183.48,182.04,182.31,166.36,182.3,181.2,165.77,185.77,166.24,183.87,180,182.6,166.6,179.07,182.18,182.1,182.18,182.38,182.18,182.28,181.7,182.5,182.5,182.39,182.47,182.4,182.39,185.48,182.43,182.61,166.29,181.32,182.02,182.36,181.32,171.4,182.68,182.53,166.47,181.58,185.72,179.6,179.9,169.21,183.61,182.37,183.2,182.51,182.93,179.99,184.08,181.09,181.4,184.06,186.75,181.6,186.66,186.42,186.71,167.95,167.14,182.82,167.33,182.01,181.66,181.49,180.98,165.99,183.88,186.16,183.68,181.26,181.9,181.2,179.6,181.42,188.13,181.3,170.3,182.16,166.14,181.4,178.59,184.5,181.5,182.3,167.51,180.23,181.6,186.8,184.56,169.14,180.1,185.2,167.26,167.26,181.7,181.8,186.2,180.38,182.77,186.8,179.71,180.9,182.4,181.24,182.6,169.15,180.96,183.4,180.26,182.23,178.47,183.2,182.93,169.48,182.3,182.04,185.32,166.37,184.68,168.52,182.54,183.81,183.52,185.64,181.59,181.5,180.15,182.5,179.68,167.7,182.8,184.7,167.32,181.59,185.6,179.99,180.63,186.8,180.62,180.7,180.86,181.16,181.9,167.5,185.43,181.11,180.57,184.36,185.48,185.94,166.06,185.9,181.6,177.47,183.2,180.23,185.2,180.68,184.87,183.3,181.21,181.3,183.4,180.5,181.2,181.13,170.62,181.63,169.04,180.23,183.54,185.31,172.91,185.3,181.2,180.22,184.46,187.1,186.3,183.81,166.87,180.09,182.3,165.98,165.96,165.76,180.02,183.63,184.28,187,180.17,181.82,187.2,166.02,184.52,186.9,179.79,185.77,182.54,183.33,167.38,181.15,180.84,167.18,167.01,183.13,180.8,167.01,166.83,183.2,166.94,184.6,167.25,181.31,166.69,167.34,181.59,167.42,166.9,166.85,166.8,166.91,167.54,166.18,181.91,187.15,181.41,182.22,168.71,166.62,184.61,184.6,184.42,184.46,183.95,180.47,166.49,181.57,184.47,182.1,182.8,180.97,183.91,182.26,181.18,183.84,179.82,167.26,187.55,182.41,186.51,182.04,187.8,181.31,181.69,182.64,183.4,167.16,181.33,166.36,181.87,181.25,186.74,168.75,179.87,181.42,179.27,181.06,181.9,167.15,166.28,185,169.76,166.78,182.93,182.39,184.03,181.96,182.25,180.81,180.86,174.46,179.8,185.5,185.62,180.92,180.2,182.4,170.99,168.98,181.87,186.26,181.53,184.91,168.69,181.54,165.67,181.3,179.1,179.02,180.31,171.5,179.91,181.75,179.86,172.65,182.37,181.02,183.47,183.59,180.92,183.22,182.21,183.97,167.39,186.54,180.18,181.09,167.91,183.4,185.01,181.41,184,176.03,186.73,177.52,181.38,181.88,181.98,166.07,180.12,170.34,171.72,180.98,182.1,180.6,180.58,180.8,182.3,180.87,180.11,181.04,180.87,180.98,184.83,180.09,184.28,181.32,166.1,181.71,182.62,167.1,182.85,186.08,180.24,179.15,181.66,169.37,184.27,180.94,181.74,186.4,169.1,181.24,183.32,181.54,181.5,181.4,182.41,182.44,181.53,179.86,179.9,181.58,185.19,167.32,181.57,167.18,177.01,181.51,180,184.48,187.48,179.98,186.78,183.23,181.72,186.73,167.91,185.86,170.45,180.49,172.76,181.51,182.5,185.27,182.9,171.4,181.48,178.3,178.29,168.08,169.71,182.8,182.78,180,181.69,181.48,181.2,180.8,179.67,167.24,186.87,183.95,178.42,181.4,181.17,181.61,186.83,185.3,175.7,183,181.59,181.3,183.34,180.64,180.3,181.84,185.77,180.85,169.66,180.03,167.03,185.9,185.6,167.43,186.73,184.3,180.92,185.33,183.86,166.75,167.41,184.52,184.51,166.55,186.3,185.1,182.73,184.53,180.77,180.5,181,183.6,180.9,165.8,181.5,171.44,171.46,184.85,186.1,184.62,183.4,166.64,180.27,185.5,181.58,181.65,178.43,181.9,182,180.7,180.6,169.46,182.1,183.8,181.63,184.7,180.21,184.8,169.52,181.06,184.97,181.3,181.75,182.02,179.84,180.89,186.59,167.1,183,181.72,180.49,185.1,186.52,180.67,180.4,179.54,186.36,179.62,182.44,168.93,182.4,166.9,185.3,185.23,183.11,180.9,185.1,184.37,182.44,182.29,185.9,168.63,179.97,185.26,169.44,181.62,185.25,182.65,169.9,180.05,181.23,180.26,179.98,180.48,181.39,185.93,166.56,167.23,186.72,181.41,185.4,171.17,185.17,181.15,167.24,180.78,180.78,181.89,181.7,166.66,169.63,181.37,185.96,174.21,167.02,181.57,167.05,167.01,180.58,181.2,182.43,182.2,181.28,179.77,181.63,184.84,181.4,166.2,166.3,182.69,178.98,169.5,170.04,184.52,177.1,167.11,180.28,166.53,183.78,181.25,180.15,185.8,180.58,185.11,181.27,180,185.86,180.94,181.62,181.42,181.33,179.85,170.52,169.53,182.39,179.97,171.51,185.98,181.51,165.97,169.75,184.47,183.45,182.8,181.44,167.95,184.41,181.61,181.77,182.22,181.02,167.32,182.72,182.54,166.01,185.13,180.21,180.21,185.18,184.75,186.16,181.71,183.99,181.16,181.73,181.01,182.1,182.39,183.99,184.13,182.4,182.32,182.92,184.9,184.49,181.62,178.52,184.5,179.95,180.06,180.26,183.44,184.95,181.2,183.58,184.6,167.44,166.72,184.23,183.95,181.59,180.13,180.74,166.98,184.64,182.38,184.5,184.5,169.05,184.68,185.74,183.71,183.5,182.26,170.7,181.67,170.56,183.6,183.5,187.15,166.93,171.66,170.3,181.3,184.53,181.42,181.42,183.86,181.37,188.1,179.54,167.06,184.2,187.8,170.56],"y":[-20.42,-20.62,-26,-17.97,-20.42,-19.68,-11.7,-28.11,-28.74,-17.47,-21.44,-12.26,-18.54,-21,-20.7,-15.94,-13.64,-17.83,-23.5,-22.63,-20.84,-10.98,-23.3,-30.2,-19.66,-17.94,-14.72,-16.46,-20.97,-19.84,-22.58,-16.32,-15.55,-23.55,-16.3,-25.82,-18.73,-17.64,-17.66,-18.82,-37.37,-15.31,-24.97,-15.49,-19.23,-30.1,-26.4,-11.77,-24.12,-18.97,-18.75,-19.26,-22.75,-21.37,-20.1,-19.85,-22.7,-22.06,-17.8,-24.2,-20.69,-21.16,-13.82,-11.49,-20.68,-17.1,-20.14,-21.96,-20.42,-15.46,-15.31,-19.86,-11.55,-23.74,-17.7,-23.54,-19.21,-12.11,-21.81,-28.98,-34.02,-23.84,-19.57,-20.12,-17.7,-19.66,-21.5,-23.64,-15.43,-15.41,-15.48,-13.36,-20.64,-19.72,-15.44,-19.73,-27.24,-18.16,-13.66,-24.57,-16.98,-26.2,-21.88,-33,-21.33,-19.44,-34.89,-20.24,-22.55,-36.95,-15.75,-16.85,-19.06,-26.11,-26.2,-26.13,-13.66,-13.47,-14.6,-18.96,-14.65,-19.9,-22.05,-19.22,-31.24,-17.93,-19.3,-26.53,-27.72,-19.19,-17.43,-17.05,-19.52,-23.71,-21.3,-16.24,-16.14,-23.95,-25.2,-18.84,-12.66,-20.65,-13.23,-29.91,-14.31,-20.1,-17.8,-21.27,-23.58,-17.9,-23.34,-15.56,-23.83,-11.8,-15.54,-20.65,-11.75,-24.81,-20.9,-11.34,-17.98,-24.34,-13.86,-35.56,-35.48,-34.2,-26,-19.89,-23.43,-18.89,-17.82,-25.68,-20.2,-15.2,-15.03,-32.22,-22.64,-17.42,-17.84,-15.02,-18.04,-24.6,-19.88,-20.3,-20.45,-17.67,-22.3,-19.85,-24.27,-15.85,-20.02,-18.56,-17.87,-24.08,-32.2,-20.36,-23.85,-24,-20.41,-17.72,-19.67,-17.7,-16.23,-26.72,-12.95,-21.97,-21.96,-20.32,-30.28,-20.2,-30.66,-16.17,-28.25,-20.47,-23.55,-20.94,-26.67,-18.13,-20.21,-18.31,-16.52,-22.36,-22.43,-20.37,-23.77,-13.65,-21.55,-16.24,-23.73,-22.34,-19.4,-24.64,-16,-19.62,-23.84,-23.54,-28.23,-21.68,-13.44,-24.96,-20.08,-24.36,-14.7,-18.2,-16.65,-18.11,-17.95,-15.5,-23.36,-19.15,-10.97,-14.85,-17.8,-22.5,-29.1,-20.32,-16.09,-19.18,-23.81,-23.79,-19.02,-20.9,-19.06,-17.88,-19.41,-26.17,-14.95,-18.73,-20.21,-21.29,-19.76,-22.09,-23.8,-20.16,-22.13,-17.44,-23.33,-24.78,-22,-19.13,-30.72,-22.32,-16.45,-17.7,-17.95,-24.4,-19.3,-21.13,-18.07,-20.6,-18.48,-13.34,-20.92,-25.31,-15.24,-16.4,-24.57,-17.94,-30.64,-18.64,-13.09,-19.68,-16.44,-21.09,-14.99,-23.3,-17.68,-22,-21.38,-32.62,-13.05,-12.93,-18.6,-21.34,-21.48,-17.4,-17.32,-18.77,-26.16,-12.59,-14.82,-21.79,-19.83,-29.5,-12.49,-26.1,-21.04,-10.78,-20.76,-11.41,-19.1,-23.91,-27.33,-12.25,-23.49,-27.18,-25.8,-27.19,-27.27,-27.1,-27.22,-27.38,-27.27,-27.54,-27.2,-27.71,-27.6,-27.38,-21.54,-27.21,-28.96,-12.01,-17.46,-30.17,-27.27,-17.79,-22.19,-17.1,-27.18,-11.64,-17.98,-16.9,-21.98,-32.14,-18.8,-26.78,-20.43,-18.3,-15.83,-23.44,-23.73,-19.89,-17.59,-19.77,-20.31,-15.33,-18.2,-15.36,-15.29,-15.36,-16.24,-13.47,-25.5,-14.32,-20.04,-28.83,-17.82,-27.23,-10.72,-27,-20.36,-27.17,-20.94,-17.46,-21.04,-23.7,-17.72,-15.87,-17.84,-13.45,-30.8,-11.63,-30.4,-26.18,-15.7,-17.95,-20.51,-15.36,-23.61,-33.2,-17.68,-22.24,-20.07,-25.04,-21.5,-14.28,-14.43,-32.7,-34.1,-19.7,-24.19,-26.6,-17.04,-22.1,-32.6,-33,-20.58,-20.61,-19.47,-17.47,-18.4,-23.33,-18.55,-26.16,-21.8,-27.63,-18.89,-20.3,-20.56,-16.1,-12.66,-21.05,-17.97,-19.83,-22.55,-22.28,-15.72,-20.85,-21.11,-25.31,-26.46,-24.09,-16.96,-23.19,-20.81,-15.03,-18.06,-19,-23.53,-18.18,-15.66,-18,-18.08,-18.05,-29.9,-20.9,-15.61,-16.03,-17.68,-31.94,-19.14,-18,-16.95,-10.79,-20.83,-32.9,-37.93,-29.09,-23.56,-19.6,-21.39,-14.85,-22.7,-32.42,-17.9,-23.58,-34.4,-17.61,-21.07,-13.84,-30.24,-18.49,-23.45,-16.04,-17.14,-22.54,-15.9,-30.04,-24.03,-18.89,-16.51,-20.1,-21.06,-13.07,-23.46,-19.41,-11.81,-11.76,-12.08,-25.59,-26.54,-20.9,-16.99,-23.46,-17.81,-15.17,-11.67,-20.75,-19.5,-26.18,-20.66,-19.22,-24.68,-15.43,-32.45,-21.31,-15.44,-13.26,-15.26,-33.57,-15.77,-15.79,-21,-16.28,-23.28,-16.1,-17.7,-15.96,-15.95,-17.56,-15.9,-15.29,-15.86,-16.2,-15.71,-16.45,-11.54,-19.61,-15.61,-21.16,-20.65,-20.33,-15.08,-23.28,-23.44,-23.12,-23.65,-22.91,-22.06,-13.56,-17.99,-23.92,-30.69,-21.92,-25.04,-19.92,-27.75,-17.71,-19.6,-34.68,-14.46,-18.85,-17.02,-20.41,-18.18,-16.49,-17.74,-20.49,-18.51,-27.28,-15.9,-20.57,-11.25,-20.04,-20.89,-16.62,-20.09,-24.96,-20.95,-23.31,-20.95,-21.58,-13.62,-12.72,-21.79,-20.48,-12.84,-17.02,-23.89,-23.07,-27.98,-28.1,-21.24,-21.24,-19.89,-32.82,-22,-21.57,-24.5,-33.03,-30.09,-22.75,-17.99,-19.6,-15.65,-17.78,-22.04,-20.06,-18.07,-12.85,-33.29,-34.63,-24.18,-23.78,-22.37,-23.97,-34.12,-25.25,-22.87,-18.48,-21.46,-28.56,-28.56,-21.3,-20.08,-18.82,-19.51,-12.05,-17.4,-23.93,-21.23,-16.23,-28.15,-20.81,-20.72,-23.29,-38.46,-15.48,-37.03,-20.48,-18.12,-18.17,-11.4,-23.1,-14.28,-22.87,-17.59,-27.6,-17.94,-17.88,-30.01,-19.19,-18.14,-23.46,-18.44,-18.21,-18.26,-15.85,-23.82,-18.6,-17.8,-10.78,-18.12,-19.34,-15.34,-24.97,-15.97,-23.47,-23.11,-20.54,-18.92,-20.16,-25.48,-18.19,-15.35,-18.69,-18.89,-17.61,-20.93,-17.6,-17.96,-18.8,-20.61,-20.74,-25.23,-23.9,-18.07,-15.43,-14.3,-18.04,-13.9,-17.64,-17.98,-25,-19.45,-16.11,-23.73,-17.74,-21.56,-20.97,-15.45,-15.93,-21.47,-21.44,-22.16,-13.36,-21.22,-26.1,-18.35,-17.2,-22.42,-17.91,-26.53,-26.5,-16.31,-18.76,-17.1,-19.28,-23.5,-21.26,-17.97,-26.02,-30.3,-24.89,-14.57,-15.4,-22.06,-25.14,-20.3,-25.28,-20.63,-19.02,-22.1,-38.59,-19.3,-31.03,-30.51,-22.55,-22.14,-25.6,-18.04,-21.29,-21.08,-20.64,-24.41,-12.16,-17.1,-21.13,-12.34,-16.43,-20.7,-21.18,-17.78,-21.57,-13.7,-12.27,-19.1,-19.85,-11.37,-20.7,-20.24,-16.4,-19.6,-21.63,-21.6,-21.77,-21.8,-21.05,-10.8,-17.9,-22.26,-22.33,-24.04,-20.4,-15,-27.87,-14.12,-23.61,-21.56,-21.19,-18.07,-26,-20.21,-28,-20.74,-31.8,-18.91,-20.45,-22.9,-18.11,-23.8,-23.42,-23.2,-12.93,-21.14,-19.13,-21.08,-20.07,-20.9,-25.04,-21.85,-19.34,-15.83,-23.73,-18.1,-22.12,-15.39,-16.21,-21.75,-22.1,-24.97,-19.36,-22.14,-21.48,-18.54,-21.62,-13.4,-15.5,-15.67,-21.78,-30.63,-15.7,-19.2,-19.7,-19.4,-15.85,-17.38,-24.33,-20.89,-18.97,-17.99,-15.8,-25.42,-21.6,-26.06,-17.56,-25.63,-25.46,-22.23,-21.55,-15.18,-13.79,-15.18,-18.78,-17.9,-18.5,-14.82,-15.65,-30.01,-13.16,-21.03,-21.4,-17.93,-20.87,-12.01,-19.1,-22.85,-17.08,-21.14,-12.23,-20.91,-11.38,-11.02,-22.09,-17.8,-18.94,-18.85,-21.91,-22.03,-18.1,-18.4,-21.2,-12,-11.7,-26.72,-24.39,-19.64,-21.35,-22.82,-38.28,-12.57,-22.24,-13.8,-21.07,-17.74,-23.87,-21.29,-22.2,-15.24,-17.82,-32.14,-19.3,-33.09,-20.18,-17.46,-17.44,-24.71,-21.53,-19.17,-28.05,-23.39,-22.33,-15.28,-20.27,-10.96,-21.52,-19.57,-23.08,-25.06,-17.85,-15.99,-20.56,-17.98,-18.4,-27.64,-20.99,-14.86,-29.33,-25.81,-14.1,-17.63,-23.47,-23.92,-20.88,-20.25,-19.33,-18.14,-22.41,-20.77,-17.95,-20.83,-27.84,-19.94,-23.6,-23.7,-30.39,-18.98,-27.89,-23.5,-23.73,-17.93,-35.94,-18.68,-23.47,-23.49,-23.85,-27.08,-20.88,-20.97,-21.71,-23.9,-15.78,-12.57,-19.69,-22.04,-17.99,-23.5,-21.4,-15.86,-23.95,-25.79,-23.75,-24.1,-18.56,-23.3,-17.03,-20.77,-28.1,-18.83,-23,-20.82,-22.95,-28.22,-27.99,-15.54,-12.37,-22.33,-22.7,-17.86,-16,-20.73,-15.45,-20.05,-17.95,-17.7,-25.93,-12.28,-20.13,-17.4,-21.59],"z":[562,650,42,626,649,195,82,194,211,622,583,249,554,600,139,306,50,590,570,598,576,211,512,125,431,537,155,498,582,328,553,50,292,349,48,600,206,574,585,230,263,96,511,94,246,56,329,70,493,129,554,223,46,593,489,562,445,584,535,530,582,260,613,84,593,286,587,627,530,40,152,201,96,506,546,564,197,265,323,304,75,367,579,284,450,170,117,538,123,69,128,236,497,271,224,375,365,306,50,484,108,583,608,72,636,293,42,100,42,146,280,388,477,617,606,609,46,64,178,248,82,81,606,571,328,49,517,600,94,307,189,527,63,510,624,53,42,199,149,210,658,582,220,205,614,186,97,48,462,573,56,127,229,112,140,597,69,452,93,103,626,504,202,42,59,40,205,244,553,239,640,434,627,99,399,216,544,206,542,339,640,67,161,375,534,45,309,576,523,290,234,223,569,605,422,637,204,175,538,595,360,445,367,190,629,261,603,508,350,533,411,338,226,93,535,573,186,618,242,342,90,130,65,397,505,71,207,154,232,106,664,397,431,57,525,574,74,617,44,470,298,148,48,107,218,597,619,46,553,150,180,97,587,106,179,680,304,254,521,526,270,548,158,562,300,65,130,82,482,607,105,590,498,504,577,529,528,492,561,579,413,565,138,383,260,522,671,123,572,529,641,67,546,507,158,148,562,601,175,260,654,242,126,555,637,500,515,583,501,55,644,641,442,464,200,479,497,218,492,325,123,210,575,129,74,49,483,93,118,83,61,534,42,219,544,56,68,69,45,43,65,80,51,68,69,103,61,69,51,55,54,59,573,56,65,587,150,403,60,130,590,135,583,406,221,40,502,103,423,158,527,219,536,630,249,48,553,112,153,130,188,226,124,204,605,221,573,401,195,56,102,44,556,417,591,646,565,52,535,641,41,109,40,548,118,593,492,123,475,153,112,99,66,481,139,211,151,211,246,47,484,119,70,579,57,176,602,488,149,546,343,530,563,537,325,80,259,476,499,257,165,136,146,524,82,90,138,499,538,467,184,538,45,237,162,136,604,107,538,639,45,636,628,632,215,556,135,297,568,168,269,143,95,142,104,169,65,54,474,125,617,294,180,47,593,94,201,537,594,638,80,211,520,384,223,54,57,49,508,242,62,63,203,132,543,589,51,45,63,485,66,58,70,541,598,50,102,144,58,460,69,570,70,137,41,586,140,213,393,51,64,45,296,50,44,68,549,150,47,543,40,100,85,98,58,125,89,590,49,543,506,40,42,76,63,104,93,64,587,83,579,40,62,273,393,264,174,574,309,75,195,44,420,63,609,40,575,559,405,70,41,605,130,577,599,82,50,480,559,566,611,409,209,70,74,134,150,406,243,89,53,68,605,615,546,176,52,66,377,186,51,67,234,597,64,511,47,49,546,75,60,278,550,518,116,518,75,491,56,376,584,48,53,617,294,417,280,332,85,525,613,182,57,79,595,164,148,82,153,556,649,651,93,533,642,47,548,154,627,622,286,390,624,539,624,631,631,299,498,255,539,195,594,573,128,137,143,511,564,559,248,210,390,616,98,218,655,356,564,548,655,385,518,598,476,579,603,249,208,587,221,545,586,488,246,61,524,104,271,487,83,183,55,166,586,618,524,133,201,383,86,555,605,609,204,287,390,348,550,487,578,361,275,498,162,78,134,554,608,367,599,45,50,162,302,57,203,66,591,440,611,57,627,89,500,264,127,85,50,75,182,619,223,156,46,50,230,184,188,80,86,391,199,592,595,618,213,616,175,589,83,119,70,74,40,87,63,537,47,490,593,644,576,199,589,178,248,500,71,568,42,510,97,663,625,210,557,582,402,474,577,56,43,118,544,532,237,111,595,603,505,100,587,364,100,350,228,93,66,225,334,70,220,397,326,121,209,510,54,242,574,82,102,43,432,580,464,479,581,513,77,68,71,68,586,243,658,315,210,278,638,615,567,560,99,266,397,180,40,242,530,133,62,580,530,566,501,548,587,592,221,560,94,139,162,562,204,56,49,100,231,601,42,180,559,524,69,594,262,538,331,48,47,558,524,545,477,129,268,117,541,112,162,609,76,61,202,90,133,589,190,138,598,600,162,626,137,57,201,69,219,553,524,51,107,44,574,128,568,583,622,193,544,118,51,63,442,87,61,60,561,138,174,543,530,497,63,82,605,234,41,40,137,223,109,595,512,613,60,43,172,54,68,217,102,178,251,42,575,43,577,42,75,71,60,291,125,69,614,108,575,409,243,642,45,470,248,244,40,165],"mode":"markers","marker":{"color":[4.8,4.2,5.4,4.1,4,4,4.8,4.4,4.7,4.3,4.4,4.6,4.4,4.4,6.1,4.3,6,4.5,4.4,4.4,4.5,4.2,4.4,4.7,5.4,4,4.6,5.2,4.5,4.4,4.6,4.7,4.8,4,4.5,4.3,4.5,4.6,4.1,4.4,4.7,4.6,4.4,4.3,4.6,4.9,4.5,4.4,4.3,5.1,4.2,4,4.6,4.3,4.2,4.4,4.5,4,4.4,4.3,4.7,4.1,5,4.6,4.9,4.7,4.1,5,4.5,5.5,4,4.5,4.3,5.2,4.4,4.3,4.1,4.5,4.2,5.3,5.2,4.5,4.6,4.3,4,4.3,4.7,4.5,4.2,4.3,5.1,4.7,5.2,4.2,4.2,4,4.5,5.2,5.1,4.7,4.1,4.6,4.7,4.7,4.6,4.2,4.4,4.6,5.7,5,4.5,4.2,4,4.8,4.4,4.2,5.3,4.7,4.8,4.2,4.8,4.3,4.7,4.5,4.4,5.1,4.2,5,4.8,4.3,4.5,4.2,4.5,4.6,4.3,4.7,5.1,4.6,4.9,4.2,4.6,4,5,4.4,4.2,4.2,4.4,4.9,5.3,4,5.7,6.4,4.3,4.2,4.7,4.7,4.2,4.3,4.9,4.6,4.1,4.8,4.6,4.6,4.8,5,5.6,5.3,4.7,4.5,4.3,4.6,4.1,4.1,4.1,5.7,5,4.5,4.1,4.6,4.5,4.3,4.4,4.2,4.1,4.9,4.3,4.9,4.6,4.6,5.3,4.7,4.6,4.1,4.6,4.2,4.6,4.5,4.3,5.2,4.3,4,4.7,4.5,4.5,4.3,5.2,4.5,4.7,4.2,4.7,4.3,4.1,5.4,4.3,4.3,4.2,4.6,4.4,4.2,4.7,4.6,4.9,4.2,4.5,4.9,4.2,4.5,5,5,4.7,4.3,4.4,4.9,4.5,4,4.4,5,4.7,4.8,4.5,4.1,5.3,4.8,5,4.6,4.3,4.7,5.3,4.2,4.7,4.5,5.1,4.9,4.4,4.2,4.6,4.7,4.2,4.9,5.1,4.7,4.4,4.4,4.2,4.9,4.6,4.4,4.6,4.5,4.4,4.9,4.1,4.2,5.7,4.6,5,4.3,4.5,5.2,4.4,4.2,4.6,4,4.4,4.7,4.2,4.7,4.5,5,5,4.8,4.6,4.6,5,5,5.6,4,4,4.6,4.4,4.8,4.7,4.6,4.3,4.7,4.1,4.9,4.6,4.8,4.9,5.1,5.4,4.5,4.9,4.4,4.1,5.3,4.5,4.9,4.8,5.2,4.4,4.4,4.9,4.4,4.2,4.6,4.6,5.3,5.3,4.5,4.4,5,5.1,4.5,4.5,5.4,4.5,4.7,4.2,4.8,4.5,4.3,4.3,4.3,4.6,4.5,5,4.6,4.6,4.9,4.1,5.5,4.7,5,5.1,5.5,4.6,4.7,4.2,4,5.4,4.3,4.4,4.6,5.1,4.5,4.2,4.1,5.1,5.4,5.1,5.1,4.4,5.7,4.4,5.1,4.6,5.5,5.1,4.4,5,5,5.1,5.1,4.2,4.5,4,4.9,4.3,4.8,4.4,4.2,4.9,4.2,5.3,5,5.7,5.3,4.7,4.6,4.3,5.4,4.4,4.3,4.3,4.7,4.4,4.2,4.5,4.8,4.8,4.3,4.4,5.1,4.4,4.4,4.3,4.8,4.3,4.5,4.1,5.1,4.7,4.6,4.7,4.6,4.4,4.2,4.1,4.7,4,4.8,4.4,4.3,4.4,4.5,4.5,4.7,4.3,4.7,4.8,4.6,5.1,4.7,4.3,5.1,5.5,4.5,4.3,4.3,4.7,4.3,4.3,4.6,4.5,4.5,5.4,4.6,4.4,5,5.2,4.4,5.1,4.4,4.4,4.8,4.4,4.7,4.7,4.4,4.3,5,4.5,4.6,5.4,4.6,4.5,4.4,4.5,4.1,4,4.9,4.1,5.2,4.4,4.1,4.9,4.6,4.5,4.8,4.2,4.2,4.1,5.5,4.4,4.8,4.2,4.8,4.9,4.6,4.5,4.4,4.6,4.2,4.7,4.4,4.5,4.9,4.7,5.5,4.7,4.6,4.1,4.7,4.6,4.3,4.4,4.7,4.3,4.1,4.7,4.5,5.5,4.5,4.6,5.1,4.4,4.7,5.5,4.6,4,4.6,4.8,4.7,4.7,4.2,5.4,4.6,5.5,4.2,4.5,4.5,4.8,4.6,5.4,4.6,5,4.3,4.3,4.8,4.7,4.7,4.8,4.2,4.2,5.9,4.6,4.5,4.9,4.7,4.9,5.3,4.2,4.2,4.5,5.2,4.5,5.6,5.2,4.8,4.5,5,4.4,4.5,4.6,4.5,5.2,5.1,4.8,4.3,5.1,4.7,4.6,4.8,4.6,4.4,4.6,5.1,4.3,4.4,4.7,4.8,4.1,4.6,4.9,4,4.7,4.7,5.2,4.6,4.6,4.9,5.7,4.7,4.4,4.9,4.8,4.6,4.4,4.8,4.7,4.2,5.1,4.8,4.9,5.1,4.3,4.4,4.7,4.7,5.3,5.1,4.9,4.5,4.7,4.2,5.1,4.8,4.2,4.8,4.4,4.5,4.3,5.6,4,5,4.2,4.6,4.6,4.5,5,4.7,4.6,4.8,4.6,4.4,5.6,4.2,5.4,4.8,5.6,4.4,4.7,4.6,5.1,4.6,4.5,4.2,4.8,4.9,5.5,5,4.2,5.2,4.8,4.4,4.8,4.4,4.1,4.9,4.6,4.5,5.3,4.8,4.6,4.8,4.7,4.9,5.3,4.4,4.6,4.3,4.4,4.2,4.1,4.2,5,4.1,4.3,5.2,4.2,4.5,4.4,4.4,5,4,4.8,5,4.2,5.2,5.2,4.5,4.3,4.5,4.6,5.1,4.4,4.3,4.7,5.6,4.9,5.1,4.6,4.4,4.8,4.2,4.7,4.1,4.7,4,4.9,5,4.5,4.4,4,4.5,4.7,4.4,4.7,4.7,4,4.2,4.5,4.7,4.5,4.1,4.6,4.3,4.6,5.2,4.6,4.7,5,5.2,4.4,4.6,4.5,4,4.2,5.3,5.9,4.9,4.5,4.4,5.4,5.3,5.1,4.1,4.3,4.5,4.1,5.1,5.3,4.5,4.1,4.4,4.7,4,5.1,4,4.3,4.3,4,4.1,4.4,4.3,4.2,4,4.5,4.7,5,4.3,5.1,4.7,5.3,5,4.5,5,4.1,4.9,4.1,4,4.4,4.5,4.4,4.5,4.3,4.3,5,4.5,4.5,4.4,4.5,4.1,4.9,4.7,4.3,4.6,4.6,5.2,4.5,4.3,4.6,4,4.5,4.8,4.6,4.1,4.9,4.7,4.1,4.3,4.4,4,4.8,4.4,4.4,4.6,4.2,4.1,4.2,4,4.1,4.1,4.7,4.8,5.1,5,4.8,4.4,5,5.2,4.2,4.1,4.8,4.5,5,5.1,4.1,4.7,5.2,4.8,4.5,4,4.7,4.1,4.3,4.3,4,4.7,4.1,4.2,4.8,4.8,4.2,4.2,5.7,6,4.2,4.5,4.9,4.4,4,4.3,4.2,4.5,4.8,4.4,4.2,4.2,5,4.2,5.2,4.5,4.6,5,5,5.4,4.8,4.2,5.5,4.3,4.1,4.4,4.9,4.5,4.9,4,4.5,5,4.9,4.5,4.2,4.2,4.2,5.2,4.3,5.1,4.6,4.6,4.4,4.4,4.9,5.1,4.2,4.7,4,5.6,5.3,5,4.3,4.1,5.1,4.5,4.9,5.4,4.7,4.8,4.5,4.2,4.6,4.6,5.6,5.4,4,5.2,4.2,4.7,4.3,4.8,4.6,5.4,4.8,4.6,4.2,5.5,4.7,4.7,4.5,5.5,4.5,4.1,4,4.3,4.7,4.9,4.5,4.7,4.5,4.8,4.3,4.1,5.4,4.1,4.8,4.2,4.8,5.4,4.4,5.2,4.7,4.9,4.9,4.2,4.4,4.4,4.3,4.9,5,4.7,4.9,4.3,4.5,4.2,5.2,4.8,4,4.7,4.3,4.3,4.9,4,4.2,4.4,4.7,4.5,4.5,6],"size":[4.8,4.2,5.4,4.1,4,4,4.8,4.4,4.7,4.3,4.4,4.6,4.4,4.4,6.1,4.3,6,4.5,4.4,4.4,4.5,4.2,4.4,4.7,5.4,4,4.6,5.2,4.5,4.4,4.6,4.7,4.8,4,4.5,4.3,4.5,4.6,4.1,4.4,4.7,4.6,4.4,4.3,4.6,4.9,4.5,4.4,4.3,5.1,4.2,4,4.6,4.3,4.2,4.4,4.5,4,4.4,4.3,4.7,4.1,5,4.6,4.9,4.7,4.1,5,4.5,5.5,4,4.5,4.3,5.2,4.4,4.3,4.1,4.5,4.2,5.3,5.2,4.5,4.6,4.3,4,4.3,4.7,4.5,4.2,4.3,5.1,4.7,5.2,4.2,4.2,4,4.5,5.2,5.1,4.7,4.1,4.6,4.7,4.7,4.6,4.2,4.4,4.6,5.7,5,4.5,4.2,4,4.8,4.4,4.2,5.3,4.7,4.8,4.2,4.8,4.3,4.7,4.5,4.4,5.1,4.2,5,4.8,4.3,4.5,4.2,4.5,4.6,4.3,4.7,5.1,4.6,4.9,4.2,4.6,4,5,4.4,4.2,4.2,4.4,4.9,5.3,4,5.7,6.4,4.3,4.2,4.7,4.7,4.2,4.3,4.9,4.6,4.1,4.8,4.6,4.6,4.8,5,5.6,5.3,4.7,4.5,4.3,4.6,4.1,4.1,4.1,5.7,5,4.5,4.1,4.6,4.5,4.3,4.4,4.2,4.1,4.9,4.3,4.9,4.6,4.6,5.3,4.7,4.6,4.1,4.6,4.2,4.6,4.5,4.3,5.2,4.3,4,4.7,4.5,4.5,4.3,5.2,4.5,4.7,4.2,4.7,4.3,4.1,5.4,4.3,4.3,4.2,4.6,4.4,4.2,4.7,4.6,4.9,4.2,4.5,4.9,4.2,4.5,5,5,4.7,4.3,4.4,4.9,4.5,4,4.4,5,4.7,4.8,4.5,4.1,5.3,4.8,5,4.6,4.3,4.7,5.3,4.2,4.7,4.5,5.1,4.9,4.4,4.2,4.6,4.7,4.2,4.9,5.1,4.7,4.4,4.4,4.2,4.9,4.6,4.4,4.6,4.5,4.4,4.9,4.1,4.2,5.7,4.6,5,4.3,4.5,5.2,4.4,4.2,4.6,4,4.4,4.7,4.2,4.7,4.5,5,5,4.8,4.6,4.6,5,5,5.6,4,4,4.6,4.4,4.8,4.7,4.6,4.3,4.7,4.1,4.9,4.6,4.8,4.9,5.1,5.4,4.5,4.9,4.4,4.1,5.3,4.5,4.9,4.8,5.2,4.4,4.4,4.9,4.4,4.2,4.6,4.6,5.3,5.3,4.5,4.4,5,5.1,4.5,4.5,5.4,4.5,4.7,4.2,4.8,4.5,4.3,4.3,4.3,4.6,4.5,5,4.6,4.6,4.9,4.1,5.5,4.7,5,5.1,5.5,4.6,4.7,4.2,4,5.4,4.3,4.4,4.6,5.1,4.5,4.2,4.1,5.1,5.4,5.1,5.1,4.4,5.7,4.4,5.1,4.6,5.5,5.1,4.4,5,5,5.1,5.1,4.2,4.5,4,4.9,4.3,4.8,4.4,4.2,4.9,4.2,5.3,5,5.7,5.3,4.7,4.6,4.3,5.4,4.4,4.3,4.3,4.7,4.4,4.2,4.5,4.8,4.8,4.3,4.4,5.1,4.4,4.4,4.3,4.8,4.3,4.5,4.1,5.1,4.7,4.6,4.7,4.6,4.4,4.2,4.1,4.7,4,4.8,4.4,4.3,4.4,4.5,4.5,4.7,4.3,4.7,4.8,4.6,5.1,4.7,4.3,5.1,5.5,4.5,4.3,4.3,4.7,4.3,4.3,4.6,4.5,4.5,5.4,4.6,4.4,5,5.2,4.4,5.1,4.4,4.4,4.8,4.4,4.7,4.7,4.4,4.3,5,4.5,4.6,5.4,4.6,4.5,4.4,4.5,4.1,4,4.9,4.1,5.2,4.4,4.1,4.9,4.6,4.5,4.8,4.2,4.2,4.1,5.5,4.4,4.8,4.2,4.8,4.9,4.6,4.5,4.4,4.6,4.2,4.7,4.4,4.5,4.9,4.7,5.5,4.7,4.6,4.1,4.7,4.6,4.3,4.4,4.7,4.3,4.1,4.7,4.5,5.5,4.5,4.6,5.1,4.4,4.7,5.5,4.6,4,4.6,4.8,4.7,4.7,4.2,5.4,4.6,5.5,4.2,4.5,4.5,4.8,4.6,5.4,4.6,5,4.3,4.3,4.8,4.7,4.7,4.8,4.2,4.2,5.9,4.6,4.5,4.9,4.7,4.9,5.3,4.2,4.2,4.5,5.2,4.5,5.6,5.2,4.8,4.5,5,4.4,4.5,4.6,4.5,5.2,5.1,4.8,4.3,5.1,4.7,4.6,4.8,4.6,4.4,4.6,5.1,4.3,4.4,4.7,4.8,4.1,4.6,4.9,4,4.7,4.7,5.2,4.6,4.6,4.9,5.7,4.7,4.4,4.9,4.8,4.6,4.4,4.8,4.7,4.2,5.1,4.8,4.9,5.1,4.3,4.4,4.7,4.7,5.3,5.1,4.9,4.5,4.7,4.2,5.1,4.8,4.2,4.8,4.4,4.5,4.3,5.6,4,5,4.2,4.6,4.6,4.5,5,4.7,4.6,4.8,4.6,4.4,5.6,4.2,5.4,4.8,5.6,4.4,4.7,4.6,5.1,4.6,4.5,4.2,4.8,4.9,5.5,5,4.2,5.2,4.8,4.4,4.8,4.4,4.1,4.9,4.6,4.5,5.3,4.8,4.6,4.8,4.7,4.9,5.3,4.4,4.6,4.3,4.4,4.2,4.1,4.2,5,4.1,4.3,5.2,4.2,4.5,4.4,4.4,5,4,4.8,5,4.2,5.2,5.2,4.5,4.3,4.5,4.6,5.1,4.4,4.3,4.7,5.6,4.9,5.1,4.6,4.4,4.8,4.2,4.7,4.1,4.7,4,4.9,5,4.5,4.4,4,4.5,4.7,4.4,4.7,4.7,4,4.2,4.5,4.7,4.5,4.1,4.6,4.3,4.6,5.2,4.6,4.7,5,5.2,4.4,4.6,4.5,4,4.2,5.3,5.9,4.9,4.5,4.4,5.4,5.3,5.1,4.1,4.3,4.5,4.1,5.1,5.3,4.5,4.1,4.4,4.7,4,5.1,4,4.3,4.3,4,4.1,4.4,4.3,4.2,4,4.5,4.7,5,4.3,5.1,4.7,5.3,5,4.5,5,4.1,4.9,4.1,4,4.4,4.5,4.4,4.5,4.3,4.3,5,4.5,4.5,4.4,4.5,4.1,4.9,4.7,4.3,4.6,4.6,5.2,4.5,4.3,4.6,4,4.5,4.8,4.6,4.1,4.9,4.7,4.1,4.3,4.4,4,4.8,4.4,4.4,4.6,4.2,4.1,4.2,4,4.1,4.1,4.7,4.8,5.1,5,4.8,4.4,5,5.2,4.2,4.1,4.8,4.5,5,5.1,4.1,4.7,5.2,4.8,4.5,4,4.7,4.1,4.3,4.3,4,4.7,4.1,4.2,4.8,4.8,4.2,4.2,5.7,6,4.2,4.5,4.9,4.4,4,4.3,4.2,4.5,4.8,4.4,4.2,4.2,5,4.2,5.2,4.5,4.6,5,5,5.4,4.8,4.2,5.5,4.3,4.1,4.4,4.9,4.5,4.9,4,4.5,5,4.9,4.5,4.2,4.2,4.2,5.2,4.3,5.1,4.6,4.6,4.4,4.4,4.9,5.1,4.2,4.7,4,5.6,5.3,5,4.3,4.1,5.1,4.5,4.9,5.4,4.7,4.8,4.5,4.2,4.6,4.6,5.6,5.4,4,5.2,4.2,4.7,4.3,4.8,4.6,5.4,4.8,4.6,4.2,5.5,4.7,4.7,4.5,5.5,4.5,4.1,4,4.3,4.7,4.9,4.5,4.7,4.5,4.8,4.3,4.1,5.4,4.1,4.8,4.2,4.8,5.4,4.4,5.2,4.7,4.9,4.9,4.2,4.4,4.4,4.3,4.9,5,4.7,4.9,4.3,4.5,4.2,5.2,4.8,4,4.7,4.3,4.3,4.9,4,4.2,4.4,4.7,4.5,4.5,6],"colorscale":"Viridis","colorbar":{"title":{"text":"震级"}},"line":{"color":"rgba(31,119,180,1)"}},"type":"scatter3d","error_y":{"color":"rgba(31,119,180,1)"},"error_x":{"color":"rgba(31,119,180,1)"},"line":{"color":"rgba(31,119,180,1)"},"frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<p class="caption">
+图 3.2: plotly 绘制交互三维图形
+</p>
+</div>
+<p>plotly 团队开发了 <a href="https://github.com/plotly/plotly.js">plotly.js</a> 库，且维护了 R 接口文档 (<a href="https://plotly.com/r/" class="uri">https://plotly.com/r/</a>)，Carson Sievert 开发了 <a href="https://github.com/ropensci/plotly">plotly</a> 包，配套书 <a href="https://plotly-r.com/">Interactive web-based data visualization with R, plotly, and shiny</a>。 Paul C. Bauer 的书 <a href="https://bookdown.org/paul/applied-data-visualization/">Applied Data Visualization</a> 介绍 plotly <a href="https://bookdown.org/paul/applied-data-visualization/what-is-plotly.html" class="uri">https://bookdown.org/paul/applied-data-visualization/what-is-plotly.html</a></p>
+<div class="rmdnote">
+<p>plotly 包的函数使用起来还是比较复杂的，特别是需要打磨细节以打造数据产品时，此外，其依赖相当重，仅数据处理就包含两套方法 — dplyr 和 data.table，引起很多函数冲突，可谓「苦其久矣」！因此，准备另起炉灶，开发一个新的 R 包 qplotly，取意 quick plotly，以 <code>qplot_ly()</code> 替代 <code>plot_ly()</code>。类似简化 API 的工作有 <a href="https://github.com/StatisticsNZ/simplevis">simplevis</a>、<a href="https://github.com/terrytangyuan/autoplotly">autoplotly</a>、<a href="https://github.com/sinhrks/ggfortify">ggfortify</a> 和 <a href="https://github.com/yogevherz/plotme">plotme</a>。</p>
+</div>
+<p>学习 <a href="https://github.com/ropensci/plotly">plotly</a> 和 <a href="https://github.com/jbkunst/highcharter">highcharter</a> 为代表的基于 JavaScript 的 R 包，共有四重境界：第一重是照着帮助文档的示例，示例有啥我们做啥；第二重是明白帮助文档中 R 函数和 JavaScript 函数的对应关系，能力达到 JS 库的功能边界；第三重是深度自定义一些扩展性的 JS 功能，放飞自我；第四重是重新造轮子，为所欲为。</p>
+</div>
+<div id="sec-echarts4r" class="section level2" number="3.3">
+<h2><span class="header-section-number">3.3</span> echarts4r 等</h2>
+<p>与 <strong>plotly</strong> 包类似，<a href="https://github.com/JohnCoene/echarts4r"><strong>echarts4r</strong></a> 是另一个流行的 JavaScript 绘图库的 R 语言接口，同样支持非常广泛的图形种类。<a href="https://github.com/JohnCoene/echarts4r">echarts4r</a> 是 Apache Echarts 的 R 语言接口。Apache Echarts 支持 WebGL 的图形有散点图、路径图、矢量场图、网络图，详见官方<a href="https://echarts.apache.org/examples/zh/index.html">示例文档</a>，大规模的数据可视化需要比较好的硬件资源支持。</p>
+<p><a href="https://github.com/davidgohel/ggiraph"><strong>ggiraph</strong></a> 可以与 ggplot2 包 紧密结合，提供一致的使用语法，结合 <strong>usmap</strong> 包可以制作地图，悬浮提示可以包含文字、链接，与 <strong>gt</strong> 包结合，悬浮提示还可以包含图片、表格等元素。</p>
+<p>专门展示空间数据的绘图框架也有很多，比如 <a href="https://github.com/rstudio/leaflet"><strong>leaflet</strong></a> 在开放街道地图服务的基础上，支持矢量数据和栅格数据，支持交互式的空间数据可视化，支持许多空间数据类型，比如 <strong>sp</strong> 包的 Spatial 类，<strong>raster</strong> 包的 Raster 类，<strong>sf</strong> 包的 Simple Feature 类等。</p>
+<p><a href="https://github.com/SymbolixAU/mapdeck"><strong>mapdeck</strong></a> 提供了 <a href="https://github.com/visgl/deck.gl">Deck.gl</a> 和 <a href="https://github.com/mapbox/mapbox-gl-js">Mapbox</a> 的 R 语言接口，Deck.gl 号称是 WebGL 2.0 加持的高性能大规模数据可视化渲染组件，也是以 MIT 协议开源的软件，而后者是商业收费软件。<a href="https://github.com/anthonynorth/rdeck"><strong>rdeck</strong></a> 类似 <strong>mapdeck</strong>，但是提供更多实用的功能，优化的数据存储方式，过滤了不可见的数据，更加友好的配色主题，适用于图例和悬浮提示等。 Kyle Walker 开发了 <a href="https://github.com/walkerke/mapboxapi">mapboxapi</a> 包，也提供 <a href="https://docs.mapbox.com/api/">Mapbox Web 服务</a>的 R 语言接口。</p>
+<p>除了以上这些制作交互式图形的 R 包，还有<a href="https://github.com/dreamRs/apexcharter">apexcharter</a> 包、<a href="https://github.com/juba/scatterD3">scatterD3</a> 包和 <a href="https://github.com/datastorm-open/visNetwork/">visNetwork</a>包等，一份相对完整的列表见 <a href="https://gallery.htmlwidgets.org/" class="uri">https://gallery.htmlwidgets.org/</a>。如果读者想进一步了解 <strong>htmlwidgets</strong> 框架，JavaScript 响应式编程，推荐 John Coene 的著作 《JavaScript for R》。</p>
+<p><a href="https://github.com/rstudio/reticulate">reticulate</a> 将 Python 社区的绘图模块引入 R 语言社区，比较流行的交互式绘图模块有 <a href="https://github.com/pyecharts/pyecharts">pyecharts</a>、 <a href="https://github.com/plotly/plotly.py">plotly.py</a> 和 <a href="https://github.com/bokeh/bokeh">bokeh</a> 等。</p>
+<pre class="r"><code>library(echarts4r)
+# 待 echarts4r 发布 0.4.5 版后，升级 echarts4r 
+# 不再需要添加 color 列为 mag 
+quakes$color &lt;- quakes$mag
+# 绘制图形
+quakes |&gt;
+  e_charts(x = lat) |&gt;
+  e_scatter_3d(
+    y = long, z = depth,
+    size = mag,
+    color = mag,
+    bind = stations,
+    coordinate_system = &quot;cartesian3D&quot;,
+    name = &quot;斐济&quot;
+  ) |&gt;
+  e_x_axis_3d(min = -40, max = -10, name = &quot;纬度&quot;) |&gt;
+  e_y_axis_3d(min = 165, max = 190, name = &quot;经度&quot;) |&gt;
+  e_z_axis_3d(name = &quot;深度&quot;) |&gt;
+  e_visual_map(
+    serie = mag,
+    type = &quot;continuous&quot;,
+    inRange = list(color = c(&#39;#4B0055&#39;, &#39;#009B95&#39;, &#39;#FDE333&#39;)),
+    dimension = 4, # third dimension x = 0, y = 1, z = 2, color = 3, size = 4
+    top = 20
+  ) |&gt;
+  e_visual_map(
+    serie = mag,
+    type = &quot;continuous&quot;,
+    inRange = list(symbolSize = c(5, 15)),
+    dimension = 3,
+    bottom = 10
+  ) |&gt;
+  e_tooltip() |&gt;
+  e_title(text = &quot;斐济及其周边地震活动&quot;)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-quakes-echarts4r"></span>
+<div class="echarts4r html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-2" style="width:100%;height:500px;"></div>
+<script type="application/json" data-for="htmlwidget-2">{"x":{"theme":"","tl":false,"draw":true,"renderer":"canvas","events":[],"buttons":[],"opts":{"zAxis3D":[{"show":true,"name":"深度"}],"grid3D":[{"show":true}],"xAxis3D":[{"type":"value","min":-40,"max":-10,"name":"纬度"}],"yAxis3D":[{"type":"value","min":165,"max":190,"name":"经度"}],"series":[{"name":"斐济","type":"scatter3D","coordinateSystem":"cartesian3D","coordinate_system":"cartesian3D","data":[{"value":[-38.59,175.7,162,4.7,4.7],"name":36},{"value":[-38.46,176.03,148,4.6,4.6],"name":44},{"value":[-38.28,177.1,100,5.4,5.4],"name":71},{"value":[-37.93,177.47,65,5.4,5.4],"name":65},{"value":[-37.37,176.78,263,4.7,4.7],"name":34},{"value":[-37.03,177.52,153,5.6,5.6],"name":87},{"value":[-36.95,177.81,146,5,5],"name":35},{"value":[-35.94,178.52,138,5.5,5.5],"name":78},{"value":[-35.56,180.2,42,4.6,4.6],"name":32},{"value":[-35.48,179.9,59,4.8,4.8],"name":35},{"value":[-34.89,180.6,42,4.4,4.4],"name":25},{"value":[-34.68,179.82,75,5.6,5.6],"name":79},{"value":[-34.63,179.1,278,4.7,4.7],"name":24},{"value":[-34.4,180.5,201,4.4,4.4],"name":41},{"value":[-34.2,179.43,40,5,5],"name":37},{"value":[-34.12,181.75,75,4.7,4.7],"name":41},{"value":[-34.1,181.8,246,4.3,4.3],"name":23},{"value":[-34.02,180.21,75,5.2,5.2],"name":65},{"value":[-33.57,180.8,51,4.7,4.7],"name":35},{"value":[-33.29,181.3,60,4.7,4.7],"name":33},{"value":[-33.2,181.6,153,4.2,4.2],"name":21},{"value":[-33.09,180.94,47,4.9,4.9],"name":47},{"value":[-33.03,180.2,186,4.6,4.6],"name":27},{"value":[-33,181.6,72,4.7,4.7],"name":22},{"value":[-33,182.4,176,4.6,4.6],"name":28},{"value":[-32.9,181.6,169,4.6,4.6],"name":27},{"value":[-32.82,179.8,176,4.7,4.7],"name":26},{"value":[-32.7,181.7,211,4.4,4.4],"name":40},{"value":[-32.62,181.5,55,4.8,4.8],"name":26},{"value":[-32.6,180.9,57,4.7,4.7],"name":44},{"value":[-32.45,181.15,41,5.5,5.5],"name":81},{"value":[-32.42,181.21,47,4.9,4.9],"name":39},{"value":[-32.22,180.2,216,5.7,5.7],"name":90},{"value":[-32.2,179.61,422,4.6,4.6],"name":41},{"value":[-32.14,179.9,406,4.3,4.3],"name":19},{"value":[-32.14,180,331,4.5,4.5],"name":27},{"value":[-31.94,180.57,168,4.7,4.7],"name":39},{"value":[-31.8,180.6,178,4.5,4.5],"name":19},{"value":[-31.24,180.6,328,4.4,4.4],"name":18},{"value":[-31.03,181.59,57,5.2,5.2],"name":49},{"value":[-30.8,182.16,41,4.7,4.7],"name":24},{"value":[-30.72,180.1,413,4.4,4.4],"name":22},{"value":[-30.69,182.1,62,4.9,4.9],"name":25},{"value":[-30.66,180.13,411,4.7,4.7],"name":42},{"value":[-30.64,181.2,175,4,4],"name":16},{"value":[-30.63,180.9,334,4.2,4.2],"name":28},{"value":[-30.51,181.3,203,4.4,4.4],"name":20},{"value":[-30.4,181.4,40,4.3,4.3],"name":17},{"value":[-30.39,182.4,63,4.6,4.6],"name":22},{"value":[-30.3,180.8,275,4,4],"name":14},{"value":[-30.28,180.62,350,4.7,4.7],"name":32},{"value":[-30.24,181.63,80,4.5,4.5],"name":17},{"value":[-30.2,182,125,4.7,4.7],"name":22},{"value":[-30.17,182.02,56,5.5,5.5],"name":68},{"value":[-30.1,182.3,56,4.9,4.9],"name":34},{"value":[-30.09,182.4,51,4.4,4.4],"name":18},{"value":[-30.04,181.2,49,4.8,4.8],"name":20},{"value":[-30.01,180.8,286,4.8,4.8],"name":43},{"value":[-30.01,181.15,210,4.3,4.3],"name":17},{"value":[-29.91,181.43,205,4.4,4.4],"name":34},{"value":[-29.9,181.16,215,5.1,5.1],"name":51},{"value":[-29.5,182.31,129,4.4,4.4],"name":14},{"value":[-29.33,182.72,57,5.4,5.4],"name":61},{"value":[-29.1,182.1,179,4.4,4.4],"name":19},{"value":[-29.09,183.2,54,4.6,4.6],"name":23},{"value":[-28.98,181.11,304,5.3,5.3],"name":60},{"value":[-28.96,182.61,54,4.6,4.6],"name":15},{"value":[-28.83,181.66,221,5.1,5.1],"name":63},{"value":[-28.74,181.74,211,4.7,4.7],"name":35},{"value":[-28.56,183.47,48,4.8,4.8],"name":56},{"value":[-28.56,183.59,53,4.4,4.4],"name":20},{"value":[-28.25,181.71,226,4.1,4.1],"name":19},{"value":[-28.23,182.68,74,4.4,4.4],"name":20},{"value":[-28.22,183.6,75,4.9,4.9],"name":49},{"value":[-28.15,183.4,57,5,5],"name":32},{"value":[-28.11,181.93,194,4.4,4.4],"name":15},{"value":[-28.1,182.25,68,4.6,4.6],"name":18},{"value":[-28.1,183.5,42,4.4,4.4],"name":17},{"value":[-28.05,182.39,117,5.1,5.1],"name":43},{"value":[-28,182,199,4,4],"name":16},{"value":[-27.99,183.5,71,4.3,4.3],"name":22},{"value":[-27.98,181.96,53,5.2,5.2],"name":89},{"value":[-27.89,182.92,87,5.5,5.5],"name":67},{"value":[-27.87,183.4,87,4.7,4.7],"name":34},{"value":[-27.84,182.1,193,4.8,4.8],"name":27},{"value":[-27.75,182.26,174,4.5,4.5],"name":18},{"value":[-27.72,181.7,94,4.8,4.8],"name":59},{"value":[-27.71,182.47,103,4.3,4.3],"name":11},{"value":[-27.64,182.22,162,5.1,5.1],"name":67},{"value":[-27.63,182.93,80,4.3,4.3],"name":14},{"value":[-27.6,182.4,61,4.6,4.6],"name":11},{"value":[-27.6,182.1,154,4.6,4.6],"name":22},{"value":[-27.54,182.5,68,4.3,4.3],"name":12},{"value":[-27.38,181.7,80,4.8,4.8],"name":13},{"value":[-27.38,182.39,69,4.5,4.5],"name":12},{"value":[-27.33,182.6,42,4.4,4.4],"name":11},{"value":[-27.28,183.4,70,5.1,5.1],"name":54},{"value":[-27.27,182.38,45,4.5,4.5],"name":16},{"value":[-27.27,182.5,51,4.5,4.5],"name":13},{"value":[-27.27,182.36,65,4.7,4.7],"name":21},{"value":[-27.24,181.11,365,4.5,4.5],"name":21},{"value":[-27.23,180.98,401,4.5,4.5],"name":39},{"value":[-27.22,182.28,65,4.2,4.2],"name":14},{"value":[-27.21,182.43,55,4.6,4.6],"name":10},{"value":[-27.2,182.39,69,4.3,4.3],"name":14},{"value":[-27.19,182.18,69,5.4,5.4],"name":68},{"value":[-27.18,182.18,56,4.5,4.5],"name":14},{"value":[-27.18,182.53,60,4.6,4.6],"name":21},{"value":[-27.17,183.68,44,4.8,4.8],"name":27},{"value":[-27.1,182.18,43,4.7,4.7],"name":17},{"value":[-27.08,183.44,63,4.7,4.7],"name":27},{"value":[-27,183.88,56,4.9,4.9],"name":36},{"value":[-26.78,183.61,40,4.6,4.6],"name":22},{"value":[-26.72,183.35,190,4.5,4.5],"name":36},{"value":[-26.72,182.69,162,5.2,5.2],"name":64},{"value":[-26.67,182.4,186,4.2,4.2],"name":17},{"value":[-26.6,182.77,119,4.5,4.5],"name":29},{"value":[-26.54,183.63,66,4.7,4.7],"name":34},{"value":[-26.53,178.57,600,5,5],"name":69},{"value":[-26.53,178.3,605,4.9,4.9],"name":43},{"value":[-26.5,178.29,609,5,5],"name":50},{"value":[-26.46,182.5,184,4.3,4.3],"name":11},{"value":[-26.4,181.7,329,4.5,4.5],"name":24},{"value":[-26.2,178.41,583,4.6,4.6],"name":25},{"value":[-26.2,178.35,606,4.4,4.4],"name":21},{"value":[-26.18,178.59,548,5.4,5.4],"name":65},{"value":[-26.18,179.79,460,4.7,4.7],"name":44},{"value":[-26.17,184.2,65,4.9,4.9],"name":37},{"value":[-26.16,179.5,492,4.5,4.5],"name":25},{"value":[-26.16,178.47,537,4.8,4.8],"name":33},{"value":[-26.13,178.31,609,4.2,4.2],"name":25},{"value":[-26.11,178.3,617,4.8,4.8],"name":39},{"value":[-26.1,182.3,49,4.4,4.4],"name":11},{"value":[-26.1,182.5,133,4.2,4.2],"name":17},{"value":[-26.06,180.05,432,4.2,4.2],"name":19},{"value":[-26.02,181.2,361,4.7,4.7],"name":32},{"value":[-26,184.1,42,5.4,5.4],"name":43},{"value":[-26,182.12,205,5.6,5.6],"name":98},{"value":[-26,178.43,644,4.9,4.9],"name":27},{"value":[-25.93,179.54,470,4.4,4.4],"name":22},{"value":[-25.82,179.33,600,4.3,4.3],"name":13},{"value":[-25.81,182.54,201,4.7,4.7],"name":40},{"value":[-25.8,182.1,68,4.5,4.5],"name":26},{"value":[-25.79,182.38,172,4.4,4.4],"name":14},{"value":[-25.68,180.34,434,4.6,4.6],"name":41},{"value":[-25.63,180.26,464,4.8,4.8],"name":60},{"value":[-25.6,180.3,440,4,4],"name":12},{"value":[-25.59,180.02,485,4.9,4.9],"name":48},{"value":[-25.5,182.82,124,5,5],"name":25},{"value":[-25.48,180.94,390,4.6,4.6],"name":33},{"value":[-25.46,179.98,479,4.5,4.5],"name":27},{"value":[-25.42,182.65,102,5,5],"name":36},{"value":[-25.31,179.69,507,4.6,4.6],"name":35},{"value":[-25.31,180.15,467,4.5,4.5],"name":25},{"value":[-25.28,181.17,367,4.3,4.3],"name":25},{"value":[-25.25,179.86,491,4.2,4.2],"name":23},{"value":[-25.23,179.86,476,4.4,4.4],"name":29},{"value":[-25.2,182.6,149,4.9,4.9],"name":31},{"value":[-25.14,178.42,554,4.1,4.1],"name":15},{"value":[-25.06,182.8,133,4,4],"name":14},{"value":[-25.04,180.1,481,4.3,4.3],"name":15},{"value":[-25.04,180.97,393,4.2,4.2],"name":21},{"value":[-25.04,179.84,474,4.6,4.6],"name":32},{"value":[-25,180,488,4.5,4.5],"name":10},{"value":[-24.97,179.82,511,4.4,4.4],"name":23},{"value":[-24.97,182.85,137,4.8,4.8],"name":40},{"value":[-24.97,179.54,505,4.9,4.9],"name":50},{"value":[-24.96,180.22,470,4.8,4.8],"name":41},{"value":[-24.96,179.87,480,4.4,4.4],"name":25},{"value":[-24.89,179.67,498,4.2,4.2],"name":14},{"value":[-24.81,180,452,4.3,4.3],"name":19},{"value":[-24.78,179.22,492,4.3,4.3],"name":16},{"value":[-24.71,179.85,477,4.2,4.2],"name":34},{"value":[-24.68,183.33,70,4.7,4.7],"name":30},{"value":[-24.64,180.81,397,4.3,4.3],"name":24},{"value":[-24.6,183.5,67,4.3,4.3],"name":25},{"value":[-24.57,179.92,484,4.7,4.7],"name":33},{"value":[-24.57,178.4,562,5.6,5.6],"name":80},{"value":[-24.5,180.92,377,4.8,4.8],"name":43},{"value":[-24.41,180.03,500,4.5,4.5],"name":34},{"value":[-24.4,179.85,522,4.7,4.7],"name":29},{"value":[-24.39,178.98,562,4.5,4.5],"name":30},{"value":[-24.36,182.84,148,4.1,4.1],"name":16},{"value":[-24.34,179.52,504,4.8,4.8],"name":34},{"value":[-24.33,179.97,510,4.8,4.8],"name":44},{"value":[-24.27,179.88,523,4.6,4.6],"name":24},{"value":[-24.2,179.2,530,4.3,4.3],"name":12},{"value":[-24.19,180.38,484,4.3,4.3],"name":27},{"value":[-24.18,179.02,550,5.3,5.3],"name":86},{"value":[-24.12,180.08,493,4.3,4.3],"name":21},{"value":[-24.1,184.5,68,4.7,4.7],"name":23},{"value":[-24.09,179.68,538,4.3,4.3],"name":21},{"value":[-24.08,179.5,605,4.1,4.1],"name":21},{"value":[-24.04,184.85,70,5,5],"name":48},{"value":[-24.03,180.22,508,4.2,4.2],"name":23},{"value":[-24,182.75,175,4.5,4.5],"name":14},{"value":[-23.97,179.91,518,4.5,4.5],"name":23},{"value":[-23.95,182.8,199,4.6,4.6],"name":14},{"value":[-23.95,184.64,43,5.4,5.4],"name":45},{"value":[-23.93,180.18,525,4.6,4.6],"name":31},{"value":[-23.92,184.47,40,4.7,4.7],"name":17},{"value":[-23.92,180.21,524,4.6,4.6],"name":50},{"value":[-23.91,180,534,4.5,4.5],"name":11},{"value":[-23.9,179.9,579,4.4,4.4],"name":16},{"value":[-23.9,184.6,41,4.5,4.5],"name":22},{"value":[-23.89,182.39,243,4.7,4.7],"name":32},{"value":[-23.87,180.15,524,4.4,4.4],"name":22},{"value":[-23.85,182.53,204,4.6,4.6],"name":27},{"value":[-23.85,180.26,497,4.3,4.3],"name":32},{"value":[-23.84,180.99,367,4.5,4.5],"name":27},{"value":[-23.84,180.13,525,4.5,4.5],"name":15},{"value":[-23.83,182.56,229,4.3,4.3],"name":24},{"value":[-23.82,180.09,498,4.8,4.8],"name":40},{"value":[-23.81,179.36,521,4.2,4.2],"name":23},{"value":[-23.8,179.9,498,4.1,4.1],"name":12},{"value":[-23.8,184.7,42,5,5],"name":36},{"value":[-23.79,179.89,526,4.9,4.9],"name":43},{"value":[-23.78,180.31,518,5.1,5.1],"name":71},{"value":[-23.77,180.16,505,4.5,4.5],"name":26},{"value":[-23.75,184.5,54,5.2,5.2],"name":74},{"value":[-23.74,179.99,506,5.2,5.2],"name":75},{"value":[-23.73,182.53,232,5,5],"name":55},{"value":[-23.73,179.99,527,5.1,5.1],"name":49},{"value":[-23.73,179.98,524,4.6,4.6],"name":11},{"value":[-23.73,183,118,4.3,4.3],"name":11},{"value":[-23.73,184.49,60,4.7,4.7],"name":35},{"value":[-23.71,180.3,510,4.6,4.6],"name":30},{"value":[-23.7,179.6,646,4.2,4.2],"name":21},{"value":[-23.7,184.13,51,4.8,4.8],"name":27},{"value":[-23.65,184.46,93,4.2,4.2],"name":16},{"value":[-23.64,179.96,538,4.5,4.5],"name":26},{"value":[-23.61,180.23,475,4.4,4.4],"name":26},{"value":[-23.61,180.27,537,5,5],"name":63},{"value":[-23.6,183.99,118,5.4,5.4],"name":88},{"value":[-23.58,180.17,462,5.3,5.3],"name":63},{"value":[-23.58,183.4,94,5.2,5.2],"name":79},{"value":[-23.56,180.23,474,4.5,4.5],"name":13},{"value":[-23.55,180.8,349,4,4],"name":10},{"value":[-23.55,180.27,535,4.3,4.3],"name":22},{"value":[-23.54,180.04,564,4.3,4.3],"name":15},{"value":[-23.54,179.93,574,4,4],"name":12},{"value":[-23.53,179.99,538,5.4,5.4],"name":87},{"value":[-23.5,179.78,570,4.4,4.4],"name":13},{"value":[-23.5,180,550,4.7,4.7],"name":23},{"value":[-23.5,184.9,61,4.7,4.7],"name":16},{"value":[-23.5,180.13,512,4.8,4.8],"name":40},{"value":[-23.49,179.07,544,5.1,5.1],"name":58},{"value":[-23.49,180.06,530,4,4],"name":23},{"value":[-23.47,180.24,511,4.8,4.8],"name":37},{"value":[-23.47,180.21,553,4.2,4.2],"name":23},{"value":[-23.47,179.95,543,4.1,4.1],"name":21},{"value":[-23.46,180.09,543,4.6,4.6],"name":28},{"value":[-23.46,180.17,541,4.6,4.6],"name":32},{"value":[-23.46,180.11,539,5,5],"name":41},{"value":[-23.45,180.23,520,4.2,4.2],"name":19},{"value":[-23.44,182.93,158,4.1,4.1],"name":20},{"value":[-23.44,184.6,63,4.8,4.8],"name":27},{"value":[-23.43,180,553,4.7,4.7],"name":41},{"value":[-23.42,180.21,510,4.5,4.5],"name":37},{"value":[-23.39,179.97,541,4.6,4.6],"name":50},{"value":[-23.36,180.01,553,5.3,5.3],"name":61},{"value":[-23.34,184.5,56,5.7,5.7],"name":106},{"value":[-23.33,180.18,528,5,5],"name":59},{"value":[-23.33,180.26,530,4.7,4.7],"name":22},{"value":[-23.31,179.27,566,5.1,5.1],"name":49},{"value":[-23.3,180.16,512,4.4,4.4],"name":18},{"value":[-23.3,179.7,500,4.7,4.7],"name":29},{"value":[-23.3,184.68,102,4.9,4.9],"name":27},{"value":[-23.29,184,164,4.8,4.8],"name":50},{"value":[-23.28,184.6,44,4.8,4.8],"name":34},{"value":[-23.28,184.61,76,4.7,4.7],"name":36},{"value":[-23.2,184.8,97,4.5,4.5],"name":13},{"value":[-23.19,182.8,237,4.3,4.3],"name":18},{"value":[-23.12,184.42,104,4.2,4.2],"name":17},{"value":[-23.11,179.15,564,4.7,4.7],"name":17},{"value":[-23.1,180.12,533,4.4,4.4],"name":27},{"value":[-23.08,183.45,90,4.7,4.7],"name":30},{"value":[-23.07,184.03,89,4.7,4.7],"name":32},{"value":[-23,170.7,43,4.9,4.9],"name":20},{"value":[-22.95,170.56,42,4.7,4.7],"name":21},{"value":[-22.91,183.95,64,5.9,5.9],"name":118},{"value":[-22.9,183.8,71,4.3,4.3],"name":19},{"value":[-22.87,172.65,56,5.1,5.1],"name":50},{"value":[-22.87,171.72,47,4.6,4.6],"name":27},{"value":[-22.85,181.37,397,4.2,4.2],"name":15},{"value":[-22.82,184.52,49,5,5],"name":52},{"value":[-22.75,173.2,46,4.6,4.6],"name":26},{"value":[-22.75,170.99,67,4.8,4.8],"name":35},{"value":[-22.7,181,445,4.5,4.5],"name":17},{"value":[-22.7,183.3,180,4,4],"name":13},{"value":[-22.7,170.3,69,4.8,4.8],"name":27},{"value":[-22.64,180.64,544,5,5],"name":50},{"value":[-22.63,180.31,598,4.4,4.4],"name":18},{"value":[-22.58,179.24,553,4.6,4.6],"name":21},{"value":[-22.55,185.9,42,5.7,5.7],"name":76},{"value":[-22.55,183.81,82,5.1,5.1],"name":68},{"value":[-22.55,183.34,66,4.6,4.6],"name":18},{"value":[-22.54,172.91,54,5.5,5.5],"name":71},{"value":[-22.5,170.4,106,4.9,4.9],"name":38},{"value":[-22.43,184.48,65,4.9,4.9],"name":48},{"value":[-22.42,171.4,86,4.7,4.7],"name":33},{"value":[-22.41,183.99,128,5.2,5.2],"name":72},{"value":[-22.37,171.5,116,4.9,4.9],"name":38},{"value":[-22.36,171.65,130,4.6,4.6],"name":39},{"value":[-22.34,171.52,106,5,5],"name":43},{"value":[-22.33,171.46,119,4.7,4.7],"name":32},{"value":[-22.33,171.51,112,4.6,4.6],"name":14},{"value":[-22.33,171.66,125,5.2,5.2],"name":51},{"value":[-22.32,180.54,565,4.2,4.2],"name":12},{"value":[-22.3,181.9,309,4.3,4.3],"name":11},{"value":[-22.28,183.52,90,4.7,4.7],"name":19},{"value":[-22.26,171.44,83,4.5,4.5],"name":25},{"value":[-22.24,184.56,99,4.8,4.8],"name":57},{"value":[-22.24,180.28,601,4.2,4.2],"name":21},{"value":[-22.23,180.48,581,5,5],"name":54},{"value":[-22.2,180.58,594,4.5,4.5],"name":45},{"value":[-22.19,171.4,150,5.1,5.1],"name":49},{"value":[-22.16,180.49,586,4.6,4.6],"name":13},{"value":[-22.14,180.64,591,4.5,4.5],"name":18},{"value":[-22.14,179.62,587,4.1,4.1],"name":23},{"value":[-22.13,180.38,577,5.7,5.7],"name":104},{"value":[-22.12,180.49,532,4,4],"name":14},{"value":[-22.1,179.71,579,5.1,5.1],"name":58},{"value":[-22.1,185.3,50,4.6,4.6],"name":22},{"value":[-22.1,180.4,603,4.1,4.1],"name":11},{"value":[-22.09,180.38,590,4.9,4.9],"name":35},{"value":[-22.09,180.58,580,4.4,4.4],"name":22},{"value":[-22.06,180.6,584,4,4],"name":11},{"value":[-22.06,180.47,587,4.6,4.6],"name":28},{"value":[-22.06,183.95,134,4.5,4.5],"name":17},{"value":[-22.05,180.4,606,4.7,4.7],"name":27},{"value":[-22.04,184.91,47,4.9,4.9],"name":47},{"value":[-22.04,183.95,109,5.4,5.4],"name":61},{"value":[-22.03,179.77,587,4.8,4.8],"name":31},{"value":[-22,180.52,561,4.5,4.5],"name":19},{"value":[-22,180.53,583,4.9,4.9],"name":20},{"value":[-22,185.5,52,4.4,4.4],"name":18},{"value":[-21.98,179.6,583,5.4,5.4],"name":67},{"value":[-21.97,182.32,261,4.3,4.3],"name":13},{"value":[-21.96,179.62,627,5,5],"name":45},{"value":[-21.96,180.54,603,5.2,5.2],"name":66},{"value":[-21.92,182.8,273,5.3,5.3],"name":78},{"value":[-21.91,181.28,548,4.5,4.5],"name":30},{"value":[-21.88,180.39,608,4.7,4.7],"name":30},{"value":[-21.85,180.89,577,4.6,4.6],"name":43},{"value":[-21.81,181.71,323,4.2,4.2],"name":15},{"value":[-21.8,183.2,325,4.4,4.4],"name":19},{"value":[-21.8,183.6,213,4.4,4.4],"name":17},{"value":[-21.79,183.48,210,5.2,5.2],"name":69},{"value":[-21.79,185,74,4.1,4.1],"name":15},{"value":[-21.78,183.11,225,4.6,4.6],"name":21},{"value":[-21.77,181,618,4.1,4.1],"name":10},{"value":[-21.75,180.67,595,4.6,4.6],"name":30},{"value":[-21.71,183.58,234,4.7,4.7],"name":55},{"value":[-21.68,180.63,617,5,5],"name":63},{"value":[-21.63,180.77,592,4.3,4.3],"name":21},{"value":[-21.62,182.4,350,4,4],"name":12},{"value":[-21.6,180.5,595,4,4],"name":22},{"value":[-21.6,169.9,43,5.2,5.2],"name":56},{"value":[-21.59,170.56,165,6,6],"name":119},{"value":[-21.58,181.9,409,4.4,4.4],"name":19},{"value":[-21.57,185.62,66,4.9,4.9],"name":38},{"value":[-21.57,183.86,156,5.1,5.1],"name":70},{"value":[-21.56,183.23,271,4.4,4.4],"name":36},{"value":[-21.56,185.5,47,4.5,4.5],"name":29},{"value":[-21.55,182.9,207,4.2,4.2],"name":18},{"value":[-21.55,181.39,513,5.1,5.1],"name":81},{"value":[-21.54,185.48,51,5,5],"name":29},{"value":[-21.53,170.52,129,5.2,5.2],"name":30},{"value":[-21.52,169.75,61,5.1,5.1],"name":40},{"value":[-21.5,170.5,117,4.7,4.7],"name":32},{"value":[-21.5,185.2,139,4.4,4.4],"name":15},{"value":[-21.48,183.78,200,4.9,4.9],"name":54},{"value":[-21.48,182.44,364,4.3,4.3],"name":20},{"value":[-21.47,185.86,55,4.9,4.9],"name":46},{"value":[-21.46,181.02,584,4.2,4.2],"name":18},{"value":[-21.44,180.69,583,4.4,4.4],"name":13},{"value":[-21.44,170.45,166,5.1,5.1],"name":22},{"value":[-21.4,180.78,615,4.7,4.7],"name":51},{"value":[-21.4,180.74,613,4.2,4.2],"name":20},{"value":[-21.39,180.68,617,4.5,4.5],"name":18},{"value":[-21.38,181.39,501,4.6,4.6],"name":36},{"value":[-21.37,180.67,593,4.3,4.3],"name":13},{"value":[-21.35,170.04,56,5,5],"name":22},{"value":[-21.34,181.41,464,4.5,4.5],"name":21},{"value":[-21.33,180.69,636,4.6,4.6],"name":29},{"value":[-21.31,180.84,586,4.5,4.5],"name":17},{"value":[-21.3,180.82,624,4.3,4.3],"name":14},{"value":[-21.3,180.92,617,4.5,4.5],"name":26},{"value":[-21.29,180.85,607,4.5,4.5],"name":23},{"value":[-21.29,185.77,57,5.3,5.3],"name":69},{"value":[-21.29,185.8,69,4.9,4.9],"name":74},{"value":[-21.27,173.49,48,4.9,4.9],"name":42},{"value":[-21.26,181.69,487,4.4,4.4],"name":20},{"value":[-21.24,180.81,605,4.6,4.6],"name":34},{"value":[-21.24,180.86,615,4.9,4.9],"name":23},{"value":[-21.23,181.09,613,4.6,4.6],"name":18},{"value":[-21.22,181.51,524,4.8,4.8],"name":49},{"value":[-21.2,181.4,560,4.2,4.2],"name":12},{"value":[-21.19,181.58,490,5,5],"name":77},{"value":[-21.18,180.92,619,4.5,4.5],"name":18},{"value":[-21.16,182.4,260,4.1,4.1],"name":12},{"value":[-21.16,181.41,543,4.3,4.3],"name":17},{"value":[-21.14,181.06,625,4.5,4.5],"name":35},{"value":[-21.14,174.21,40,5.7,5.7],"name":78},{"value":[-21.13,185.32,123,4.7,4.7],"name":36},{"value":[-21.13,185.6,85,5.3,5.3],"name":86},{"value":[-21.11,181.5,538,5.5,5.5],"name":104},{"value":[-21.09,181.38,555,4.6,4.6],"name":15},{"value":[-21.08,180.85,627,5.9,5.9],"name":119},{"value":[-21.08,181.3,557,4.9,4.9],"name":78},{"value":[-21.07,181.13,594,4.9,4.9],"name":43},{"value":[-21.07,183.78,180,4.3,4.3],"name":25},{"value":[-21.06,183.81,203,4.5,4.5],"name":34},{"value":[-21.05,184.68,136,4.7,4.7],"name":29},{"value":[-21.05,180.9,616,4.3,4.3],"name":10},{"value":[-21.04,181.2,483,4.2,4.2],"name":10},{"value":[-21.04,181.2,591,4.9,4.9],"name":45},{"value":[-21.03,180.78,638,4,4],"name":14},{"value":[-21,181.66,600,4.4,4.4],"name":10},{"value":[-21,183.2,296,4,4],"name":16},{"value":[-20.99,181.02,626,4.5,4.5],"name":36},{"value":[-20.97,181.47,582,4.5,4.5],"name":25},{"value":[-20.97,181.72,487,4.3,4.3],"name":16},{"value":[-20.97,181.2,605,4.5,4.5],"name":31},{"value":[-20.95,181.42,559,4.6,4.6],"name":27},{"value":[-20.95,181.06,611,4.3,4.3],"name":20},{"value":[-20.94,181.58,573,4.3,4.3],"name":21},{"value":[-20.94,181.26,556,4.4,4.4],"name":21},{"value":[-20.93,181.54,564,5,5],"name":64},{"value":[-20.92,181.5,546,4.6,4.6],"name":31},{"value":[-20.91,181.57,530,4.2,4.2],"name":20},{"value":[-20.9,169.84,93,4.9,4.9],"name":31},{"value":[-20.9,181.51,548,4.7,4.7],"name":32},{"value":[-20.9,181.9,556,4.4,4.4],"name":17},{"value":[-20.9,184.28,58,5.5,5.5],"name":92},{"value":[-20.9,182.02,402,4.3,4.3],"name":18},{"value":[-20.89,181.25,599,4.6,4.6],"name":20},{"value":[-20.89,185.26,54,5.1,5.1],"name":44},{"value":[-20.88,185.18,51,4.6,4.6],"name":28},{"value":[-20.88,184.95,82,4.9,4.9],"name":50},{"value":[-20.87,181.7,560,4.2,4.2],"name":13},{"value":[-20.85,181.59,499,5.1,5.1],"name":91},{"value":[-20.84,181.16,576,4.5,4.5],"name":17},{"value":[-20.83,185.9,104,4.5,4.5],"name":19},{"value":[-20.83,181.01,622,4.3,4.3],"name":15},{"value":[-20.82,181.67,577,5,5],"name":67},{"value":[-20.81,184.7,162,4.3,4.3],"name":20},{"value":[-20.81,185.01,79,4.7,4.7],"name":42},{"value":[-20.77,181.16,568,4.2,4.2],"name":12},{"value":[-20.77,183.71,251,4.4,4.4],"name":47},{"value":[-20.76,185.77,118,4.6,4.6],"name":15},{"value":[-20.75,184.52,144,4.3,4.3],"name":25},{"value":[-20.74,181.53,598,4.5,4.5],"name":36},{"value":[-20.74,180.7,589,4.4,4.4],"name":27},{"value":[-20.73,181.42,575,4.3,4.3],"name":18},{"value":[-20.72,181.41,595,4.6,4.6],"name":36},{"value":[-20.7,169.92,139,6.1,6.1],"name":94},{"value":[-20.7,184.3,182,4.3,4.3],"name":17},{"value":[-20.7,186.3,80,4,4],"name":10},{"value":[-20.69,181.55,582,4.7,4.7],"name":35},{"value":[-20.68,181.41,593,4.9,4.9],"name":40},{"value":[-20.66,185.77,69,4.3,4.3],"name":25},{"value":[-20.65,181.4,582,4,4],"name":14},{"value":[-20.65,181.32,597,4.7,4.7],"name":39},{"value":[-20.65,182.22,506,4.3,4.3],"name":24},{"value":[-20.64,182.02,497,5.2,5.2],"name":64},{"value":[-20.64,169.66,89,4.9,4.9],"name":42},{"value":[-20.63,181.61,599,4.6,4.6],"name":30},{"value":[-20.62,181.03,650,4.2,4.2],"name":15},{"value":[-20.61,182.6,488,4.6,4.6],"name":12},{"value":[-20.61,182.44,518,4.2,4.2],"name":10},{"value":[-20.6,182.28,529,5,5],"name":50},{"value":[-20.58,181.24,602,4.7,4.7],"name":44},{"value":[-20.57,181.33,605,4.3,4.3],"name":18},{"value":[-20.56,182.04,499,4.5,4.5],"name":29},{"value":[-20.56,184.41,138,5,5],"name":82},{"value":[-20.54,181.66,559,4.9,4.9],"name":50},{"value":[-20.51,182.3,492,4.3,4.3],"name":23},{"value":[-20.49,181.69,559,4.5,4.5],"name":24},{"value":[-20.48,169.76,134,4.6,4.6],"name":33},{"value":[-20.48,181.38,556,4.2,4.2],"name":13},{"value":[-20.47,185.68,93,5.4,5.4],"name":85},{"value":[-20.45,181.85,534,4.1,4.1],"name":14},{"value":[-20.45,182.1,500,4.5,4.5],"name":37},{"value":[-20.43,182.37,502,5.1,5.1],"name":48},{"value":[-20.42,181.62,562,4.8,4.8],"name":41},{"value":[-20.42,181.96,649,4,4],"name":11},{"value":[-20.42,181.86,530,4.5,4.5],"name":27},{"value":[-20.41,181.74,538,4.3,4.3],"name":31},{"value":[-20.41,186.51,63,5,5],"name":28},{"value":[-20.4,186.1,74,4.3,4.3],"name":22},{"value":[-20.37,182.1,397,4.2,4.2],"name":22},{"value":[-20.36,181.19,637,4.2,4.2],"name":23},{"value":[-20.36,186.16,102,4.3,4.3],"name":21},{"value":[-20.33,168.71,40,4.8,4.8],"name":38},{"value":[-20.32,181.69,508,4.5,4.5],"name":14},{"value":[-20.32,180.88,680,4.2,4.2],"name":22},{"value":[-20.31,184.06,249,4.4,4.4],"name":21},{"value":[-20.3,183,375,4.2,4.2],"name":15},{"value":[-20.3,182.3,476,4.5,4.5],"name":10},{"value":[-20.3,181.4,608,4.6,4.6],"name":13},{"value":[-20.27,181.51,609,4.4,4.4],"name":32},{"value":[-20.25,184.75,107,5.6,5.6],"name":121},{"value":[-20.24,169.49,100,4.6,4.6],"name":22},{"value":[-20.24,185.1,86,5.1,5.1],"name":61},{"value":[-20.21,183.83,242,4.4,4.4],"name":29},{"value":[-20.21,182.37,482,4.6,4.6],"name":37},{"value":[-20.21,181.9,576,4.1,4.1],"name":16},{"value":[-20.2,180.9,627,4.1,4.1],"name":11},{"value":[-20.2,182.3,533,4.2,4.2],"name":11},{"value":[-20.18,181.62,558,4.5,4.5],"name":31},{"value":[-20.16,181.99,504,4.2,4.2],"name":11},{"value":[-20.16,184.27,210,4.4,4.4],"name":27},{"value":[-20.14,181.6,587,4.1,4.1],"name":13},{"value":[-20.13,184.2,244,4.5,4.5],"name":34},{"value":[-20.12,183.4,284,4.3,4.3],"name":15},{"value":[-20.1,182.16,489,4.2,4.2],"name":16},{"value":[-20.1,184.4,186,4.2,4.2],"name":10},{"value":[-20.1,186.3,63,4.6,4.6],"name":19},{"value":[-20.09,168.75,50,4.6,4.6],"name":23},{"value":[-20.08,182.74,298,4.5,4.5],"name":33},{"value":[-20.08,183.22,294,4.3,4.3],"name":18},{"value":[-20.07,169.14,66,4.8,4.8],"name":37},{"value":[-20.07,181.75,582,4.7,4.7],"name":27},{"value":[-20.06,168.69,49,5.1,5.1],"name":49},{"value":[-20.05,183.86,243,4.9,4.9],"name":65},{"value":[-20.04,182.01,605,5.1,5.1],"name":49},{"value":[-20.04,181.87,577,4.7,4.7],"name":19},{"value":[-20.02,184.09,234,5.3,5.3],"name":71},{"value":[-19.94,182.39,544,4.6,4.6],"name":30},{"value":[-19.92,183.91,264,4.2,4.2],"name":23},{"value":[-19.9,178.9,81,4.3,4.3],"name":11},{"value":[-19.89,183.84,244,5.3,5.3],"name":73},{"value":[-19.89,184.08,219,5.4,5.4],"name":105},{"value":[-19.89,174.46,546,5.7,5.7],"name":99},{"value":[-19.88,184.3,161,4.4,4.4],"name":17},{"value":[-19.86,184.35,201,4.5,4.5],"name":30},{"value":[-19.85,182.13,562,4.4,4.4],"name":31},{"value":[-19.85,181.85,576,4.9,4.9],"name":54},{"value":[-19.85,184.51,184,4.4,4.4],"name":26},{"value":[-19.84,182.37,328,4.4,4.4],"name":17},{"value":[-19.83,182.04,575,4.4,4.4],"name":23},{"value":[-19.83,182.54,524,4.6,4.6],"name":14},{"value":[-19.77,181.4,630,5.1,5.1],"name":54},{"value":[-19.76,181.41,105,4.4,4.4],"name":15},{"value":[-19.73,182.4,375,4,4],"name":18},{"value":[-19.72,169.71,271,4.2,4.2],"name":14},{"value":[-19.7,186.2,47,4.8,4.8],"name":19},{"value":[-19.7,182.44,397,4,4],"name":12},{"value":[-19.69,184.23,223,4.1,4.1],"name":23},{"value":[-19.68,184.31,195,4,4],"name":12},{"value":[-19.68,184.14,242,4.8,4.8],"name":40},{"value":[-19.67,182.18,360,4.3,4.3],"name":23},{"value":[-19.66,180.28,431,5.4,5.4],"name":57},{"value":[-19.66,184.31,170,4.3,4.3],"name":15},{"value":[-19.64,169.5,204,4.6,4.6],"name":35},{"value":[-19.62,185.35,57,4.9,4.9],"name":31},{"value":[-19.61,181.91,590,4.6,4.6],"name":34},{"value":[-19.6,185.2,125,4.4,4.4],"name":13},{"value":[-19.6,183.84,309,4.5,4.5],"name":23},{"value":[-19.6,181.87,597,4.2,4.2],"name":18},{"value":[-19.6,184.53,199,4.3,4.3],"name":21},{"value":[-19.57,182.38,579,4.6,4.6],"name":38},{"value":[-19.57,184.47,202,4.2,4.2],"name":28},{"value":[-19.52,168.98,63,4.5,4.5],"name":21},{"value":[-19.51,183.97,280,4,4],"name":16},{"value":[-19.5,186.9,58,4.4,4.4],"name":20},{"value":[-19.47,169.15,149,4.4,4.4],"name":15},{"value":[-19.45,184.48,246,4.3,4.3],"name":15},{"value":[-19.44,183.5,293,4.2,4.2],"name":15},{"value":[-19.41,183.05,300,4.2,4.2],"name":16},{"value":[-19.41,182.3,589,4.2,4.2],"name":19},{"value":[-19.4,180.94,664,4.7,4.7],"name":34},{"value":[-19.4,182.29,326,4.1,4.1],"name":15},{"value":[-19.36,186.36,100,4.7,4.7],"name":40},{"value":[-19.34,182.62,573,4.5,4.5],"name":32},{"value":[-19.34,186.59,56,5.2,5.2],"name":49},{"value":[-19.33,186.16,44,5.4,5.4],"name":110},{"value":[-19.3,183.84,517,4.2,4.2],"name":21},{"value":[-19.3,180.6,671,4.2,4.2],"name":16},{"value":[-19.3,183,302,5,5],"name":65},{"value":[-19.3,185.86,48,5,5],"name":40},{"value":[-19.28,182.78,348,4.5,4.5],"name":30},{"value":[-19.26,184.42,223,4,4],"name":15},{"value":[-19.23,169.41,246,4.6,4.6],"name":27},{"value":[-19.22,182.43,571,4.5,4.5],"name":23},{"value":[-19.22,182.54,570,4.1,4.1],"name":22},{"value":[-19.21,184.7,197,4.1,4.1],"name":11},{"value":[-19.2,184.37,220,4.2,4.2],"name":18},{"value":[-19.19,183.51,307,4.3,4.3],"name":19},{"value":[-19.19,182.3,390,4.9,4.9],"name":48},{"value":[-19.18,169.33,254,4.7,4.7],"name":35},{"value":[-19.17,169.53,268,4.3,4.3],"name":21},{"value":[-19.15,169.5,150,4.2,4.2],"name":12},{"value":[-19.14,184.36,269,4.7,4.7],"name":31},{"value":[-19.13,182.51,579,5.2,5.2],"name":56},{"value":[-19.13,184.97,210,4.1,4.1],"name":22},{"value":[-19.1,183.87,61,5.3,5.3],"name":42},{"value":[-19.1,184.52,230,4.1,4.1],"name":16},{"value":[-19.1,169.63,266,4.8,4.8],"name":31},{"value":[-19.06,182.45,477,4,4],"name":16},{"value":[-19.06,169.01,158,4.4,4.4],"name":10},{"value":[-19.02,184.23,270,5.1,5.1],"name":72},{"value":[-19.02,186.83,45,5.2,5.2],"name":65},{"value":[-19,185.6,107,4.5,4.5],"name":15},{"value":[-18.98,182.32,442,4.2,4.2],"name":22},{"value":[-18.97,185.25,129,5.1,5.1],"name":73},{"value":[-18.97,169.44,242,5,5],"name":41},{"value":[-18.96,169.48,248,4.2,4.2],"name":13},{"value":[-18.94,182.43,566,4.3,4.3],"name":20},{"value":[-18.92,169.37,248,5.3,5.3],"name":60},{"value":[-18.91,169.46,248,4.4,4.4],"name":33},{"value":[-18.89,169.42,239,4.5,4.5],"name":27},{"value":[-18.89,169.48,259,4.4,4.4],"name":21},{"value":[-18.89,184.46,242,4.8,4.8],"name":36},{"value":[-18.89,181.24,655,4.1,4.1],"name":14},{"value":[-18.85,187.55,44,4.8,4.8],"name":35},{"value":[-18.85,182.2,501,4.2,4.2],"name":23},{"value":[-18.84,184.16,210,4.2,4.2],"name":17},{"value":[-18.83,182.26,575,4.3,4.3],"name":11},{"value":[-18.82,169.33,230,4.4,4.4],"name":11},{"value":[-18.82,182.21,417,5.6,5.6],"name":129},{"value":[-18.8,169.21,221,4.4,4.4],"name":16},{"value":[-18.8,182.41,385,5.2,5.2],"name":67},{"value":[-18.78,186.72,68,4.8,4.8],"name":48},{"value":[-18.77,169.24,218,5.3,5.3],"name":53},{"value":[-18.76,169.71,287,4.4,4.4],"name":23},{"value":[-18.75,182.35,554,4.2,4.2],"name":13},{"value":[-18.73,169.23,206,4.5,4.5],"name":17},{"value":[-18.73,168.8,82,4.4,4.4],"name":14},{"value":[-18.69,169.1,218,4.2,4.2],"name":27},{"value":[-18.68,184.5,174,4.5,4.5],"name":34},{"value":[-18.64,169.32,260,4.6,4.6],"name":23},{"value":[-18.6,181.91,442,5.4,5.4],"name":82},{"value":[-18.6,184.28,255,4.4,4.4],"name":31},{"value":[-18.56,169.31,223,4.7,4.7],"name":35},{"value":[-18.56,169.05,217,4.9,4.9],"name":35},{"value":[-18.55,182.23,563,4,4],"name":17},{"value":[-18.54,182.11,554,4.4,4.4],"name":19},{"value":[-18.54,168.93,100,4.4,4.4],"name":17},{"value":[-18.51,182.64,405,5.2,5.2],"name":74},{"value":[-18.5,185.4,243,4,4],"name":11},{"value":[-18.49,169.04,211,4.8,4.8],"name":30},{"value":[-18.48,181.49,641,5,5],"name":49},{"value":[-18.48,182.37,376,4.8,4.8],"name":57},{"value":[-18.44,181.04,624,4.2,4.2],"name":21},{"value":[-18.4,183.4,343,4.1,4.1],"name":10},{"value":[-18.4,184.84,221,4.2,4.2],"name":18},{"value":[-18.4,181.77,600,4.1,4.1],"name":11},{"value":[-18.35,185.27,201,4.7,4.7],"name":57},{"value":[-18.31,182.39,342,4.2,4.2],"name":14},{"value":[-18.3,183.2,103,4.5,4.5],"name":14},{"value":[-18.26,180.98,631,4.8,4.8],"name":36},{"value":[-18.21,180.87,631,5.2,5.2],"name":69},{"value":[-18.2,183.68,107,4.8,4.8],"name":52},{"value":[-18.2,181.6,553,4.4,4.4],"name":14},{"value":[-18.19,181.74,616,4.3,4.3],"name":17},{"value":[-18.18,180.63,639,4.6,4.6],"name":39},{"value":[-18.18,182.04,609,4.4,4.4],"name":26},{"value":[-18.17,181.98,651,4.8,4.8],"name":43},{"value":[-18.16,183.41,306,5.2,5.2],"name":54},{"value":[-18.14,180.87,624,5.5,5.5],"name":105},{"value":[-18.14,181.71,574,4,4],"name":20},{"value":[-18.13,181.52,618,4.6,4.6],"name":41},{"value":[-18.12,181.88,649,5.4,5.4],"name":88},{"value":[-18.12,181.71,594,4.6,4.6],"name":24},{"value":[-18.11,181.67,597,4.6,4.6],"name":28},{"value":[-18.11,181.63,568,4.3,4.3],"name":36},{"value":[-18.1,181.72,544,4.6,4.6],"name":52},{"value":[-18.1,181.63,592,4.4,4.4],"name":28},{"value":[-18.08,180.7,628,5.2,5.2],"name":72},{"value":[-18.07,181.57,572,4.5,4.5],"name":26},{"value":[-18.07,181.54,546,4.3,4.3],"name":28},{"value":[-18.07,181.58,603,5,5],"name":65},{"value":[-18.07,181.65,593,4.1,4.1],"name":16},{"value":[-18.06,181.59,604,4.5,4.5],"name":23},{"value":[-18.05,180.86,632,4.4,4.4],"name":15},{"value":[-18.04,181.75,640,4.5,4.5],"name":47},{"value":[-18.04,181.57,587,5,5],"name":51},{"value":[-18.04,181.84,611,4.2,4.2],"name":20},{"value":[-18,180.62,636,5,5],"name":100},{"value":[-18,185.48,143,4.4,4.4],"name":29},{"value":[-17.99,181.57,579,4.9,4.9],"name":49},{"value":[-17.99,168.98,234,4.7,4.7],"name":28},{"value":[-17.99,181.62,574,4.8,4.8],"name":38},{"value":[-17.99,181.59,595,4.1,4.1],"name":26},{"value":[-17.98,180.5,626,4.1,4.1],"name":19},{"value":[-17.98,181.58,590,4.2,4.2],"name":14},{"value":[-17.98,181.51,586,5.2,5.2],"name":68},{"value":[-17.98,181.61,598,4.3,4.3],"name":27},{"value":[-17.97,181.66,626,4.1,4.1],"name":19},{"value":[-17.97,168.52,146,4.8,4.8],"name":33},{"value":[-17.97,181.48,578,4.7,4.7],"name":43},{"value":[-17.96,181.4,655,4.3,4.3],"name":20},{"value":[-17.95,181.65,619,4.3,4.3],"name":26},{"value":[-17.95,184.68,260,4.4,4.4],"name":21},{"value":[-17.95,181.5,593,4.3,4.3],"name":16},{"value":[-17.95,181.73,583,4.7,4.7],"name":57},{"value":[-17.95,181.37,642,4,4],"name":17},{"value":[-17.94,181.49,537,4,4],"name":15},{"value":[-17.94,181.51,601,4,4],"name":16},{"value":[-17.94,180.6,627,4.5,4.5],"name":29},{"value":[-17.93,167.89,49,5.1,5.1],"name":43},{"value":[-17.93,181.89,567,4.1,4.1],"name":27},{"value":[-17.93,181.62,561,4.5,4.5],"name":32},{"value":[-17.91,181.48,555,4,4],"name":17},{"value":[-17.9,181.5,573,4,4],"name":19},{"value":[-17.9,181.3,593,4.1,4.1],"name":13},{"value":[-17.9,181.5,589,4,4],"name":12},{"value":[-17.9,181.41,586,4.5,4.5],"name":33},{"value":[-17.88,181.47,562,4.4,4.4],"name":27},{"value":[-17.88,180.58,622,4.2,4.2],"name":23},{"value":[-17.87,182,569,4.6,4.6],"name":12},{"value":[-17.86,181.3,614,4,4],"name":12},{"value":[-17.85,181.44,589,5.6,5.6],"name":115},{"value":[-17.84,181.48,542,4.1,4.1],"name":20},{"value":[-17.84,181.3,535,5.7,5.7],"name":112},{"value":[-17.83,181.5,590,4.5,4.5],"name":21},{"value":[-17.82,181.83,640,4.3,4.3],"name":24},{"value":[-17.82,181.49,573,4.2,4.2],"name":14},{"value":[-17.82,181.27,538,4,4],"name":33},{"value":[-17.81,181.82,598,4.1,4.1],"name":14},{"value":[-17.8,181.35,535,4.4,4.4],"name":23},{"value":[-17.8,185.17,97,4.4,4.4],"name":22},{"value":[-17.8,181.38,587,5.1,5.1],"name":47},{"value":[-17.8,181.32,539,4.1,4.1],"name":12},{"value":[-17.8,181.2,530,4,4],"name":15},{"value":[-17.79,181.32,587,5,5],"name":49},{"value":[-17.78,181.53,511,4.8,4.8],"name":56},{"value":[-17.78,185.33,223,4.1,4.1],"name":10},{"value":[-17.74,181.31,575,4.6,4.6],"name":42},{"value":[-17.74,186.78,104,5.1,5.1],"name":71},{"value":[-17.74,181.25,559,4.1,4.1],"name":16},{"value":[-17.72,180.3,595,5.2,5.2],"name":74},{"value":[-17.72,181.42,565,5.3,5.3],"name":89},{"value":[-17.71,181.18,574,5.2,5.2],"name":67},{"value":[-17.7,181.23,546,4.4,4.4],"name":35},{"value":[-17.7,181.7,450,4,4],"name":11},{"value":[-17.7,182.2,445,4,4],"name":12},{"value":[-17.7,185,383,4,4],"name":10},{"value":[-17.7,181.31,549,4.7,4.7],"name":33},{"value":[-17.7,188.1,45,4.2,4.2],"name":10},{"value":[-17.68,181.36,515,4.1,4.1],"name":19},{"value":[-17.68,186.8,112,4.5,4.5],"name":35},{"value":[-17.68,181.11,568,4.4,4.4],"name":22},{"value":[-17.67,187.09,45,4.9,4.9],"name":62},{"value":[-17.66,181.4,585,4.1,4.1],"name":17},{"value":[-17.64,181.28,574,4.6,4.6],"name":17},{"value":[-17.64,177.01,545,5.2,5.2],"name":91},{"value":[-17.63,185.13,219,4.5,4.5],"name":28},{"value":[-17.61,181.2,537,4.1,4.1],"name":11},{"value":[-17.61,183.32,356,4.2,4.2],"name":15},{"value":[-17.6,181.5,548,4.1,4.1],"name":10},{"value":[-17.59,181.09,536,5.1,5.1],"name":61},{"value":[-17.59,180.98,548,5.1,5.1],"name":79},{"value":[-17.56,181.59,543,4.6,4.6],"name":34},{"value":[-17.56,181.23,580,4.1,4.1],"name":16},{"value":[-17.47,179.59,622,4.3,4.3],"name":19},{"value":[-17.47,180.96,546,4.2,4.2],"name":23},{"value":[-17.46,181.32,573,4.1,4.1],"name":17},{"value":[-17.46,181.9,417,4.2,4.2],"name":14},{"value":[-17.46,181.42,524,4.2,4.2],"name":16},{"value":[-17.44,181.4,529,4.6,4.6],"name":25},{"value":[-17.44,181.33,545,4.2,4.2],"name":37},{"value":[-17.43,185.43,189,4.5,4.5],"name":22},{"value":[-17.42,185.16,206,4.5,4.5],"name":22},{"value":[-17.4,181.02,479,4.4,4.4],"name":14},{"value":[-17.4,186.54,85,4.2,4.2],"name":28},{"value":[-17.4,187.8,40,4.5,4.5],"name":14},{"value":[-17.38,168.63,209,4.7,4.7],"name":29},{"value":[-17.32,181.03,497,4.1,4.1],"name":13},{"value":[-17.2,182.9,383,4.1,4.1],"name":11},{"value":[-17.14,185.31,223,4.1,4.1],"name":15},{"value":[-17.1,184.93,286,4.7,4.7],"name":25},{"value":[-17.1,182.68,403,5.5,5.5],"name":82},{"value":[-17.1,182.8,390,4,4],"name":14},{"value":[-17.1,185.9,127,5.4,5.4],"name":75},{"value":[-17.08,185.96,180,4.2,4.2],"name":29},{"value":[-17.05,181.22,527,4.2,4.2],"name":24},{"value":[-17.04,186.8,70,4.1,4.1],"name":22},{"value":[-17.03,185.74,178,4.2,4.2],"name":32},{"value":[-17.02,182.41,420,4.5,4.5],"name":29},{"value":[-17.02,182.93,406,4,4],"name":17},{"value":[-16.99,187,70,4.7,4.7],"name":30},{"value":[-16.98,185.61,108,4.1,4.1],"name":12},{"value":[-16.96,167.7,45,4.7,4.7],"name":23},{"value":[-16.95,185.94,95,4.3,4.3],"name":12},{"value":[-16.9,185.72,135,4,4],"name":22},{"value":[-16.85,182.31,388,4.2,4.2],"name":14},{"value":[-16.65,185.51,218,5,5],"name":52},{"value":[-16.62,186.74,82,4.8,4.8],"name":51},{"value":[-16.52,185.7,90,4.7,4.7],"name":30},{"value":[-16.51,187.1,62,4.9,4.9],"name":46},{"value":[-16.49,187.8,40,4.5,4.5],"name":18},{"value":[-16.46,180.79,498,5.2,5.2],"name":79},{"value":[-16.45,177.77,138,4.6,4.6],"name":17},{"value":[-16.45,167.54,125,4.6,4.6],"name":18},{"value":[-16.44,185.74,126,4.7,4.7],"name":30},{"value":[-16.43,186.73,75,4.1,4.1],"name":20},{"value":[-16.4,185.86,148,5,5],"name":47},{"value":[-16.4,182.73,391,4,4],"name":16},{"value":[-16.32,166.74,50,4.7,4.7],"name":30},{"value":[-16.31,168.08,204,4.5,4.5],"name":16},{"value":[-16.3,186,48,4.5,4.5],"name":10},{"value":[-16.28,166.94,50,4.6,4.6],"name":24},{"value":[-16.24,168.02,53,4.7,4.7],"name":12},{"value":[-16.24,185.75,154,4.5,4.5],"name":22},{"value":[-16.24,167.95,188,5.1,5.1],"name":68},{"value":[-16.23,183.59,367,4.7,4.7],"name":35},{"value":[-16.23,167.91,182,4.5,4.5],"name":28},{"value":[-16.21,186.52,111,4.8,4.8],"name":30},{"value":[-16.2,166.8,98,4.5,4.5],"name":21},{"value":[-16.17,184.1,338,4.3,4.3],"name":13},{"value":[-16.14,187.32,42,5.1,5.1],"name":68},{"value":[-16.11,187.48,61,4.5,4.5],"name":19},{"value":[-16.1,185.32,257,4.7,4.7],"name":30},{"value":[-16.1,167.25,68,4.7,4.7],"name":36},{"value":[-16.09,184.89,304,4.6,4.6],"name":34},{"value":[-16.04,183.54,384,4.2,4.2],"name":23},{"value":[-16.03,185.43,297,4.8,4.8],"name":25},{"value":[-16,182.82,431,4.4,4.4],"name":16},{"value":[-16,184.53,108,4.7,4.7],"name":33},{"value":[-15.99,167.95,190,5.3,5.3],"name":81},{"value":[-15.97,186.08,143,4.6,4.6],"name":41},{"value":[-15.96,166.69,150,4.2,4.2],"name":20},{"value":[-15.95,167.34,47,5.4,5.4],"name":87},{"value":[-15.94,184.95,306,4.3,4.3],"name":11},{"value":[-15.93,167.91,183,5.6,5.6],"name":109},{"value":[-15.9,185.3,57,4.4,4.4],"name":19},{"value":[-15.9,167.42,40,5.5,5.5],"name":86},{"value":[-15.9,167.16,41,4.8,4.8],"name":42},{"value":[-15.87,188.13,52,5,5],"name":30},{"value":[-15.86,166.85,85,4.5,4.5],"name":22},{"value":[-15.86,166.98,60,4.8,4.8],"name":25},{"value":[-15.85,185.13,290,4.6,4.6],"name":29},{"value":[-15.85,184.83,299,4.4,4.4],"name":30},{"value":[-15.85,185.9,121,4.1,4.1],"name":17},{"value":[-15.83,182.51,423,4.2,4.2],"name":21},{"value":[-15.83,167.1,43,4.5,4.5],"name":19},{"value":[-15.8,185.25,82,4.4,4.4],"name":39},{"value":[-15.79,166.83,45,4.6,4.6],"name":39},{"value":[-15.78,167.44,40,4.8,4.8],"name":42},{"value":[-15.77,167.01,64,5.5,5.5],"name":73},{"value":[-15.75,185.23,280,4.5,4.5],"name":28},{"value":[-15.72,185.64,138,4.3,4.3],"name":21},{"value":[-15.71,166.91,58,4.8,4.8],"name":20},{"value":[-15.7,184.5,118,4.4,4.4],"name":30},{"value":[-15.7,185.1,70,4.1,4.1],"name":15},{"value":[-15.67,185.23,66,4.4,4.4],"name":34},{"value":[-15.66,186.8,45,4.4,4.4],"name":11},{"value":[-15.65,186.26,64,5.1,5.1],"name":54},{"value":[-15.65,185.17,315,4.1,4.1],"name":15},{"value":[-15.61,167.5,135,4.4,4.4],"name":21},{"value":[-15.61,187.15,49,5,5],"name":30},{"value":[-15.56,167.62,127,6.4,6.4],"name":122},{"value":[-15.55,185.05,292,4.8,4.8],"name":42},{"value":[-15.54,167.68,140,4.7,4.7],"name":16},{"value":[-15.54,187.15,60,4.5,4.5],"name":17},{"value":[-15.5,186.9,46,4.7,4.7],"name":18},{"value":[-15.5,185.3,93,4.4,4.4],"name":25},{"value":[-15.49,186.04,94,4.3,4.3],"name":26},{"value":[-15.48,167.53,128,5.1,5.1],"name":61},{"value":[-15.48,186.73,82,4.4,4.4],"name":17},{"value":[-15.46,187.81,40,5.5,5.5],"name":91},{"value":[-15.45,186.73,83,4.7,4.7],"name":37},{"value":[-15.45,181.42,409,4.3,4.3],"name":27},{"value":[-15.44,185.26,224,4.2,4.2],"name":21},{"value":[-15.44,167.18,140,4.6,4.6],"name":44},{"value":[-15.43,186.3,123,4.2,4.2],"name":16},{"value":[-15.43,167.38,137,4.5,4.5],"name":16},{"value":[-15.43,185.19,249,4,4],"name":11},{"value":[-15.41,186.44,69,4.3,4.3],"name":42},{"value":[-15.4,186.87,78,4.7,4.7],"name":44},{"value":[-15.39,185.1,237,4.5,4.5],"name":39},{"value":[-15.36,186.66,112,5.1,5.1],"name":57},{"value":[-15.36,186.71,130,5.5,5.5],"name":95},{"value":[-15.36,167.51,123,4.7,4.7],"name":28},{"value":[-15.35,186.4,98,4.4,4.4],"name":17},{"value":[-15.34,167.1,128,5.3,5.3],"name":18},{"value":[-15.33,186.75,48,5.7,5.7],"name":123},{"value":[-15.31,186.1,96,4.6,4.6],"name":32},{"value":[-15.31,185.8,152,4,4],"name":11},{"value":[-15.29,186.42,153,4.6,4.6],"name":31},{"value":[-15.29,166.9,100,4.2,4.2],"name":15},{"value":[-15.28,185.98,162,4.4,4.4],"name":36},{"value":[-15.26,183.13,393,4.4,4.4],"name":28},{"value":[-15.24,186.21,158,5,5],"name":57},{"value":[-15.24,185.11,262,4.9,4.9],"name":56},{"value":[-15.2,184.68,99,4.1,4.1],"name":14},{"value":[-15.18,185.93,77,4.1,4.1],"name":16},{"value":[-15.18,167.23,71,5.2,5.2],"name":59},{"value":[-15.17,187.2,50,4.7,4.7],"name":28},{"value":[-15.08,166.62,42,4.7,4.7],"name":23},{"value":[-15.03,182.29,399,4.1,4.1],"name":10},{"value":[-15.03,167.32,136,4.6,4.6],"name":20},{"value":[-15.02,184.24,339,4.6,4.6],"name":27},{"value":[-15,184.62,40,5.1,5.1],"name":54},{"value":[-14.99,171.39,637,4.3,4.3],"name":21},{"value":[-14.95,167.24,130,4.6,4.6],"name":16},{"value":[-14.86,167.32,137,4.9,4.9],"name":22},{"value":[-14.85,167.24,97,4.5,4.5],"name":26},{"value":[-14.85,184.87,294,4.1,4.1],"name":10},{"value":[-14.82,167.32,123,4.8,4.8],"name":28},{"value":[-14.82,171.17,658,4.7,4.7],"name":49},{"value":[-14.72,167.51,155,4.6,4.6],"name":18},{"value":[-14.7,166,48,5.3,5.3],"name":16},{"value":[-14.65,166.97,82,4.8,4.8],"name":28},{"value":[-14.6,167.4,178,4.8,4.8],"name":52},{"value":[-14.57,167.24,162,4.5,4.5],"name":18},{"value":[-14.46,167.26,195,5.2,5.2],"name":87},{"value":[-14.43,167.26,151,4.4,4.4],"name":17},{"value":[-14.32,167.33,204,5,5],"name":49},{"value":[-14.31,173.5,614,4.2,4.2],"name":23},{"value":[-14.3,167.32,208,4.8,4.8],"name":25},{"value":[-14.28,167.26,211,5.1,5.1],"name":51},{"value":[-14.28,170.34,642,4.7,4.7],"name":29},{"value":[-14.12,166.64,63,5.3,5.3],"name":69},{"value":[-14.1,166.01,69,4.8,4.8],"name":29},{"value":[-13.9,167.18,221,4.2,4.2],"name":21},{"value":[-13.86,167.16,202,4.6,4.6],"name":30},{"value":[-13.84,170.62,638,4.6,4.6],"name":20},{"value":[-13.82,172.38,613,5,5],"name":61},{"value":[-13.8,166.53,42,5.5,5.5],"name":70},{"value":[-13.79,166.56,68,4.7,4.7],"name":41},{"value":[-13.7,166.75,46,5.3,5.3],"name":71},{"value":[-13.66,166.54,50,5.1,5.1],"name":45},{"value":[-13.66,172.23,46,5.3,5.3],"name":67},{"value":[-13.65,166.66,71,4.9,4.9],"name":52},{"value":[-13.64,165.96,50,6,6],"name":83},{"value":[-13.62,167.15,209,4.7,4.7],"name":30},{"value":[-13.56,166.49,83,4.5,4.5],"name":25},{"value":[-13.47,172.29,64,4.7,4.7],"name":14},{"value":[-13.47,167.14,226,4.4,4.4],"name":26},{"value":[-13.45,170.3,641,5.3,5.3],"name":93},{"value":[-13.44,166.53,44,4.7,4.7],"name":27},{"value":[-13.4,166.9,228,4.8,4.8],"name":15},{"value":[-13.36,167.06,236,4.7,4.7],"name":22},{"value":[-13.36,172.76,618,4.4,4.4],"name":18},{"value":[-13.34,166.2,67,4.8,4.8],"name":18},{"value":[-13.26,167.01,213,5.1,5.1],"name":70},{"value":[-13.23,167.1,220,5,5],"name":46},{"value":[-13.16,167.24,278,4.3,4.3],"name":17},{"value":[-13.09,169.28,654,4.4,4.4],"name":22},{"value":[-13.07,166.87,132,4.4,4.4],"name":24},{"value":[-13.05,169.58,644,4.9,4.9],"name":68},{"value":[-12.95,169.09,629,4.5,4.5],"name":19},{"value":[-12.93,169.63,641,5.1,5.1],"name":57},{"value":[-12.93,169.52,663,4.4,4.4],"name":30},{"value":[-12.85,165.67,75,4.4,4.4],"name":30},{"value":[-12.84,166.78,150,4.9,4.9],"name":35},{"value":[-12.72,166.28,70,4.8,4.8],"name":47},{"value":[-12.66,169.46,658,4.6,4.6],"name":43},{"value":[-12.66,166.37,165,4.3,4.3],"name":18},{"value":[-12.59,167.1,325,4.9,4.9],"name":26},{"value":[-12.57,167.11,231,4.8,4.8],"name":28},{"value":[-12.57,166.72,137,4.3,4.3],"name":20},{"value":[-12.49,166.36,74,4.9,4.9],"name":55},{"value":[-12.37,166.93,291,4.2,4.2],"name":16},{"value":[-12.34,167.43,50,5.1,5.1],"name":47},{"value":[-12.28,167.06,248,4.7,4.7],"name":35},{"value":[-12.27,167.41,50,4.5,4.5],"name":29},{"value":[-12.26,167,249,4.6,4.6],"name":16},{"value":[-12.25,166.6,219,5,5],"name":28},{"value":[-12.23,167.02,242,6,6],"name":132},{"value":[-12.16,167.03,264,4.4,4.4],"name":14},{"value":[-12.11,167.06,265,4.5,4.5],"name":23},{"value":[-12.08,165.76,63,4.5,4.5],"name":51},{"value":[-12.05,167.39,332,5,5],"name":36},{"value":[-12.01,166.29,59,4.9,4.9],"name":27},{"value":[-12.01,166.66,99,4.8,4.8],"name":36},{"value":[-12,166.2,94,5,5],"name":31},{"value":[-11.81,165.98,51,4.7,4.7],"name":28},{"value":[-11.8,165.8,112,4.2,4.2],"name":20},{"value":[-11.77,166.32,70,4.4,4.4],"name":18},{"value":[-11.76,165.96,45,4.4,4.4],"name":51},{"value":[-11.75,166.07,69,4.2,4.2],"name":14},{"value":[-11.7,166.1,82,4.8,4.8],"name":43},{"value":[-11.7,166.3,139,4.2,4.2],"name":15},{"value":[-11.67,166.02,102,4.6,4.6],"name":21},{"value":[-11.64,166.47,130,4.7,4.7],"name":19},{"value":[-11.63,166.14,109,4.6,4.6],"name":36},{"value":[-11.55,166.2,96,4.3,4.3],"name":14},{"value":[-11.54,166.18,89,5.4,5.4],"name":80},{"value":[-11.49,166.22,84,4.6,4.6],"name":32},{"value":[-11.41,166.24,83,5.3,5.3],"name":55},{"value":[-11.4,166.07,93,5.6,5.6],"name":94},{"value":[-11.38,167.05,133,4.5,4.5],"name":32},{"value":[-11.37,166.55,188,4.7,4.7],"name":24},{"value":[-11.34,166.24,103,4.6,4.6],"name":30},{"value":[-11.25,166.36,130,5.1,5.1],"name":55},{"value":[-11.02,167.01,62,4.9,4.9],"name":36},{"value":[-10.98,166.32,211,4.2,4.2],"name":12},{"value":[-10.97,166.26,180,4.7,4.7],"name":26},{"value":[-10.96,165.97,76,4.9,4.9],"name":64},{"value":[-10.8,165.8,175,4.2,4.2],"name":12},{"value":[-10.79,166.06,142,5,5],"name":40},{"value":[-10.78,165.77,93,4.6,4.6],"name":20},{"value":[-10.78,166.1,195,4.9,4.9],"name":45},{"value":[-10.72,165.99,195,4,4],"name":14}]}],"visualMap":[{"inRange":{"color":["#4B0055","#009B95","#FDE333"]},"dimension":4,"top":20,"calculable":true,"type":"continuous","min":4,"max":6.4},{"inRange":{"symbolSize":[5,15]},"dimension":3,"bottom":10,"calculable":true,"type":"continuous","min":4,"max":6.4}],"tooltip":{"trigger":"item"},"title":[{"text":"斐济及其周边地震活动"}]},"dispose":true},"evals":[],"jsHooks":[]}</script>
+<p class="caption">
+图 3.3: echarts4r 绘制交互三维图形
+</p>
+</div>
+<p>目标区域在南半球，纬度南纬 0 度至 40 度，经度东经 165 度至 190 度（西经 170 度）。参数 dimension 的取值和实际含义的关系：0 对应 x 轴，1 对应 y 轴，2 对应 z 轴， 3 对应 size 变量（点的大小），4 对应 color 变量（点的颜色）。下图是两个不同视角下的截图。</p>
+<div id="fig-quakes-echarts4r-screenshots" layout="[40,-10,50]" layout-valign="bottom" layout-ncol="2">
+<div class="figure">
+<img src="screenshots/quakes-echarts4r-01.png" id="fig-quakes-echarts4r-01" style="width:65.0%" alt="" />
+<p class="caption">视角 1</p>
+</div>
+<div class="figure">
+<img src="screenshots/quakes-echarts4r-02.png" id="fig-quakes-echarts4r-02" style="width:65.0%" alt="" />
+<p class="caption">视角 2</p>
+</div>
+</div>
+</div>
+</div>
