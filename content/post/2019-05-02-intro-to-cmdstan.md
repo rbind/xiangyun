@@ -747,7 +747,7 @@ and R_hat is the potential scale reduction factor on split chains (at
 convergence, R_hat=1).
 ```
 
-`$\hat{R}=1$`，序列的混合的好，平稳性也检验过，这个结果和真实值还是一致的，精度比起 <https://www.xiangyunhuang.com.cn/post/2019/06/19/logistic-distribution/> 差点，当然可以增加采样的间隔和迭代次数来提高精度。值得注意的是，对于这种简单模型，使用贝叶斯 MCMC 算法是不推荐的！
+`$\hat{R}=1$`，序列的混合的好，平稳性也检验过，这个结果和真实值还是一致的，精度比起函数`glm()`的结果差点，当然可以增加采样的间隔和迭代次数来提高精度。值得注意的是，对于这种简单模型，使用贝叶斯 MCMC 算法是不推荐的！
 
 ```bash
 examples/LogisticRegression/LogisticRegression \
