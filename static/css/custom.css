@@ -6,14 +6,7 @@ a {
   border-bottom: 2px solid #ddd;
   padding-bottom: 2px;
 }
-.article-content a {
-  border-bottom: 1px solid #CBF8DF;
-  box-shadow: inset 0 -2px 0 #CBF8DF;
-}
-.article-content img, iframe {
-  max-width: 100%;
-}
-#article-nav, .article-date {
+#article-nav {
   display: flex;
   align-items: stretch;
   clear: both;
@@ -21,10 +14,10 @@ a {
 #article-nav {
   margin-bottom: 15px;
 }
-#article-nav-older, #article-nav-newer, .article-date span {
+#article-nav-older, #article-nav-newer {
   flex: 1;
 }
-#article-nav-newer, .article-date .article-toolbar {
+#article-nav-newer {
   text-align: right;
 }
 .article-nav-link-wrap {
