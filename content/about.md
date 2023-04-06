@@ -24,3 +24,41 @@ title: 关于
 |2020  | R 语言会议 | [可重复性数据分析及其工业实践](https://www.bilibili.com/video/BV1Vp4y1B7N1/)  |
 |2019  | R 语言会议 | [统计之都在线投稿系统](https://wp-contents.netlify.com/talks/2019-chinar12th-cos-blogdown) |
 |2018  | R 语言会议 | [R Markdown 应用之学位论文排版](https://wp-contents.netlify.com/talks/chinar11th.pdf) |
+
+近些年，因为统计之都和网上冲浪认识了一些人，也有一些人想去认识。不时来逛逛他（她）们的主页，总有让人眼前一亮的地方。（按姓氏拼音归类，无排序）
+
+-   [成超](https://fenguoerbian.netlify.app/) R 语言、生物、并行计算
+-   [楚新元](https://cxy.rbind.io/) R 语言、经济
+-   [陈丽云](https://www.loyhome.com/) 经济、思考力
+-   [陈诗](https://www.macin.org/) 生活
+-   [邓东升](https://ddswhu.me/) LaTeX
+-   [付永超](https://s0521.github.io/) R 语言、生物
+-   [范叶亮](https://leovan.me/) R 语言
+-   [古杰娜](https://www.jienamclellan.com/) Shiny
+-   [高策](http://gaocegege.com/Blog/) 计算机、可视化
+-   [郝鸿涛](https://hongtaoh.com/) 计算机、可视化
+-   [黄晨成](https://liam.page/) LaTeX
+-   [刘思喆](https://bjt.name/) R 语言、数据挖掘
+-   [Jin Li](https://jinli.link/) Julia
+-   [林荟](https://linhui.org/) R 语言
+-   [邱怡轩](https://statr.me/) R 语言、统计计算、统计之都
+-   [任坤](https://renkun.me/) R 语言、对冲基金
+-   [苏玮](https://swsoyee.vercel.app/) 前端
+-   [宋骁](https://xsong.ltd/) SQL
+-   [谭显英](https://shrektan.com/) R 语言、量化金融
+-   [吴诗涛](https://shitao.netlify.app/) R 语言
+-   [夏骁凯](https://xiaokai.me/) 心理学、医生
+-   [肖楠](https://nanx.me/) R 语言、生物
+-   [谢益辉](https://yihui.org/) R 语言、统计之都
+-   [袁凡](https://yuanfan.rbind.io/) R 语言、阿木狗
+-   [于淼](https://yufree.cn/) R 语言、环境、思考力
+-   [叶寻](https://cyrusyip.org/en/) Linux
+-   [叶飞](https://blog.yfei.page/) 数学、Maple
+-   [颜林林](https://yanlinlin.cn/) 生物
+-   [张沥今](https://lijinzhang.com/) R 语言、心理学
+-   [张列弛](https://www.liechi.org/) 生物、思考力
+-   [张驰原](https://pluskid.org/) 美术、计算机
+-   [张铜川](https://tc.rbind.io/) R 语言、生物
+-   [张丹](http://fens.me/) R 语言
+-   [赵妤婕](https://sites.google.com/view/yujie-zhao) R 语言、生物
+-   [赵鹏](https://connect.xjtlu.edu.cn/user/pengzhao/zhcn) R 语言、环境
