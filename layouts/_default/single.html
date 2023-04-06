@@ -63,6 +63,9 @@
     <div class="article-content">
       {{ .Content }}
     </div>
+    
+    {{ partial "prev_next.html" . }}
+    
   </article>
 
   {{ partial "comments.html" .}}
