@@ -11,4 +11,3 @@ title: 书籍
 ## Quarto 项目
 
 - [R 语言数据分析实战 | Data Analysis in Action Using R](https://github.com/XiangyunHuang/data-analysis-in-action)
-- [空间数据科学 | Spatial Data Science with Applications in R and Stan](https://bookdown.org/xiangyun/sdsr/)
