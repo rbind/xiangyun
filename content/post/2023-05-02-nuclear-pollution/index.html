@@ -1,0 +1,1302 @@
+---
+title: 预测朗格拉普岛核辐射强度的分布
+author: 黄湘云
+date: '2023-05-02'
+slug: nuclear-pollution
+categories:
+  - 统计应用
+tags:
+  - 空间分析
+  - 核污染
+  - 高斯过程
+  - 极大似然估计
+  - 广义最小二乘估计
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+math: true
+csl: institute-of-mathematical-statistics.csl
+bibliography: 
+  - refer.bib
+description: "本文内容属于空间分析的范畴，空间分析的内容十分广泛，本文仅以一个模型和一个数据简略介绍。一个模型是空间广义线性混合效应模型，空间广义线性混合效应模型在流行病学、生态学、环境学等领域有广泛的应用，如预测某地区内的疟疾流行度分布，预测某地区 PM 2.5 污染物浓度分布等。一个数据来自生态学领域，数据集所含样本量不大，但每个样本收集成本不小，采集样本前也都有实验设计，数据采集的地点是预先设定的。下面将对真实数据分析和建模，任务是预测核辐射强度在朗格拉普岛上的分布。"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#sec-rongelap-data" id="toc-sec-rongelap-data"><span class="toc-section-number">1</span> 数据说明</a></li>
+<li><a href="#sec-rongelap-exploration" id="toc-sec-rongelap-exploration"><span class="toc-section-number">2</span> 数据探索</a></li>
+<li><a href="#sec-rongelap-modeling" id="toc-sec-rongelap-modeling"><span class="toc-section-number">3</span> 数据建模</a>
+<ul>
+<li><a href="#sec-rongelap-glm" id="toc-sec-rongelap-glm"><span class="toc-section-number">3.1</span> 广义线性模型</a></li>
+<li><a href="#广义线性混合效应模型" id="toc-广义线性混合效应模型"><span class="toc-section-number">3.2</span> 广义线性混合效应模型</a></li>
+<li><a href="#rongelap-slmm" id="toc-rongelap-slmm"><span class="toc-section-number">3.3</span> 空间线性混合效应模型</a>
+<ul>
+<li><a href="#sec-covariance-function" id="toc-sec-covariance-function"><span class="toc-section-number">3.3.1</span> 自协方差函数</a></li>
+<li><a href="#sec-correlation-function" id="toc-sec-correlation-function"><span class="toc-section-number">3.3.2</span> nlme 包的自相关函数</a></li>
+<li><a href="#sec-gls-function" id="toc-sec-gls-function"><span class="toc-section-number">3.3.3</span> nlme 包的拟合函数 <code>gls()</code></a></li>
+<li><a href="#sec-semi-variogram" id="toc-sec-semi-variogram"><span class="toc-section-number">3.3.4</span> 经验半变差函数图</a></li>
+</ul></li>
+<li><a href="#sec-rongelap-sglmm" id="toc-sec-rongelap-sglmm"><span class="toc-section-number">3.4</span> 空间广义线性混合效应模型</a></li>
+</ul></li>
+<li><a href="#sec-rongelap-predict" id="toc-sec-rongelap-predict"><span class="toc-section-number">4</span> 模型预测</a>
+<ul>
+<li><a href="#sec-rongelap-coastline" id="toc-sec-rongelap-coastline"><span class="toc-section-number">4.1</span> 海岸线数据</a></li>
+<li><a href="#sec-rongelap-border" id="toc-sec-rongelap-border"><span class="toc-section-number">4.2</span> 边界处理</a></li>
+<li><a href="#sec-rongelap-grid" id="toc-sec-rongelap-grid"><span class="toc-section-number">4.3</span> 构造网格</a></li>
+<li><a href="#sec-rongelap-pred" id="toc-sec-rongelap-pred"><span class="toc-section-number">4.4</span> 整理数据</a></li>
+<li><a href="#sec-rongelap-plot" id="toc-sec-rongelap-plot"><span class="toc-section-number">4.5</span> 展示结果</a></li>
+</ul></li>
+<li><a href="#sec-spatial-theory" id="toc-sec-spatial-theory"><span class="toc-section-number">5</span> 模型理论</a>
+<ul>
+<li><a href="#sec-generalized-least-squares" id="toc-sec-generalized-least-squares"><span class="toc-section-number">5.1</span> 广义最小二乘</a></li>
+<li><a href="#maximum-likelihood" id="toc-maximum-likelihood"><span class="toc-section-number">5.2</span> 限制极大似然</a></li>
+<li><a href="#sec-kriging-interpolation" id="toc-sec-kriging-interpolation"><span class="toc-section-number">5.3</span> 克里金插值</a></li>
+</ul></li>
+<li><a href="#sec-further-reading-spatial" id="toc-sec-further-reading-spatial"><span class="toc-section-number">6</span> 拓展阅读</a></li>
+<li><a href="#references" id="toc-references"><span class="toc-section-number">7</span> 参考文献</a></li>
+</ul>
+</div>
+
+<div class="hidden">
+<p><span class="math display">\[
+\def\bm#1{{\boldsymbol #1}}
+\]</span></p>
+</div>
+<p>本文内容属于空间分析的范畴，空间分析的内容十分广泛，本文仅以一个模型和一个数据简略介绍。一个模型是空间广义线性混合效应模型，空间广义线性混合效应模型在流行病学、生态学、环境学等领域有广泛的应用，如预测某地区内的疟疾流行度分布，预测某地区 PM 2.5 污染物浓度分布等。一个数据来自生态学领域，数据集所含样本量不大，但每个样本收集成本不小，采集样本前也都有实验设计，数据采集的地点是预先设定的。下面将对真实数据分析和建模，任务是预测核辐射强度在朗格拉普岛上的分布。</p>
+<div id="sec-rongelap-data" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> 数据说明</h1>
+<p>在第二次世界大战的吉尔伯特及马绍尔群岛战斗中，美国占领了马绍尔群岛。战后，美国在该群岛的比基尼环礁中陆续进行了许多氢弹核试验，对该群岛造成无法弥补的环境损害。位于南太平洋的朗格拉普环礁是马绍尔群岛的一部分，其中，朗格拉普岛是朗格拉普环礁的主岛，修建有机场，在太平洋战争中是重要的军事基地。朗格拉普岛距离核爆炸的位置较近，因而被放射性尘埃笼罩了，受到严重的核辐射影响，从度假胜地变成人间炼狱，居民出现上吐下泻、皮肤灼烧、脱发等症状。即便是 1985 年以后，那里仍然无人居住，居民担心核辐射对身体健康的影响。又几十年后，一批科学家来到该岛研究生态恢复情况，评估当地居民重返家园的可行性。实际上，该岛目前仍然不适合人类居住，只有经批准的科学研究人员才能登岛。</p>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-atoll"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-atoll-1.png" alt="朗格拉普环礁和朗格拉普岛" width="537.6" />
+<p class="caption">
+图 1.1: 朗格拉普环礁和朗格拉普岛
+</p>
+</div>
+<p><a href="https://orcid.org/0000-0002-8230-8062">Ole F. Christensen</a> 和 Paulo J. Ribeiro Jr 将 <code>rongelap</code> 数据集存放在 <a href="https://cran.r-project.org/package=geoRglm"><strong>geoRglm</strong></a><span class="citation">[<a href="#ref-Christensen2002" role="doc-biblioref">1</a>]</span> 包内，后来，<strong>geoRglm</strong> 不维护，已从 CRAN 移除了，笔者从他们主页下载了数据。数据集 <code>rongelap</code> 记录了 157 个测量点的伽马射线强度，即在时间间隔 <code>time</code> （秒）内放射的粒子数目 <code>counts</code>（个），测量点的横纵坐标分别为 <code>cX</code> （米）和 <code>cY</code>（米），下表展示部分朗格拉普岛核辐射检测数据及海岸线坐标数据。</p>
+<table>
+<thead>
+<tr class="header">
+<th align="right">cX 横坐标</th>
+<th align="right">cY 纵坐标</th>
+<th align="right">counts 数目</th>
+<th align="right">time 时间</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">-6050</td>
+<td align="right">-3270</td>
+<td align="right">75</td>
+<td align="right">300</td>
+</tr>
+<tr class="even">
+<td align="right">-6050</td>
+<td align="right">-3165</td>
+<td align="right">371</td>
+<td align="right">300</td>
+</tr>
+<tr class="odd">
+<td align="right">-5925</td>
+<td align="right">-3320</td>
+<td align="right">1931</td>
+<td align="right">300</td>
+</tr>
+<tr class="even">
+<td align="right">-5925</td>
+<td align="right">-3165</td>
+<td align="right">4357</td>
+<td align="right">300</td>
+</tr>
+<tr class="odd">
+<td align="right">-5800</td>
+<td align="right">-3350</td>
+<td align="right">2114</td>
+<td align="right">300</td>
+</tr>
+<tr class="even">
+<td align="right">-5800</td>
+<td align="right">-3165</td>
+<td align="right">2318</td>
+<td align="right">300</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr class="header">
+<th align="right">cX 横坐标</th>
+<th align="right">cY 纵坐标</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">-5509</td>
+<td align="right">-3577</td>
+</tr>
+<tr class="even">
+<td align="right">-5545</td>
+<td align="right">-3582</td>
+</tr>
+<tr class="odd">
+<td align="right">-5562</td>
+<td align="right">-3577</td>
+</tr>
+<tr class="even">
+<td align="right">-5581</td>
+<td align="right">-3575</td>
+</tr>
+<tr class="odd">
+<td align="right">-5600</td>
+<td align="right">-3564</td>
+</tr>
+<tr class="even">
+<td align="right">-5606</td>
+<td align="right">-3561</td>
+</tr>
+</tbody>
+</table>
+<p>坐标原点在岛的东北，下图 <a href="#fig:fig-rongelap-location">1.2</a> 第一个子图 右上角的位置。采样点的编号见下 图<a href="#fig:fig-rongelap-location">1.2</a>第二个子图，基本上按照从下（南）到上（北），从左（西）到右（东）的顺序依次测量。</p>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-location"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-location-1.png" alt="采样点在岛上的分布" width="595.2" /><img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-location-2.png" alt="采样点在岛上的分布" width="595.2" />
+<p class="caption">
+图 1.2: 采样点在岛上的分布
+</p>
+</div>
+</div>
+<div id="sec-rongelap-exploration" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> 数据探索</h1>
+<p>朗格拉普岛呈月牙形，有数千米长，但仅几百米宽，十分狭长。采样点在岛上的分布如 图<a href="#fig:fig-rongelap-location">1.2</a> 所示，主网格以约 200 米的间隔采样，在岛屿的东北和西南方各有两个密集采样区，每个网格采样区是 <span class="math inline">\(5 \times 5\)</span> 方式排列的，上下左右间隔均为 40 米。朗格拉普岛上各个检测站点的核辐射强度如 图<a href="#fig:fig-rongelap-location-zoom">2.1</a> 所示，越亮表示核辐射越强，四个检测区的采样阵列非常密集，通过局部放大展示了最左侧的一个检测区，它将作为后续模型比较的参照区域。</p>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-location-zoom"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-location-zoom-1.png" alt="岛上各采样点的核辐射强度" width="595.2" />
+<p class="caption">
+图 2.1: 岛上各采样点的核辐射强度
+</p>
+</div>
+<p><strong>ggplot2</strong> 包只能在二维平面上展示数据，对于空间数据，立体图形更加符合数据产生背景。如 图<a href="#fig:fig-rongelap-concentration">2.2</a> 所示，以三维图形展示朗格拉普岛上采样点的位置及检测到的辐射强度。<strong>lattice</strong> 包的函数 <code>cloud()</code> 可以绘制三维的散点图，将自定义的面板函数 <code>panel.3dcoastline()</code> 传递给参数 <code>panel.3d.cloud</code> 绘制岛屿海岸线。组合点和线两种绘图元素构造出射线，线的长短表示放射性的强弱，以射线表示粒子辐射现象更加贴切。</p>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-concentration"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-concentration-1.png" alt="岛上各采样点的辐射强度" width="499.2" />
+<p class="caption">
+图 2.2: 岛上各采样点的辐射强度
+</p>
+</div>
+</div>
+<div id="sec-rongelap-modeling" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> 数据建模</h1>
+<div id="sec-rongelap-glm" class="section level2" number="3.1">
+<h2><span class="header-section-number">3.1</span> 广义线性模型</h2>
+<p>核辐射是由放射元素衰变产生的，通常用单位时间释放出来的粒子数目表示辐射强度，因此，建立如下泊松型广义线性模型来拟合核辐射强度。</p>
+<p><span class="math display">\[
+\begin{aligned}
+\log(\lambda_i) &amp;= \beta \\
+y_i &amp; \sim \mathrm{Poisson}(t_i\lambda_i)
+\end{aligned}
+\]</span></p>
+<p>其中，<span class="math inline">\(\lambda_i\)</span> 表示核辐射强度，<span class="math inline">\(\beta\)</span> 表示未知的截距，<span class="math inline">\(y_i\)</span> 表示观测到的粒子数目，<span class="math inline">\(t_i\)</span> 表示相应的观测时间，<span class="math inline">\(i = 1,\ldots, 157\)</span> 表示采样点的位置编号。R 软件内置的 stats 包有函数 <code>glm()</code> 可以拟合上述广义线性模型，代码如下。</p>
+<pre class="r"><code>fit_rongelap_poisson &lt;- glm(counts ~ 1,
+  family = poisson(link = &quot;log&quot;), offset = log(time), data = rongelap
+)
+summary(fit_rongelap_poisson)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = counts ~ 1, family = poisson(link = &quot;log&quot;), data = rongelap, 
+##     offset = log(time))
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)  2.01395    0.00145    1385   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for poisson family taken to be 1)
+## 
+##     Null deviance: 61567  on 156  degrees of freedom
+## Residual deviance: 61567  on 156  degrees of freedom
+## AIC: 63089
+## 
+## Number of Fisher Scoring iterations: 4</code></pre>
+<div class="rmdtip">
+<p>当 <code>family = poisson(link = "log")</code> 时，响应变量只能是正整数，所以不能放 <code>counts / time</code>。泊松广义线性模型是对辐射强度建模，辐射强度与位置 <code>cX</code> 和 <code>cY</code> 有关。当响应变量为放射出来的粒子数目 <code>counts</code> 时，为了表示辐射强度，需要设置参数 <code>offset</code>，表示与放射粒子数目对应的时间间隔 <code>time</code>。联系函数是对数函数，因此时间间隔需要取对数。</p>
+</div>
+<p>从辐射强度的拟合残差的空间分布 图<a href="#fig:fig-rongelap-poisson-residuals">3.1</a> 不难看出，颜色深和颜色浅的点分别聚集在一起，且与周围点的颜色呈现层次变化，拟合残差存在明显的空间相关性。如果将位置变量 <code>cX</code> 和 <code>cY</code> 加入广义线性模型，也会达到统计意义上的显著。</p>
+<pre class="r"><code>rongelap$poisson_residuals &lt;- residuals(fit_rongelap_poisson)
+ggplot(rongelap, aes(x = cX, y = cY)) +
+  geom_point(aes(colour = poisson_residuals / time), size = 0.2) +
+  scale_color_viridis_c(option = &quot;C&quot;) +
+  theme_bw() +
+  labs(x = &quot;横坐标（米）&quot;, y = &quot;纵坐标（米）&quot;, color = &quot;残差&quot;)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-poisson-residuals"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-poisson-residuals-1.png" alt="残差的空间分布" width="595.2" />
+<p class="caption">
+图 3.1: 残差的空间分布
+</p>
+</div>
+<p>从另外一个角度来思考，通过观察辐射强度的直方图，发现其分布形式与正态分布相似。实际上，辐射强度为非负值，所以应与特定参数下的伽马分布相似。</p>
+<pre class="r"><code>ggplot(data = rongelap, aes(x = counts / time)) +
+  geom_histogram(fill = &quot;orange&quot;, color = &quot;white&quot;, binwidth = 0.5) +
+  theme_bw() +
+  labs(x = &quot;辐射强度&quot;, y = &quot;频数&quot;)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-histogram"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-histogram-1.png" alt="辐射强度的直方图" width="480" />
+<p class="caption">
+图 3.2: 辐射强度的直方图
+</p>
+</div>
+<p>形状参数为 <span class="math inline">\(\alpha\)</span> 和尺度参数为 <span class="math inline">\(\sigma\)</span> 的伽马分布的概率密度函数 <span class="math inline">\(f(x;\alpha, \sigma)\)</span> 如下：</p>
+<p><span class="math display">\[
+f(x;\alpha,\sigma) = \frac{1}{\sigma^\alpha \Gamma(\alpha)}x^{\alpha - 1} \exp(- \frac{x}{\sigma}), \quad \alpha \geq 0, \sigma &gt; 0
+\]</span></p>
+<p>其中，<span class="math inline">\(\Gamma(\cdot)\)</span> 表示伽马函数，下 图<a href="#fig:fig-rongelap-dgamma">3.3</a> 展示两个伽马分布的概率密度函数，形状参数分别为 5 和 9，尺度参数均为 1，即伽马分布 <span class="math inline">\(f(x; 5, 1)\)</span> 和 <span class="math inline">\(f(x; 9, 1)\)</span> 。</p>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-dgamma"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-dgamma-1.png" alt="伽马分布的概率密度函数" width="480" />
+<p class="caption">
+图 3.3: 伽马分布的概率密度函数
+</p>
+</div>
+<p>所以，可以使用响应变量服从伽马分布的广义线性模型来拟合数据。</p>
+<pre class="r"><code>fit_rongelap_gamma &lt;- glm(counts / time ~ 1,
+  family = Gamma(link = &quot;log&quot;), data = rongelap
+)
+summary(fit_rongelap_gamma)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = counts/time ~ 1, family = Gamma(link = &quot;log&quot;), 
+##     data = rongelap)
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)   2.0286     0.0287    70.6   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for Gamma family taken to be 0.1297)
+## 
+##     Null deviance: 26.932  on 156  degrees of freedom
+## Residual deviance: 26.932  on 156  degrees of freedom
+## AIC: 787.3
+## 
+## Number of Fisher Scoring iterations: 4</code></pre>
+<p>对于计数数据，除了泊松分布，还可以用负二项分布来拟合数据。</p>
+<pre class="r"><code>library(MASS)
+fit_rongelap_negbin &lt;- glm.nb(
+  formula = counts ~ 1 + offset(log(time)),
+  data = rongelap, link = log
+)
+summary(fit_rongelap_negbin)</code></pre>
+<pre><code>## 
+## Call:
+## glm.nb(formula = counts ~ 1 + offset(log(time)), data = rongelap, 
+##     link = log, init.theta = 6.033764551)
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)   2.0286     0.0325    62.4   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for Negative Binomial(6.034) family taken to be 1)
+## 
+##     Null deviance: 161.66  on 156  degrees of freedom
+## Residual deviance: 161.66  on 156  degrees of freedom
+## AIC: 2639
+## 
+## Number of Fisher Scoring iterations: 1
+## 
+## 
+##               Theta:  6.034 
+##           Std. Err.:  0.666 
+## 
+##  2 x log-likelihood:  -2635.054</code></pre>
+<p>泊松分布、伽马分布和负二项分布的对数似然函数值如下：</p>
+<pre class="r"><code>logLik(fit_rongelap_poisson)</code></pre>
+<pre><code>## &#39;log Lik.&#39; -31543 (df=1)</code></pre>
+<pre class="r"><code>logLik(fit_rongelap_gamma)</code></pre>
+<pre><code>## &#39;log Lik.&#39; -391.7 (df=2)</code></pre>
+<pre class="r"><code>logLik(fit_rongelap_negbin)</code></pre>
+<pre><code>## &#39;log Lik.&#39; -1318 (df=2)</code></pre>
+<p>三个广义线性模型的 AIC 统计量如下：</p>
+<pre class="r"><code>AIC(fit_rongelap_poisson)</code></pre>
+<pre><code>## [1] 63089</code></pre>
+<pre class="r"><code>AIC(fit_rongelap_gamma)</code></pre>
+<pre><code>## [1] 787.3</code></pre>
+<pre class="r"><code>AIC(fit_rongelap_negbin)</code></pre>
+<pre><code>## [1] 2639</code></pre>
+<p>负二项广义线性模型拟合效果好于泊松广义线性，伽马广义线性模型响应变量与之不同，无法与之比较，将作为后续模型比较的基础模型。</p>
+</div>
+<div id="广义线性混合效应模型" class="section level2" number="3.2">
+<h2><span class="header-section-number">3.2</span> 广义线性混合效应模型</h2>
+<p>图<a href="#fig:fig-poisson-residuals">3.4</a> 描述残差的分布，从第一个子图发现残差存在一定的线性趋势，岛屿的东南方，残差基本为正，而在岛屿的西北方，残差基本为负，说明有一定的异方差性。从第二子图发现残差在水平方向上的分布像个哑铃，说明异方差现象明显。从第三个子图发现残差在垂直方向上的分布像棵松树，也说明异方差现象明显。</p>
+<pre class="r"><code>ggplot(rongelap, aes(x = 1:157, y = poisson_residuals / time)) +
+  geom_point(size = 1) +
+  theme_bw() +
+  labs(x = &quot;编号&quot;, y = &quot;残差&quot;)
+
+ggplot(rongelap, aes(x = cX, y = poisson_residuals / time)) +
+  geom_point(size = 1) +
+  theme_bw() +
+  labs(x = &quot;横坐标&quot;, y = &quot;残差&quot;)
+
+ggplot(rongelap, aes(x = cY, y = poisson_residuals / time)) +
+  geom_point(size = 1) +
+  theme_bw() +
+  labs(x = &quot;纵坐标&quot;, y = &quot;残差&quot;)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-poisson-residuals"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-poisson-residuals-1.png" alt="残差分布图" width="384" /><img src="{{< blogdown/postref >}}index_files/figure-html/fig-poisson-residuals-2.png" alt="残差分布图" width="384" /><img src="{{< blogdown/postref >}}index_files/figure-html/fig-poisson-residuals-3.png" alt="残差分布图" width="384" />
+<p class="caption">
+图 3.4: 残差分布图
+</p>
+</div>
+<p>既然异方差比较严重，给每个位置分配一个独立的方差是合理的，相当于添加一个随机效应。简单起见，假定异方差是相互独立的。</p>
+<p><span class="math display">\[
+\begin{aligned}
+\log(\lambda_i) &amp;= \beta + Z_i \\
+y_i &amp; \sim \mathrm{Poisson}(t_i\lambda_i)
+\end{aligned}
+\]</span></p>
+<p>其中，<span class="math inline">\(Z_i\)</span> 相互独立同正态分布 <span class="math inline">\(\mathcal{N}(0,\tau^2)\)</span> 。与之前类似，下面考虑响应变量为泊松分布、伽马分布和负二项分布的情况，采用 <strong>spaMM</strong> 包分别拟合上述模型。</p>
+<pre class="r"><code>library(spaMM)
+fit_glmm_poisson &lt;- fitme(
+  formula = counts ~ 1 + (1 | dummy) + offset(log(time)),
+  data = rongelap, family = poisson(link = &quot;log&quot;)
+)
+summary(fit_glmm_poisson)</code></pre>
+<pre><code>## formula: counts ~ 1 + (1 | dummy) + offset(log(time))
+## Estimation of lambda by ML (p_v approximation of logL).
+## Estimation of fixed effects by ML (p_v approximation of logL).
+## family: poisson( link = log ) 
+##  ------------ Fixed effects (beta) ------------
+##             Estimate Cond. SE t-value
+## (Intercept)    1.944  0.03767   51.61
+##  --------------- Random effects ---------------
+## Family: gaussian( link = identity ) 
+##            --- Variance parameters (&#39;lambda&#39;):
+## lambda = var(u) for u ~ Gaussian; 
+##    dummy  :  0.2223  
+##              --- Coefficients for log(lambda):
+##  Group        Term Estimate Cond.SE
+##  dummy (Intercept)   -1.504  0.1131
+## # of obs: 157; # of groups: dummy, 157 
+##  ------------- Likelihood values  -------------
+##                      logLik
+## logL       (p_v(h)):  -1337</code></pre>
+<pre class="r"><code>fit_glmm_gamma &lt;- fitme(
+  formula = counts / time  ~ 1 + (1 | dummy),
+  data = rongelap, family = Gamma(link = &quot;log&quot;)
+)
+summary(fit_glmm_gamma)</code></pre>
+<pre><code>## formula: counts/time ~ 1 + (1 | dummy)
+## Estimation of lambda and phi by ML (P_v approximation of logL).
+## Estimation of fixed effects by ML (P_v approximation of logL).
+## family: Gamma( link = log ) 
+##  ------------ Fixed effects (beta) ------------
+##             Estimate Cond. SE t-value
+## (Intercept)    2.029  0.03261   62.22
+##  --------------- Random effects ---------------
+## Family: gaussian( link = identity ) 
+##            --- Variance parameters (&#39;lambda&#39;):
+## lambda = var(u) for u ~ Gaussian; 
+##    dummy  :  3.369e-06  
+##              --- Coefficients for log(lambda):
+##  Group        Term Estimate Cond.SE
+##  dummy (Intercept)    -12.6   22.07
+## # of obs: 157; # of groups: dummy, 157 
+##  --- Residual variation ( var = phi * mu^2 )  --
+## Coefficients for log(phi)  ~ 1  :
+##             Estimate Cond. SE
+## (Intercept)    -1.79   0.1113
+## Estimate of phi:  0.1669 
+##  ------------- Likelihood values  -------------
+##                     logLik
+## logL      (P_v(h)): -391.6</code></pre>
+<pre class="r"><code>fit_glmm_negbin2 &lt;- fitme(
+  formula = counts ~ 1 + (1 | dummy) + offset(log(time)),
+  data = rongelap, family = negbin2(link = &quot;log&quot;)
+)
+summary(fit_glmm_negbin2)</code></pre>
+<pre><code>## formula: counts ~ 1 + (1 | dummy) + offset(log(time))
+## Estimation of fixed effects by ML (P_v approximation of logL).
+## Estimation of lambda and NB_shape by &#39;outer&#39; ML, maximizing logL.
+## family: negbin2(shape=6.035)( link = log ) 
+##  ------------ Fixed effects (beta) ------------
+##             Estimate Cond. SE t-value
+## (Intercept)    2.029  0.03253   62.35
+##  --------------- Random effects ---------------
+## Family: gaussian( link = identity ) 
+##            --- Variance parameters (&#39;lambda&#39;):
+## lambda = var(u) for u ~ Gaussian; 
+##    dummy  :  6.385e-05  
+## # of obs: 157; # of groups: dummy, 157 
+##  ------------- Likelihood values  -------------
+##                     logLik
+## logL      (P_v(h)):  -1318</code></pre>
+<p>截距项 <code>(Intercept)</code> 的点估计和区间估计分别如下：</p>
+<pre class="r"><code># 点估计
+fixef(fit_glmm_poisson)</code></pre>
+<pre><code>## (Intercept) 
+##       1.944</code></pre>
+<pre class="r"><code>fixef(fit_glmm_gamma)</code></pre>
+<pre><code>## (Intercept) 
+##       2.029</code></pre>
+<pre class="r"><code>fixef(fit_glmm_negbin2)</code></pre>
+<pre><code>## (Intercept) 
+##       2.029</code></pre>
+<pre class="r"><code># 区间估计
+confint(fit_glmm_poisson, parm = &quot;(Intercept)&quot;)</code></pre>
+<pre><code>## lower (Intercept) upper (Intercept) 
+##             1.870             2.018</code></pre>
+<pre class="r"><code>confint(fit_glmm_gamma, parm = &quot;(Intercept)&quot;)</code></pre>
+<pre><code>## lower (Intercept) upper (Intercept) 
+##             1.965             2.094</code></pre>
+<pre class="r"><code>confint(fit_glmm_negbin2, parm = &quot;(Intercept)&quot;)</code></pre>
+<pre><code>## lower (Intercept) upper (Intercept) 
+##             1.965             2.094</code></pre>
+<p>随机效应的方差 <span class="math inline">\(\tau^2\)</span> 的点估计如下：</p>
+<pre class="r"><code>get_ranPars(fit_glmm_poisson)$lambda[[1]]</code></pre>
+<pre><code>## [1] 0.2223</code></pre>
+<pre class="r"><code>get_ranPars(fit_glmm_gamma)$lambda[[1]]</code></pre>
+<pre><code>## [1] 3.369e-06</code></pre>
+<pre class="r"><code>get_ranPars(fit_glmm_negbin2)$lambda[[1]]</code></pre>
+<pre><code>## [1] 6.385e-05</code></pre>
+<p>对数似然函数值的计算如下：</p>
+<pre class="r"><code>logLik(fit_glmm_poisson)</code></pre>
+<pre><code>##   p_v 
+## -1337</code></pre>
+<pre class="r"><code>logLik(fit_glmm_gamma)</code></pre>
+<pre><code>##    P_v 
+## -391.6</code></pre>
+<pre class="r"><code>logLik(fit_glmm_negbin2)</code></pre>
+<pre><code>##   P_v 
+## -1318</code></pre>
+<p>对伽马分布和负二项分布，从广义线性模型到广义线性混合效应模型 ，提升可以忽略不计。而对泊松分布，提升十分明显。无论是广义线性模型还是广义线性混合效应模型，负二项分布比泊松分布的效果都好。</p>
+</div>
+<div id="rongelap-slmm" class="section level2" number="3.3">
+<h2><span class="header-section-number">3.3</span> 空间线性混合效应模型</h2>
+<p>从实际场景出发，也不难理解，位置信息是非常关键的。进一步，充分利用位置信息，精细建模是很有必要的。相邻位置的核辐射强度是相关的，离得近的比离得远的更相关。下面对辐射强度建模，假定随机效应之间存在相关性结构，去掉随机效应相互独立的假设，这更符合位置效应存在相互影响的实际情况。</p>
+<p><span class="math display" id="eq:rongelap-gaussian-slmm">\[
+\log\big(\lambda(x_i)\big) = \beta + S(x_{i}) + Z_{i} \tag{3.1}
+\]</span></p>
+<p>其中，<span class="math inline">\(\beta\)</span> 表示截距，相当于平均水平，<span class="math inline">\(\lambda(x_i)\)</span> 表示位置 <span class="math inline">\(x_i\)</span> 处的辐射强度，<span class="math inline">\(S(x_{i})\)</span> 表示位置 <span class="math inline">\(x_i\)</span> 处的空间效应，<span class="math inline">\(S(x),x \in \mathcal{D} \subset{\mathbb{R}^2}\)</span> 是二维平稳空间高斯过程 <span class="math inline">\(\mathcal{S}\)</span> 的具体实现。 <span class="math inline">\(\mathcal{D}\)</span> 表示研究区域，可以理解为朗格拉普岛，它是二维实平面 <span class="math inline">\(\mathbb{R}^2\)</span> 的子集。 <span class="math inline">\(Z_i\)</span> 之间相互独立同正态分布 <span class="math inline">\(\mathcal{N}(0,\tau^2)\)</span> ，<span class="math inline">\(Z_i\)</span> 表示非空间的随机效应，在空间统计中，常称之为块金效应，可以理解为测量误差、空间变差或背景辐射。值得注意，此时，块金效应和模型残差是合并在一起的。</p>
+<div id="sec-covariance-function" class="section level3" number="3.3.1">
+<h3><span class="header-section-number">3.3.1</span> 自协方差函数</h3>
+<p>随机过程 <span class="math inline">\(S(x)\)</span> 的自协方差函数常用的有指数型、幂二次指数型（高斯型）和梅隆型，形式如下：</p>
+<p><span class="math display" id="eq:matern-formula">\[
+\begin{aligned}
+\mathsf{Cov}( S(x_i), S(x_j) ) &amp;= \sigma^2 \exp\big( -\frac{\|x_i -x_j\|_{2}}{\phi} \big) \\
+\mathsf{Cov}( S(x_i), S(x_j) ) &amp;= \sigma^2 \exp\big( -\frac{\|x_i -x_j\|_{2}^{2}}{2\phi^2} \big) \\
+\mathsf{Cov}( S(x_i), S(x_j) ) &amp;= \sigma^2 \frac{2^{1 - \nu}}{\Gamma(\nu)}
+\left(\sqrt{2\nu}\frac{\|x_i -x_j\|_{2}}{\phi}\right)^{\nu}
+K_{\nu}\left(\sqrt{2\nu}\frac{\|x_i -x_j\|_{2}}{\phi}\right) \\
+K_{\nu}(x) &amp;= \int_{0}^{\infty}\exp(-x \cosh t) \cosh (\nu t) \mathrm{dt}
+\end{aligned} \tag{3.2}
+\]</span></p>
+<p>其中，<span class="math inline">\(K_{\nu}\)</span> 表示阶数为 <span class="math inline">\(\nu\)</span> 的修正的第二类贝塞尔函数，<span class="math inline">\(\Gamma(\cdot)\)</span> 表示伽马函数，当 <span class="math inline">\(\nu = 1/2\)</span> ，梅隆型将简化为指数型，当 <span class="math inline">\(\nu = \infty\)</span> 时，梅隆型将简化为幂二次指数型。固定 <span class="math inline">\(\sigma = 1\)</span>，自协方差函数图像如图 <a href="#fig:fig-matern-fun">3.5</a> 所示，不难看出，<span class="math inline">\(\nu\)</span> 影响自协方差函数的平滑性，控制点与点之间相关性的变化，<span class="math inline">\(\nu\)</span> 越大相关性越迅速地递减。<span class="math inline">\(\phi\)</span> 控制自协方差函数的范围，<span class="math inline">\(\phi\)</span> 越大相关性辐射距离越远。对模型来说，它们都是超参数。</p>
+<div class="figure"><span style="display:block;" id="fig:fig-matern-fun"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-matern-fun-1.png" alt="梅隆型自协方差函数曲线" width="480" />
+<p class="caption">
+图 3.5: 梅隆型自协方差函数曲线
+</p>
+</div>
+</div>
+<div id="sec-correlation-function" class="section level3" number="3.3.2">
+<h3><span class="header-section-number">3.3.2</span> nlme 包的自相关函数</h3>
+<p><strong>nlme</strong> 包中带块金效应的指数型自相关函数设定如下：</p>
+<p><span class="math display">\[
+\rho(u; \phi, \tau_{rel}^2 ) = \tau_{rel}^2 + (1 - \tau_{rel}^2) \big(1 - \exp(- \frac{u}{\phi}) \big)
+\]</span></p>
+<p>为了方便参数估计，<strong>nlme</strong> 包对参数做了一些重参数化的操作。</p>
+<p><span class="math display" id="eq:reparameterization">\[
+\begin{aligned}
+\tau_{rel}^2 &amp;= \frac{\tau^2}{\tau^2 + \sigma^2} \\
+\sigma_{tol}^2 &amp;= \tau^2 + \sigma^2
+\end{aligned} \tag{3.3}
+\]</span></p>
+<p>当 <span class="math inline">\(u\)</span> 趋于 0 时， <span class="math inline">\(\rho(u; \phi, \tau_{rel}^2 ) = \tau_{rel}^2\)</span> 。另外，<span class="math inline">\(\phi\)</span> 取值为正，<span class="math inline">\(\tau_{rel}^2\)</span> 取值介于 0-1 之间，在默认设置下，<span class="math inline">\(\phi\)</span> 的初始值为 <span class="math inline">\(0.1 \times \max_{i,j \in A} u_{ij}\)</span>，即所有点之间距离的最大值的 10%， <span class="math inline">\(\tau_{rel}^2\)</span> 为 0.1 ，这只是作为参考，用户可根据实际情况调整。</p>
+<p>下面以一个简单示例理解自相关函数 <code>corExp()</code> 的作用，令 <span class="math inline">\(\phi = 1.2, \tau_{rel}^2 = 0.2\)</span>，则由距离矩阵和自相关函数构造的自相关矩阵如下：</p>
+<pre class="r"><code>library(nlme)
+spatDat &lt;- data.frame(x = (1:4) / 4, y = (1:4) / 4)
+cs3Exp &lt;- corExp(c(1.2, 0.2), form = ~ x + y, nugget = TRUE)
+cs3Exp &lt;- Initialize(cs3Exp, spatDat)
+corMatrix(cs3Exp)</code></pre>
+<pre><code>##        [,1]   [,2]   [,3]   [,4]
+## [1,] 1.0000 0.5958 0.4438 0.3305
+## [2,] 0.5958 1.0000 0.5958 0.4438
+## [3,] 0.4438 0.5958 1.0000 0.5958
+## [4,] 0.3305 0.4438 0.5958 1.0000</code></pre>
+<p>自相关矩阵的初始化结果等价于如下矩阵：</p>
+<pre class="r"><code>diag(0.2, 4) + (1 - 0.2) * exp(-as.matrix(dist(spatDat)) / 1.2)</code></pre>
+<pre><code>##        1      2      3      4
+## 1 1.0000 0.5958 0.4438 0.3305
+## 2 0.5958 1.0000 0.5958 0.4438
+## 3 0.4438 0.5958 1.0000 0.5958
+## 4 0.3305 0.4438 0.5958 1.0000</code></pre>
+<p>除了函数 <code>corExp()</code> ，<strong>nlme</strong> 包还有好些自相关函数，如高斯自相关函数 <code>corGaus()</code> ，线性自相关函数 <code>corLin()</code> ，有理自相关函数 <code>corRatio()</code> ，球型自相关函数 <code>corSpher()</code> 等。它们的作用与函数 <code>corExp()</code> 类似，使用方式也一样，如下是高斯型自相关函数的示例，其他的不再一一举例。</p>
+<pre class="r"><code>cs3Gaus &lt;- corGaus(c(1.2, 0.2), form = ~ x + y, nugget = TRUE)
+cs3Gaus &lt;- Initialize(cs3Gaus, spatDat)
+corMatrix(cs3Gaus)</code></pre>
+<pre><code>##        [,1]   [,2]   [,3]   [,4]
+## [1,] 1.0000 0.7335 0.5653 0.3663
+## [2,] 0.7335 1.0000 0.7335 0.5653
+## [3,] 0.5653 0.7335 1.0000 0.7335
+## [4,] 0.3663 0.5653 0.7335 1.0000</code></pre>
+<pre class="r"><code># 等价于
+diag(0.2, 4) + (1 - 0.2) * exp(-as.matrix(dist(spatDat))^2 / 1.2^2)</code></pre>
+<pre><code>##        1      2      3      4
+## 1 1.0000 0.7335 0.5653 0.3663
+## 2 0.7335 1.0000 0.7335 0.5653
+## 3 0.5653 0.7335 1.0000 0.7335
+## 4 0.3663 0.5653 0.7335 1.0000</code></pre>
+</div>
+<div id="sec-gls-function" class="section level3" number="3.3.3">
+<h3><span class="header-section-number">3.3.3</span> nlme 包的拟合函数 <code>gls()</code></h3>
+<p><strong>nlme</strong> 包的函数 <code>gls()</code> 实现限制极大似然估计方法，可以拟合存在异方差的一般线性模型。所谓一般线性模型，即在简单线性模型的基础上，残差不再是独立同分布的，而是存在相关性。函数 <code>gls()</code> 可以拟合具有空间自相关性的残差结构。这种线性模型又可以看作是一种带空间自相关结构的线性混合效应模型，空间随机效应的结构可以看作异方差的结构。</p>
+<pre class="r"><code>fit_rongelap_gls &lt;- gls(
+  log(counts / time) ~ 1, data = rongelap,
+  correlation = corExp(
+    value = c(200, 0.1), form = ~ cX + cY, nugget = TRUE
+  )
+)
+summary(fit_rongelap_gls)</code></pre>
+<pre><code>## Generalized least squares fit by REML
+##   Model: log(counts/time) ~ 1 
+##   Data: rongelap 
+##     AIC   BIC logLik
+##   184.4 196.6 -88.22
+## 
+## Correlation Structure: Exponential spatial correlation
+##  Formula: ~cX + cY 
+##  Parameter estimate(s):
+##    range   nugget 
+## 169.7472   0.1092 
+## 
+## Coefficients:
+##             Value Std.Error t-value p-value
+## (Intercept) 1.813    0.1088   16.66       0
+## 
+## Standardized residuals:
+##      Min       Q1      Med       Q3      Max 
+## -5.57385 -0.06909  0.34610  0.73852  1.57152 
+## 
+## Residual standard error: 0.574 
+## Degrees of freedom: 157 total; 156 residual</code></pre>
+<p><strong>nlme</strong> 包给出截距项 <span class="math inline">\(\beta\)</span> 、相对块金效应 <span class="math inline">\(\tau_{rel}^2\)</span> 、范围参数 <span class="math inline">\(\phi\)</span> 和残差标准差 <span class="math inline">\(\sigma_{tol}\)</span> 的估计，</p>
+<p><span class="math display">\[
+\begin{aligned}
+\beta &amp;= 1.812914, \quad \phi  = 169.7472088 \\
+\tau_{rel}^2   &amp;= 0.1092496, \quad \sigma_{tol} = 0.5739672
+\end{aligned}
+\]</span></p>
+<p>根据前面的 <a href="#eq:reparameterization">(3.3)</a> ，可以得到 <span class="math inline">\(\tau^2\)</span> 和 <span class="math inline">\(\sigma^2\)</span> 的估计。</p>
+<p><span class="math display">\[
+\begin{aligned}
+\tau^2   &amp;= \tau^2_{rel} \times \sigma^2_{tol} = 0.1092496 \times 0.3294383 = 0.035991 \\
+\sigma^2 &amp;= \sigma^2_{tol} - \tau^2_{rel} \times \sigma^2_{tol} = 0.5739672^2 - 0.1092496 \times 0.3294383 = 0.2934473
+\end{aligned}
+\]</span></p>
+<p><strong>nlme</strong> 包的另一个函数 <code>lme()</code> ，扩展了函数 <code>gls()</code> 的功能，支持添加额外的随机效应。下面在模型 <a href="#eq:rongelap-gaussian-slmm">(3.1)</a> 的基础上添加一个变化的截距项，所有的采样位置归为一组，相当于添加一个随机项 <span class="math inline">\(\xi\)</span> ，一般假定它服从均值为 0 方差为 <span class="math inline">\(\delta^2\)</span> 的正态分布。这样下来，模型包含三块随机项，与空间位置关联的空间随机效应 <span class="math inline">\(S(x)\)</span> ，与空间位置无关的块金效应 <span class="math inline">\(Z_i\)</span>，与分组变量 group 关联的随机效应 <span class="math inline">\(\xi\)</span> 。</p>
+<pre class="r"><code>rongelap$group &lt;- 1
+fit_rongelap_lme &lt;- lme(
+  log(counts / time) ~ 1, data = rongelap,
+  random = ~ 1 | group,
+  correlation = corExp(
+    value = c(200, 0.1), form = ~ cX + cY, nugget = TRUE
+  )
+)
+summary(fit_rongelap_lme)</code></pre>
+<pre><code>## Linear mixed-effects model fit by REML
+##   Data: rongelap 
+##     AIC   BIC logLik
+##   186.4 201.7 -88.22
+## 
+## Random effects:
+##  Formula: ~1 | group
+##         (Intercept) Residual
+## StdDev:      0.1222    0.574
+## 
+## Correlation Structure: Exponential spatial correlation
+##  Formula: ~cX + cY | group 
+##  Parameter estimate(s):
+##    range   nugget 
+## 169.7472   0.1092 
+## Fixed effects:  log(counts/time) ~ 1 
+##             Value Std.Error  DF t-value p-value
+## (Intercept) 1.813    0.1636 156   11.08       0
+## 
+## Standardized Within-Group Residuals:
+##      Min       Q1      Med       Q3      Max 
+## -5.57385 -0.06909  0.34610  0.73852  1.57152 
+## 
+## Number of Observations: 157
+## Number of Groups: 1</code></pre>
+</div>
+<div id="sec-semi-variogram" class="section level3" number="3.3.4">
+<h3><span class="header-section-number">3.3.4</span> 经验半变差函数图</h3>
+<p>接下来用经验半变差函数图检查空间相关性。为方便表述起见，令 <span class="math inline">\(T(x_i)\)</span> 代表 <a href="#eq:rongelap-gaussian-slmm">(3.1)</a> 等号右侧的部分，即表示线性预测（Linear Predictor）。</p>
+<p><span class="math display">\[
+T(x_i) = \beta + S(x_{i}) + Z_{i}
+\]</span></p>
+<p>令 <span class="math inline">\(\gamma(u_{ij}) = \frac{1}{2}\mathsf{Var}\{T(x_i) - T(x_j)\}\)</span> 表示半变差函数（Semivariogram），这里 <span class="math inline">\(u_{ij}\)</span> 表示采样点 <span class="math inline">\(x_i\)</span> 与 <span class="math inline">\(x_j\)</span> 之间的距离。考虑到</p>
+<p><span class="math display" id="eq:semi-variogram">\[
+\gamma(u_{ij}) = \frac{1}{2}\mathsf{E}\big\{\big[T(x_i) - T(x_j)\big]^2\big\} = \tau^2 + \sigma^2\big(1-\rho(u_{ij})\big) \tag{3.4}
+\]</span></p>
+<p>上式第一个等号右侧期望可以用样本代入来计算，称之为经验半变差函数，第二个等号右侧为理论半变差函数。为了便于计算，将距离做一定划分，尽量使得各个距离区间的样本点对的数目接近。此时，第 <span class="math inline">\(i\)</span> 个距离区间上经验半变差函数值 <span class="math inline">\(\hat{\gamma}(h_i)\)</span> 的计算公式如下：</p>
+<p><span class="math display">\[
+\hat{\gamma}(h_i) = \frac{1}{2N(h_i)}\sum_{j=1}^{N(h_i)}(T(x_i)-T(x_i+h&#39;))^2, \ \ h_{i,0} \le h&#39; &lt; h_{i,1}
+\]</span></p>
+<p>其中，<span class="math inline">\([h_{i,0},h_{i,1}]\)</span> 表示第 <span class="math inline">\(i\)</span> 个距离区间，<span class="math inline">\(N(h_i)\)</span> 表示第 <span class="math inline">\(i\)</span> 个距离区间内所有样本点对的数目，只要两个点之间的距离在这个区间内，就算是一对。<code>rongelap</code> 数据集包含 157 个采样点，两两配对，共有 <span class="math inline">\((157 - 1) \times 157 / 2 = 12246\)</span> 对。<strong>nlme</strong> 包的函数 <code>Variogram()</code> 拟合模型残差的经验半变差函数：</p>
+<pre class="r"><code>fit_rongelap_vario &lt;- Variogram(fit_rongelap_gls,
+  form = ~ cX + cY, data = rongelap, resType = &quot;response&quot;
+)
+fit_rongelap_vario</code></pre>
+<pre><code>##     variog    dist n.pairs
+## 1  0.07007   89.44     510
+## 2  0.12720  144.22     601
+## 3  0.17289  252.98     581
+## 4  0.22385  368.78     622
+## 5  0.26006  443.85     592
+## 6  0.20694  521.54     616
+## 7  0.41862  718.05     611
+## 8  0.30181 1028.20     610
+## 9  0.16718 1493.74     612
+## 10 0.14684 2150.08     612
+## 11 0.15149 2993.10     612
+## 12 0.21048 3896.79     613
+## 13 0.21373 4600.21     618
+## 14 0.17302 4889.68     607
+## 15 0.20205 5065.98     618
+## 16 0.18620 5195.77     623
+## 17 0.18614 5294.00     596
+## 18 0.20561 5451.83     616
+## 19 0.46457 5604.42     608
+## 20 0.55063 5979.96     612</code></pre>
+<div class="rmdnote">
+<p>为什么 <code>fit_rongelap_vario</code> 输出的 <code>n.pairs</code> 的总数是 12090？</p>
+</div>
+<p>结果显示，距离在 0-89.44272 米之间的坐标点有 510 对，经验半变差函数值为 0.07006716。距离在 89.44272-144.22205 米之间的坐标点有 601 对，经验半变差函数值为 0.12719889，依此类推。将距离和计算的经验半变差函数值绘制出来，即得到经验半变差图，如 图<a href="#fig:fig-rongelap-vario">3.6</a> 所示。刚开始，半变差值很小，之后随距离增加而增大，一直到达一个平台。半变差反比于空间相关性的程度，随着距离增加，空间相关性减弱。这说明数据中确含有空间相关性，模型中添加指数型自相关空间结构是合理的。</p>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-vario"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-vario-1.png" alt="残差的经验半变差图" width="480" />
+<p class="caption">
+图 3.6: 残差的经验半变差图
+</p>
+</div>
+<p>如果空间相关性提取得很充分，则标准化残差的半变差图中的数据点应是围绕标准差 1 上下波动，无明显趋势，拟合线几乎是一条水平线，从 图<a href="#fig:fig-rongelap-vario-norm">3.7</a> 来看，存在一些非均匀的波动，是采样点在空间的分布不均匀所致，岛屿狭长的中部地带采样点稀疏。如前所述，刻画空间相关性，除了指数型，还可以用其它自相关结构来拟合，留待读者练习。</p>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-vario-norm"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-vario-norm-1.png" alt="标准化残差的经验半变差图" width="480" />
+<p class="caption">
+图 3.7: 标准化残差的经验半变差图
+</p>
+</div>
+</div>
+</div>
+<div id="sec-rongelap-sglmm" class="section level2" number="3.4">
+<h2><span class="header-section-number">3.4</span> 空间广义线性混合效应模型</h2>
+<p>简单的广义线性模型并没有考虑距离相关性，它认为各个观测点的数据是相互独立的。因此，考虑采用广义线性混合效应模型，在广义线性模型的基础上添加位置相关的随机效应，用以刻画未能直接观测到的潜在影响。 <span class="math inline">\({}^{137}\mathrm{Cs}\)</span> 放出伽马射线，在 <span class="math inline">\(n=157\)</span> 个采样点，分别以时间间隔 <span class="math inline">\(t_i\)</span> 测量辐射量 <span class="math inline">\(y(x_i)\)</span>，建立泊松型空间广义线性混合效应模型。</p>
+<p><span class="math display">\[
+\begin{aligned}
+\log\{\lambda(x_i)\} &amp; =  \beta + S(x_{i}) + Z_{i} \\
+y(x_{i}) &amp;\sim \mathrm{Poisson}(t_i\lambda(x_i))
+\end{aligned}
+\]</span> {#eq-rongelap-poisson-sglmmm}</p>
+<p>模型中，放射粒子数 <span class="math inline">\(y(x_{i})\)</span> 作为响应变量服从均值为 <span class="math inline">\(t_i\lambda(x_i)\)</span> 的泊松分布，其它模型成分的说明同前。</p>
+<p><strong>nlme</strong> 包不能拟合空间广义线性混合效应模型， <strong>spaMM</strong> 包可以，它的使用语法与前面介绍的函数 <code>glm()</code> 、 <strong>nlme</strong> 包都类似，函数 <code>fitme()</code> 可以拟合从线性模型到广义线性混合效应模型的一大类模型，且使用统一的语法，输出一个 <code>HLfit</code> 类型的数据对象。 <strong>spaMM</strong> 包的函数 <code>Matern()</code> 实现了梅隆型自协方差函数，指数型和幂二次指数型是它的特例。当固定 <span class="math inline">\(\nu = 0.5\)</span> 时，梅隆型自协方差函数 <code>Matern()</code> 的形式退化为 <span class="math inline">\(\sigma^2\exp(- \alpha u)\)</span> ，其中，<span class="math inline">\(\alpha\)</span> 与范围参数关联，相当于前面出现的 <span class="math inline">\(1/\phi\)</span> 。</p>
+<pre class="r"><code>library(spaMM)
+fit_rongelap_spamm &lt;- fitme(
+  formula = counts ~ 1 + Matern(1 | cX + cY) + offset(log(time)),
+  family = poisson(link = &quot;log&quot;), data = rongelap,
+  fixed = list(nu = 0.5)
+)
+summary(fit_rongelap_spamm)</code></pre>
+<pre><code>## formula: counts ~ 1 + Matern(1 | cX + cY) + offset(log(time))
+## Estimation of corrPars and lambda by ML (p_v approximation of logL).
+## Estimation of fixed effects by ML (p_v approximation of logL).
+## Estimation of lambda by &#39;outer&#39; ML, maximizing logL.
+## family: poisson( link = log ) 
+##  ------------ Fixed effects (beta) ------------
+##             Estimate Cond. SE t-value
+## (Intercept)    1.831  0.08455   21.65
+##  --------------- Random effects ---------------
+## Family: gaussian( link = identity ) 
+##                    --- Correlation parameters:
+##     1.nu    1.rho 
+## 0.500000 0.009683 
+##            --- Variance parameters (&#39;lambda&#39;):
+## lambda = var(u) for u ~ Gaussian; 
+##    cX + cY  :  0.2964  
+## # of obs: 157; # of groups: cX + cY, 157 
+##  ------------- Likelihood values  -------------
+##                      logLik
+## logL       (p_v(h)):  -1318</code></pre>
+<p>从输出结果来看，模型固定效应的截距项 <span class="math inline">\(\beta\)</span> 为 <code>1.831</code>，随机效应的方差 <span class="math inline">\(\sigma^2\)</span> 为 <code>0.2964</code>，对比函数 <code>Matern()</code> 实现的指数型自协方差函数公式与 <a href="#eq:matern-formula">(3.2)</a> ，将输出结果转化一下，则 <span class="math inline">\(\phi = 1 / 0.00968 = 103.3\)</span> ，表示在这个模型的设定下，空间相关性的最大影响距离为 103.3 米。</p>
+<p>函数 <code>fitme()</code> 默认使用极大似然估计模型参数，也可以使用限制极大似然来估计。</p>
+<pre class="r"><code>fit_rongelap_spamm2 &lt;- fitme(
+  formula = counts ~ 1 + Matern(1 | cX + cY) + offset(log(time)),
+  family = poisson(link = &quot;log&quot;), data = rongelap,
+  fixed = list(nu = 0.5), method = &quot;REML&quot;
+)
+summary(fit_rongelap_spamm2)</code></pre>
+<pre><code>## formula: counts ~ 1 + Matern(1 | cX + cY) + offset(log(time))
+## Estimation of corrPars and lambda by REML (p_bv approximation of restricted logL).
+## Estimation of fixed effects by ML (p_v approximation of logL).
+## Estimation of lambda by &#39;outer&#39; REML, maximizing restricted logL.
+## family: poisson( link = log ) 
+##  ------------ Fixed effects (beta) ------------
+##             Estimate Cond. SE t-value
+## (Intercept)    1.829  0.08797   20.78
+##  --------------- Random effects ---------------
+## Family: gaussian( link = identity ) 
+##                    --- Correlation parameters:
+##     1.nu    1.rho 
+## 0.500000 0.009212 
+##            --- Variance parameters (&#39;lambda&#39;):
+## lambda = var(u) for u ~ Gaussian; 
+##    cX + cY  :  0.3069  
+## # of obs: 157; # of groups: cX + cY, 157 
+##  ------------- Likelihood values  -------------
+##                      logLik
+## logL       (p_v(h)):  -1318
+## Re.logL  (p_b,v(h)):  -1320</code></pre>
+<p>泊松分布的均值 <span class="math inline">\(\mathsf{E}\{y(x_i)\}=\mathrm{t}_i\lambda(x_i)\)</span> 和方差 <span class="math inline">\(\mathsf{Var}\{y(x_i)\}\)</span> 的值是一样的。如果假定它们不同，比如方差是关于均值的二次函数，可以用负二项分布来拟合数据，一般来说效果会更加好，对数似然函数值 <code>logL</code> 在变大。</p>
+<pre class="r"><code>fit_rongelap_spamm3 &lt;- fitme(
+  formula = counts ~ 1 + Matern(1 | cX + cY) + offset(log(time)),
+  family = negbin2(link = &quot;log&quot;), data = rongelap,
+  fixed = list(nu = 0.5)
+)
+summary(fit_rongelap_spamm3)</code></pre>
+<pre><code>## formula: counts ~ 1 + Matern(1 | cX + cY) + offset(log(time))
+## Estimation of corrPars, lambda and NB_shape by ML (P_v approximation of logL).
+## Estimation of fixed effects by ML (P_v approximation of logL).
+## Estimation of lambda and NB_shape by &#39;outer&#39; ML, maximizing logL.
+## family: negbin2(shape=7.244)( link = log ) 
+##  ------------ Fixed effects (beta) ------------
+##             Estimate Cond. SE t-value
+## (Intercept)    1.982  0.07534   26.31
+##  --------------- Random effects ---------------
+## Family: gaussian( link = identity ) 
+##                    --- Correlation parameters:
+##     1.nu    1.rho 
+## 0.500000 0.001507 
+##            --- Variance parameters (&#39;lambda&#39;):
+## lambda = var(u) for u ~ Gaussian; 
+##    cX + cY  :  0.02605  
+## # of obs: 157; # of groups: cX + cY, 157 
+##  ------------- Likelihood values  -------------
+##                     logLik
+## logL      (P_v(h)):  -1310</code></pre>
+</div>
+</div>
+<div id="sec-rongelap-predict" class="section level1" number="4">
+<h1><span class="header-section-number">4</span> 模型预测</h1>
+<p>接下来，预测给定的边界（海岸线）内任意位置的核辐射强度，展示全岛的核辐射强度分布。先从点构造多边形数据，再将多边形做网格划分，继而将网格中心点作为模型输入获得核辐射强度的预测值。</p>
+<div id="sec-rongelap-coastline" class="section level2" number="4.1">
+<h2><span class="header-section-number">4.1</span> 海岸线数据</h2>
+<p>海岸线上取一些点，点的数量越多，对海岸线的刻画越精确，这在转弯处体现得非常明显。海岸线的数据是以成对的坐标构成，导入 R 语言中，是以数据框的形式存储，为了方便后续的操作，引入空间数据操作的 <strong>sf</strong> 包<span class="citation">[<a href="#ref-Pebesma2018" role="doc-biblioref">2</a>]</span>，将核辐射数据和海岸线数据转化为 POINT 类型的空间点数据。</p>
+<pre class="r"><code>library(sf)
+rongelap_sf &lt;- st_as_sf(rongelap, coords = c(&quot;cX&quot;, &quot;cY&quot;), dim = &quot;XY&quot;)
+rongelap_coastline_sf &lt;- st_as_sf(rongelap_coastline, coords = c(&quot;cX&quot;, &quot;cY&quot;), dim = &quot;XY&quot;)</code></pre>
+<p><strong>sf</strong> 包提供了大量操作空间数据的函数，比如函数 <code>st_bbox()</code> 计算一组空间数据的矩形边界，获得左下和右上两个点的坐标 <code>(xmin,ymin)</code> 和<code>(xmax,ymax)</code>，下面还会陆续涉及其它空间数据操作。</p>
+<pre class="r"><code>st_bbox(rongelap_coastline_sf)</code></pre>
+<pre><code>##     xmin     ymin     xmax     ymax 
+## -6299.31 -3582.25    20.38   103.54</code></pre>
+<p><code>rongelap_coastline_sf</code> 数据集是朗格拉普岛海岸线的采样点坐标，是一个 POINT 类型的数据，为了以海岸线为边界生成规则网格，首先连接点 POINT 构造多边形 POLYGON 对象。POINT 和 POLYGON 是 <strong>sf</strong> 包内建的基础的几何类型，其它复杂的空间类型是由它们衍生而来。函数 <code>st_geometry</code> 提取空间点数据中的几何元素，再用函数 <code>st_combine</code> 将点组合起来，最后用函数 <code>st_cast</code> 转换成 POLYGON 多边形类型。</p>
+<pre class="r"><code>rongelap_coastline_sfp &lt;- st_cast(st_combine(st_geometry(rongelap_coastline_sf)), &quot;POLYGON&quot;)</code></pre>
+<p>图<a href="#fig:fig-point-to-polygon">4.1</a> 上下两个子图分别展示空间点集和多边形。上图是原始的采样点数据，下图是以点带线，串联 POINT 数据构造 POLYGON 数据后的多边形。后续的数据操作将围绕这个多边形展开。</p>
+<pre class="r"><code># 点集
+library(ggplot2)
+ggplot(rongelap_coastline_sf) +
+  geom_sf(size = 0.5) +
+  theme_void()
+# 多边形
+ggplot(rongelap_coastline_sfp) +
+  geom_sf(fill = &quot;white&quot;, linewidth = 0.5) +
+  theme_void()</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-point-to-polygon"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-point-to-polygon-1.png" alt="朗格拉普岛海岸线的表示" width="480" /><img src="{{< blogdown/postref >}}index_files/figure-html/fig-point-to-polygon-2.png" alt="朗格拉普岛海岸线的表示" width="480" />
+<p class="caption">
+图 4.1: 朗格拉普岛海岸线的表示
+</p>
+</div>
+</div>
+<div id="sec-rongelap-border" class="section level2" number="4.2">
+<h2><span class="header-section-number">4.2</span> 边界处理</h2>
+<p>为了确保覆盖整个岛，处理好边界问题，需要一点缓冲空间，就是说在给定的边界线外围再延伸一段距离，构造一个更大的多边形，这可以用函数 <code>st_buffer()</code> 实现，根据海岸线构造缓冲区，得到一个 POLYGON 类型的几何数据对象。考虑到朗格拉普岛的实际大小，缓冲距离选择 50 米。</p>
+<pre class="r"><code>rongelap_coastline_buffer &lt;- st_buffer(rongelap_coastline_sfp, dist = 50)</code></pre>
+<p>缓冲区构造出来的效果如图 <a href="#fig:fig-rongelap-buffer">4.2</a> 所示，为了便于与海岸线对比，图中将采样点、海岸线和缓冲区都展示出来了。</p>
+<pre class="r"><code>ggplot() +
+  geom_sf(data = rongelap_sf, size = 0.2) +
+  geom_sf(data = rongelap_coastline_sfp, fill = NA, color = &quot;gray30&quot;) +
+  geom_sf(data = rongelap_coastline_buffer, fill = NA, color = &quot;black&quot;) +
+  theme_void()</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-buffer"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-buffer-1.png" alt="朗格拉普岛海岸线及其缓冲区" width="595.2" />
+<p class="caption">
+图 4.2: 朗格拉普岛海岸线及其缓冲区
+</p>
+</div>
+</div>
+<div id="sec-rongelap-grid" class="section level2" number="4.3">
+<h2><span class="header-section-number">4.3</span> 构造网格</h2>
+<p>接下来，利用函数 <code>st_make_grid()</code> 根据朗格拉普岛海岸缓冲线构造网格，朗格拉普岛是狭长的，因此，网格是 <span class="math inline">\(75\times 150\)</span> 的，意味着水平方向 75 行，垂直方向 150 列。网格的疏密程度是可以调整的，网格越密，格点越多，核辐射强度分布越精确，计算也越耗时。</p>
+<pre class="r"><code># 构造带边界约束的网格
+rongelap_coastline_grid &lt;- st_make_grid(rongelap_coastline_buffer, n = c(150, 75))</code></pre>
+<p>函数 <code>st_make_grid()</code> 根据 <code>rongelap_coastline_buffer</code> 的矩形边界网格化，效果如图 <a href="#fig:fig-rongelap-grid">4.4</a> 所示，依次添加了网格、海岸线和缓冲区。实际上，网格只需要覆盖朗格拉普岛即可，岛外的部分是大海，不需要覆盖，根据现有数据和模型对岛外区域预测核辐射强度也没有意义，因此，在后续的操作中，岛外的网格都要去掉。函数 <code>st_make_grid()</code> 除了支持方形网格划分，还支持六边形网格划分。</p>
+<pre class="r"><code>ggplot() +
+  geom_sf(data = rongelap_coastline_grid, fill = NA, color = &quot;gray&quot;) +
+  geom_sf(data = rongelap_coastline_sfp, fill = NA, color = &quot;gray30&quot;) +
+  geom_sf(data = rongelap_coastline_buffer, fill = NA, color = &quot;black&quot;) +
+  theme_void()</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-coastline-grid"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-coastline-grid-1.png" alt="朗格拉普岛规则化网格操作" width="672" />
+<p class="caption">
+图 4.3: 朗格拉普岛规则化网格操作
+</p>
+</div>
+<p>接下来，调用 <strong>sf</strong> 包函数 <code>st_intersects()</code> 将小网格落在缓冲区和岛内的筛选出来，一共 1612 个小网格，再用函数 <code>st_centroid()</code> 计算这些网格的中心点坐标。函数 <code>st_intersects()</code> 的作用是对多边形和网格取交集，包含与边界线交叉的网格，默认返回值是一个稀疏矩阵，与索引函数 <code>[.sf</code> （这是 <strong>sf</strong> 包扩展 <code>[</code> 函数的一个例子）搭配可以非常方便地过滤出目标网格。与之相关的函数 <code>st_crosses()</code> 可以获得与边界线交叉的网格。</p>
+<pre class="r"><code># 将 sfc 类型转化为 sf 类型
+rongelap_coastline_grid &lt;- st_as_sf(rongelap_coastline_grid)
+rongelap_coastline_buffer &lt;- st_as_sf(rongelap_coastline_buffer)
+rongelap_grid &lt;- rongelap_coastline_grid[rongelap_coastline_buffer, op = st_intersects]
+# 计算网格中心点坐标
+rongelap_grid_centroid &lt;- st_centroid(rongelap_grid)</code></pre>
+<p>过滤出来的网格如图 <a href="#fig:fig-rongelap-grid">4.4</a> 所示，全岛网格化后，图中将朗格拉普岛海岸线、网格都展示出来了。网格的中心点将作为新的坐标数据，后续要在这些新的坐标点上预测核辐射强度。</p>
+<pre class="r"><code>ggplot() +
+  geom_sf(data = rongelap_coastline_sfp, 
+          fill = NA, color = &quot;gray30&quot;, linewidth = 0.5) +
+  geom_sf(data = rongelap_grid, fill = NA, color = &quot;gray30&quot;) +
+  theme_void()</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-grid"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-grid-1.png" alt="朗格拉普岛规则网格划分结果" width="672" />
+<p class="caption">
+图 4.4: 朗格拉普岛规则网格划分结果
+</p>
+</div>
+</div>
+<div id="sec-rongelap-pred" class="section level2" number="4.4">
+<h2><span class="header-section-number">4.4</span> 整理数据</h2>
+<p>函数 <code>st_coordinates()</code> 抽取网格中心点的坐标并用函数 <code>as.data.frame()</code> 转化为数据框类型，新数据的列名需要和训练数据保持一致，最后补充漂移项 <code>time</code>，以便输入模型中。漂移项并不影响核辐射强度，指定为 300 或 400 都可以。</p>
+<pre class="r"><code>rongelap_grid_df &lt;- as.data.frame(st_coordinates(rongelap_grid_centroid))
+colnames(rongelap_grid_df) &lt;- c(&quot;cX&quot;, &quot;cY&quot;)
+rongelap_grid_df$time &lt;- 1</code></pre>
+<p>将数据输入 <strong>spaMM</strong> 包拟合的模型对象 <code>fit_rongelap_spamm</code>，并将模型返回的结果整理成数据框，再与采样点数据合并。<code>predict()</code> 是一个泛型函数，<strong>spaMM</strong> 包为模型对象提供了相应的预测方法。</p>
+<pre class="r"><code># 预测值
+rongelap_grid_pred &lt;- predict(fit_rongelap_spamm,
+  newdata = rongelap_grid_df, type = &quot;response&quot;
+)
+rongelap_grid_df$pred_sp &lt;- as.vector(rongelap_grid_pred)
+# 线性预测的方差
+rongelap_grid_var &lt;- get_predVar(fit_rongelap_spamm,
+  newdata = rongelap_grid_df, variances = list(predVar = TRUE), which = &quot;predVar&quot;
+)</code></pre>
+<pre><code>## Non-identity link: predVar is on linear-predictor scale.</code></pre>
+<pre class="r"><code>rongelap_grid_df$var_sp &lt;- as.vector(rongelap_grid_var)</code></pre>
+<p>在空间线性混合效应模型一节，截距 <span class="math inline">\(\beta\)</span> ，方差 <span class="math inline">\(\sigma^2\)</span> ，块金效应 <span class="math inline">\(\tau^2\)</span> 和范围参数 <span class="math inline">\(\phi\)</span> 都估计出来了。在此基础上，采用简单克里金插值方法预测，对于未采样观测的位置 <span class="math inline">\(x_0\)</span>，它的辐射强度的预测值 <span class="math inline">\(\hat{\lambda}(x_0)\)</span> 及其预测方差 <span class="math inline">\(\mathsf{Var}\{\hat{\lambda}(x_0)\}\)</span> 的计算公式如下。</p>
+<p><span class="math display">\[
+\begin{aligned}
+\hat{\lambda}(x_0) &amp;= \beta + \bm{u}^{\top}(V + \tau^2I)^{-1}(\bm{\lambda} - \bm{1}\beta) \\
+\mathsf{Var}\{\hat{\lambda}(x_0)\}  &amp;= \sigma^2 - \bm{u}^{\top}(V + \tau^2I)^{-1}\bm{u}
+\end{aligned}
+\]</span></p>
+<p>其中，协方差矩阵 <span class="math inline">\(V\)</span> 中第 <span class="math inline">\(i\)</span> 行第 <span class="math inline">\(j\)</span> 列的元素为 <span class="math inline">\(\mathsf{Cov}\{S(x_i),S(x_j)\}\)</span> ，列向量 <span class="math inline">\(\bm{u}\)</span> 的第 <span class="math inline">\(i\)</span> 个元素为 <span class="math inline">\(\mathsf{Cov}\{S(x_i),S(x_0)\}\)</span> 。</p>
+<pre class="r"><code># 截距
+beta &lt;- 1.812914
+# 范围参数
+phi &lt;- 169.7472088
+# 方差
+sigma_sq &lt;- 0.2934473
+# 块金效应
+tau_sq &lt;- 0.035991
+# 自协方差函数
+cov_fun &lt;- function(h) sigma_sq * exp(-h / phi)
+# 观测距离矩阵
+m_obs &lt;- cov_fun(st_distance(x = rongelap_sf)) + diag(tau_sq, 157)
+# 预测距离矩阵
+m_pred &lt;- cov_fun(st_distance(x = rongelap_sf, y = rongelap_grid_centroid))
+# 简单克里金插值 Simple Kriging
+mean_sk &lt;- beta + t(m_pred) %*% solve(m_obs, log(rongelap_sf$counts / rongelap_sf$time) - beta)
+# 辐射强度预测值
+rongelap_grid_df$pred_sk &lt;- exp(mean_sk)
+# 辐射强度预测方差
+rongelap_grid_df$var_sk &lt;- sigma_sq - diag(t(m_pred) %*% solve(m_obs, m_pred))</code></pre>
+</div>
+<div id="sec-rongelap-plot" class="section level2" number="4.5">
+<h2><span class="header-section-number">4.5</span> 展示结果</h2>
+<p>将预测结果以散点图的形式呈现到图上，见下 图<a href="#fig:fig-rongelap-pred">4.5</a> ，由于散点非常多，紧挨在一起就连成片了。上子图是 <strong>nlme</strong> 包预测的结果，下子图是 <strong>spaMM</strong> 包预测的结果，前者图像看起来会稍微平滑一些。</p>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-pred"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-pred-1.png" alt="朗格拉普岛核辐射强度的分布" width="576" />
+<p class="caption">
+图 4.5: 朗格拉普岛核辐射强度的分布
+</p>
+</div>
+<p>从空间线性混合效应模型到空间广义线性混合效应模型的效果提升不多，差异不太明显。下图 <a href="#fig:fig-rongelap-var">4.6</a> 展示核辐射强度预测方差的分布。越简单的模型，预测值的分布越平滑，越复杂的模型，捕捉到更多局部细节，因而，预测值的分布越曲折。</p>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-var"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-var-1.png" alt="核辐射强度预测方差的分布" width="576" />
+<p class="caption">
+图 4.6: 核辐射强度预测方差的分布
+</p>
+</div>
+<p>考虑到核辐射在全岛的分布应当是连续性的，空间连续性也是这类模型的假设，接下来绘制热力图，先用 <strong>stars</strong> 包<span class="citation">[<a href="#ref-stars2022" role="doc-biblioref">3</a>]</span>将预测数据按原网格化的精度转化成栅格对象，裁减超出朗格拉普岛海岸线以外的内容。</p>
+<pre class="r"><code>library(abind)
+library(stars)
+rongelap_grid_sf &lt;- st_as_sf(rongelap_grid_df, coords = c(&quot;cX&quot;, &quot;cY&quot;), dim = &quot;XY&quot;)
+rongelap_grid_stars &lt;- st_rasterize(rongelap_grid_sf, nx = 150, ny = 75)
+rongelap_stars &lt;- st_crop(x = rongelap_grid_stars, y = rongelap_coastline_sfp)</code></pre>
+<p>除了矢量栅格化函数 <code>st_rasterize()</code> 和栅格剪裁函数 <code>st_crop()</code> ，<strong>stars</strong> 包还提供栅格数据图层 <code>geom_stars()</code>，这可以和 <strong>ggplot2</strong> 内置的图层搭配使用。下图 <a href="#fig:fig-rongelap-pred-sp">4.7</a> 是 <strong>ggplot2</strong> 包和 <strong>grid</strong> 包一起绘制的辐射强度的热力分布图，展示 <strong>spaMM</strong> 包的预测效果。图左侧一小一大两个虚线框是放大前后的部分区域，展示朗格拉普岛核辐射强度的局部变化。</p>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-pred-sp"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-pred-sp-1.png" alt="朗格拉普岛核辐射强度的分布" width="720" />
+<p class="caption">
+图 4.7: 朗格拉普岛核辐射强度的分布
+</p>
+</div>
+<p>美国当年是在比基尼环礁做的氢弹核试验，试验地与朗格拉普岛相距 100 多英里。核辐射羽流受大气、海洋环流等影响，漂流到朗格拉普岛。又受朗格拉普岛周围水文、地理环境影响，核辐射强度在全岛的分布是不均匀的，图中越亮的地方表示受到的核辐射越严重。</p>
+</div>
+</div>
+<div id="sec-spatial-theory" class="section level1" number="5">
+<h1><span class="header-section-number">5</span> 模型理论</h1>
+<div id="sec-generalized-least-squares" class="section level2" number="5.1">
+<h2><span class="header-section-number">5.1</span> 广义最小二乘</h2>
+<p><strong>nlme</strong> 包的函数 <code>gls()</code> 的名称 <code>gls</code> 是 Generalized Least Squares 广义最小二乘的意思。顾名思义，广义最小二乘是最小二乘的推广形式。当模型残差不满足独立同分布的条件，存在相关性或异方差，就需要广义最小二乘 （Generalized Least Squares ，简称 GLS）。在前面的 <a href="#rongelap-slmm">3.3</a> ，采用广义最小二乘估计 <a href="#eq:rongelap-gaussian-slmm">(3.1)</a> 的参数，下面继续介绍其原理。线性模型的一般形式如下：</p>
+<p><span class="math display">\[
+\bm{y} = X\bm{\beta} + \bm{\epsilon}
+\]</span></p>
+<p>其中，<span class="math inline">\(\bm{y}\)</span> 是 <span class="math inline">\(n \times 1\)</span> 的列向量，表示响应变量对应的观测数据。 <span class="math inline">\(X\)</span> 是 <span class="math inline">\(n \times p\)</span> 的矩阵，表示 <span class="math inline">\(p\)</span> 维协变量对应的 <span class="math inline">\(n\)</span> 次观测数据。<span class="math inline">\(\bm{\beta}\)</span> 是 <span class="math inline">\(p \times 1\)</span> 的列向量，表示待估的模型参数。 <span class="math inline">\(\bm{\epsilon}\)</span> 是 <span class="math inline">\(n \times 1\)</span> 的列向量，表示残差。</p>
+<p>假定随机向量 <span class="math inline">\(\bm{\epsilon}\)</span> 的期望为 <span class="math inline">\(\mathsf{E}\{\bm{\epsilon}|X\} = \bm{0}\)</span>，方差为 <span class="math inline">\(\mathsf{Var}\{\bm{\epsilon}|X\}=V\)</span> ，且 <span class="math inline">\(X\)</span> 与 <span class="math inline">\(\bm{\epsilon}\)</span> 不相关，则有</p>
+<p><span class="math display">\[
+\mathsf{E}\{\bm{y}|X\} = X\bm{\beta}, \quad \mathsf{Var}\{\bm{y}|X\} = V.
+\]</span></p>
+<p>现在的目标是找到一个 <span class="math inline">\(\bm{\beta}\)</span> ，使得残差平方和最小，即求解如下无约束最优化问题。</p>
+<p><span class="math display">\[
+\begin{aligned}
+\min_{\bm{\beta}}\quad &amp; \bm{\epsilon}^{\top}\bm{\epsilon}
+\end{aligned}
+\]</span> {#eq-gls-beta}</p>
+<p>将 <span class="math inline">\(\bm{\epsilon}= \bm{y} - X\bm{\beta}\)</span> 代入并展开，目标函数可进一步表达为如下形式。</p>
+<p><span class="math display">\[
+\begin{aligned}
+\bm{\epsilon}^{\top}\bm{\epsilon} &amp;= (\bm{y} - X\bm{\beta})^{\top}(\bm{y} - X\bm{\beta}) \\
+&amp;=\bm{y}^{\top}\bm{y} - \bm{y}^{\top}X\bm{\beta} - (X\bm{\beta})^{\top}\bm{y} + (X\bm{\beta})^{\top}X\bm{\beta} \\
+&amp;=\bm{y}^{\top}\bm{y} - 2 \bm{y}^{\top}X\bm{\beta} + \bm{\beta}^{\top}X^{\top}X\bm{\beta}
+\end{aligned}
+\]</span></p>
+<p>对 <span class="math inline">\(\bm{\beta}\)</span> 求偏导，并令偏导等于 <span class="math inline">\(\bm{0}\)</span>。</p>
+<p><span class="math display">\[
+-2X^{\top}\bm{y} + 2X^{\top}X\bm{\beta} = 0
+\]</span></p>
+<p>可得 <span class="math inline">\(\bm{\beta}\)</span> 的最小二乘估计 <span class="math inline">\(\hat{\bm{\beta}}\)</span> 。</p>
+<p><span class="math display">\[
+\hat{\bm{\beta}} = (X^{\top}X)^{-1}X^{\top}\bm{y}.
+\]</span></p>
+<p>此时，<span class="math inline">\(\hat{\bm{\beta}}\)</span> 的期望 <span class="math inline">\(\mathsf{E}\{\hat{\bm{\beta}}\} = \bm{\beta}\)</span> ，即 <span class="math inline">\(\hat{\bm{\beta}}\)</span> 是 <span class="math inline">\(\bm{\beta}\)</span> 无偏的估计。<span class="math inline">\(\hat{\bm{\beta}}\)</span> 的方差 <span class="math inline">\(\mathsf{Var}\{\hat{\bm{\beta}}\}\)</span> 的计算如下：</p>
+<p><span class="math display">\[
+\begin{aligned}
+\mathsf{Var}\{\hat{\bm{\beta}}\} &amp;= \mathsf{E}\{\hat{\bm{\beta}}^{\top}\hat{\bm{\beta}}\} - \mathsf{E}\{\hat{\bm{\beta}}^{\top}\}\mathsf{E}\{\hat{\bm{\beta}}\} \\
+&amp;= \mathsf{E}\{ [(X^{\top}X)^{-1}X^{\top}\bm{y}]^{\top} (X^{\top}X)^{-1}X^{\top}\bm{y} \} - \bm{\beta}^{\top}\bm{\beta} \\
+&amp;= \mathsf{E}\{ [(X^{\top}X)^{-1}X^{\top}(X\bm{\beta} + \bm{\epsilon})]^{\top} (X^{\top}X)^{-1}X^{\top}(X\bm{\beta} + \bm{\epsilon}) \} - \bm{\beta}^{\top}\bm{\beta} \\
+&amp;= \mathsf{E}\{ [\bm{\beta} + (X^{\top}X)^{-1}X^{\top}\bm{\epsilon}]^{\top} [\bm{\beta} + (X^{\top}X)^{-1}X^{\top}\bm{\epsilon}]\} - \bm{\beta}^{\top}\bm{\beta} \\
+&amp;= \mathsf{E}\{\bm{\epsilon}^{\top}X(X^{\top}X)^{-1}(X^{\top}X)^{-1}X^{\top}\bm{\epsilon}\} \\
+&amp;= \mathrm{tr}[X(X^{\top}X)^{-1}(X^{\top}X)^{-1}X^{\top}V].
+\end{aligned}
+\]</span></p>
+<p>当 <span class="math inline">\(\bm{\epsilon}\)</span> 之间存在相关性时，需要广义最小二乘估计，即</p>
+<p><span class="math display">\[
+\hat{\bm{\beta}}_{gls} = (X^{\top}V^{-1}X)^{-1} X^{\top}V^{-1}\bm{y}.
+\]</span></p>
+<p>当 <span class="math inline">\(\bm{\epsilon}\)</span> 之间存在空间相关性时，<span class="math inline">\(V\)</span> 含有参数 <span class="math inline">\(\sigma^2,\phi\)</span> ，若模型带块金效应，则还含有参数 <span class="math inline">\(\tau^2\)</span> 。可见，上式不足以估计模型的参数，且看后续 <a href="#maximum-likelihood">5.2</a> 。</p>
+<p>类似地，对于一次新的观测 <span class="math inline">\(\bm{x}_0\)</span>，它是一个 <span class="math inline">\(p \times 1\)</span> 的列向量，现在的目标是找到一个 <span class="math inline">\(\hat{y}_0\)</span> ，在满足无偏性的条件下，使得预测的均方误差 <span class="math inline">\(\mathsf{E}\{(\hat{y}_0 - y_0)^2\}\)</span> 最小，也是预测方差 <span class="math inline">\(\mathsf{Var}\{\hat{y}_0 - y_0\}\)</span> 最小，也是残差的方差 <span class="math inline">\(\mathsf{Var}\{\hat{\epsilon}_0\}\)</span> 最小。不妨设 <span class="math inline">\(\hat{y}_0\)</span> 是关于 <span class="math inline">\(\bm{y}\)</span> 的线性组合，即 <span class="math inline">\(\hat{y}_0 = \bm{w}^{\top}\bm{y}\)</span> ，此处，<span class="math inline">\(\bm{w}\)</span> 是 <span class="math inline">\(n \times 1\)</span> 维的权重向量。找 <span class="math inline">\(\hat{y}_0\)</span> 的问题转为求解如下最优化问题。</p>
+<p><span class="math display" id="eq:gls-predictor">\[
+\begin{aligned}
+\min_{\bm{w}}\quad &amp; \mathsf{Var}\{\hat{y}_0 - y_0\} \\
+\text{s.t.}  \quad &amp; \mathsf{E}\{\hat{y}_0 - y_0\} = 0
+\end{aligned} \tag{5.1}
+\]</span></p>
+<p>对于无偏性的约束条件，有</p>
+<p><span class="math display">\[
+\mathsf{E}\{\hat{y}_0 - y_0\} = \mathsf{E}\{\bm{w}^{\top}(X\bm{\beta} + \bm{\epsilon}) - (\bm{x}_0^{\top}\bm{\beta} + \bm{\epsilon}_0)\} = \bm{w}^{\top}X\bm{\beta} - \bm{x}_0^{\top}\bm{\beta} = 0
+\]</span></p>
+<p>对于目标函数，有</p>
+<p><span class="math display">\[
+\begin{aligned}
+\mathsf{Var}\{\hat{y}_0 - y_0\} &amp;= \mathsf{Var}\{\bm{w}^{\top}\bm{y} - \bm{x}_0^{\top}\bm{\beta}- \epsilon_0\} \\
+&amp;= \mathsf{Var}\{\bm{w}^{\top}(X\bm{\beta} + \bm{\epsilon}) - \bm{x}_0^{\top}\bm{\beta} - \epsilon_0\} \\
+&amp; = \mathsf{Var}\{\bm{w}^{\top}\bm{\epsilon} - \epsilon_0 \} \\
+&amp; = \mathsf{E}\{(\bm{w}^{\top}\bm{\epsilon} - \epsilon_0)^2\} - [\mathsf{E}\{(\bm{w}^{\top}\bm{\epsilon} - \epsilon_0)\}]^2 \\
+&amp; = \mathsf{E}\{(\bm{w}^{\top}\bm{\epsilon} - \epsilon_0)^2\} \\
+&amp; = \mathsf{E}\{(\bm{w}^{\top}\bm{\epsilon} - \epsilon_0)(\bm{w}^{\top}\bm{\epsilon} - \epsilon_0)^{\top}\} \\
+&amp; = \bm{w}^{\top}\mathsf{Cov}\{\bm{\epsilon},\bm{\epsilon}^{\top}\} \bm{w} - 2\mathsf{Cov}\{\epsilon_0, \bm{\epsilon}^{\top}\} \bm{w} + \mathsf{Cov}\{\epsilon_0, \epsilon_0 \} \\
+&amp; = \bm{w}^{\top}V_{11} \bm{w} - 2 V_{01} \bm{w} + V_{00}
+\end{aligned}
+\]</span></p>
+<p>为方便叙述，作如下简记。</p>
+<p><span class="math display">\[
+V_{11} = \mathsf{Cov}\{\bm{\epsilon},\bm{\epsilon}^{\top}\},
+V_{10} = \mathsf{Cov}\{\bm{\epsilon},\epsilon_0\}, V_{01} = \mathsf{Cov}\{\epsilon_0, \bm{\epsilon}^{\top}\}, V_{00} = \mathsf{Cov}\{\epsilon_0, \epsilon_0 \}
+\]</span></p>
+<p>采用拉格朗日乘数法将约束优化问题 <a href="#eq:gls-predictor">(5.1)</a> 转为如下无约束优化问题</p>
+<p><span class="math display">\[
+\min_{\bm{w},\bm{\kappa}} \quad \bm{w}^{\top}V_{11} \bm{w} - 2 V_{01} \bm{w} + V_{00} + (\bm{x}_0^{\top} - \bm{w}^{\top}X) \bm{\kappa}
+\]</span></p>
+<p>其中，<span class="math inline">\(\bm{\kappa}\)</span> 是 <span class="math inline">\(p \times 1\)</span> 维的拉格朗日乘子向量，对 <span class="math inline">\(\bm{w},\bm{\kappa}\)</span> 分别求偏导，并令偏导等于 <span class="math inline">\(\bm{0}\)</span> 。</p>
+<p><span class="math display">\[
+\begin{aligned}
+2 V_{11} \bm{w} - 2 V_{10} - X\bm{\kappa}  = \bm{0} \\
+X^{\top}\bm{w}  - \bm{x}_0 = \bm{0}
+\end{aligned}
+\]</span></p>
+<p>第一个式子左乘 <span class="math inline">\(X^{\top}V_{11}^{-1}\)</span> ，再将第二个式子代入第一个式子。</p>
+<p><span class="math display">\[
+2 \underbrace{X^{\top}\bm{w}}_{\bm{x_0}} -2 X^{\top}V_{11}^{-1}V_{10} -  X^{\top}V_{11}^{-1}X\bm{\kappa}= 0
+\]</span></p>
+<p>可得拉格朗日乘子向量 <span class="math inline">\(\bm{\kappa}\)</span> ，再将 <span class="math inline">\(\bm{\kappa}\)</span> 代入第一个式子，可得权重向量 <span class="math inline">\(\bm{w}\)</span> 。</p>
+<p><span class="math display">\[
+\begin{aligned}
+\bm{\kappa} &amp;= 2 (X^{\top}V_{11}^{-1}X)^{-1} (\bm{x_0} - X^{\top}V_{11}^{-1}V_{10}) \\
+\bm{w} &amp;= V_{11}^{-1} \big(V_{10}
++ X(X^{\top}V_{11}^{-1}X)^{-1}(\bm{x}_0 - X^{\top}V_{11}^{-1}V_{10})\big) .
+\end{aligned}
+\]</span></p>
+<p>根据权重向量，可获得预测值 <span class="math inline">\(\hat{y}_0\)</span> 以及预测方差 <span class="math inline">\(\mathsf{Var}\{\hat{y}_0\}\)</span> 。</p>
+<p><span class="math display">\[
+\begin{aligned}
+\hat{y}_0 &amp;= \bm{w}^{\top}\bm{y} \\
+&amp;= V_{01} V_{11}^{-1}\bm{y} + (\bm{x}_0^{\top} - V_{01}V_{11}^{-1}X) (X^{\top}V_{11}^{-1}X)^{-1} X^{\top}V_{11}^{-1}\bm{y} \\
+&amp;= \bm{x}_0^{\top}(X^{\top}V_{11}^{-1}X)^{-1} X^{\top}V_{11}^{-1}\bm{y} + V_{01} V_{11}^{-1}\big(\bm{y} - X(X^{\top}V_{11}^{-1}X)^{-1}X^{\top}V_{11}^{-1}\bm{y}\big)\\
+&amp;= \bm{x}_0^{\top} \hat{\bm{\beta}}_{gls} + V_{01} V_{11}^{-1}(\bm{y} - X\hat{\bm{\beta}}_{gls})
+\end{aligned}
+\]</span></p>
+<p>而 <span class="math inline">\(\mathsf{Var}\{\hat{y}_0\} = \mathrm{tr}[\bm{w}\bm{w}^{\top}V_{11}]\)</span> 。</p>
+<div class="rmdtip">
+<p>广义最小二乘估计参考课程 <a href="https://web.stanford.edu/class/stats253/">Stats 253: Analysis of Spatial and Temporal Data</a> 的 <a href="https://web.stanford.edu/class/stats253/lectures/lect5.pdf">lect5</a> 。</p>
+</div>
+</div>
+<div id="maximum-likelihood" class="section level2" number="5.2">
+<h2><span class="header-section-number">5.2</span> 限制极大似然</h2>
+<p><strong>nlme</strong> 包的函数 <code>gls()</code> 提供极大似然（Maximum Likelihood，简称 ML）和限制极大似然（Restricted Maximum Likelihood，简称 REML）两种方法估计模型参数。</p>
+<p>极大似然估计对残差的分布有要求，一般假定 <span class="math inline">\(\bm{\epsilon}\)</span> 服从多元正态分布，即 <span class="math inline">\(\bm{\epsilon} \sim \mathrm{MVN}(\bm{0}, V_{\bm{\theta}})\)</span> ，这里 <span class="math inline">\(V_{\bm{\theta}}\)</span> 表示协方差阵与参数向量 <span class="math inline">\(\bm{\theta}\)</span> 有关，<span class="math inline">\(\bm{\theta} = (\sigma^2, \phi, \tau^2)\)</span> ，各个分量的含义同前。则关于参数 <span class="math inline">\((\bm{\beta}, \bm{\theta})\)</span> 的似然函数如下：</p>
+<p><span class="math display">\[
+\mathcal{L}(\bm{\beta}, \bm{\theta}) = \frac{1}{(2\pi)^{n/2}(\det V_{\bm{\theta}})^{1/2}}\exp\Big\{-\frac{1}{2}(\bm{y} - X\bm{\beta})^{\top}V_{\bm{\theta}}^{-1}(\bm{y} - X\bm{\beta})\Big\}
+\]</span></p>
+<p>在前面，已经获得参数 <span class="math inline">\(\bm{\beta}\)</span> 的广义最小二乘估计 <span class="math inline">\(\hat{\bm{\beta}}(\bm{\theta})\)</span> 。</p>
+<p><span class="math display">\[
+\hat{\bm{\beta}}(\bm{\theta}) = (X^{\top}V_{\bm{\theta}}^{-1}X)^{-1} X^{\top}V_{\bm{\theta}}^{-1}\bm{y}
+\]</span></p>
+<p>将上式代入似然函数 <span class="math inline">\(\mathcal{L}(\bm{\beta}, \bm{\theta})\)</span> ，意味着消去了参数向量 <span class="math inline">\(\bm{\beta}\)</span> ，只剩下 <span class="math inline">\(\bm{\theta}\)</span> 。</p>
+<p><span class="math display">\[
+\mathcal{L}(\bm{\theta}) = \frac{1}{(2\pi)^{n/2}(\det V_{\bm{\theta}})^{1/2}}\exp\Big\{-\frac{1}{2}\big(\bm{y} - X\hat{\bm{\beta}}(\bm{\theta})\big)^{\top}V_{\bm{\theta}}^{-1}\big(\bm{y} - X\hat{\bm{\beta}}(\bm{\theta})\big)\Big\}
+\]</span></p>
+<p>为方便优化计算，进一步对似然函数取对数。</p>
+<p><span class="math display">\[
+\log \mathcal{L}(\bm{\theta}) = -\frac{n}{2}\log(2\pi) - \frac{1}{2}\log (\det V_{\bm{\theta}}) -\frac{1}{2}\big(\bm{y} - X\hat{\bm{\beta}}(\bm{\theta})\big)^{\top}V_{\bm{\theta}}^{-1}\big(\bm{y} - X\hat{\bm{\beta}}(\bm{\theta})\big)
+\]</span></p>
+<p>现在主要关注上式右侧中包含的二次型，将 <span class="math inline">\(\hat{\bm{\beta}}(\bm{\theta})\)</span> 代入。方便计算和书写起见，临时记 <span class="math inline">\(A = I - X(X^{\top}V_{\bm{\theta}}^{-1}X)^{-1}X^{\top}V_{\bm{\theta}}^{-1}\)</span> ，这里 <span class="math inline">\(I\)</span> 是 <span class="math inline">\(n\)</span> 维单位矩阵。可得</p>
+<p><span class="math display">\[
+\log \mathcal{L}(\bm{\theta}) = -\frac{n}{2}\log(2\pi) - \frac{1}{2}\log (\det V_{\bm{\theta}}) -\frac{1}{2}\bm{y}^{\top}A^{\top}V_{\bm{\theta}}^{-1}A\bm{y}
+\]</span></p>
+<p>为了进一步化简，下面计算 <span class="math inline">\(A^{\top}\)</span> 和 <span class="math inline">\(A^2\)</span> ，再将它们依次代入上述对数似然函数。</p>
+<p><span class="math display">\[
+\begin{aligned}
+AV_{\bm{\theta}} &amp;= V_{\bm{\theta}} - X(X^{\top}V_{\bm{\theta}}^{-1}X)^{-1}X^{\top} \\
+A^{\top} &amp;= I -V_{\bm{\theta}}^{-1}(V_{\bm{\theta}} - AV_{\bm{\theta}}) =V_{\bm{\theta}}^{-1} AV_{\bm{\theta}} \\
+A^2 &amp;= A
+\end{aligned}
+\]</span></p>
+<p>经过上述矩阵运算，<span class="math inline">\(\log \mathcal{L}(\bm{\theta})\)</span> 化简为如下形式。</p>
+<p><span class="math display">\[
+\log \mathcal{L}(\bm{\theta}) = -\frac{n}{2}\log (2\pi) - \frac{1}{2}\log (\det V_{\bm{\theta}}) -\frac{1}{2}\bm{y}^{\top}V_{\bm{\theta}}^{-1}\big(I - X(X^{\top}V_{\bm{\theta}}^{-1}X)^{-1}X^{\top}V_{\bm{\theta}}^{-1}\big)\bm{y}
+\]</span></p>
+<p>对数似然函数的形式还是很复杂，极大化这个对数似然函数，还需要两个关键步骤。</p>
+<ol style="list-style-type: decimal">
+<li>计算似然函数关于 <span class="math inline">\(\bm{\theta}\)</span> 各个分量的偏导数。</li>
+<li>求解一个非凸优化问题。</li>
+</ol>
+<p>考虑到 <span class="math inline">\(\bm{\theta}\)</span> 的维数不是很高，理论上，可以做暴力网格搜索，但时间花费可能很高，推荐采用一些启发式的全局优化算法。此外，初始值的选取也很重要， <span class="math inline">\(\bm{\beta}\)</span> 的初值可用最小二乘估计代替，<span class="math inline">\(\sigma^2\)</span> 的初值可用模型残差的方差代替，<span class="math inline">\(\tau^2\)</span> 的初值可取 <span class="math inline">\(\sigma^2\)</span> 的十分之一，<span class="math inline">\(\phi\)</span> 的初值可取最大距离的十分之一。上述固定一部分参数，估计另一部分参数的过程，叫剖面极大似然（Profile Maximum Likelihood）。不难理解，剖面极大似然估计是个有偏的估计。它将全参数空间剖开，在剖面（超平面）上寻找剩余参数的极大似然估计。</p>
+<div class="rmdtip">
+<p>极大似然估计参考课程 <a href="https://web.stanford.edu/class/stats253/">Stats 253: Analysis of Spatial and Temporal Data</a> 的 <a href="https://web.stanford.edu/class/stats253/lectures/lect4.pdf">lect4</a> 。</p>
+</div>
+<p>介绍限制极大似然之前，先回顾一下线性模型的一般形式</p>
+<p><span class="math display">\[
+\bm{y} = X\bm{\beta} + \bm{\epsilon}
+\]</span></p>
+<p>找一个 <span class="math inline">\(n\)</span> 阶方阵 <span class="math inline">\(P\)</span> 使得 <span class="math inline">\(PX\bm{\beta} = \bm{0}\)</span> ，且 <span class="math inline">\(P\)</span> 不依赖于 <span class="math inline">\(\bm{\beta}\)</span>，这样的矩阵 <span class="math inline">\(P\)</span> 形式如下</p>
+<p><span class="math display">\[
+P = I - X(XX^{\top})^{-1}X^{\top}
+\]</span></p>
+<p>不难发现，矩阵 <span class="math inline">\(P\)</span> 具有性质 <span class="math inline">\(P^{\top} = P, P^2 = P\)</span> ，即矩阵 <span class="math inline">\(P\)</span> 是一个投影矩阵。线性模型的一般形式化为</p>
+<p><span class="math display">\[
+P\bm{y} = P \bm{\epsilon}
+\]</span></p>
+<p>这就是说将整个模型投影到一个新的空间中，在这个新的空间中，模型不含有参数 <span class="math inline">\(\bm{\beta}\)</span> ，只剩下参数 <span class="math inline">\(\bm{\theta}\)</span>。然后，极大化似然函数，得到 <span class="math inline">\(\bm{\theta}\)</span> 的估计 <span class="math inline">\(\hat{\bm{\theta}}\)</span> ，再将 <span class="math inline">\(\hat{\bm{\theta}}\)</span> 代入 <span class="math inline">\(\bm{\beta}\)</span> 的广义最小二乘估计 <span class="math inline">\(\hat{\beta(\bm{\theta})}\)</span> ，至此，模型参数全部求解完毕。相比于剖面极大似然估计，限制极大似然估计是无偏的。</p>
+<p>在无偏性约束下，最小均方预测误差意义下，获得最佳线性无偏预测。</p>
+<p><span class="math display">\[
+\begin{aligned}
+\min_{\bm{w}} \quad  &amp; \mathsf{Var}\{\hat{y}_0 - y_0\} \\
+\text{s.t.} \quad &amp; \mathsf{E}\{\hat{y}_0 - y_0\} = 0
+\end{aligned}
+\]</span></p>
+<p>类似前面的广义最小二乘估计一节中的预测过程，可得</p>
+<p><span class="math display">\[
+\hat{y}_0 = \bm{x}_0^{\top} \hat{\bm{\beta}}(\bm{\theta}) + V_{01} V_{11}^{-1}(\bm{y} - X\hat{\bm{\beta}}(\bm{\theta}))
+\]</span></p>
+<p>形式上一点没变，除了 <span class="math inline">\(\hat{\bm{\beta}}(\bm{\theta})\)</span> 中参数 <span class="math inline">\(\bm{\theta}\)</span> 是上面限制极大似然估计的结果，其它符号的含义同前。</p>
+</div>
+<div id="sec-kriging-interpolation" class="section level2" number="5.3">
+<h2><span class="header-section-number">5.3</span> 克里金插值</h2>
+<p>在空间分析中，克里金插值（Kriging Interpolation）是非常基础且重要的内容，具有很好的统计性质，是最佳线性无偏预测（Best Linear Unbiased Predictor）。下面介绍普通克里金（Ordinary kriging）插值的原理，图 <a href="#fig:fig-kriging">5.1</a> 是示意图。</p>
+<div class="figure"><span style="display:block;" id="fig:fig-kriging"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-kriging-1.png" alt="普通克里金插值" width="45%" />
+<p class="caption">
+图 5.1: 普通克里金插值
+</p>
+</div>
+<p>已知研究区域 <span class="math inline">\(\mathcal{D} \subset \mathbb{R}^2\)</span> 中的采样点 <span class="math inline">\(x_i \in \mathcal{D}\)</span> 的辐射强度为 <span class="math inline">\(\lambda(x_i)\)</span> 。对于区域 <span class="math inline">\(\mathcal{D}\)</span> 中未采样的位置 <span class="math inline">\(x_0\)</span>，它的辐射强度 <span class="math inline">\(\lambda(x_0)\)</span> 是多少？在满足无偏性的条件下，<span class="math inline">\(\hat{\lambda}(x_0)\)</span> 是使预测方差最小的估计。</p>
+<p><span class="math display">\[
+\hat{\lambda}(x_0) = \sum_{i=1}^{n}w_i\lambda(x_i)
+\]</span></p>
+<p>其中 <span class="math inline">\(w_i\)</span> 是待定的权重系数。<span class="math inline">\(\hat{\lambda}(x_0)\)</span> 是 <span class="math inline">\(\lambda(x_0)\)</span> 的无偏估计，要使预测方差最小，需求解如下最优化问题。</p>
+<p><span class="math display" id="eq:kriging-optim">\[
+\begin{aligned}
+\min_{\bm{w}} \quad &amp; \frac{1}{2}\mathsf{Var}\{\hat{\lambda}(x_0) - \lambda(x_0)\} \\
+\text{s.t.} \quad &amp; \mathsf{E}\{\hat{\lambda}(x_0) - \lambda(x_0) \} = 0
+\end{aligned} \tag{5.2}
+\]</span></p>
+<p>在平稳性的假设下， <span class="math inline">\(\mathsf{E}\{\lambda(x_i)\} = \mathsf{E}\{\lambda(x_0)\}\)</span> 且 <span class="math inline">\(\mathsf{Var}\{\lambda(x_i)\} = \sigma^2\)</span> 。根据无偏性条件可推导出</p>
+<p><span class="math display">\[
+\sum_{i=1}^{n}w_i = 1.
+\]</span></p>
+<p>令 <span class="math inline">\(\bm{\lambda} = [\lambda(x_1),\lambda(x_1),\ldots,\lambda(x_n)]^{\top}\)</span> ，<span class="math inline">\(V\)</span> 表示随机向量 <span class="math inline">\(\bm{\lambda}\)</span> 的协方差矩阵 <span class="math inline">\(\mathsf{Var}\{\bm{\lambda}\}\)</span> ，其第 <span class="math inline">\(i\)</span> 行第 <span class="math inline">\(j\)</span> 列的元素为 <span class="math inline">\(\mathsf{Cov}\{\lambda(x_i),\lambda(x_j)\}\)</span> ，对角线上的元素为方差 <span class="math inline">\(\mathsf{Var}\{\lambda(x_i)\}, i = 1,2,\ldots, n\)</span> 。令 <span class="math inline">\(\bm{w} = (w_1,w_2,\ldots,w_n)^{\top}\)</span> ，则</p>
+<p><span class="math display">\[
+\hat{\lambda}(x_0) = \sum_{i=1}^{n}w_i\lambda(x_i) = \bm{w}^{\top}\bm{\lambda}.
+\]</span></p>
+<p>根据随机向量二次型，<span class="math inline">\(\hat{\lambda}(x_0)\)</span> 的方差 <span class="math inline">\(\mathsf{Var}\{\hat{\lambda}(x_0)\}\)</span> 有</p>
+<p><span class="math display">\[
+\mathsf{Var}\{\hat{\lambda}(x_0)\} = \bm{w}^{\top}\mathsf{Var}\{\bm{\lambda}\}\bm{w} = \bm{w}^{\top}V\bm{w}.
+\]</span></p>
+<p>因此，</p>
+<p><span class="math display" id="eq:kriging-variance">\[
+\begin{aligned}
+\mathsf{Var}\{\hat{\lambda}(x_0) - \lambda(x_0)\} &amp;= \mathsf{Var}\{\hat{\lambda}(x_0) \} + \mathsf{Var}\{\lambda(x_0)\} - 2 \mathsf{Cov}\{\hat{\lambda}(x_0), \lambda(x_0)\} \\
+&amp;= \bm{w}^{\top}V\bm{w} + \sigma^2 - 2\sum_{i=1}^{n} \mathsf{Cov}\{\lambda(x_i),\lambda(x_0)\}w_i \\
+&amp; = \bm{w}^{\top}V\bm{w} + \sigma^2 - 2[\mathsf{Cov}\{\bm{\lambda},\lambda(x_0)\}]^{\top}\bm{w}  \\
+&amp; = \bm{w}^{\top}V\bm{w} + \sigma^2 - 2\bm{u}^{\top}\bm{w} .
+\end{aligned} \tag{5.3}
+\]</span></p>
+<p>其中，<span class="math inline">\(\mathsf{Var}\{\lambda(x_0)\} = \mathsf{Var}\{\lambda(x_i)\}= \sigma^2\)</span> 是未知常数，<span class="math inline">\(\bm{u} = \mathsf{Cov}\{\bm{\lambda},\lambda(x_0)\}\)</span> 是未知的 <span class="math inline">\(n \times 1\)</span> 向量。假设它们已知，采用拉格朗日乘数法将约束优化问题 <a href="#eq:kriging-optim">(5.2)</a> 转为如下无约束优化问题。</p>
+<p><span class="math display">\[
+\min_{\bm{w},\kappa} \mathcal{L}(\bm{w},k) = \frac{1}{2}\bm{w}^{\top}V\bm{w} + \frac{1}{2}\sigma^2 - \bm{u}^{\top}\bm{w}  + \kappa (1 - \bm{1}^{\top} \bm{w})
+\]</span></p>
+<p>其中，<span class="math inline">\(\kappa\)</span> 表示拉格朗日乘子，<span class="math inline">\(\bm{1}\)</span> 表示 <span class="math inline">\(n \times 1\)</span> 维的全 1 向量。分别对 <span class="math inline">\(\bm{w}\)</span> 和 <span class="math inline">\(\kappa\)</span> 求偏导，并令其分别等于零向量 <span class="math inline">\(\bm{0}\)</span> 和零 <span class="math inline">\(0\)</span> ，则有</p>
+<p><span class="math display">\[
+\begin{aligned}
+\frac{\partial \mathcal{L}(\bm{w},\kappa)}{\partial \bm{w}} &amp;=  V \bm{w} -  \bm{u} - \kappa \bm{1}= \bm{0} \\
+\frac{\partial \mathcal{L}(\bm{w},k)}{\partial \kappa} &amp;= \bm{1}^{\top} \bm{w} - 1 = 0
+\end{aligned}
+\]</span></p>
+<p>联立上述方程可得方程组，一共 <span class="math inline">\(n+1\)</span> 个变量和方程。</p>
+<p><span class="math display">\[
+\begin{bmatrix}
+V &amp; \bm{1} \\
+\bm{1}^{\top} &amp; 0
+\end{bmatrix}
+\begin{bmatrix}
+\bm{w}  \\
+-\kappa
+\end{bmatrix}
+=
+\begin{bmatrix}
+\bm{u}  \\
+0
+\end{bmatrix}.
+\]</span></p>
+<p>第一个方程左乘 <span class="math inline">\(\bm{1}^{\top}V^{-1}\)</span> ，再将第二个式子代入，可得</p>
+<p><span class="math display">\[
+\begin{aligned}
+\kappa &amp;= \frac{1- \bm{1}^{\top}V^{-1}\bm{u}}{\bm{1}^{\top}V^{-1}\bm{1}} \\
+\bm{w} &amp;= V^{-1}(\bm{u} + \frac{1- \bm{1}^{\top}V^{-1}\bm{u}}{\bm{1}^{\top}V^{-1}\bm{1}} \bm{1})
+\end{aligned}
+\]</span></p>
+<p>所以，在位置 <span class="math inline">\(x_0\)</span> 处的预测 <span class="math inline">\(\hat{\lambda}(x_0)\)</span> ，</p>
+<p><span class="math display">\[
+\hat{\lambda}(x_0) = \bm{w}^{\top}\bm{\lambda}= (\bm{u}^{\top} + \frac{1- \bm{1}^{\top}V^{-1}\bm{u}}{\bm{1}^{\top}V^{-1}\bm{1}} \bm{1}^{\top}) V^{-1}\bm{\lambda}
+\]</span></p>
+<p>将 <span class="math inline">\(\bm{w}\)</span> 代入 <a href="#eq:kriging-variance">(5.3)</a> 可得普通克里金插值的最小均方预测误差。</p>
+<p><span class="math display">\[
+\mathsf{Var}\{\hat{\lambda}(x_0) - \lambda(x_0)\} = \bm{u}^{\top}V^{-1}\bm{u} - \frac{\big(1- \bm{1}^{\top}V^{-1}\bm{u}\big)^2}{\bm{1}^{\top}V^{-1}\bm{1}}
+\]</span></p>
+<p>根据数据可以估计经验半变差函数 <a href="#eq:semi-variogram">(3.4)</a> 的参数，从而 <span class="math inline">\(\beta\)</span>、<span class="math inline">\(V\)</span> 、 <span class="math inline">\(\sigma^2\)</span> 和 <span class="math inline">\(\bm{u}\)</span> 都是已知的。以 <span class="math inline">\(V + \tau^2I\)</span> 替换 <span class="math inline">\(V\)</span> ，<span class="math inline">\(\bm{\lambda} - \beta \bm{1}\)</span> 替换 <span class="math inline">\(\bm{\lambda}\)</span> ，可得普通克里金插值的预测值 <span class="math inline">\(\hat{\lambda}(x_0)\)</span> 及其方差 <span class="math inline">\(\mathsf{Var}\{\hat{\lambda}(x_0)\}\)</span> 。相比于普通克里金插值，简单克里金插值中 <span class="math inline">\(\beta\)</span> 是已知的，没有权重之和等于 1 的约束。</p>
+<div class="rmdtip">
+<p>参考《Statistics for Spatial Data》<span class="citation">[<a href="#ref-Cressie1993" role="doc-biblioref">4</a>]</span>。</p>
+</div>
+</div>
+</div>
+<div id="sec-further-reading-spatial" class="section level1" number="6">
+<h1><span class="header-section-number">6</span> 拓展阅读</h1>
+<p>在过去的 20 多年里，朗格拉普岛核辐射数据集在多篇文章中作为案例分析出现，用于算法模型的比较。1998 年 Peter J. Diggle 等首次提出蒙特卡洛极大似然方法估计不带块金效应的响应变量服从泊松分布的空间广义混合效应模型的参数，分析了朗格拉普岛上核辐射强度的空间分布<span class="citation">[<a href="#ref-Diggle1998" role="doc-biblioref">5</a>]</span>。2004 年 Ole F Christensen 在 Peter J. Diggle 等人的基础上添加了块金效应，同样使用蒙特卡洛极大似然方法估计了模型中的参数<span class="citation">[<a href="#ref-Christensen2004" role="doc-biblioref">6</a>]</span>。由于现有算法表现受真实数据影响比较大，随后，2006 年 Ole F Christensen 等又提出更加稳健的 Langevin-Metropolis 算法，辅以重参数化技巧提升算法性能，可以在马尔可夫链混合和收敛方面独立于数据，并在朗格拉普岛核辐射数据中做了实验，体现出预期效果<span class="citation">[<a href="#ref-Christensen2006" role="doc-biblioref">7</a>]</span>。2015 年 Wagner Hugo Bonat 等在朗格拉普岛核辐射数据和蚕豆根腐病数据中比较了 MCMC 算法，MCEM 算法和修正的拉普拉斯近似算法，发现拉普拉斯近似可以提供类似的结果，基于剖面似然可以获得模型参数的置信区间，相比于模拟算法，不需要算法调参和收敛分析 <span class="citation">[<a href="#ref-Wagner2015" role="doc-biblioref">8</a>]</span>。2016 年 Erlis Ruli 等提出改进的拉普拉斯近似算法，用于边际似然函数，处理高维随机效应的积分，比较了现有的一些基于似然函数的推断方法，体现出渐进误差更小，在朗格拉普岛核辐射强度预测中更加精确<span class="citation">[<a href="#ref-Erlis2016" role="doc-biblioref">9</a>]</span>。对算法实现过程感兴趣的读者可以查阅前述参考文献。</p>
+<p>2002 年张首次提出蒙特卡洛极大似然算法给出空间广义线性混合效应模型的估计与预测<span class="citation">[<a href="#ref-Zhang2002" role="doc-biblioref">10</a>]</span>，因混合模型的多样性，参数计算的复杂性，后续学者们分别从贝叶斯和频率方法的视角提出精确和近似的算法。近似算法的想法是找了一个近似函数替换其中的部分或者全部，使得随着迭代次数增加的情况下，估计的参数值可以趋于真值。精确算法的想法是通过模拟计算的方式硬积一个高维积分，不断增加采样的次数逼近目标函数，比如基于 MCMC 及其改进型 HMC 和 NUTS 硬积参数的联合后验分布中的高维积分做参数的全贝叶斯推断。贝叶斯方法主流的有拉普拉斯近似和全贝叶斯推断，频率方法主流的有基于似然的拉普拉斯近似和自适应高斯-埃尔米特算法。R 语言社区的 <strong>spaMM</strong> 包<span class="citation">[<a href="#ref-Rousset2014" role="doc-biblioref">11</a>]</span>，<strong>INLA</strong> 包<span class="citation">[<a href="#ref-Rue2009" role="doc-biblioref">12</a>, <a href="#ref-Lindgren2015" role="doc-biblioref">13</a>]</span>、<strong>glmmfields</strong> 包<span class="citation">[<a href="#ref-glmmfields2018" role="doc-biblioref">14</a>]</span>、<strong>glmmTMB <span class="citation">[<a href="#ref-Brooks2017" role="doc-biblioref">15</a>]</span>、sdmTMB</strong> 包<span class="citation">[<a href="#ref-Anderson2022" role="doc-biblioref">16</a>]</span> 和 <strong>hglm 包</strong><span class="citation">[<a href="#ref-Ronnegard2010" role="doc-biblioref">17</a>]</span>都可以用来拟合模型。</p>
+<ul>
+<li><strong>spaMM</strong> 包采用拉普拉斯近似算法拟合空间广义线性混合效应模型，兼容 <strong>lme4</strong> 包的公式语法，提供统一的使用方式，还可以与 <strong>INLA</strong> 包集成。</li>
+<li><strong>INLA</strong> 包采用随机偏微分方程方法将目标区域划分成三角网格，以拉普拉斯集成嵌套计算方法逼近参数的后验分布<span class="citation">[<a href="#ref-Virgilio2018" role="doc-biblioref">18</a>]</span>。预测精度和速度主要由网格的细密程度决定，对于大规模空间数据集，比如数以千计的采样点，可以将网格划分得稀疏一些，总是可以计算。内部采用了并行迭代和英特尔 MKL 矩阵优化工具库。</li>
+<li><strong>glmmfields</strong> 包以多元 t 分布替代多元正态分布表示高斯马尔可夫随机场拟合带极端事件的时空模型，所以它不局限于本文涉及的空间模型。<strong>glmmfields</strong> 包内建的空间和时空模型是基于 Stan 的，因此，采用全贝叶斯精确推断方式，一般以 NUTS 采样的方式获取参数后验分布，主要算法是汉密尔顿蒙特卡洛 HMC， 对自动微分变分推断方式有试验性支持。</li>
+<li><strong>sdmTMB</strong> 包与 <strong>glmmTMB</strong> 包源自一脉，内部的计算框架都来自 TMB，相比而言，支持的模型更多，特别是生态学领域的空间和时空模型。</li>
+<li><strong>hglm</strong> 包对于具有分层结构的混合效应模型，提出 H-Likelihood 方法拟合分层广义线性模型、空间条件自回归模型 <span class="citation">[<a href="#ref-Alam2015" role="doc-biblioref">19</a>]</span>。</li>
+</ul>
+</div>
+<div id="references" class="section level1" number="7">
+<h1><span class="header-section-number">7</span> 参考文献</h1>
+<div id="refs" class="references csl-bib-body">
+<div id="ref-Christensen2002" class="csl-entry">
+<div class="csl-left-margin">[1] </div><div class="csl-right-inline"><span class="smallcaps">Christensen</span>, O. F. and <span class="smallcaps">Ribeiro Jr.</span>, P. J. (2002). <span class="nocase">geoRglm</span>: A package for generalised linear spatial models. <em>R News</em> <strong>2</strong> 26–8.</div>
+</div>
+<div id="ref-Pebesma2018" class="csl-entry">
+<div class="csl-left-margin">[2] </div><div class="csl-right-inline"><span class="smallcaps">Pebesma</span>, E. (2018). <a href="https://doi.org/10.32614/RJ-2018-009">Simple features for r: Standardized support for spatial vector data</a>. <em><span>The R Journal</span></em> <strong>10</strong> 439–46.</div>
+</div>
+<div id="ref-stars2022" class="csl-entry">
+<div class="csl-left-margin">[3] </div><div class="csl-right-inline"><span class="smallcaps">Pebesma</span>, E. (2022). <em><a href="https://CRAN.R-project.org/package=stars"><span class="nocase">stars</span>: Spatiotemporal arrays, raster and vector data cubes</a></em>.</div>
+</div>
+<div id="ref-Cressie1993" class="csl-entry">
+<div class="csl-left-margin">[4] </div><div class="csl-right-inline"><span class="smallcaps">Cressiee</span>, N. A. C. (1993). <em>Statistics for spatial data</em>. John Wiley &amp; Sons, Inc.</div>
+</div>
+<div id="ref-Diggle1998" class="csl-entry">
+<div class="csl-left-margin">[5] </div><div class="csl-right-inline"><span class="smallcaps">Diggle</span>, P. J., <span class="smallcaps">Tawn</span>, J. A. and <span class="smallcaps">Moyeed</span>, R. A. (1998). <a href="https://doi.org/10.1111/1467-9876.00113">Model-based geostatistics</a>. <em>Journal of the Royal Statistical Society: Series C (Applied Statistics)</em> <strong>47</strong> 299–350.</div>
+</div>
+<div id="ref-Christensen2004" class="csl-entry">
+<div class="csl-left-margin">[6] </div><div class="csl-right-inline"><span class="smallcaps">Christensen</span>, O. F. (2004). <a href="https://doi.org/10.1198/106186004X2525">Monte carlo maximum likelihood in model-based geostatistics</a>. <em>Journal of Computational and Graphical Statistics</em> <strong>13</strong> 702–18.</div>
+</div>
+<div id="ref-Christensen2006" class="csl-entry">
+<div class="csl-left-margin">[7] </div><div class="csl-right-inline"><span class="smallcaps">Christensen</span>, O. F., <span class="smallcaps">Roberts</span>, G. O. and <span class="smallcaps">Sköld</span>, M. (2006). <a href="http://www.jstor.org/stable/27594162">Robust markov chain monte carlo methods for spatial generalized linear mixed models</a>. <em>Journal of Computational and Graphical Statistics</em> <strong>15</strong> 1–17.</div>
+</div>
+<div id="ref-Wagner2015" class="csl-entry">
+<div class="csl-left-margin">[8] </div><div class="csl-right-inline"><span class="smallcaps">Bonat</span>, W. H. and <span class="smallcaps">Jr</span>, P. J. R. (2015). <a href="https://doi.org/10.1002/env.2375">Practical likelihood analysis for spatial generalized linear mixed models</a>. <em>Electronic Journal of Statistics</em> <strong>10</strong> 3986–4009.</div>
+</div>
+<div id="ref-Erlis2016" class="csl-entry">
+<div class="csl-left-margin">[9] </div><div class="csl-right-inline"><span class="smallcaps">Ruli</span>, E., <span class="smallcaps">Sartori</span>, N. and <span class="smallcaps">Ventura</span>, L. (2016). <a href="https://doi.org/10.1214/16-EJS1218">Improved laplace approximation for marginal likelihoods</a>. <em>Electronic Journal of Statistics</em> <strong>10</strong> 3986–4009.</div>
+</div>
+<div id="ref-Zhang2002" class="csl-entry">
+<div class="csl-left-margin">[10] </div><div class="csl-right-inline"><span class="smallcaps">Zhang</span>, H. (2002). On estimation and prediction for spatial generalized linear mixed models. <em>Biometrics</em> <strong>58</strong> 129–36.</div>
+</div>
+<div id="ref-Rousset2014" class="csl-entry">
+<div class="csl-left-margin">[11] </div><div class="csl-right-inline"><span class="smallcaps">Rousset</span>, F. and <span class="smallcaps">Ferdy</span>, J.-B. (2014). <a href="https://dx.doi.org/10.1111/ecog.00566">Testing environmental and genetic effects in the presence of spatial autocorrelation</a>. <em>Ecography</em> <strong>37</strong> 781–90.</div>
+</div>
+<div id="ref-Rue2009" class="csl-entry">
+<div class="csl-left-margin">[12] </div><div class="csl-right-inline"><span class="smallcaps">Rue</span>, H., <span class="smallcaps">Martino</span>, S. and <span class="smallcaps">Chopin</span>, N. (2009). Approximate <span>Bayesian</span> inference for latent <span>Gaussian</span> models using integrated nested <span>Laplace</span> approximations (with discussion). <em>Journal of the Royal Statistical Society, Series B</em> <strong>71</strong> 319–92.</div>
+</div>
+<div id="ref-Lindgren2015" class="csl-entry">
+<div class="csl-left-margin">[13] </div><div class="csl-right-inline"><span class="smallcaps">Lindgren</span>, F. and <span class="smallcaps">Rue</span>, H. (2015). Bayesian spatial modelling with <span>R-INLA</span>. <em>Journal of Statistical Software</em> <strong>63</strong> 1–25.</div>
+</div>
+<div id="ref-glmmfields2018" class="csl-entry">
+<div class="csl-left-margin">[14] </div><div class="csl-right-inline"><span class="smallcaps">Anderson</span>, S. C. and <span class="smallcaps">Ward</span>, E. J. (2018). <a href="https://doi.org/10.1002/ecy.2403">Black swans in space: Modeling spatio-temporal processes with extremes</a>. <strong>100</strong>.</div>
+</div>
+<div id="ref-Brooks2017" class="csl-entry">
+<div class="csl-left-margin">[15] </div><div class="csl-right-inline"><span class="smallcaps">Brooks</span>, M. E., <span class="smallcaps">Kristensen</span>, K., <span class="smallcaps">van Benthem</span>, K. J., <span class="smallcaps">Magnusson</span>, A., <span class="smallcaps">Berg</span>, C. W., <span class="smallcaps">Nielsen</span>, A., <span class="smallcaps">Skaug</span>, H. J., <span class="smallcaps">Maechler</span>, M. and <span class="smallcaps">Bolker</span>, B. M. (2017). <a href="https://doi.org/10.32614/RJ-2017-066"><span class="nocase">glmmTMB</span> balances speed and flexibility among packages for zero-inflated generalized linear mixed modeling</a>. <em>The R Journal</em> <strong>9</strong> 378–400.</div>
+</div>
+<div id="ref-Anderson2022" class="csl-entry">
+<div class="csl-left-margin">[16] </div><div class="csl-right-inline"><span class="smallcaps">Anderson</span>, <span class="smallcaps">C.</span>, S., <span class="smallcaps">Ward</span>, <span class="smallcaps">J.</span>, E., <span class="smallcaps">English</span>, <span class="smallcaps">A.</span>, P., <span class="smallcaps">Barnett</span> and <span class="smallcaps">K.</span>, L. A. (2022). <a href="https://doi.org/10.1101/2022.03.24.485545"><span class="nocase">sdmTMB</span>: An r package for fast, flexible, and user-friendly generalized linear mixed effects models with spatial and spatiotemporal random fields</a>. <em>bioRxiv</em> <strong>2022.03.24.485545</strong>.</div>
+</div>
+<div id="ref-Ronnegard2010" class="csl-entry">
+<div class="csl-left-margin">[17] </div><div class="csl-right-inline"><span class="smallcaps">Ronnegard</span>, L., <span class="smallcaps">Shen</span>, X. and <span class="smallcaps">Alam</span>, M. (2010). <a href="https://journal.r-project.org/archive/2010-2/RJournal_2010-2_Roennegaard~et~al.pdf"><span class="nocase">hglm</span>: A package for fitting hierarchical generalized linear models</a>. <em>The R Journal</em> <strong>2</strong> 20–8.</div>
+</div>
+<div id="ref-Virgilio2018" class="csl-entry">
+<div class="csl-left-margin">[18] </div><div class="csl-right-inline"><span class="smallcaps">Gómez-Rubio</span>, V. and <span class="smallcaps">Rue</span>, H. (2018). Markov chain monte carlo with the integrated nested laplace approximation. <em>Statistics and Computing</em> <strong>28</strong> 1033–51.</div>
+</div>
+<div id="ref-Alam2015" class="csl-entry">
+<div class="csl-left-margin">[19] </div><div class="csl-right-inline"><span class="smallcaps">Alam</span>, M., <span class="smallcaps">Ronnegard</span>, L. and <span class="smallcaps">Shen</span>, X. (2015). <a href="https://journal.r-project.org/archive/2015/RJ-2015-017/RJ-2015-017.pdf">Fitting conditional and simultaneous autoregressive spatial models in <span class="nocase">hglm</span></a>. <em>The R Journal</em> <strong>7</strong> 5–18.</div>
+</div>
+</div>
+</div>
