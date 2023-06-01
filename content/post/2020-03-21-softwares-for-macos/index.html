@@ -18,7 +18,10 @@ description: "软件环境配置是个既麻烦又耗时的苦力活，笔者曾
 <div id="TOC">
 <ul>
 <li><a href="#设置-macos" id="toc-设置-macos">设置 MacOS</a></li>
-<li><a href="#常用软件" id="toc-常用软件">常用软件</a>
+<li><a href="#配置终端" id="toc-配置终端">配置终端</a></li>
+<li><a href="#配置-git" id="toc-配置-git">配置 Git</a></li>
+<li><a href="#常用软件" id="toc-常用软件">常用软件</a></li>
+<li><a href="#其它软件" id="toc-其它软件">其它软件</a>
 <ul>
 <li><a href="#办公软件" id="toc-办公软件">办公软件</a></li>
 </ul></li>
@@ -27,24 +30,14 @@ description: "软件环境配置是个既麻烦又耗时的苦力活，笔者曾
 <li><a href="#gifski" id="toc-gifski">Gifski</a></li>
 <li><a href="#gnuplot" id="toc-gnuplot">gnuplot</a></li>
 </ul></li>
-<li><a href="#python-虚拟环境" id="toc-python-虚拟环境">Python 虚拟环境</a>
-<ul>
-<li><a href="#用-miniconda-配置" id="toc-用-miniconda-配置">用 miniconda 配置</a></li>
-<li><a href="#用-virtualenv-配置" id="toc-用-virtualenv-配置">用 virtualenv 配置</a></li>
-</ul></li>
-<li><a href="#知识管理" id="toc-知识管理">知识管理</a>
-<ul>
-<li><a href="#gollum" id="toc-gollum">Gollum</a></li>
-</ul></li>
+<li><a href="#用-miniconda-配置-python-虚拟环境" id="toc-用-miniconda-配置-python-虚拟环境">用 miniconda 配置 Python 虚拟环境</a></li>
+<li><a href="#用-gollum-搭建知识管理系统" id="toc-用-gollum-搭建知识管理系统">用 Gollum 搭建知识管理系统</a></li>
 </ul>
 </div>
 
 <div id="设置-macos" class="section level1">
 <h1>设置 MacOS</h1>
 <ul>
-<li><p>命令行工具 <a href="https://developer.apple.com/download/all/">Xcode</a> 等，在线安装迷你版命令行工具。</p>
-<pre class="bash"><code>xcode-select --install</code></pre></li>
-<li><p>软件包管理工具 <a href="https://mirrors.tuna.tsinghua.edu.cn/help/homebrew/">brew</a></p></li>
 <li><p><a href="https://macos-defaults.com/">Mac 截图去阴影等常用设置</a></p></li>
 <li><p><a href="https://stackoverflow.com/questions/37286971/">自定义终端的命令行提示符</a></p></li>
 <li><p>解决 <a href="https://blog.csdn.net/Rainbow1995/article/details/111475551">raw.githubusercontent.com port 443: Connection refused</a>
@@ -59,8 +52,36 @@ description: "软件环境配置是个既麻烦又耗时的苦力活，笔者曾
 brew install --cask font-fira-code font-fira-code-nerd-font</code></pre></li>
 </ul>
 </div>
+<div id="配置终端" class="section level1">
+<h1>配置终端</h1>
+<p><a href="https://github.com/sindresorhus/pure">pure</a> 是一个极简风格的终端配置工具</p>
+<pre class="bash"><code>brew install pure</code></pre>
+<p>在 <code>~/.zshrc</code> 添加</p>
+<pre><code># .zshrc
+autoload -U promptinit; promptinit
+prompt pure</code></pre>
+<p>安装插件 <a href="https://github.com/zsh-users/zsh-syntax-highlighting/">zsh-syntax-highlighting</a> 语法高亮</p>
+<pre class="bash"><code>brew install zsh-syntax-highlighting</code></pre>
+<p>安装插件 <a href="https://github.com/zsh-users/zsh-autosuggestions">zsh-autosuggestions</a> 自动建议</p>
+<pre><code>brew install zsh-autosuggestions</code></pre>
+<p>安装插件 <a href="https://github.com/zsh-users/zsh-completions">zsh-completions</a> 补全</p>
+<pre class="bash"><code>brew install zsh-completions</code></pre>
+<p>安装插件 <a href="https://github.com/marlonrichert/zsh-autocomplete">zsh-autocomplete</a> 自动补全</p>
+<pre class="bash"><code>brew install zsh-autocomplete</code></pre>
+</div>
+<div id="配置-git" class="section level1">
+<h1>配置 Git</h1>
+<pre class="bash"><code>git config --global user.name &quot;Xiangyun Huang&quot;
+git config --global user.email &quot;xiangyunfaith@outlook.com&quot;</code></pre>
+</div>
 <div id="常用软件" class="section level1">
 <h1>常用软件</h1>
+<pre class="bash"><code>brew install --cask font-noto-sans-cjk-sc font-noto-serif-cjk-sc
+brew install --cask font-noto-sans font-noto-serif
+brew install imagemagick proj gdal geos udunits libomp pkg-config</code></pre>
+</div>
+<div id="其它软件" class="section level1">
+<h1>其它软件</h1>
 <div id="办公软件" class="section level2">
 <h2>办公软件</h2>
 <pre class="bash"><code>brew install --cask notion jasp
@@ -112,36 +133,6 @@ replace-with = &quot;sjtu&quot;
 registry = &quot;https://mirrors.sjtug.sjtu.edu.cn/git/crates.io-index&quot;</code></pre>
 <p>将路径 <code>~/.cargo/bin</code> 添加到 PATH 变量里，接着就可以直接使用 gifski 命令行工具了，它有几个参数，如下：</p>
 <pre class="bash"><code>gifski --help</code></pre>
-<pre><code>## gifski 1.6.4
-## https://gif.ski by Kornel Lesiński
-## 
-## USAGE:
-##     gifski [OPTIONS] &lt;FILE&gt;... --output &lt;a.gif&gt;
-## 
-## OPTIONS:
-##     -o, --output &lt;a.gif&gt;      Destination file to write to; &quot;-&quot; means stdout
-##     -r, --fps &lt;num&gt;           Frame rate of animation. If using PNG files as 
-##                               input, this means the speed, as all frames are 
-##                               kept. If video is used, it will be resampled to 
-##                               this constant rate by dropping and/or duplicating 
-##                               frames [default: 20]
-##         --fast-forward &lt;x&gt;    Multiply speed of video by a factor
-##                               (no effect when using images as input) [default: 1]
-##         --fast                3 times faster encoding, but 10% lower quality and 
-##                               larger file size
-##     -Q, --quality &lt;1-100&gt;     Lower quality may give smaller file [default: 90]
-##     -W, --width &lt;px&gt;          Maximum width.
-##                               By default anims are limited to about 800x600
-##     -H, --height &lt;px&gt;         Maximum height (stretches if the width is also set)
-##         --nosort              Use files exactly in the order given, rather than 
-##                               sorted
-##     -q, --quiet               Do not display anything on standard output/console
-##         --repeat &lt;num&gt;        Number of times the animation is repeated (-1 none, 0 forever or &lt;value&gt; repetitions
-##     -h, --help                Prints help information
-##     -V, --version             Prints version information
-## 
-## ARGS:
-##     &lt;FILE&gt;...    one video file supported by FFmpeg, or multiple PNG image files</code></pre>
 <p>帮助文档非常简单，就不翻译了，举个例子，下面将一段视频 <code>INPUT.mov</code> 转化为 GIF 动图 <code>OUTPUT.gif</code>。</p>
 <pre class="bash"><code>gifski -W 800 -H 600 INPUT.mov -o OUTPUT.gif</code></pre></li>
 <li><p>安装 gifski 软件</p>
@@ -158,10 +149,8 @@ registry = &quot;https://mirrors.sjtug.sjtu.edu.cn/git/crates.io-index&quot;</co
 <pre class="bash"><code>fc-list : family | sort</code></pre>
 </div>
 </div>
-<div id="python-虚拟环境" class="section level1">
-<h1>Python 虚拟环境</h1>
-<div id="用-miniconda-配置" class="section level2">
-<h2>用 miniconda 配置</h2>
+<div id="用-miniconda-配置-python-虚拟环境" class="section level1">
+<h1>用 miniconda 配置 Python 虚拟环境</h1>
 <p><code>~/.condarc</code> 指定虚拟环境所在目录</p>
 <pre class="yaml"><code>envs_dirs:
   - /opt/miniconda-virtualenvs/</code></pre>
@@ -190,56 +179,8 @@ conda env remove -p /opt/miniconda-virtualenvs/r-reticulate
 # 更新 miniconda
 conda update conda</code></pre>
 </div>
-<div id="用-virtualenv-配置" class="section level2">
-<h2>用 virtualenv 配置</h2>
-<p>安装 virtualenv</p>
-<pre class="bash"><code>brew install virtualenv</code></pre>
-<p>用 virtualenv 创建虚拟环境，虚拟环境的存放路径是 <code>/opt/.virtualenvs/r-tensorflow</code>，所以名字就是 <code>r-tensorflow</code></p>
-<pre class="bash"><code># 准备虚拟环境萼存放地址
-sudo mkdir -p /opt/.virtualenvs/r-tensorflow
-sudo chown -R $(whoami):staff /opt/.virtualenvs/r-tensorflow
-# 方便后续复用
-export RETICULATE_PYTHON_ENV=/opt/.virtualenvs/r-tensorflow
-# 创建虚拟环境
-virtualenv -p /usr/local/bin/python3 $RETICULATE_PYTHON_ENV</code></pre>
-<p>查看虚拟环境中 Python 版本</p>
-<pre class="bash"><code>python -V</code></pre>
-<p>激活虚拟环境</p>
-<pre class="bash"><code>source $RETICULATE_PYTHON_ENV/bin/activate
-# 取消激活
-deactivate</code></pre>
-<p>进入虚拟环境后，从 requirements.txt 安装 Python 模块</p>
-<pre class="bash"><code>pip install -r requirements.txt</code></pre>
-<p>查看已经安装的 Python 模块</p>
-<pre class="bash"><code>pip list --format=columns</code></pre>
-<p>在文件 <code>.Rprofile</code> 里设置环境变量 <code>RETICULATE_PYTHON</code> 和 <code>RETICULATE_PYTHON_ENV</code>，这样 <strong>reticulate</strong> 包就能发现和使用它了。</p>
-<pre class="bash"><code>Sys.setenv(RETICULATE_PYTHON=&quot;/usr/local/bin/python3&quot;)
-Sys.setenv(RETICULATE_PYTHON_ENV=&quot;/opt/.virtualenvs/r-tensorflow&quot;)</code></pre>
-<p>如果希望打开终端就进入虚拟环境，可以在 .zshrc 文件中添加两行</p>
-<pre class="bash"><code>export RETICULATE_PYTHON_ENV=/opt/.virtualenvs/r-tensorflow
-source $RETICULATE_PYTHON_ENV/bin/activate</code></pre>
-<blockquote>
-<p>注意</p>
-<p>要使用从 brew 安装的 Python3 即 <code>/usr/local/bin/python3</code> 而不是 MacOS 系统自带的 Python3，即 <code>/usr/bin/python3</code></p>
-</blockquote>
-<p>在 RStudio IDE 里配置好 Python 及其虚拟环境，应该能看到</p>
-<pre class="r"><code>Sys.getenv(&quot;RETICULATE_PYTHON&quot;)</code></pre>
-<pre><code>[1] &quot;/usr/local/bin/python3&quot;</code></pre>
-<pre class="r"><code>reticulate::py_discover_config()</code></pre>
-<pre><code>python:         /usr/local/bin/python3
-libpython:      /usr/local/opt/python@3.9/Frameworks/Python.framework/Versions/3.9/lib/python3.9/config-3.9-darwin/libpython3.9.dylib
-pythonhome:     /usr/local/Cellar/python@3.9/3.9.7/Frameworks/Python.framework/Versions/3.9
-version:        3.9.7 (default, Sep  3 2021, 12:37:55)  [Clang 12.0.5 (clang-1205.0.22.9)]
-numpy:          /usr/local/lib/python3.9/site-packages/numpy
-numpy_version:  1.21.2
-
-NOTE: Python version was forced by RETICULATE_PYTHON</code></pre>
-</div>
-</div>
-<div id="知识管理" class="section level1">
-<h1>知识管理</h1>
-<div id="gollum" class="section level2">
-<h2>Gollum</h2>
+<div id="用-gollum-搭建知识管理系统" class="section level1">
+<h1>用 Gollum 搭建知识管理系统</h1>
 <p>用 <a href="https://github.com/gollum/gollum">Gollum</a> 创建 wiki 随时记下个人笔记，gollum 源自电影《指环王》里的角色咕噜。系统环境如下</p>
 <pre class="bash"><code>gem env</code></pre>
 <pre><code>RubyGems Environment:
@@ -282,8 +223,6 @@ gem install --user-install gollum</code></pre>
 <p>最后，预览 Wiki 网页，打开 <a href="http://localhost:4567" class="uri">http://localhost:4567</a>，gollum 默认使用 4567 端口号，如果分支使用 main， 那么启动的时候要加参数 <code>--ref</code> 指定为 main</p>
 <pre class="bash"><code>gollum --ref main --emoji --allow-uploads=dir /path/to/wiki</code></pre>
 <blockquote>
-<p>注意</p>
-<p>先想好目录结构，不然会很乱，以后改起来就麻烦了！</p>
+<p>注意：先想好目录结构，不然会很乱，以后改起来就麻烦了！</p>
 </blockquote>
-</div>
 </div>

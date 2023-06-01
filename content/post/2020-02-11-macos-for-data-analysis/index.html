@@ -20,7 +20,6 @@ description: "软件环境配置是个既麻烦又耗时的苦力活，笔者曾
 <li><a href="#字体配置" id="toc-字体配置">字体配置</a>
 <ul>
 <li><a href="#字体安装" id="toc-字体安装">字体安装</a></li>
-<li><a href="#字体使用" id="toc-字体使用">字体使用</a></li>
 </ul></li>
 <li><a href="#编辑器" id="toc-编辑器">编辑器</a>
 <ul>
@@ -36,7 +35,7 @@ description: "软件环境配置是个既麻烦又耗时的苦力活，笔者曾
 <li><a href="#r-包与-openmp" id="toc-r-包与-openmp">R 包与 OpenMP</a></li>
 <li><a href="#rmpi-包和-open-mpi" id="toc-rmpi-包和-open-mpi">Rmpi 包和 open-mpi</a></li>
 <li><a href="#stringi-包和-icu4c" id="toc-stringi-包和-icu4c">stringi 包和 icu4c</a></li>
-<li><a href="#openssl-包和-openssl1.1" id="toc-openssl-包和-openssl1.1">openssl 包和 <span>openssl@1.1</span></a></li>
+<li><a href="#openssl-包和-openssl1.1" id="toc-openssl-包和-openssl1.1">openssl 包和 openssl@1.1</a></li>
 </ul></li>
 <li><a href="#常用软件" id="toc-常用软件">常用软件</a></li>
 </ul>
@@ -69,25 +68,6 @@ brew install --cask font-xkcd
 brew install --cask font-noto-emoji font-noto-color-emoji
 # Windows 系统字体
 brew install --cask font-arial font-andale-mono font-times-new-roman</code></pre>
-</div>
-<div id="字体使用" class="section level2">
-<h2>字体使用</h2>
-<p>LaTeX 宏包 <strong>xecjk</strong> 支持中文，不必使用 <strong>ctex</strong> 宏包，MacOS 系统上，在 LaTeX 文档里使用 Windows 系统上的黑体、宋体、仿宋、楷体四款中文字体。</p>
-<pre class="tex"><code>\setCJKmainfont[ItalicFont={KaiTi_GB2312}, BoldFont={SimHei}]{SimSun}
-\setCJKsansfont{SimHei}
-\setCJKmonofont{FangSong_GB2312}
-
-\setCJKfamilyfont{heiti}{SimHei}             
-\newcommand{\heiti}{\CJKfamily{heiti}}
-
-\setCJKfamilyfont{kaishu}{KaiTi_GB2312}             
-\newcommand{\kaishu}{\CJKfamily{kaishu}}
-
-\setCJKfamilyfont{songti}{SimSun}             
-\newcommand{\songti}{\CJKfamily{songti}}
-
-\setCJKfamilyfont{fangsong}{FangSong_GB2312}             
-\newcommand{\fangsong}{\CJKfamily{fangsong}}</code></pre>
 </div>
 </div>
 <div id="编辑器" class="section level1">

@@ -3,11 +3,7 @@
 <main class="content" role="main">
 
   <article class="article">
-    {{ if eq .Section "post" }}
-    <span class="article-duration">预计阅读 </span>
-    {{ end }}
-
-    {{ if eq .Section "daily" }}
+    {{ if in (split "post,daily" ",") .Section }}
     <span class="article-duration">预计阅读 </span>
     {{ end }}
 
@@ -29,13 +25,7 @@
       <br>
     {{ end }} 
     
-    {{ if eq .Section "post" }}
-    <span class="article-date">日期: {{ .Date.Format "2006/01/02" }}</span>
-    <br>
-    <span class="article-metadata article-wordcount">字数: </span>
-    {{ end }}
-
-    {{ if eq .Section "daily" }}
+    {{ if in (split "post,daily" ",") .Section }}
     <span class="article-date">日期: {{ .Date.Format "2006/01/02" }}</span>
     <br>
     <span class="article-metadata article-wordcount">字数: </span>
@@ -63,6 +53,10 @@
     <div class="article-content">
       {{ .Content }}
     </div>
+    
+    <br>
+    {{ partial "prev_next.html" . }}
+    
   </article>
 
   {{ partial "comments.html" .}}

@@ -9,7 +9,10 @@ tags:
   - Stan
   - MCMC
 thumbnail: /img/cmdstan.svg
+<<<<<<< HEAD
 draft: true
+=======
+>>>>>>> master
 math: true
 description: "基于Docker的完全可重复的配置过程，意义在于省去 Stan 在Windows下配置的麻烦，以 CmdStan 为例介绍贝叶斯计算框架 Stan 的安装和使用。Stan 问世的时间比 TensorFlow Probability 早很多年，这么些年了，影响力远不如 TensorFlow Probability，笔者在多个场合提及 Stan 都没有人听说过。"
 ---
@@ -748,7 +751,7 @@ and R_hat is the potential scale reduction factor on split chains (at
 convergence, R_hat=1).
 ```
 
-`$\hat{R}=1$`，序列的混合的好，平稳性也检验过，这个结果和真实值还是一致的，精度比起 <https://www.xiangyunhuang.com.cn/post/2019/06/19/logistic-distribution/> 差点，当然可以增加采样的间隔和迭代次数来提高精度。值得注意的是，对于这种简单模型，使用贝叶斯 MCMC 算法是不推荐的！
+`$\hat{R}=1$`，序列的混合的好，平稳性也检验过，这个结果和真实值还是一致的，精度比起函数`glm()`的结果差点，当然可以增加采样的间隔和迭代次数来提高精度。值得注意的是，对于这种简单模型，使用贝叶斯 MCMC 算法是不推荐的！
 
 ```bash
 examples/LogisticRegression/LogisticRegression \

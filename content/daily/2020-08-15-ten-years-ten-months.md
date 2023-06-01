@@ -36,8 +36,7 @@ description: "我从 2011 年 9月来到北京，来到这个远离家乡 1800 �
 
 不管结果如何，我感谢从学校出来后，一路经过的面试官们，我们都会在相互选择中找到自己的定位。不论我们最终成为了同事还是路人，还是熟悉的陌生人，一份工作的时间是短暂的，一辈子太长，感谢我们彼此在相同的时间里相遇。最后，一首韩红、陈奕迅合唱的《十年》送给大家。
 
-<iframe frameborder="0" marginwidth="0" marginheight="0" width=400 height=80 src="https://music.163.com/outchain/player?type=2&id=31877628&auto=0&height=66"></iframe>
-
+{{< music 31877628 >}}
 
 ---
 

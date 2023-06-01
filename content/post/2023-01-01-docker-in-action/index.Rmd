@@ -62,6 +62,18 @@ Docker 镜像以打包的方式处理依赖问题。其一软件依赖，比如�
 
 ![(\#fig:data-analysis) 《R 语言数据分析实战》](img/data-analysis.svg)
 
+<<<<<<< HEAD
+=======
+下面的入门篇和进阶篇是围绕两个 Dockerfile 文件展开的，都在书籍仓库里 ---
+<https://github.com/XiangyunHuang/data-analysis-in-action>。将本文和 Dockerfile 文件对照看，既具体到细节又不失整体的概况。
+
+-  [`fedora_rstudio.Dockerfile`](https://github.com/XiangyunHuang/data-analysis-in-action/blob/main/fedora_rstudio.Dockerfile) 对应标准版 Docker 镜像
+-  [`fedora_rstudio_pro.Dockerfile`](https://github.com/XiangyunHuang/data-analysis-in-action/blob/main/fedora_rstudio_pro.Dockerfile) 对应专业版 Docker 镜像
+
+
+当本文学习完，相信读者可以基于**任意**操作系统**任意**项目搭建环境，构建 Docker 镜像，复杂如 [rocker](https://github.com/rocker-org/rocker) 项目和[rstudio-docker-products](https://github.com/rstudio/rstudio-docker-products)项目也不难掌握。
+
+>>>>>>> master
 
 # 开发 Dockerfile --- 入门篇 {#develop-dockerfile}
 
@@ -161,6 +173,11 @@ echo 'docker:docker123' | chpasswd
 Error: Incorrect or invalid username/password
 ```
 
+<<<<<<< HEAD
+=======
+![(\#fig:rstudio-server-account)配置标准账户](img/rstudio-server-login-error.png){ width=55% }
+
+>>>>>>> master
 ::: rmdwarn
 RStudio Server 不允许以 root 账户登陆的，必须创建普通账户，可以给普通账户授予管理员权限，安装系统软件。
 :::
@@ -289,8 +306,21 @@ timedatectl show --property=Timezone
 Timezone=Etc/UTC
 ```
 
+<<<<<<< HEAD
 而在 R 控制台输入 `Sys.timezone()` 可以看到 `UTC`，这是我在 Dockerfile 里设置好的，是预期的输出。
 
+=======
+而在 R 控制台输入 `Sys.timezone()` 可以看到 `UTC`，这是我在 Dockerfile 里设置好的，是预期的输出。下面在 Dockerfile 里设置系统语言环境和时区。
+
+```
+# Set locale
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US.UTF-8
+
+# Set default timezone
+ENV TZ UTC
+```
+>>>>>>> master
 
 ## 安装一些 LaTeX 宏包 {#setup-latex}
 
@@ -345,6 +375,10 @@ dnf -y install libcurl-devel \
    NLopt-devel
 ```
 
+<<<<<<< HEAD
+=======
+- curl / openssl / git2r / xml2 / V8 等基础包
+>>>>>>> master
 - （广义）线性混合效应模型包 [lme4](https://github.com/lme4/lme4) 需要 nloptr 包，[nloptr](https://github.com/astamm/nloptr) 包需要 NLopt-devel
 - 网络分析与可视化包 [igraph](https://github.com/igraph/rigraph) 需要 libxml2-devel、glpk-devel、gmp-devel 等
 
@@ -372,6 +406,7 @@ dnf -y install glibc-langpack-en \
    python3-virtualenv 
 ```
 
+<<<<<<< HEAD
 Dockerfile 里设置系统语言环境和时区，最后，将工作目录切换到 docker 用户主目录。
 
 ```
@@ -382,6 +417,11 @@ ENV LANG=en_US.UTF-8 \
 # Set default timezone
 ENV TZ UTC
 
+=======
+最后，将工作目录切换到 docker 用户主目录。
+
+```
+>>>>>>> master
 WORKDIR /home/docker/
 ```
 
@@ -455,7 +495,11 @@ docker commit -a "Xiangyun Huang <xiangyunfaith@outlook.com>" \
 
 ![(\#fig:rstudio-server-status) RStudio Server 服务以开机启动](img/rstudio-server-status.png)
 
+<<<<<<< HEAD
 容器中已安装的[字体](data/installed_fonts.txt)、[软件包](data/installed_packages.txt)、[R 包](data/installed_r_packages.txt)和 [texlive 发行版](data/installed_texlive.txt)，点击链接即可查看具体内容，以后若想加一些软件，可以搜索查找是否已安装[^installed]。
+=======
+容器中已安装的[字体](data/installed_fonts.txt)、[软件包](data/installed_packages.txt)、[R 包](data/installed_r_packages.txt)和 [texlive 发行版](data/installed_texlive.txt)，点击链接即可查看具体内容，以后若想加一些软件，可以搜索查找是否已安装[^installed]，不要在 Dockerfile 里重复地加内容。如果能进入容器，也可以用 `dnf info PKG` 或 `dnf list installed | grep PKG` 查看 PKG 是否已安装。
+>>>>>>> master
 
 [^installed]: 各个文件保存的内容分别是如下命令输出的结果：
 
@@ -473,13 +517,20 @@ docker commit -a "Xiangyun Huang <xiangyunfaith@outlook.com>" \
 登陆进来后，可以看到 RStudio Server 的界面，与桌面版没啥区别。
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> master
 ![(\#fig:rstudio-server-window) RStudio Server 界面窗口](img/rstudio-server-window.png)
 
 1. R 控制台，命令窗口
 1. 帮助子窗口，显示帮助文档
 1. 环境子窗口，显示当前运行环境中的变量信息。
+<<<<<<< HEAD
 1. RStudio IDE 得主菜单栏
+=======
+1. RStudio IDE 的主菜单栏
+>>>>>>> master
 1. 当前登陆 RStudio Server 的用户。
 
 ::: rmdtip
@@ -535,6 +586,14 @@ numpy_version:  1.24.1
 NOTE: Python version was forced by RETICULATE_PYTHON
 ```
 
+<<<<<<< HEAD
+=======
+::: rmdtip
+Dockerfile 里 COPY 命令的作用是将目录（与 Dockerfile 同一目录）下的文件复制到镜像里，一般在构建镜像的时候使用，如果不清理，会一直存在于镜像里，并随之分发。
+:::
+
+
+>>>>>>> master
 ### 安装开发版 R 包
 
 书中使用了一些存放在 Github 上的 R 包，它们还没有发布在 CRAN 上或者书籍本身需要开发版的 R 包。Github 有访问量限制， 一般只有设置个人访问令牌才不会超额。从 Github 上安装 R 包时，借助 export 命令导入环境变量，一次性使用 GITHUB_PAT，防止个人的 GITHUB_PAT 随 Docker 镜像一起分发出去。
@@ -548,7 +607,11 @@ RUN export GITHUB_PAT=${GITHUB_PAT} && Rscript -e "remotes::install_deps('.', de
 
 ### 安装 Quarto 和 Pandoc
 
+<<<<<<< HEAD
 Quarto 软件内置一份 Pandoc 软件，Quarto 1.2.280 包含 Pandoc 2.19.2，Fedora 37 系统软件仓库不提供 Quarto，需要从 Quarto 官网下载安装。考虑到将来可能升级 Quarto，下面设置了环境变量 `QUARTO_VERSION`。用 Quarto 内置的版本替换了 Fedora 37 提供的低版本 Pandoc 2.14.0.3。顺便一提，网站 <https://pkgs.org/> 可以非常方便地查询软件在各大系统中的版本。
+=======
+Quarto 软件内置一份 Pandoc 软件，Quarto 1.2.280 包含 Pandoc 2.19.2，Fedora 37 系统软件仓库不提供 Quarto，需要从 Quarto 官网下载安装。考虑到将来可能升级 Quarto，下面设置了环境变量 `QUARTO_VERSION`。用 Quarto 内置的版本替换了 Fedora 37 提供的低版本 Pandoc 2.14.0.3。顺便一提，网站 <https://pkgs.org/> 可以非常方便地在各大系统中查询软件及其版本。
+>>>>>>> master
 
 ```
 # Set Quarto and Pandoc
@@ -811,7 +874,11 @@ GitHub Action 提供的 Ubuntu 虚拟机和自定义的 Fedora 镜像都可以�
 echo "install_weak_deps=False" >> /etc/dnf/dnf.conf
 ```
 
+<<<<<<< HEAD
 这操作基本相当于在 Ubuntu 系统上给 `apt-get` 命令加上 `--no-install-recommends` 参数。
+=======
+这操作基本相当于在 Ubuntu 系统上给 `apt-get` 命令加上 `--no-install-recommends` 参数，在不同 Linux 系统上包管理器命令之间的对应关系见[这里](https://wiki.archlinux.org/title/Pacman/Rosetta)，[tldr](https://github.com/tldr-pages/tldr) 的[网站](https://tldr.finzzz.net/)还提供命令的常用姿势。
+>>>>>>> master
 
 ```
 apt-get install -y --no-install-recommends PKG
@@ -863,14 +930,22 @@ docker run -itd -p 8484:8787 --name=daar \
 
 
 ::: rmdnote
+<<<<<<< HEAD
 Github Action 调用自定义的镜像运行容器，仅支持在容器中以 root 身份运行命令，详见[链接](https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#docker-container-filesystem)。以上配置的 docker 账户是不能在 Github Action 中使用的。`docker run` 命令 `-u` 参数指定以哪个账户在容器运行命令，本地是可以的。
+=======
+Github Action 调用自定义的镜像运行容器，仅支持在容器中以 root 身份运行命令，详见[链接](https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#docker-container-filesystem)。以上配置的 docker 账户是不能在 Github Action 中使用的，而在本地是可以的。`docker run` 命令 `-u` 参数可以指定以哪个账户在容器运行命令。
+>>>>>>> master
 :::
 
 # 本文小结 {#summary}
 
 1.  归纳整理一些踩坑 Github Action / Docker Container / Fedora 37  / RStudio Server，它们的交互及连续测试 CI 和连续部署 CD 的经验。借助 Github Action 打造自定义的镜像，从自定义的镜像中拉起容器，继而编译、测试书稿，再将书籍托管在 Netlify / Github Pages 等服务上。
 
+<<<<<<< HEAD
 1.  学习 [Rocker](https://github.com/rocker-org/rocker) 项目，产出一个镜像文件 Dockerfile，打造一个基于 Fedora 37 + RStudio Server 数据分析环境。Fedora 和 CentOS / RedHat 是一脉相承的，相比而言，Fedora 更新、更适合折腾，同情还在 CentOS 6/7 中[挣扎的人](https://yuanfan.rbind.io/project/installr/)，话说 [CentOS 已经不是以前的 CentOS 了](https://blog.centos.org/2020/12/future-is-centos-stream/)，[Rocky Linux ](https://rockylinux.org/) 在补位。填坑[从零搭建现代数据科学平台](https://github.com/cosname/cosx.org/issues/904)，充实[数据分析师的技能栈](https://github.com/cosname/cosx.org/issues/1047)。通过借鉴、模仿、抄袭等办法学习优秀的开源项目，融入自己的项目中解决问题。
+=======
+1.  学习 [Rocker](https://github.com/rocker-org/rocker) 项目，产出一个镜像文件 Dockerfile，打造一个基于 Fedora 37 + RStudio Server 数据分析环境。Fedora 和 CentOS / RedHat 是一脉相承的，相比而言，Fedora 更新、更适合折腾，同情还在 CentOS 6/7 中[挣扎的人](https://yuanfan.rbind.io/project/installr/)，话说 [CentOS 已经不是以前的 CentOS 了](https://blog.centos.org/2020/12/future-is-centos-stream/)，[Rocky Linux ](https://rockylinux.org/)和[AlmaLinux OS](https://almalinux.org/) 都在补位。填坑[从零搭建现代数据科学平台](https://github.com/cosname/cosx.org/issues/904)，充实[数据分析师的技能栈](https://github.com/cosname/cosx.org/issues/1047)。通过借鉴、模仿、抄袭等办法学习优秀的开源项目，融入自己的项目中解决问题。
+>>>>>>> master
 
 1.  写书的过程中，发现写作水平的提升空间还很大，写长博客是锻炼的方式。写作参考范叶亮的技术笔记 --- [Tech 101](https://leovan.me/tech101/) 详细记录在虚拟机里搭建 Hadoop / Spark / Hive 的过程。过程力求详细，坑记录完整，以后就省心省力。在这样一些基础繁琐的问题上解决得更好、更有效率是很有意义的，顺便可以就某个或某几个工具深入学习、交流、分享。
 

@@ -2,7 +2,9 @@
   <link rel="stylesheet" href="{{ .Site.Params.fontawesomeCDN }}/font-awesome/{{ .Site.Params.fontawesomeVersion }}/css/font-awesome.min.css">
   <ul class="footer-links">
     <li>
-      <a href="{{ .Site.RSSLink | relURL }}" type="application/rss+xml" target="_blank"><i class="fa fa-rss" aria-hidden="true" title="RSS"></i></a>
+      {{ with .OutputFormats.Get "RSS" }}
+      <a href="{{ .Permalink | relURL }}" type="application/rss+xml" target="_blank"><i class="fa fa-rss" aria-hidden="true" title="RSS"></i></a>
+      {{ end }}
     </li>
     <li>
       <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="{{ "img/logo/hugo.svg" | relURL }}" alt="Img link to Hugo website" style="display: inline; width: 88px; height: 22px"></a>

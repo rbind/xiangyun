@@ -297,7 +297,7 @@ echo "CXX14FLAGS += -Wno-ignored-attributes -Wno-deprecated-declarations -Wno-at
 
 # 2. RStudio
 
-> 在 Fedora Server 上安装 RStudio Server 会比较费劲，因为 RStudio 官网不提供 RPM 安装包，也需要从源码编译安装，所以之后会单独开贴讲述，见 [在 Fedora Server 上从源码安装 RStudio Server](https://www.xiangyunhuang.com.cn/2019/05/rstudio-server-fedora/)
+> 在 Fedora Server 上安装 RStudio Server 会比较费劲，因为 RStudio 官网不提供 RPM 安装包，也需要从源码编译安装，所以之后会单独开贴讲述，见 [在 Fedora Server 上从源码安装 RStudio Server](/2019/05/rstudio-server-fedora/)
 
 下载安装 RStudio Server，截至写作时间 RStudio Server 最新的稳定版是 **1.2.1335**，这里先安装 gdebi-core 是为了自动解决安装包的系统依赖问题，因为这里的安装包是系统包管理器外的第三方 deb 包
 

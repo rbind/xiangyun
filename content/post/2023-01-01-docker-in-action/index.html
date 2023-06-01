@@ -103,6 +103,16 @@ description: "以打造书籍配套的运行环境为例，学习 Docker 基本�
 <img src="img/data-analysis.svg" alt="" />
 <p class="caption">图 1.4:  《R 语言数据分析实战》</p>
 </div>
+<<<<<<< HEAD
+=======
+<p>下面的入门篇和进阶篇是围绕两个 Dockerfile 文件展开的，都在书籍仓库里 —
+<a href="https://github.com/XiangyunHuang/data-analysis-in-action" class="uri">https://github.com/XiangyunHuang/data-analysis-in-action</a>。将本文和 Dockerfile 文件对照看，既具体到细节又不失整体的概况。</p>
+<ul>
+<li><a href="https://github.com/XiangyunHuang/data-analysis-in-action/blob/main/fedora_rstudio.Dockerfile"><code>fedora_rstudio.Dockerfile</code></a> 对应标准版 Docker 镜像</li>
+<li><a href="https://github.com/XiangyunHuang/data-analysis-in-action/blob/main/fedora_rstudio_pro.Dockerfile"><code>fedora_rstudio_pro.Dockerfile</code></a> 对应专业版 Docker 镜像</li>
+</ul>
+<p>当本文学习完，相信读者可以基于<strong>任意</strong>操作系统<strong>任意</strong>项目搭建环境，构建 Docker 镜像，复杂如 <a href="https://github.com/rocker-org/rocker">rocker</a> 项目和<a href="https://github.com/rstudio/rstudio-docker-products">rstudio-docker-products</a>项目也不难掌握。</p>
+>>>>>>> master
 </div>
 <div id="develop-dockerfile" class="section level1" number="2">
 <h1><span class="header-section-number">2</span> 开发 Dockerfile — 入门篇</h1>
@@ -241,6 +251,13 @@ groupadd staff \
 echo &#39;docker:docker123&#39; | chpasswd</code></pre>
 <p>如果用户账户及密码不对，则登陆 RStudio Server 时会报下面的错误。</p>
 <pre><code>Error: Incorrect or invalid username/password</code></pre>
+<<<<<<< HEAD
+=======
+<div class="figure"><span style="display:block;" id="fig:rstudio-server-account"></span>
+<img src="img/rstudio-server-login-error.png" style="width:55.0%" alt="" />
+<p class="caption">图 2.1: 配置标准账户</p>
+</div>
+>>>>>>> master
 <div class="rmdwarn">
 <p>RStudio Server 不允许以 root 账户登陆的，必须创建普通账户，可以给普通账户授予管理员权限，安装系统软件。</p>
 </div>
@@ -312,7 +329,17 @@ Failed to connect to bus: Host is down</code></pre>
 <pre class="bash"><code>timedatectl show --property=Timezone</code></pre>
 <p>正常情况下，可以看到输出：</p>
 <pre><code>Timezone=Etc/UTC</code></pre>
+<<<<<<< HEAD
 <p>而在 R 控制台输入 <code>Sys.timezone()</code> 可以看到 <code>UTC</code>，这是我在 Dockerfile 里设置好的，是预期的输出。</p>
+=======
+<p>而在 R 控制台输入 <code>Sys.timezone()</code> 可以看到 <code>UTC</code>，这是我在 Dockerfile 里设置好的，是预期的输出。下面在 Dockerfile 里设置系统语言环境和时区。</p>
+<pre><code># Set locale
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US.UTF-8
+
+# Set default timezone
+ENV TZ UTC</code></pre>
+>>>>>>> master
 </div>
 <div id="setup-latex" class="section level2" number="2.7">
 <h2><span class="header-section-number">2.7</span> 安装一些 LaTeX 宏包</h2>
@@ -340,7 +367,11 @@ Failed to connect to bus: Host is down</code></pre>
 <p><a href="https://www.ghostscript.com/">ghostscript</a> 做字体处理，<a href="https://optipng.sourceforge.net/">optipng</a> 做图片优化，<a href="https://imagemagick.org/">ImageMagick</a> 做图像处理。</p>
 <div class="figure"><span style="display:block;" id="fig:imagemagick"></span>
 <img src="img/imagemagick.png" style="width:35.0%" alt="" />
+<<<<<<< HEAD
 <p class="caption">图 2.1:  ImageMagick</p>
+=======
+<p class="caption">图 2.2:  ImageMagick</p>
+>>>>>>> master
 </div>
 </div>
 <div id="安装一些-r-包依赖" class="section level2" number="2.8">
@@ -358,6 +389,10 @@ Failed to connect to bus: Host is down</code></pre>
    igraph-devel \
    NLopt-devel</code></pre>
 <ul>
+<<<<<<< HEAD
+=======
+<li>curl / openssl / git2r / xml2 / V8 等基础包</li>
+>>>>>>> master
 <li>（广义）线性混合效应模型包 <a href="https://github.com/lme4/lme4">lme4</a> 需要 nloptr 包，<a href="https://github.com/astamm/nloptr">nloptr</a> 包需要 NLopt-devel</li>
 <li>网络分析与可视化包 <a href="https://github.com/igraph/rigraph">igraph</a> 需要 libxml2-devel、glpk-devel、gmp-devel 等</li>
 </ul>
@@ -383,6 +418,7 @@ Failed to connect to bus: Host is down</code></pre>
    initscripts \
    firewalld \
    python3-virtualenv </code></pre>
+<<<<<<< HEAD
 <p>Dockerfile 里设置系统语言环境和时区，最后，将工作目录切换到 docker 用户主目录。</p>
 <pre><code># Set locale
 ENV LANG=en_US.UTF-8 \
@@ -392,6 +428,10 @@ ENV LANG=en_US.UTF-8 \
 ENV TZ UTC
 
 WORKDIR /home/docker/</code></pre>
+=======
+<p>最后，将工作目录切换到 docker 用户主目录。</p>
+<pre><code>WORKDIR /home/docker/</code></pre>
+>>>>>>> master
 </div>
 <div id="本地构建-docker-镜像" class="section level2" number="2.10">
 <h2><span class="header-section-number">2.10</span> 本地构建 Docker 镜像</h2>
@@ -434,16 +474,25 @@ WORKDIR /home/docker/</code></pre>
 <p>最后，构建的 Docker 镜像包含 13 层，好些层还很大，动辄上 G。</p>
 <div class="figure"><span style="display:block;" id="fig:docker-image-layer"></span>
 <img src="img/docker-image-layer.png" alt="" />
+<<<<<<< HEAD
 <p class="caption">图 2.2:  Docker 镜像包含 13 层</p>
+=======
+<p class="caption">图 2.3:  Docker 镜像包含 13 层</p>
+>>>>>>> master
 </div>
 <p><a href="https://hub.docker.com/">Docker Hub</a> 上显示 <a href="https://hub.docker.com/repository/docker/xiangyunhuang/daar/tags?page=1&amp;ordering=last_updated">3.29 G</a>，拉取到本地后，从图中可以看到 Docker 镜像的大小是 8.39 G，由此可知，Docker Hub 存储的镜像是压缩的。</p>
 <div class="figure"><span style="display:block;" id="fig:docker-image-size"></span>
 <img src="img/docker-image-size.png" alt="" />
+<<<<<<< HEAD
 <p class="caption">图 2.3:  Docker 镜像解压缩后近 8.4 G</p>
+=======
+<p class="caption">图 2.4:  Docker 镜像解压缩后近 8.4 G</p>
+>>>>>>> master
 </div>
 <p>进入容器后，通过命令 top 可以看到启动的服务及其状态信息，看到 RStudio Server 服务随着容器启动后自动加载了。</p>
 <div class="figure"><span style="display:block;" id="fig:rstudio-server-status"></span>
 <img src="img/rstudio-server-status.png" alt="" />
+<<<<<<< HEAD
 <p class="caption">图 2.4:  RStudio Server 服务以开机启动</p>
 </div>
 <p>容器中已安装的<a href="data/installed_fonts.txt">字体</a>、<a href="data/installed_packages.txt">软件包</a>、<a href="data/installed_r_packages.txt">R 包</a>和 <a href="data/installed_texlive.txt">texlive 发行版</a>，点击链接即可查看具体内容，以后若想加一些软件，可以搜索查找是否已安装<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>。</p>
@@ -451,17 +500,34 @@ WORKDIR /home/docker/</code></pre>
 <div class="figure"><span style="display:block;" id="fig:rstudio-server-login"></span>
 <img src="img/rstudio-server-login.png" alt="" />
 <p class="caption">图 2.5:  RStudio Server 登陆页面</p>
+=======
+<p class="caption">图 2.5:  RStudio Server 服务以开机启动</p>
+</div>
+<p>容器中已安装的<a href="data/installed_fonts.txt">字体</a>、<a href="data/installed_packages.txt">软件包</a>、<a href="data/installed_r_packages.txt">R 包</a>和 <a href="data/installed_texlive.txt">texlive 发行版</a>，点击链接即可查看具体内容，以后若想加一些软件，可以搜索查找是否已安装<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>，不要在 Dockerfile 里重复地加内容。如果能进入容器，也可以用 <code>dnf info PKG</code> 或 <code>dnf list installed | grep PKG</code> 查看 PKG 是否已安装。</p>
+<p>现在，可以从浏览器网址 <a href="http://localhost:8383/" class="uri">http://localhost:8383/</a> 登陆 RStudio Server， 登陆页见下图 <a href="#fig:rstudio-server-login">2.6</a></p>
+<div class="figure"><span style="display:block;" id="fig:rstudio-server-login"></span>
+<img src="img/rstudio-server-login.png" alt="" />
+<p class="caption">图 2.6:  RStudio Server 登陆页面</p>
+>>>>>>> master
 </div>
 <p>登陆进来后，可以看到 RStudio Server 的界面，与桌面版没啥区别。</p>
 <div class="figure"><span style="display:block;" id="fig:rstudio-server-window"></span>
 <img src="img/rstudio-server-window.png" alt="" />
+<<<<<<< HEAD
 <p class="caption">图 2.6:  RStudio Server 界面窗口</p>
+=======
+<p class="caption">图 2.7:  RStudio Server 界面窗口</p>
+>>>>>>> master
 </div>
 <ol style="list-style-type: decimal">
 <li>R 控制台，命令窗口</li>
 <li>帮助子窗口，显示帮助文档</li>
 <li>环境子窗口，显示当前运行环境中的变量信息。</li>
+<<<<<<< HEAD
 <li>RStudio IDE 得主菜单栏</li>
+=======
+<li>RStudio IDE 的主菜单栏</li>
+>>>>>>> master
 <li>当前登陆 RStudio Server 的用户。</li>
 </ol>
 <div class="rmdtip">
@@ -474,7 +540,11 @@ WORKDIR /home/docker/</code></pre>
 <p><code>capabilities()</code> 查看当前 R 软件的能力</p>
 <div class="figure"><span style="display:block;" id="fig:rstudio-server-volume"></span>
 <img src="img/rstudio-server-volume.png" alt="" />
+<<<<<<< HEAD
 <p class="caption">图 2.7:  RStudio Server 与主机共享文件和目录</p>
+=======
+<p class="caption">图 2.8:  RStudio Server 与主机共享文件和目录</p>
+>>>>>>> master
 </div>
 <ol style="list-style-type: decimal">
 <li>除了 X11（桌面版才可以有）、 aqua（macOS 专属）和 libxml 外，都支持，已然足够使用。</li>
@@ -483,7 +553,11 @@ WORKDIR /home/docker/</code></pre>
 <p><code>sessionInfo()</code> 查看当前运行窗口的会话（Session）信息</p>
 <div class="figure"><span style="display:block;" id="fig:rstudio-server-session"></span>
 <img src="img/rstudio-server-session.png" alt="" />
+<<<<<<< HEAD
 <p class="caption">图 2.8:  RStudio Server 控制台当前运行环境</p>
+=======
+<p class="caption">图 2.9:  RStudio Server 控制台当前运行环境</p>
+>>>>>>> master
 </div>
 </div>
 <div id="docker-arg-env" class="section level2" number="2.13">
@@ -509,6 +583,12 @@ numpy:          /opt/.virtualenvs/r-tensorflow/lib64/python3.11/site-packages/nu
 numpy_version:  1.24.1
 
 NOTE: Python version was forced by RETICULATE_PYTHON</code></pre>
+<<<<<<< HEAD
+=======
+<div class="rmdtip">
+<p>Dockerfile 里 COPY 命令的作用是将目录（与 Dockerfile 同一目录）下的文件复制到镜像里，一般在构建镜像的时候使用，如果不清理，会一直存在于镜像里，并随之分发。</p>
+</div>
+>>>>>>> master
 </div>
 <div id="安装开发版-r-包" class="section level3" number="2.13.2">
 <h3><span class="header-section-number">2.13.2</span> 安装开发版 R 包</h3>
@@ -519,7 +599,11 @@ RUN export GITHUB_PAT=${GITHUB_PAT} &amp;&amp; Rscript -e &quot;remotes::install
 </div>
 <div id="安装-quarto-和-pandoc" class="section level3" number="2.13.3">
 <h3><span class="header-section-number">2.13.3</span> 安装 Quarto 和 Pandoc</h3>
+<<<<<<< HEAD
 <p>Quarto 软件内置一份 Pandoc 软件，Quarto 1.2.280 包含 Pandoc 2.19.2，Fedora 37 系统软件仓库不提供 Quarto，需要从 Quarto 官网下载安装。考虑到将来可能升级 Quarto，下面设置了环境变量 <code>QUARTO_VERSION</code>。用 Quarto 内置的版本替换了 Fedora 37 提供的低版本 Pandoc 2.14.0.3。顺便一提，网站 <a href="https://pkgs.org/" class="uri">https://pkgs.org/</a> 可以非常方便地查询软件在各大系统中的版本。</p>
+=======
+<p>Quarto 软件内置一份 Pandoc 软件，Quarto 1.2.280 包含 Pandoc 2.19.2，Fedora 37 系统软件仓库不提供 Quarto，需要从 Quarto 官网下载安装。考虑到将来可能升级 Quarto，下面设置了环境变量 <code>QUARTO_VERSION</code>。用 Quarto 内置的版本替换了 Fedora 37 提供的低版本 Pandoc 2.14.0.3。顺便一提，网站 <a href="https://pkgs.org/" class="uri">https://pkgs.org/</a> 可以非常方便地在各大系统中查询软件及其版本。</p>
+>>>>>>> master
 <pre><code># Set Quarto and Pandoc
 RUN curl -fLo quarto.tar.gz https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_VERSION}/quarto-${QUARTO_VERSION}-linux-amd64.tar.gz \
  &amp;&amp; mkdir -p /opt/quarto/ \
@@ -718,7 +802,11 @@ RUN dnf -y copr enable iucar/cran \
 <h2><span class="header-section-number">3.3</span> 不要安装弱依赖</h2>
 <p>配置 dnf 软件包管理器，不要安装软件弱依赖，弱依赖对软件正常运行是不必要的，类似 R 包的 Suggests 级依赖，给 Docker 镜像瘦身。</p>
 <pre class="bash"><code>echo &quot;install_weak_deps=False&quot; &gt;&gt; /etc/dnf/dnf.conf</code></pre>
+<<<<<<< HEAD
 <p>这操作基本相当于在 Ubuntu 系统上给 <code>apt-get</code> 命令加上 <code>--no-install-recommends</code> 参数。</p>
+=======
+<p>这操作基本相当于在 Ubuntu 系统上给 <code>apt-get</code> 命令加上 <code>--no-install-recommends</code> 参数，在不同 Linux 系统上包管理器命令之间的对应关系见<a href="https://wiki.archlinux.org/title/Pacman/Rosetta">这里</a>，<a href="https://github.com/tldr-pages/tldr">tldr</a> 的<a href="https://tldr.finzzz.net/">网站</a>还提供命令的常用姿势。</p>
+>>>>>>> master
 <pre><code>apt-get install -y --no-install-recommends PKG</code></pre>
 <p>以安装软件 proj-devel 为例，配置不安装弱依赖，则只需占用 20 M 空间，而安装弱依赖则需要占用 589 M 空间，这有 <strong>30 倍的瘦身效果</strong>。当然，实际瘦身效果取决于软件本身的弱依赖大小。</p>
 <p>配置文件中还有好些个设置，比如下面一行表示不安装软件的帮助文档，这意味着 man 命令无法查看命令帮助手册。这选项设置让我想起了 <a href="https://github.com/rstudio/tinytex">TinyTeX</a> 项目，为了瘦身，默认不安装 LaTeX 宏包的帮助文档。</p>
@@ -747,7 +835,11 @@ install_weak_deps=False</code></pre>
   -e USER=docker -e PASSWORD=docker123 ghcr.io/xiangyunhuang/daar:latest</code></pre>
 <p>接着，将此用户作为登陆 RStudio 的用户，是否需要将该用户添加到 sudoers 文件中，也是可以通过这种方式控制的，比如再传递变量 <code>-e ROOT=true</code> 赋予用户管理员权限，这部分留待读者去实现。</p>
 <div class="rmdnote">
+<<<<<<< HEAD
 <p>Github Action 调用自定义的镜像运行容器，仅支持在容器中以 root 身份运行命令，详见<a href="https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#docker-container-filesystem">链接</a>。以上配置的 docker 账户是不能在 Github Action 中使用的。<code>docker run</code> 命令 <code>-u</code> 参数指定以哪个账户在容器运行命令，本地是可以的。</p>
+=======
+<p>Github Action 调用自定义的镜像运行容器，仅支持在容器中以 root 身份运行命令，详见<a href="https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#docker-container-filesystem">链接</a>。以上配置的 docker 账户是不能在 Github Action 中使用的，而在本地是可以的。<code>docker run</code> 命令 <code>-u</code> 参数可以指定以哪个账户在容器运行命令。</p>
+>>>>>>> master
 </div>
 </div>
 </div>
@@ -755,7 +847,11 @@ install_weak_deps=False</code></pre>
 <h1><span class="header-section-number">4</span> 本文小结</h1>
 <ol style="list-style-type: decimal">
 <li><p>归纳整理一些踩坑 Github Action / Docker Container / Fedora 37 / RStudio Server，它们的交互及连续测试 CI 和连续部署 CD 的经验。借助 Github Action 打造自定义的镜像，从自定义的镜像中拉起容器，继而编译、测试书稿，再将书籍托管在 Netlify / Github Pages 等服务上。</p></li>
+<<<<<<< HEAD
 <li><p>学习 <a href="https://github.com/rocker-org/rocker">Rocker</a> 项目，产出一个镜像文件 Dockerfile，打造一个基于 Fedora 37 + RStudio Server 数据分析环境。Fedora 和 CentOS / RedHat 是一脉相承的，相比而言，Fedora 更新、更适合折腾，同情还在 CentOS 6/7 中<a href="https://yuanfan.rbind.io/project/installr/">挣扎的人</a>，话说 <a href="https://blog.centos.org/2020/12/future-is-centos-stream/">CentOS 已经不是以前的 CentOS 了</a>，<a href="https://rockylinux.org/">Rocky Linux</a> 在补位。填坑<a href="https://github.com/cosname/cosx.org/issues/904">从零搭建现代数据科学平台</a>，充实<a href="https://github.com/cosname/cosx.org/issues/1047">数据分析师的技能栈</a>。通过借鉴、模仿、抄袭等办法学习优秀的开源项目，融入自己的项目中解决问题。</p></li>
+=======
+<li><p>学习 <a href="https://github.com/rocker-org/rocker">Rocker</a> 项目，产出一个镜像文件 Dockerfile，打造一个基于 Fedora 37 + RStudio Server 数据分析环境。Fedora 和 CentOS / RedHat 是一脉相承的，相比而言，Fedora 更新、更适合折腾，同情还在 CentOS 6/7 中<a href="https://yuanfan.rbind.io/project/installr/">挣扎的人</a>，话说 <a href="https://blog.centos.org/2020/12/future-is-centos-stream/">CentOS 已经不是以前的 CentOS 了</a>，<a href="https://rockylinux.org/">Rocky Linux</a>和<a href="https://almalinux.org/">AlmaLinux OS</a> 都在补位。填坑<a href="https://github.com/cosname/cosx.org/issues/904">从零搭建现代数据科学平台</a>，充实<a href="https://github.com/cosname/cosx.org/issues/1047">数据分析师的技能栈</a>。通过借鉴、模仿、抄袭等办法学习优秀的开源项目，融入自己的项目中解决问题。</p></li>
+>>>>>>> master
 <li><p>写书的过程中，发现写作水平的提升空间还很大，写长博客是锻炼的方式。写作参考范叶亮的技术笔记 — <a href="https://leovan.me/tech101/">Tech 101</a> 详细记录在虚拟机里搭建 Hadoop / Spark / Hive 的过程。过程力求详细，坑记录完整，以后就省心省力。在这样一些基础繁琐的问题上解决得更好、更有效率是很有意义的，顺便可以就某个或某几个工具深入学习、交流、分享。</p></li>
 </ol>
 </div>

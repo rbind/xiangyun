@@ -18,7 +18,7 @@ description: "仅以此篇献给爱折腾的人。RStudio Server 不提供 Fedor
 
 # 1. 系统依赖
 
-在虚拟机 VirtualBox 中已经安装好了 Fedora Server 服务器版本，R 软件可以是从源码仓库中自己编译安装的，也可以从系统包管理器中安装，简单起见，我们从包管理器中安装，若想从源码安装可参考 [从源码安装最新的开发版 R](https://www.xiangyunhuang.com.cn/2019/05/r-devel-ubuntu/)
+在虚拟机 VirtualBox 中已经安装好了 Fedora Server 服务器版本，R 软件可以是从源码仓库中自己编译安装的，也可以从系统包管理器中安装，简单起见，我们从包管理器中安装，若想从源码安装可参考 [从源码安装最新的开发版 R](/2019/05/r-devel-ubuntu/)
 
 安装 R 和常用R包的系统依赖
 
