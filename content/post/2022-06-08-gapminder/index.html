@@ -317,16 +317,15 @@ saveRDS(wb_world_indicator, file = &quot;wb_world_indicator.rds&quot;)</code></p
 #  $ last_updated: Date[1:147994], format: &quot;2022-05-25&quot; &quot;2022-05-25&quot; ...
 head(wb_world_indicator)
 # # A tibble: 6 × 11
-#   indicator_id   indicator iso2c iso3c country  date value unit  obs_s…¹ footn…²
-#   &lt;chr&gt;          &lt;chr&gt;     &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;   &lt;chr&gt;  
-# 1 SL.UEM.TOTL.ZS Unemploy… AF    AFG   Afghan…  2021  13.3 &lt;NA&gt;  &lt;NA&gt;    &lt;NA&gt;   
-# 2 SL.UEM.TOTL.ZS Unemploy… AF    AFG   Afghan…  2020  11.7 &lt;NA&gt;  &lt;NA&gt;    &lt;NA&gt;   
-# 3 SL.UEM.TOTL.ZS Unemploy… AF    AFG   Afghan…  2019  11.2 &lt;NA&gt;  &lt;NA&gt;    &lt;NA&gt;   
-# 4 SL.UEM.TOTL.ZS Unemploy… AF    AFG   Afghan…  2018  11.2 &lt;NA&gt;  &lt;NA&gt;    &lt;NA&gt;   
-# 5 SL.UEM.TOTL.ZS Unemploy… AF    AFG   Afghan…  2017  11.2 &lt;NA&gt;  &lt;NA&gt;    &lt;NA&gt;   
-# 6 SL.UEM.TOTL.ZS Unemploy… AF    AFG   Afghan…  2016  11.2 &lt;NA&gt;  &lt;NA&gt;    &lt;NA&gt;   
-# # … with 1 more variable: last_updated &lt;date&gt;, and abbreviated variable names
-# #   ¹​obs_status, ²​footnote</code></pre>
+#   indicator_id   indicator      iso2c iso3c country  date value unit  obs_status
+#   &lt;chr&gt;          &lt;chr&gt;          &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;     
+# 1 SL.UEM.TOTL.ZS Unemployment,… AF    AFG   Afghan…  2021  13.3 &lt;NA&gt;  &lt;NA&gt;      
+# 2 SL.UEM.TOTL.ZS Unemployment,… AF    AFG   Afghan…  2020  11.7 &lt;NA&gt;  &lt;NA&gt;      
+# 3 SL.UEM.TOTL.ZS Unemployment,… AF    AFG   Afghan…  2019  11.2 &lt;NA&gt;  &lt;NA&gt;      
+# 4 SL.UEM.TOTL.ZS Unemployment,… AF    AFG   Afghan…  2018  11.2 &lt;NA&gt;  &lt;NA&gt;      
+# 5 SL.UEM.TOTL.ZS Unemployment,… AF    AFG   Afghan…  2017  11.2 &lt;NA&gt;  &lt;NA&gt;      
+# 6 SL.UEM.TOTL.ZS Unemployment,… AF    AFG   Afghan…  2016  11.2 &lt;NA&gt;  &lt;NA&gt;      
+# # ℹ 2 more variables: footnote &lt;chr&gt;, last_updated &lt;date&gt;</code></pre>
 <p>接着获取各个国家的元数据信息，也查看数据情况。</p>
 <pre class="r"><code>wb_countries_info &lt;- wbstats::wb_countries()
 str(wb_countries_info)
@@ -704,7 +703,10 @@ ggplot(
   )</code></pre>
 </details>
 <pre><code># Warning: The `size` argument of `element_line()` is deprecated as of ggplot2 3.4.0.
-# ℹ Please use the `linewidth` argument instead.</code></pre>
+# ℹ Please use the `linewidth` argument instead.
+# This warning is displayed once every 8 hours.
+# Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+# generated.</code></pre>
 <div class="figure" style="text-align: center"><span style="display:block;" id="fig:hans-density-ridges"></span>
 <img src="{{< blogdown/postref >}}index_files/figure-html/hans-density-ridges-1.png" alt="世界人均 GDP 分布图" width="864" />
 <p class="caption">
@@ -1080,20 +1082,24 @@ wb_hans2 |&gt;
   &quot;ggridges&quot;, &quot;ragg&quot;, &quot;showtext&quot;,
   &quot;wbstats&quot;, &quot;gapminder&quot;, &quot;ggrepel&quot;
 ), dependencies = FALSE)
-# R version 4.2.2 (2022-10-31)
-# Platform: x86_64-apple-darwin22.1.0 (64-bit)
-# Running under: macOS Ventura 13.2
+# R version 4.3.0 (2023-04-21)
+# Platform: x86_64-apple-darwin22.4.0 (64-bit)
+# Running under: macOS Ventura 13.4
+# 
 # 
 # Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
 # 
+# time zone: Asia/Shanghai
+# tzcode source: internal
+# 
 # Package version:
-#   blogdown_1.16   echarts4r_0.4.4 gapminder_0.3.0 gganimate_1.0.8
-#   ggplot2_3.4.1   ggrepel_0.9.3   ggridges_0.5.4  knitr_1.42     
-#   ragg_1.2.5      rmarkdown_2.20  showtext_0.9-5  wbstats_1.0.4  
+#   blogdown_1.17   echarts4r_0.4.4 gapminder_1.0.0 gganimate_1.0.8
+#   ggplot2_3.4.2   ggrepel_0.9.3   ggridges_0.5.4  knitr_1.43     
+#   ragg_1.2.5      rmarkdown_2.21  showtext_0.9-6  wbstats_1.0.4  
 # 
 # Pandoc version: 2.19.2
 # 
-# Hugo version: 0.109.0</code></pre>
+# Hugo version: 0.112.5</code></pre>
 </div>
 <div id="参考文献" class="section level1" number="8">
 <h1><span class="header-section-number">8</span> 参考文献</h1>
