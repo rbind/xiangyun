@@ -116,7 +116,7 @@ tmp[1] |&gt; html_elements(&quot;div.bd .star .rating_num&quot;) |&gt;
 tmp[1] |&gt; html_elements(css = &quot;div.bd .star span&quot;) |&gt; 
   html_text() |&gt; 
   grep(pattern = &quot;人评价&quot;, value = TRUE)</code></pre>
-<pre><code>## [1] &quot;2807568人评价&quot;</code></pre>
+<pre><code>## [1] &quot;2860862人评价&quot;</code></pre>
 <p>通过观察，了解到豆瓣排行榜的列表页的链接规律，每页显示 25 部电影，一共有 10 页，如下构造 250 部电影在 10 个页面的链接。</p>
 <pre class="r"><code>douban_movie_top250_links &lt;- sprintf(&quot;https://movie.douban.com/top250?start=%s&amp;filter=&quot;, 25*0:9)</code></pre>
 <p>最后，将上面发现的规律应用于所有页面的爬取。</p>
@@ -343,19 +343,23 @@ options(reactable.language = reactableLang(
   &quot;knitr&quot;, &quot;rmarkdown&quot;, &quot;blogdown&quot;,
   &quot;reactable&quot;, &quot;xml2&quot;, &quot;rvest&quot;, &quot;ggplot2&quot;, &quot;showtext&quot;
 ), dependencies = FALSE)</code></pre>
-<pre><code>## R version 4.2.2 (2022-10-31)
-## Platform: x86_64-apple-darwin22.1.0 (64-bit)
-## Running under: macOS Ventura 13.2.1
+<pre><code>## R version 4.3.0 (2023-04-21)
+## Platform: x86_64-apple-darwin22.4.0 (64-bit)
+## Running under: macOS Ventura 13.4
+## 
 ## 
 ## Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
 ## 
+## time zone: Asia/Shanghai
+## tzcode source: internal
+## 
 ## Package version:
-##   blogdown_1.16   ggplot2_3.4.1   knitr_1.42      reactable_0.4.3
-##   rmarkdown_2.20  rvest_1.0.3     showtext_0.9-5  xml2_1.3.3     
+##   blogdown_1.17   ggplot2_3.4.2   knitr_1.43      reactable_0.4.4
+##   rmarkdown_2.21  rvest_1.0.3     showtext_0.9-6  xml2_1.3.4     
 ## 
 ## Pandoc version: 2.19.2
 ## 
-## Hugo version: 0.109.0</code></pre>
+## Hugo version: 0.112.5</code></pre>
 </div>
 <div id="refer" class="section level1" number="7">
 <h1><span class="header-section-number">7</span> 参考文献</h1>

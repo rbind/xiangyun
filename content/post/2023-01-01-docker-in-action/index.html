@@ -375,7 +375,6 @@ ENV TZ UTC</code></pre>
    igraph-devel \
    NLopt-devel</code></pre>
 <ul>
-<li>curl / openssl / git2r / xml2 / V8 等基础包</li>
 <li>（广义）线性混合效应模型包 <a href="https://github.com/lme4/lme4">lme4</a> 需要 nloptr 包，<a href="https://github.com/astamm/nloptr">nloptr</a> 包需要 NLopt-devel</li>
 <li>网络分析与可视化包 <a href="https://github.com/igraph/rigraph">igraph</a> 需要 libxml2-devel、glpk-devel、gmp-devel 等</li>
 </ul>
@@ -401,8 +400,15 @@ ENV TZ UTC</code></pre>
    initscripts \
    firewalld \
    python3-virtualenv </code></pre>
-<p>最后，将工作目录切换到 docker 用户主目录。</p>
-<pre><code>WORKDIR /home/docker/</code></pre>
+<p>Dockerfile 里设置系统语言环境和时区，最后，将工作目录切换到 docker 用户主目录。</p>
+<pre><code># Set locale
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US.UTF-8
+
+# Set default timezone
+ENV TZ UTC
+
+WORKDIR /home/docker/</code></pre>
 </div>
 <div id="本地构建-docker-镜像" class="section level2" number="2.10">
 <h2><span class="header-section-number">2.10</span> 本地构建 Docker 镜像</h2>

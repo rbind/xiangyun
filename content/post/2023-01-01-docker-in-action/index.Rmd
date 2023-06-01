@@ -62,6 +62,7 @@ Docker 镜像以打包的方式处理依赖问题。其一软件依赖，比如�
 
 ![(\#fig:data-analysis) 《R 语言数据分析实战》](img/data-analysis.svg)
 
+
 下面的入门篇和进阶篇是围绕两个 Dockerfile 文件展开的，都在书籍仓库里 ---
 <https://github.com/XiangyunHuang/data-analysis-in-action>。将本文和 Dockerfile 文件对照看，既具体到细节又不失整体的概况。
 
@@ -70,7 +71,6 @@ Docker 镜像以打包的方式处理依赖问题。其一软件依赖，比如�
 
 
 当本文学习完，相信读者可以基于**任意**操作系统**任意**项目搭建环境，构建 Docker 镜像，复杂如 [rocker](https://github.com/rocker-org/rocker) 项目和[rstudio-docker-products](https://github.com/rstudio/rstudio-docker-products)项目也不难掌握。
-
 
 # 开发 Dockerfile --- 入门篇 {#develop-dockerfile}
 
@@ -364,7 +364,6 @@ dnf -y install libcurl-devel \
    NLopt-devel
 ```
 
-- curl / openssl / git2r / xml2 / V8 等基础包
 - （广义）线性混合效应模型包 [lme4](https://github.com/lme4/lme4) 需要 nloptr 包，[nloptr](https://github.com/astamm/nloptr) 包需要 NLopt-devel
 - 网络分析与可视化包 [igraph](https://github.com/igraph/rigraph) 需要 libxml2-devel、glpk-devel、gmp-devel 等
 
@@ -392,9 +391,16 @@ dnf -y install glibc-langpack-en \
    python3-virtualenv 
 ```
 
-最后，将工作目录切换到 docker 用户主目录。
+Dockerfile 里设置系统语言环境和时区，最后，将工作目录切换到 docker 用户主目录。
 
 ```
+# Set locale
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US.UTF-8
+
+# Set default timezone
+ENV TZ UTC
+
 WORKDIR /home/docker/
 ```
 
@@ -501,8 +507,6 @@ Docker 中的 RStudio 及相关软件的信息如下：
 - Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36
 :::
 
-
-
 `capabilities()` 查看当前 R 软件的能力
 
 ![(\#fig:rstudio-server-volume) RStudio Server 与主机共享文件和目录](img/rstudio-server-volume.png)
@@ -513,8 +517,6 @@ Docker 中的 RStudio 及相关软件的信息如下：
 `sessionInfo()` 查看当前运行窗口的会话（Session）信息
 
 ![(\#fig:rstudio-server-session) RStudio Server 控制台当前运行环境](img/rstudio-server-session.png)
-
-
 
 ## Docker 参数作为环境变量  {#docker-arg-env}
 
@@ -550,7 +552,6 @@ NOTE: Python version was forced by RETICULATE_PYTHON
 ::: rmdtip
 Dockerfile 里 COPY 命令的作用是将目录（与 Dockerfile 同一目录）下的文件复制到镜像里，一般在构建镜像的时候使用，如果不清理，会一直存在于镜像里，并随之分发。
 :::
-
 
 ### 安装开发版 R 包
 
@@ -838,7 +839,6 @@ apt-get install -y --no-install-recommends PKG
 
 配置文件中还有好些个设置，比如下面一行表示不安装软件的帮助文档，这意味着 man 命令无法查看命令帮助手册。这选项设置让我想起了 [TinyTeX](https://github.com/rstudio/tinytex) 项目，为了瘦身，默认不安装 LaTeX 宏包的帮助文档。
 
-
 ```
 tsflags=nodocs
 ```
@@ -905,4 +905,3 @@ Github Action 调用自定义的镜像运行容器，仅支持在容器中以 ro
 1. RStudio Server (Posit Workbench) 官方文档 <https://docs.posit.co/rsw/>
 1. Bash 教程 <https://github.com/wangdoc/bash-tutorial>
 1. Fedora Packages of R Software. <https://cran.r-project.org/bin/linux/fedora/>
-
