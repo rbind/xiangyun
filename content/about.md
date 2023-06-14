@@ -15,15 +15,16 @@ title: 关于
 | 2017 | [随机数生成及其在统计模拟中的应用](https://cosx.org/2017/05/random-number-generation/)  |
 | 2016 | [R 语言做符号计算](https://cosx.org/2016/07/r-symbol-calculate) |
 
-近年来，陆续在统计之都主办的中国 R 语言大会和云讲堂上和大家分享、交流。
+近年来，陆续在统计之都主办的中国 R 语言大会、云讲堂上和大家交流。
 
 |年份  |类别  |标题  |
 |:-----|:-----|:----------|
 |2022  | 云讲堂 | [R Markdown 制作 beamer 幻灯片](https://www.bilibili.com/video/BV1GP411j7pJ/) |
-|2021  | 第 14 届 R 语言会议 | [开发企业级 Shiny 应用的技术栈](https://www.bilibili.com/video/BV1FY411s7iv/) |
-|2020  | 第 13 届 R 语言会议 | [可重复性数据分析及其工业实践](https://www.bilibili.com/video/BV1Vp4y1B7N1/)  |
-|2019  | 第 12 届 R 语言会议 | [统计之都在线投稿系统](https://wp-contents.netlify.com/talks/2019-chinar12th-cos-blogdown) |
-|2018  | 第 11 届 R 语言会议 | [R Markdown 应用之学位论文排版](https://wp-contents.netlify.com/talks/chinar11th.pdf) |
+|2022  | 第 15 届中国 R 语言会议 | 软件工具专场组织者 |
+|2021  | 第 14 届中国 R 语言会议 | [开发企业级 Shiny 应用的技术栈](https://www.bilibili.com/video/BV1FY411s7iv/) |
+|2020  | 第 13 届中国 R 语言会议 | [可重复性数据分析及其工业实践](https://www.bilibili.com/video/BV1Vp4y1B7N1/)  |
+|2019  | 第 12 届中国 R 语言会议 | [统计之都在线投稿系统](https://wp-contents.netlify.com/talks/2019-chinar12th-cos-blogdown) |
+|2018  | 第 11 届中国 R 语言会议 | [R Markdown 应用之学位论文排版](https://wp-contents.netlify.com/talks/chinar11th.pdf) |
 
 近些年，因为统计之都和网上冲浪认识了一些人，也有一些人想去认识。不时来逛逛他（她）们的主页，总有让人眼前一亮的地方。（按姓氏拼音归类，无排序）
 
