@@ -1,0 +1,438 @@
+---
+title: 贝叶斯数据分析工作流
+author: 黄湘云
+date: '2023-10-02'
+slug: bayesian-workflow
+categories:
+  - 统计应用
+tags:
+  - 贝叶斯空间分析
+  - 核辐射强度预测
+  - 贝叶斯高斯过程
+  - 极大似然估计
+  - 广义最小二乘估计
+  - 边际似然函数
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+math: true
+csl: institute-of-mathematical-statistics.csl
+bibliography: 
+  - refer.bib
+description: "贝叶斯数据分析工作流。一文搞懂贝叶斯空间数据分析工作流"
+---
+
+```{r}
+#| echo: false
+
+knitr::opts_chunk$set(
+  comment = "#>", collapse = TRUE
+)
+```
+
+::: rmdtip
+1.  贝叶斯高斯过程回归
+2.  核辐射数据集的贝叶斯分析
+3.  贝叶斯克里金插值及 Stan 实现
+:::
+
+# 本文概览
+
+1.  本文概览：贝叶斯数据分析工作流的概览
+2.  以预测朗格拉普岛核辐射强度分布为例，详细介绍贝叶斯工作流中的各个环节。
+    1.  统计建模：模型结构、组成部分、参数解释
+    2.  数据准备：观测数据、预测数据、参数初值
+    3.  软件准备：软件环境
+    4.  代码编写：已有函数及其解释
+    5.  代码编译：编译选项及解释
+    6.  模型采样：采样算法简介，NUTS 算法参数说明
+    7.  模型输出：模型采样输出结果的说明和解释，
+    8.  模型诊断：参数迭代轨迹和分布，诊断结果
+    9.  代码优化：根据诊断结果优化，比如并行和向量化
+    10. 模型评估：pDIC、WAIC、LOO-CV
+    11. 模型比较：泊松对数、对数高斯建模比较
+    12. 模型预测：克里金插值预测
+3.  本文小结：
+    1.  分析、建模经验
+    2.  Stan 代码调优
+
+# 工作流
+
+## 统计建模
+
+### 对数高斯模型
+
+从实际场景出发，也不难理解，位置信息是非常关键的。进一步，充分利用位置信息，精细建模是很有必要的。相邻位置的核辐射强度是相关的，离得近的比离得远的更相关。下面对辐射强度建模，假定随机效应之间存在相关性结构，去掉随机效应相互独立的假设，这更符合位置效应存在相互影响的实际情况。
+
+$$
+\log\big(\lambda(x_i)\big) = \beta + S(x_{i})
+$$
+
+其中，$\beta$ 表示截距，相当于平均水平，$\lambda(x_i)$ 表示位置 $x_i$ 处的辐射强度，$S(x_{i})$ 表示位置 $x_i$ 处的空间效应，$S(x),x \in \mathcal{D} \subset{\mathbb{R}^2}$ 是二维平稳空间高斯过程 $\mathcal{S}$ 的具体实现。 $\mathcal{D}$ 表示研究区域，可以理解为朗格拉普岛，它是二维实平面 $\mathbb{R}^2$ 的子集。
+
+### 泊松对数模型
+
+广义线性模型并没有考虑距离相关性，它认为各个观测点的数据是相互独立的。因此，在广义线性模型的基础上添加位置相关的随机效应，用以刻画未能直接观测到的潜在影响。根据 ${}^{137}\mathrm{Cs}$ 放出伽马射线，在 $n=157$ 个采样点，分别以时间间隔 $t_i$ 测量辐射量 $y(x_i)$，建立泊松型空间广义线性混合效应模型[@Diggle1998]。
+
+$$
+\begin{aligned}
+\log\{\lambda(x_i)\} & =  \beta + S(x_{i})\\
+y(x_{i}) &\sim \mathrm{Poisson}\big(t_i\lambda(x_i)\big)
+\end{aligned}
+$$
+
+其中，$\beta$ 表示截距，相当于平均水平，$\lambda(x_i)$ 表示位置 $x_i$ 处的辐射强度，$S(x_{i})$ 表示位置 $x_i$ 处的空间效应，$S(x),x \in \mathcal{D} \subset{\mathbb{R}^2}$ 是二维平稳空间高斯过程 $\mathcal{S}$ 的具体实现。 $\mathcal{D}$ 表示研究区域，可以理解为朗格拉普岛，它是二维实平面 $\mathbb{R}^2$ 的子集。
+
+随机过程 $S(x)$ 的自协方差函数常用的有指数型、幂二次指数型（高斯型）和梅隆型，形式如下：
+
+$$
+\begin{aligned}
+\mathsf{Cov}\{S(x_i), S(x_j)\} &= \sigma^2 \exp\big( -\frac{\|x_i -x_j\|_{2}}{\phi} \big) \\
+\mathsf{Cov}\{ S(x_i), S(x_j) \} &= \sigma^2 \exp\big( -\frac{\|x_i -x_j\|_{2}^{2}}{2\phi^2} \big) \\
+\mathsf{Cov}\{ S(x_i), S(x_j) \} &= \sigma^2 \frac{2^{1 - \nu}}{\Gamma(\nu)}
+\left(\sqrt{2\nu}\frac{\|x_i -x_j\|_{2}}{\phi}\right)^{\nu}
+K_{\nu}\left(\sqrt{2\nu}\frac{\|x_i -x_j\|_{2}}{\phi}\right) \\
+K_{\nu}(x) &= \int_{0}^{\infty}\exp(-x \cosh t) \cosh (\nu t) \mathrm{dt}
+\end{aligned}
+$$
+
+待估参数：代表方差的 $\sigma^2$ 和代表范围的 $\phi$ 。当 $\nu = 1/2$ 时，梅隆型退化为指数型。
+
+## 数据准备
+
+### 观测数据
+
+```{r}
+# 加载数据
+rongelap <- readRDS(file = "data/rongelap.rds")
+rongelap_coastline <- readRDS(file = "data/rongelap_coastline.rds")
+
+# 对数高斯模型
+rongelap_gaussian_d <- list(
+  N = nrow(rongelap), # 观测记录的条数
+  D = 2, # 2 维坐标
+  X = rongelap[, c("cX", "cY")] / 6000, # N x 2 坐标矩阵
+  y = log(rongelap$counts / rongelap$time) # N 向量
+)
+# 泊松对数模型
+rongelap_poisson_d <- list(
+  N = nrow(rongelap), # 观测记录的条数
+  D = 2, # 2 维坐标
+  X = rongelap[, c("cX", "cY")] / 6000, # N x 2 矩阵
+  y = rongelap$counts, # 响应变量
+  offsets = rongelap$time # 漂移项
+)
+```
+
+### 预测数据
+
+```{r}
+#| message: false
+
+library(sf)
+library(abind)
+library(stars)
+
+rongelap_sf <- st_as_sf(rongelap, coords = c("cX", "cY"), dim = "XY")
+rongelap_coastline_sf <- st_as_sf(rongelap_coastline, coords = c("cX", "cY"), dim = "XY")
+rongelap_coastline_sfp <- st_cast(st_combine(st_geometry(rongelap_coastline_sf)), "POLYGON")
+
+rongelap_coastline_buffer <- st_buffer(rongelap_coastline_sfp, dist = 50)
+# 构造带边界约束的网格
+rongelap_coastline_grid <- st_make_grid(rongelap_coastline_buffer, n = c(150, 75))
+# 将 sfc 类型转化为 sf 类型
+rongelap_coastline_grid <- st_as_sf(rongelap_coastline_grid)
+rongelap_coastline_buffer <- st_as_sf(rongelap_coastline_buffer)
+rongelap_grid <- rongelap_coastline_grid[rongelap_coastline_buffer, op = st_intersects]
+# 计算网格中心点坐标
+rongelap_grid_centroid <- st_centroid(rongelap_grid)
+
+# 1612 个点
+rongelap_grid_df <- as.data.frame(st_coordinates(rongelap_grid_centroid))
+colnames(rongelap_grid_df) <- c("cX", "cY")
+```
+
+`rongelap_grid_df` 即为需要预测核辐射强度的位置
+
+### 初始数据
+
+对数高斯模型
+
+```{r}
+set.seed(20232023)
+nchains <- 4 # 4 条迭代链
+# 给每条链设置不同的参数初始值
+inits_data_gaussian <- lapply(1:nchains, function(i) {
+  list(
+    alpha = rnorm(1),
+    sigma = runif(1),
+    phi = runif(1)
+  )
+})
+```
+
+泊松对数模型
+
+```{r}
+inits_data_poisson <- lapply(1:nchains, function(i) {
+  list(
+    alpha = rnorm(1),
+    sigma = runif(1),
+    phi = runif(1),
+    f = rnorm(157)
+  )
+})
+```
+
+## 软件准备
+
+下载、编译 CmdStan 软件框架，配置环境变量
+
+```{r}
+Sys.setenv(CMDSTAN = "/opt/cmdstan/cmdstan-2.32.2")
+Sys.setenv(CMDSTANR_NO_VER_CHECK = TRUE)
+```
+
+加载 **cmdstanr**、**bayesplot** 和 **loo** 等 R 包。
+
+```{r}
+#| message: false
+
+library(cmdstanr)
+library(ggplot2)
+library(bayesplot)
+library(loo)
+library(projpred)
+```
+
+-   **cmdstanr** 配置、编译和采样
+-   **bayesplot** [@Gabry2019] 模型可视化
+-   **loo** 模型评估与比较
+-   **projpred** 变量选择
+-   **posterior** 后验推断
+
+## 代码编写
+
+对数高斯模型
+
+```{verbatim, file="code/rongelap_gaussian.stan", lang="stan"}
+```
+
+泊松对数模型
+
+```{verbatim, file="code/rongelap_poisson.stan", lang="stan"}
+```
+
+## 代码编译
+
+编译模型
+
+```{r}
+#| message: false
+
+# 模型 I
+mod_rongelap_gaussian <- cmdstan_model(
+  stan_file = "code/rongelap_gaussian.stan",
+  compile = TRUE, cpp_options = list(stan_threads = TRUE)
+)
+# 模型 II
+mod_rongelap_poisson <- cmdstan_model(
+  stan_file = "code/rongelap_poisson.stan",
+  compile = TRUE, cpp_options = list(stan_threads = TRUE)
+)
+```
+
+## 模型采样
+
+拟合模型
+
+```{r}
+#| message: false
+
+# 对数高斯模型
+fit_rongelap_gaussian <- mod_rongelap_gaussian$sample(
+  data = rongelap_gaussian_d,   # 观测数据
+  init = inits_data_gaussian,   # 迭代初值
+  iter_warmup = 1000,           # 每条链预处理迭代次数
+  iter_sampling = 2000,         # 每条链总迭代次数
+  chains = nchains,             # 马尔科夫链的数目
+  parallel_chains = 4,      # 指定 CPU 核心数，可以给每条链分配一个
+  threads_per_chain = 1,    # 每条链设置一个线程
+  show_messages = FALSE,    # 不显示迭代的中间过程
+  refresh = 0,              # 不显示采样的进度
+  seed = 20232023           # 设置随机数种子，不要使用 set.seed() 函数
+)
+
+# 泊松对数模型
+fit_rongelap_poisson <- mod_rongelap_poisson$sample(
+  data = rongelap_poisson_d, # 观测数据
+  init = inits_data_poisson,    # 迭代初值
+  iter_warmup = 1000,    # 每条链预处理迭代次数
+  iter_sampling = 2000, # 每条链总迭代次数
+  chains = nchains,     # 马尔科夫链的数目
+  parallel_chains = 4,  # 指定 CPU 核心数，可以给每条链分配一个
+  threads_per_chain = 1, # 每条链设置一个线程
+  show_messages = FALSE, # 不显示迭代的中间过程
+  refresh = 0,    # 不显示采样的进度
+  seed = 20232023
+)
+```
+
+跑模型的时间花费分别为 146.4s 和 216.9s
+
+```{r}
+# 诊断
+fit_rongelap_gaussian$diagnostic_summary()
+fit_rongelap_poisson$diagnostic_summary()
+```
+
+## 模型输出
+
+模型参数的估计结果，输出结果保留 4 位有效数字。
+
+```{r}
+# 对数高斯模型
+fit_rongelap_gaussian$summary(
+  variables = c("lp__", "alpha", "sigma", "phi"),
+  .num_args = list(sigfig = 4, notation = "dec")
+)
+```
+
+```{r}
+# 泊松对数模型
+fit_rongelap_poisson$summary(
+  variables = c("lp__", "alpha", "sigma", "phi"),
+  .num_args = list(sigfig = 4, notation = "dec")
+)
+```
+
+相比于对数高斯模型，泊松对数模型的参数估计区间偏短，特别是范围参数 $\phi$ ，变短意味着在更小的距离范围内变化，空间分布更加曲折。
+
+::: rmdtip
+作为对比，提供频率派参数估计结果，采用 **nlme** 包拟合对数高斯模型。
+
+```{r}
+library(nlme)
+fit_rongelap_nlme <- gls(log(counts / time) ~ 1,
+  correlation = corExp(value = 200, form = ~ cX + cY, nugget = FALSE),
+  data = rongelap, method = "REML"
+)
+fit_rongelap_nlme
+```
+
+结果显示 $\beta = 1.826, \phi = 110.8, \sigma^2 = 0.5632^2 = 0.3172$ 。
+:::
+
+## 模型诊断
+
+对数高斯模型
+
+```{r}
+#| label: fig-rongelap-gaussian-trace
+#| fig-cap: $\sigma$ 和 $\phi$ 的迭代轨迹
+
+library(ggplot2)
+library(bayesplot)
+mcmc_trace(fit_rongelap_gaussian$draws(c("sigma", "phi")),
+           facet_args = list(
+             labeller = ggplot2::label_parsed,
+             strip.position = "top", ncol = 1
+           )
+) + theme_bw(base_size = 12)
+```
+
+参数的后验分布
+
+```{r}
+#| label: fig-rongelap-gaussian-dens
+#| fig-cap: $\sigma$ 和 $\phi$ 的后验分布
+
+mcmc_dens(fit_rongelap_gaussian$draws(c("sigma", "phi")),
+          facet_args = list(
+            labeller = ggplot2::label_parsed,
+            strip.position = "top", ncol = 1
+          )
+) + theme_bw(base_size = 12)
+```
+
+泊松对数模型
+
+```{r}
+#| label: fig-rongelap-poisson-trace
+#| fig-cap: $\sigma$ 和 $\phi$ 的迭代轨迹
+
+# 参数的迭代轨迹
+mcmc_trace(fit_rongelap_poisson$draws(c("sigma", "phi")),
+           facet_args = list(
+             labeller = ggplot2::label_parsed,
+             strip.position = "top", ncol = 1
+           )
+) + theme_bw(base_size = 12)
+```
+
+```{r}
+#| label: fig-rongelap-poisson-dens
+#| fig-cap: $\sigma$ 和 $\phi$ 的后验分布
+
+# 参数的后验分布
+mcmc_dens(fit_rongelap_poisson$draws(c("sigma", "phi")),
+          facet_args = list(
+            labeller = ggplot2::label_parsed,
+            strip.position = "top", ncol = 1
+          )
+) + theme_bw(base_size = 12)
+```
+
+## 代码优化
+
+## 模型评估
+
+-   LOO
+-   pDIC
+-   WAIC
+
+## 模型比较
+
+## 模型预测
+
+# 参考文献 {#references}
+
+::: {#refs}
+:::
+
+模拟多元正态分布
+
+设随机向量 $\bm{X} = (X_1, X_2, \cdots, X_p)^{\top}$ 服从多元正态分布 $\mathrm{MVN}(\bm{\mu}, \Sigma)$ ，其联合密度函数如下
+
+$$
+\begin{aligned}
+  p(\boldsymbol x) = (2\pi)^{-\frac{p}{2}} |\Sigma|^{-\frac12}
+    \exp\left\{ -\frac12 (\boldsymbol x - \boldsymbol \mu)^T \Sigma^{-1} (\boldsymbol x - \boldsymbol \mu) \right\},
+  \ \boldsymbol x \in \mathbb{R}^p
+\end{aligned}
+$$
+
+其中，协方差矩阵 $\Sigma$ 是正定的，其 Cholesky 分解为 $\Sigma = CC^{\top}$ ，这里 $C$ 为下三角矩阵。设 $\bm{Z} = (Z_1, Z_2, \cdots, Z_p)^{\top}$ 服从 $p$ 元标准正态分布 $\mathrm{MVN}(\bm{0}, I)$ ，则 $\bm{X} = \bm{\mu} + C\bm{Z}$ 服从多元正态分布 $\mathrm{MVN}(\bm{\mu}, \Sigma)$ 。
+
+```{r}
+## 生成多元正态分布随机数，
+## n是需要的个数，
+## mu是均值向量，
+## Sigma是协方差阵，需要是对称正定阵。
+# https://www.math.pku.edu.cn/teachers/lidf/docs/statcomp/html/_statcompbook/rng-multi.html
+rng.mnorm <- function(n, mu, Sigma) {
+  m <- length(mu)
+  M <- chol(Sigma) # Sigma = M' M
+  y <- matrix(rnorm(n * m), nrow = n, ncol = m) %*% M
+  apply(y, 1, FUN = function(x) x + mu)
+}
+# 1000 个样本点
+x <- rng.mnorm(n = 1000, mu = c(3, 2), Sigma = rbind(c(4, 1), c(1, 1)))
+# 样本协方差矩阵
+var(t(x))
+
+plot(x[1, ], x[2, ], type = "p", cex = 0.1)
+abline(v = 3, h = 2, col = "green")
+```

@@ -1,0 +1,490 @@
+---
+title: 贝叶斯数据分析工作流
+author: 黄湘云
+date: '2023-10-02'
+slug: bayesian-workflow
+categories:
+  - 统计应用
+tags:
+  - 贝叶斯空间分析
+  - 核辐射强度预测
+  - 贝叶斯高斯过程
+  - 极大似然估计
+  - 广义最小二乘估计
+  - 边际似然函数
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+math: true
+csl: institute-of-mathematical-statistics.csl
+bibliography: 
+  - refer.bib
+description: "贝叶斯数据分析工作流。一文搞懂贝叶斯空间数据分析工作流"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#本文概览" id="toc-本文概览"><span class="toc-section-number">1</span> 本文概览</a></li>
+<li><a href="#工作流" id="toc-工作流"><span class="toc-section-number">2</span> 工作流</a>
+<ul>
+<li><a href="#统计建模" id="toc-统计建模"><span class="toc-section-number">2.1</span> 统计建模</a>
+<ul>
+<li><a href="#对数高斯模型" id="toc-对数高斯模型"><span class="toc-section-number">2.1.1</span> 对数高斯模型</a></li>
+<li><a href="#泊松对数模型" id="toc-泊松对数模型"><span class="toc-section-number">2.1.2</span> 泊松对数模型</a></li>
+</ul></li>
+<li><a href="#数据准备" id="toc-数据准备"><span class="toc-section-number">2.2</span> 数据准备</a>
+<ul>
+<li><a href="#观测数据" id="toc-观测数据"><span class="toc-section-number">2.2.1</span> 观测数据</a></li>
+<li><a href="#预测数据" id="toc-预测数据"><span class="toc-section-number">2.2.2</span> 预测数据</a></li>
+<li><a href="#初始数据" id="toc-初始数据"><span class="toc-section-number">2.2.3</span> 初始数据</a></li>
+</ul></li>
+<li><a href="#软件准备" id="toc-软件准备"><span class="toc-section-number">2.3</span> 软件准备</a></li>
+<li><a href="#代码编写" id="toc-代码编写"><span class="toc-section-number">2.4</span> 代码编写</a></li>
+<li><a href="#代码编译" id="toc-代码编译"><span class="toc-section-number">2.5</span> 代码编译</a></li>
+<li><a href="#模型采样" id="toc-模型采样"><span class="toc-section-number">2.6</span> 模型采样</a></li>
+<li><a href="#模型输出" id="toc-模型输出"><span class="toc-section-number">2.7</span> 模型输出</a></li>
+<li><a href="#模型诊断" id="toc-模型诊断"><span class="toc-section-number">2.8</span> 模型诊断</a></li>
+<li><a href="#代码优化" id="toc-代码优化"><span class="toc-section-number">2.9</span> 代码优化</a></li>
+<li><a href="#模型评估" id="toc-模型评估"><span class="toc-section-number">2.10</span> 模型评估</a></li>
+<li><a href="#模型比较" id="toc-模型比较"><span class="toc-section-number">2.11</span> 模型比较</a></li>
+<li><a href="#模型预测" id="toc-模型预测"><span class="toc-section-number">2.12</span> 模型预测</a></li>
+</ul></li>
+<li><a href="#references" id="toc-references"><span class="toc-section-number">3</span> 参考文献</a></li>
+</ul>
+</div>
+
+<div class="rmdtip">
+<ol style="list-style-type: decimal">
+<li>贝叶斯高斯过程回归</li>
+<li>核辐射数据集的贝叶斯分析</li>
+<li>贝叶斯克里金插值及 Stan 实现</li>
+</ol>
+</div>
+<div id="本文概览" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> 本文概览</h1>
+<ol style="list-style-type: decimal">
+<li>本文概览：贝叶斯数据分析工作流的概览</li>
+<li>以预测朗格拉普岛核辐射强度分布为例，详细介绍贝叶斯工作流中的各个环节。
+<ol style="list-style-type: decimal">
+<li>统计建模：模型结构、组成部分、参数解释</li>
+<li>数据准备：观测数据、预测数据、参数初值</li>
+<li>软件准备：软件环境</li>
+<li>代码编写：已有函数及其解释</li>
+<li>代码编译：编译选项及解释</li>
+<li>模型采样：采样算法简介，NUTS 算法参数说明</li>
+<li>模型输出：模型采样输出结果的说明和解释，</li>
+<li>模型诊断：参数迭代轨迹和分布，诊断结果</li>
+<li>代码优化：根据诊断结果优化，比如并行和向量化</li>
+<li>模型评估：pDIC、WAIC、LOO-CV</li>
+<li>模型比较：泊松对数、对数高斯建模比较</li>
+<li>模型预测：克里金插值预测</li>
+</ol></li>
+<li>本文小结：
+<ol style="list-style-type: decimal">
+<li>分析、建模经验</li>
+<li>Stan 代码调优</li>
+</ol></li>
+</ol>
+</div>
+<div id="工作流" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> 工作流</h1>
+<div id="统计建模" class="section level2" number="2.1">
+<h2><span class="header-section-number">2.1</span> 统计建模</h2>
+<div id="对数高斯模型" class="section level3" number="2.1.1">
+<h3><span class="header-section-number">2.1.1</span> 对数高斯模型</h3>
+<p>从实际场景出发，也不难理解，位置信息是非常关键的。进一步，充分利用位置信息，精细建模是很有必要的。相邻位置的核辐射强度是相关的，离得近的比离得远的更相关。下面对辐射强度建模，假定随机效应之间存在相关性结构，去掉随机效应相互独立的假设，这更符合位置效应存在相互影响的实际情况。</p>
+<p><span class="math display">\[
+\log\big(\lambda(x_i)\big) = \beta + S(x_{i})
+\]</span></p>
+<p>其中，<span class="math inline">\(\beta\)</span> 表示截距，相当于平均水平，<span class="math inline">\(\lambda(x_i)\)</span> 表示位置 <span class="math inline">\(x_i\)</span> 处的辐射强度，<span class="math inline">\(S(x_{i})\)</span> 表示位置 <span class="math inline">\(x_i\)</span> 处的空间效应，<span class="math inline">\(S(x),x \in \mathcal{D} \subset{\mathbb{R}^2}\)</span> 是二维平稳空间高斯过程 <span class="math inline">\(\mathcal{S}\)</span> 的具体实现。 <span class="math inline">\(\mathcal{D}\)</span> 表示研究区域，可以理解为朗格拉普岛，它是二维实平面 <span class="math inline">\(\mathbb{R}^2\)</span> 的子集。</p>
+</div>
+<div id="泊松对数模型" class="section level3" number="2.1.2">
+<h3><span class="header-section-number">2.1.2</span> 泊松对数模型</h3>
+<p>广义线性模型并没有考虑距离相关性，它认为各个观测点的数据是相互独立的。因此，在广义线性模型的基础上添加位置相关的随机效应，用以刻画未能直接观测到的潜在影响。根据 <span class="math inline">\({}^{137}\mathrm{Cs}\)</span> 放出伽马射线，在 <span class="math inline">\(n=157\)</span> 个采样点，分别以时间间隔 <span class="math inline">\(t_i\)</span> 测量辐射量 <span class="math inline">\(y(x_i)\)</span>，建立泊松型空间广义线性混合效应模型<span class="citation">[<a href="#ref-Diggle1998">1</a>]</span>。</p>
+<p><span class="math display">\[
+\begin{aligned}
+\log\{\lambda(x_i)\} &amp; =  \beta + S(x_{i})\\
+y(x_{i}) &amp;\sim \mathrm{Poisson}\big(t_i\lambda(x_i)\big)
+\end{aligned}
+\]</span></p>
+<p>其中，<span class="math inline">\(\beta\)</span> 表示截距，相当于平均水平，<span class="math inline">\(\lambda(x_i)\)</span> 表示位置 <span class="math inline">\(x_i\)</span> 处的辐射强度，<span class="math inline">\(S(x_{i})\)</span> 表示位置 <span class="math inline">\(x_i\)</span> 处的空间效应，<span class="math inline">\(S(x),x \in \mathcal{D} \subset{\mathbb{R}^2}\)</span> 是二维平稳空间高斯过程 <span class="math inline">\(\mathcal{S}\)</span> 的具体实现。 <span class="math inline">\(\mathcal{D}\)</span> 表示研究区域，可以理解为朗格拉普岛，它是二维实平面 <span class="math inline">\(\mathbb{R}^2\)</span> 的子集。</p>
+<p>随机过程 <span class="math inline">\(S(x)\)</span> 的自协方差函数常用的有指数型、幂二次指数型（高斯型）和梅隆型，形式如下：</p>
+<p><span class="math display">\[
+\begin{aligned}
+\mathsf{Cov}\{S(x_i), S(x_j)\} &amp;= \sigma^2 \exp\big( -\frac{\|x_i -x_j\|_{2}}{\phi} \big) \\
+\mathsf{Cov}\{ S(x_i), S(x_j) \} &amp;= \sigma^2 \exp\big( -\frac{\|x_i -x_j\|_{2}^{2}}{2\phi^2} \big) \\
+\mathsf{Cov}\{ S(x_i), S(x_j) \} &amp;= \sigma^2 \frac{2^{1 - \nu}}{\Gamma(\nu)}
+\left(\sqrt{2\nu}\frac{\|x_i -x_j\|_{2}}{\phi}\right)^{\nu}
+K_{\nu}\left(\sqrt{2\nu}\frac{\|x_i -x_j\|_{2}}{\phi}\right) \\
+K_{\nu}(x) &amp;= \int_{0}^{\infty}\exp(-x \cosh t) \cosh (\nu t) \mathrm{dt}
+\end{aligned}
+\]</span></p>
+<p>待估参数：代表方差的 <span class="math inline">\(\sigma^2\)</span> 和代表范围的 <span class="math inline">\(\phi\)</span> 。当 <span class="math inline">\(\nu = 1/2\)</span> 时，梅隆型退化为指数型。</p>
+</div>
+</div>
+<div id="数据准备" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span> 数据准备</h2>
+<div id="观测数据" class="section level3" number="2.2.1">
+<h3><span class="header-section-number">2.2.1</span> 观测数据</h3>
+<pre class="r"><code># 加载数据
+rongelap &lt;- readRDS(file = &quot;data/rongelap.rds&quot;)
+rongelap_coastline &lt;- readRDS(file = &quot;data/rongelap_coastline.rds&quot;)
+
+# 对数高斯模型
+rongelap_gaussian_d &lt;- list(
+  N = nrow(rongelap), # 观测记录的条数
+  D = 2, # 2 维坐标
+  X = rongelap[, c(&quot;cX&quot;, &quot;cY&quot;)] / 6000, # N x 2 坐标矩阵
+  y = log(rongelap$counts / rongelap$time) # N 向量
+)
+# 泊松对数模型
+rongelap_poisson_d &lt;- list(
+  N = nrow(rongelap), # 观测记录的条数
+  D = 2, # 2 维坐标
+  X = rongelap[, c(&quot;cX&quot;, &quot;cY&quot;)] / 6000, # N x 2 矩阵
+  y = rongelap$counts, # 响应变量
+  offsets = rongelap$time # 漂移项
+)</code></pre>
+</div>
+<div id="预测数据" class="section level3" number="2.2.2">
+<h3><span class="header-section-number">2.2.2</span> 预测数据</h3>
+<pre class="r"><code>library(sf)
+library(abind)
+library(stars)
+
+rongelap_sf &lt;- st_as_sf(rongelap, coords = c(&quot;cX&quot;, &quot;cY&quot;), dim = &quot;XY&quot;)
+rongelap_coastline_sf &lt;- st_as_sf(rongelap_coastline, coords = c(&quot;cX&quot;, &quot;cY&quot;), dim = &quot;XY&quot;)
+rongelap_coastline_sfp &lt;- st_cast(st_combine(st_geometry(rongelap_coastline_sf)), &quot;POLYGON&quot;)
+
+rongelap_coastline_buffer &lt;- st_buffer(rongelap_coastline_sfp, dist = 50)
+# 构造带边界约束的网格
+rongelap_coastline_grid &lt;- st_make_grid(rongelap_coastline_buffer, n = c(150, 75))
+# 将 sfc 类型转化为 sf 类型
+rongelap_coastline_grid &lt;- st_as_sf(rongelap_coastline_grid)
+rongelap_coastline_buffer &lt;- st_as_sf(rongelap_coastline_buffer)
+rongelap_grid &lt;- rongelap_coastline_grid[rongelap_coastline_buffer, op = st_intersects]
+# 计算网格中心点坐标
+rongelap_grid_centroid &lt;- st_centroid(rongelap_grid)
+
+# 1612 个点
+rongelap_grid_df &lt;- as.data.frame(st_coordinates(rongelap_grid_centroid))
+colnames(rongelap_grid_df) &lt;- c(&quot;cX&quot;, &quot;cY&quot;)</code></pre>
+<p><code>rongelap_grid_df</code> 即为需要预测核辐射强度的位置</p>
+</div>
+<div id="初始数据" class="section level3" number="2.2.3">
+<h3><span class="header-section-number">2.2.3</span> 初始数据</h3>
+<p>对数高斯模型</p>
+<pre class="r"><code>set.seed(20232023)
+nchains &lt;- 4 # 4 条迭代链
+# 给每条链设置不同的参数初始值
+inits_data_gaussian &lt;- lapply(1:nchains, function(i) {
+  list(
+    alpha = rnorm(1),
+    sigma = runif(1),
+    phi = runif(1)
+  )
+})</code></pre>
+<p>泊松对数模型</p>
+<pre class="r"><code>inits_data_poisson &lt;- lapply(1:nchains, function(i) {
+  list(
+    alpha = rnorm(1),
+    sigma = runif(1),
+    phi = runif(1),
+    f = rnorm(157)
+  )
+})</code></pre>
+</div>
+</div>
+<div id="软件准备" class="section level2" number="2.3">
+<h2><span class="header-section-number">2.3</span> 软件准备</h2>
+<p>下载、编译 CmdStan 软件框架，配置环境变量</p>
+<pre class="r"><code>Sys.setenv(CMDSTAN = &quot;/opt/cmdstan/cmdstan-2.32.2&quot;)
+Sys.setenv(CMDSTANR_NO_VER_CHECK = TRUE)</code></pre>
+<p>加载 <strong>cmdstanr</strong>、<strong>bayesplot</strong> 和 <strong>loo</strong> 等 R 包。</p>
+<pre class="r"><code>library(cmdstanr)
+library(ggplot2)
+library(bayesplot)
+library(loo)
+library(projpred)</code></pre>
+<ul>
+<li><strong>cmdstanr</strong> 配置、编译和采样</li>
+<li><strong>bayesplot</strong> <span class="citation">[<a href="#ref-Gabry2019">2</a>]</span> 模型可视化</li>
+<li><strong>loo</strong> 模型评估与比较</li>
+<li><strong>projpred</strong> 变量选择</li>
+<li><strong>posterior</strong> 后验推断</li>
+</ul>
+</div>
+<div id="代码编写" class="section level2" number="2.4">
+<h2><span class="header-section-number">2.4</span> 代码编写</h2>
+<p>对数高斯模型</p>
+<pre class="stan"><code>data {
+  int&lt;lower=1&gt; N;
+  int&lt;lower=1&gt; D;
+  array[N] vector[D] X;
+  vector[N] y;
+}
+transformed data {
+  real delta = 1e-9;
+}
+parameters {
+  real alpha;
+  real&lt;lower=0&gt; sigma;
+  real&lt;lower=0&gt; phi;
+}
+transformed parameters {
+  vector[N] mu = rep_vector(alpha, N);
+  matrix[N, N] K = gp_exponential_cov(X, sigma, phi) + diag_matrix(rep_vector(delta, N));
+  matrix[N, N] L_K = cholesky_decompose(K);
+}
+model {
+  alpha ~ std_normal();
+  sigma ~ inv_gamma(5, 5);
+  phi ~ std_normal();
+
+  y ~ multi_normal_cholesky(mu, L_K);
+}</code></pre>
+<p>泊松对数模型</p>
+<pre class="stan"><code>data {
+  int&lt;lower=1&gt; N;
+  int&lt;lower=1&gt; D;
+  array[N] vector[D] X;
+  array[N] int&lt;lower = 0&gt; y;
+  vector[N] offsets;
+}
+transformed data {
+  real delta = 1e-12;
+  vector[N] log_offsets = log(offsets);
+}
+parameters {
+  real alpha;
+  real&lt;lower=0&gt; sigma;
+  real&lt;lower=0&gt; phi;
+  vector[N] f;
+}
+transformed parameters {
+  vector[N] mu = rep_vector(alpha, N);
+  matrix[N, N] K = gp_exponential_cov(X, sigma, phi) + diag_matrix(rep_vector(delta, N));
+  matrix[N, N] L_K = cholesky_decompose(K);
+}
+model {
+  alpha ~ std_normal();
+  sigma ~ inv_gamma(5, 5);
+  phi ~ std_normal();
+  
+  f ~ multi_normal_cholesky(mu, L_K);
+  y ~ poisson_log(log_offsets + f);
+}</code></pre>
+</div>
+<div id="代码编译" class="section level2" number="2.5">
+<h2><span class="header-section-number">2.5</span> 代码编译</h2>
+<p>编译模型</p>
+<pre class="r"><code># 模型 I
+mod_rongelap_gaussian &lt;- cmdstan_model(
+  stan_file = &quot;code/rongelap_gaussian.stan&quot;,
+  compile = TRUE, cpp_options = list(stan_threads = TRUE)
+)
+# 模型 II
+mod_rongelap_poisson &lt;- cmdstan_model(
+  stan_file = &quot;code/rongelap_poisson.stan&quot;,
+  compile = TRUE, cpp_options = list(stan_threads = TRUE)
+)</code></pre>
+</div>
+<div id="模型采样" class="section level2" number="2.6">
+<h2><span class="header-section-number">2.6</span> 模型采样</h2>
+<p>拟合模型</p>
+<pre class="r"><code># 对数高斯模型
+fit_rongelap_gaussian &lt;- mod_rongelap_gaussian$sample(
+  data = rongelap_gaussian_d,   # 观测数据
+  init = inits_data_gaussian,   # 迭代初值
+  iter_warmup = 1000,           # 每条链预处理迭代次数
+  iter_sampling = 2000,         # 每条链总迭代次数
+  chains = nchains,             # 马尔科夫链的数目
+  parallel_chains = 4,      # 指定 CPU 核心数，可以给每条链分配一个
+  threads_per_chain = 1,    # 每条链设置一个线程
+  show_messages = FALSE,    # 不显示迭代的中间过程
+  refresh = 0,              # 不显示采样的进度
+  seed = 20232023           # 设置随机数种子，不要使用 set.seed() 函数
+)
+
+# 泊松对数模型
+fit_rongelap_poisson &lt;- mod_rongelap_poisson$sample(
+  data = rongelap_poisson_d, # 观测数据
+  init = inits_data_poisson,    # 迭代初值
+  iter_warmup = 1000,    # 每条链预处理迭代次数
+  iter_sampling = 2000, # 每条链总迭代次数
+  chains = nchains,     # 马尔科夫链的数目
+  parallel_chains = 4,  # 指定 CPU 核心数，可以给每条链分配一个
+  threads_per_chain = 1, # 每条链设置一个线程
+  show_messages = FALSE, # 不显示迭代的中间过程
+  refresh = 0,    # 不显示采样的进度
+  seed = 20232023
+)</code></pre>
+<p>跑模型的时间花费分别为 146.4s 和 216.9s</p>
+<pre class="r"><code># 诊断
+fit_rongelap_gaussian$diagnostic_summary()
+#&gt; $num_divergent
+#&gt; [1] 0 0 0 0
+#&gt; 
+#&gt; $num_max_treedepth
+#&gt; [1] 0 0 0 0
+#&gt; 
+#&gt; $ebfmi
+#&gt; [1] 0.8891 0.7445 0.9278 0.8531
+fit_rongelap_poisson$diagnostic_summary()
+#&gt; $num_divergent
+#&gt; [1] 0 0 0 0
+#&gt; 
+#&gt; $num_max_treedepth
+#&gt; [1] 0 0 0 0
+#&gt; 
+#&gt; $ebfmi
+#&gt; [1] 1.016 1.090 1.047 1.060</code></pre>
+</div>
+<div id="模型输出" class="section level2" number="2.7">
+<h2><span class="header-section-number">2.7</span> 模型输出</h2>
+<p>模型参数的估计结果，输出结果保留 4 位有效数字。</p>
+<pre class="r"><code># 对数高斯模型
+fit_rongelap_gaussian$summary(
+  variables = c(&quot;lp__&quot;, &quot;alpha&quot;, &quot;sigma&quot;, &quot;phi&quot;),
+  .num_args = list(sigfig = 4, notation = &quot;dec&quot;)
+)
+#&gt; # A tibble: 4 × 10
+#&gt;   variable     mean   median      sd      mad       q5      q95    rhat ess_bulk
+#&gt;   &lt;chr&gt;     &lt;dec:4&gt;  &lt;dec:4&gt; &lt;dec:4&gt;  &lt;dec:4&gt;  &lt;dec:4&gt;  &lt;dec:4&gt; &lt;dec:4&gt;  &lt;dec:4&gt;
+#&gt; 1 lp__     43.33    43.76    1.532   1.176    40.19    44.92      1.001    1865.
+#&gt; 2 alpha     1.772    1.787   0.1532  0.1203    1.527    1.970     1.002    2814.
+#&gt; 3 sigma     0.6491   0.6221  0.1232  0.08023   0.5230   0.8637    1.003    1642.
+#&gt; 4 phi       0.02789  0.02386 0.01692 0.008081  0.01448  0.05338   1.001    1588.
+#&gt; # ℹ 1 more variable: ess_tail &lt;dec:4&gt;</code></pre>
+<pre class="r"><code># 泊松对数模型
+fit_rongelap_poisson$summary(
+  variables = c(&quot;lp__&quot;, &quot;alpha&quot;, &quot;sigma&quot;, &quot;phi&quot;),
+  .num_args = list(sigfig = 4, notation = &quot;dec&quot;)
+)
+#&gt; # A tibble: 4 × 10
+#&gt;   variable          mean        median      sd       mad            q5
+#&gt;   &lt;chr&gt;          &lt;dec:4&gt;       &lt;dec:4&gt; &lt;dec:4&gt;   &lt;dec:4&gt;       &lt;dec:4&gt;
+#&gt; 1 lp__     3402192.      3402190       9.377   14.83     3402180      
+#&gt; 2 alpha          1.770         1.792   0.1707   0.1203         1.515  
+#&gt; 3 sigma          0.6416        0.6121  0.1355   0.07881        0.5156 
+#&gt; 4 phi            0.02803       0.02351 0.02097  0.008097       0.01412
+#&gt; # ℹ 4 more variables: q95 &lt;dec:4&gt;, rhat &lt;dec:4&gt;, ess_bulk &lt;dec:4&gt;,
+#&gt; #   ess_tail &lt;dec:4&gt;</code></pre>
+<p>相比于对数高斯模型，泊松对数模型的参数估计区间偏短，特别是范围参数 <span class="math inline">\(\phi\)</span> ，变短意味着在更小的距离范围内变化，空间分布更加曲折。</p>
+<div class="rmdtip">
+<p>作为对比，提供频率派参数估计结果，采用 <strong>nlme</strong> 包拟合对数高斯模型。</p>
+<pre class="r"><code>library(nlme)
+fit_rongelap_nlme &lt;- gls(log(counts / time) ~ 1,
+  correlation = corExp(value = 200, form = ~ cX + cY, nugget = FALSE),
+  data = rongelap, method = &quot;REML&quot;
+)
+fit_rongelap_nlme
+#&gt; Generalized least squares fit by REML
+#&gt;   Model: log(counts/time) ~ 1 
+#&gt;   Data: rongelap 
+#&gt;   Log-restricted-likelihood: -89.07
+#&gt; 
+#&gt; Coefficients:
+#&gt; (Intercept) 
+#&gt;       1.826 
+#&gt; 
+#&gt; Correlation Structure: Exponential spatial correlation
+#&gt;  Formula: ~cX + cY 
+#&gt;  Parameter estimate(s):
+#&gt; range 
+#&gt; 110.8 
+#&gt; Degrees of freedom: 157 total; 156 residual
+#&gt; Residual standard error: 0.5632</code></pre>
+<p>结果显示 <span class="math inline">\(\beta = 1.826, \phi = 110.8, \sigma^2 = 0.5632^2 = 0.3172\)</span> 。</p>
+</div>
+</div>
+<div id="模型诊断" class="section level2" number="2.8">
+<h2><span class="header-section-number">2.8</span> 模型诊断</h2>
+<p>对数高斯模型</p>
+<pre class="r"><code>library(ggplot2)
+library(bayesplot)
+mcmc_trace(fit_rongelap_gaussian$draws(c(&quot;sigma&quot;, &quot;phi&quot;)),
+           facet_args = list(
+             labeller = ggplot2::label_parsed,
+             strip.position = &quot;top&quot;, ncol = 1
+           )
+) + theme_bw(base_size = 12)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-gaussian-trace"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-gaussian-trace-1.png" alt="$\sigma$ 和 $\phi$ 的迭代轨迹" width="672" />
+<p class="caption">
+图 2.1: <span class="math inline">\(\sigma\)</span> 和 <span class="math inline">\(\phi\)</span> 的迭代轨迹
+</p>
+</div>
+<p>参数的后验分布</p>
+<pre class="r"><code>mcmc_dens(fit_rongelap_gaussian$draws(c(&quot;sigma&quot;, &quot;phi&quot;)),
+          facet_args = list(
+            labeller = ggplot2::label_parsed,
+            strip.position = &quot;top&quot;, ncol = 1
+          )
+) + theme_bw(base_size = 12)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-gaussian-dens"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-gaussian-dens-1.png" alt="$\sigma$ 和 $\phi$ 的后验分布" width="672" />
+<p class="caption">
+图 2.2: <span class="math inline">\(\sigma\)</span> 和 <span class="math inline">\(\phi\)</span> 的后验分布
+</p>
+</div>
+<p>泊松对数模型</p>
+<pre class="r"><code># 参数的迭代轨迹
+mcmc_trace(fit_rongelap_poisson$draws(c(&quot;sigma&quot;, &quot;phi&quot;)),
+           facet_args = list(
+             labeller = ggplot2::label_parsed,
+             strip.position = &quot;top&quot;, ncol = 1
+           )
+) + theme_bw(base_size = 12)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-poisson-trace"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-poisson-trace-1.png" alt="$\sigma$ 和 $\phi$ 的迭代轨迹" width="672" />
+<p class="caption">
+图 2.3: <span class="math inline">\(\sigma\)</span> 和 <span class="math inline">\(\phi\)</span> 的迭代轨迹
+</p>
+</div>
+<pre class="r"><code># 参数的后验分布
+mcmc_dens(fit_rongelap_poisson$draws(c(&quot;sigma&quot;, &quot;phi&quot;)),
+          facet_args = list(
+            labeller = ggplot2::label_parsed,
+            strip.position = &quot;top&quot;, ncol = 1
+          )
+) + theme_bw(base_size = 12)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-poisson-dens"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-poisson-dens-1.png" alt="$\sigma$ 和 $\phi$ 的后验分布" width="672" />
+<p class="caption">
+图 2.4: <span class="math inline">\(\sigma\)</span> 和 <span class="math inline">\(\phi\)</span> 的后验分布
+</p>
+</div>
+</div>
+<div id="代码优化" class="section level2" number="2.9">
+<h2><span class="header-section-number">2.9</span> 代码优化</h2>
+</div>
+<div id="模型评估" class="section level2" number="2.10">
+<h2><span class="header-section-number">2.10</span> 模型评估</h2>
+<ul>
+<li>LOO</li>
+<li>pDIC</li>
+<li>WAIC</li>
+</ul>
+</div>
+<div id="模型比较" class="section level2" number="2.11">
+<h2><span class="header-section-number">2.11</span> 模型比较</h2>
+</div>
+<div id="模型预测" class="section level2" number="2.12">
+<h2><span class="header-section-number">2.12</span> 模型预测</h2>
+</div>
+</div>
+<div id="references" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> 参考文献</h1>
+<div id="refs" class="references csl-bib-body">
+<div id="ref-Diggle1998" class="csl-entry">
+<div class="csl-left-margin">[1] </div><div class="csl-right-inline"><span class="smallcaps">Diggle</span>, P. J., <span class="smallcaps">Tawn</span>, J. A. and <span class="smallcaps">Moyeed</span>, R. A. (1998). <a href="https://doi.org/10.1111/1467-9876.00113">Model-based geostatistics</a>. <em>Journal of the Royal Statistical Society: Series C (Applied Statistics)</em> <strong>47</strong> 299–350.</div>
+</div>
+<div id="ref-Gabry2019" class="csl-entry">
+<div class="csl-left-margin">[2] </div><div class="csl-right-inline"><span class="smallcaps">Gabry</span>, J., <span class="smallcaps">Simpson</span>, D., <span class="smallcaps">Vehtari</span>, A., <span class="smallcaps">Betancourt</span>, M. and <span class="smallcaps">Gelman</span>, A. (2019). <a href="https://doi.org/10.1111/rssa.12378">Visualization in bayesian workflow</a>. <em>J. R. Stat. Soc. A</em> <strong>182</strong> 389–402.</div>
+</div>
+</div>
+</div>
