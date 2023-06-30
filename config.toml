@@ -3,7 +3,6 @@ languageCode = "zh-CN"
 title = "Xiangyun Huang | 黄湘云"
 theme = "hugo-lithium"
 googleAnalytics = "G-WF0Y8H10PV"
-# disqusShortname = "cloud2016"
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "\\.knit\\.md$", "\\.utf8\\.md$", "_cache$"]
 preserveTaxonomyNames = true
 footnotereturnlinkcontents = "↩"
@@ -13,8 +12,12 @@ paginate = 9
 rssLimit = 10
 
 [permalinks]
-    post = "/:year/:month/:slug/"
-   daily = "/:year/:month/:slug/"
+  [permalinks.page]
+    post = '/:year/:month/:slug/'
+    daily = '/:year/:month/:slug/'
+  [permalinks.section]
+    post = '/post/'
+    daily = '/daily/'
 
 [[menu.main]]
     name = "主页"
