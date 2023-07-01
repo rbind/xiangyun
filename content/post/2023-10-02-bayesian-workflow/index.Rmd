@@ -28,7 +28,7 @@ description: "贝叶斯数据分析工作流。一文搞懂贝叶斯空间数据
 #| echo: false
 
 knitr::opts_chunk$set(
-  comment = "#>", collapse = TRUE
+  comment = "#>", collapse = TRUE, cache = TRUE
 )
 ```
 
@@ -64,7 +64,7 @@ knitr::opts_chunk$set(
 
 ### 对数高斯模型
 
-从实际场景出发，也不难理解，位置信息是非常关键的。进一步，充分利用位置信息，精细建模是很有必要的。相邻位置的核辐射强度是相关的，离得近的比离得远的更相关。下面对辐射强度建模，假定随机效应之间存在相关性结构，去掉随机效应相互独立的假设，这更符合位置效应存在相互影响的实际情况。
+相邻位置的核辐射强度是相关的，离得近的比离得远的更相关。下面对辐射强度建模，假定随机效应之间存在相关性结构，去掉随机效应相互独立的假设，这更符合位置效应存在相互影响的实际情况。
 
 $$
 \log\big(\lambda(x_i)\big) = \beta + S(x_{i})
@@ -166,7 +166,7 @@ nchains <- 4 # 4 条迭代链
 # 给每条链设置不同的参数初始值
 inits_data_gaussian <- lapply(1:nchains, function(i) {
   list(
-    alpha = rnorm(1),
+    beta = rnorm(1),
     sigma = runif(1),
     phi = runif(1)
   )
@@ -178,10 +178,10 @@ inits_data_gaussian <- lapply(1:nchains, function(i) {
 ```{r}
 inits_data_poisson <- lapply(1:nchains, function(i) {
   list(
-    alpha = rnorm(1),
+    beta = rnorm(1),
     sigma = runif(1),
     phi = runif(1),
-    f = rnorm(157)
+    lambda = rnorm(157)
   )
 })
 ```
@@ -207,20 +207,45 @@ library(loo)
 library(projpred)
 ```
 
--   **cmdstanr** 配置、编译和采样
--   **bayesplot** [@Gabry2019] 模型可视化
--   **loo** 模型评估与比较
+-   **cmdstanr** 配置 Stan 环境、编译 Stan 代码（设置编译参数）和采样（设置采样算法和参数）。
+-   **bayesplot** [@Gabry2019] 可视化模型参数的后验分布，迭代轨迹的散点图、迭代链的自相关图、后验分布的直方图等。
+-   **loo** 模型评估与比较，计算 LOO 和 WAIC 等指标。
 -   **projpred** 变量选择
 -   **posterior** 后验推断
 
 ## 代码编写
 
-对数高斯模型
+### 对数高斯模型
+
+$$
+\begin{aligned}
+\beta &\sim \text{std_normal}(0,1) \\
+\sigma &\sim \text{inv_gamma}(5,5) \\
+\phi &\sim \text{half_std_normal}(0,1) \\
+\bm{y} &\sim \text{multivariate_normal}(\bm{\beta}, \sigma^2 \Sigma+ \delta^2 I)
+\end{aligned}
+$$
+
+其中，$\beta$ 代表截距，先验分布为标准正态分布，$\sigma$ 代表高斯过程的方差参数（信号），先验分布为逆伽马分布，$\phi$ 代表高斯过程的范围参数，先验分布为半标准正态分布，$y$ 代表响应变量的取值，给定参数和数据的条件分布为多元正态分布，$\Sigma$ 代表协方差矩阵，$I$ 代表与采样点数量相同的单位矩阵， $\delta$ 是非常小的常数（可以看作可忽略的噪声），使得协方差矩阵正定，确保 Cholesky 分解。
 
 ```{verbatim, file="code/rongelap_gaussian.stan", lang="stan"}
 ```
 
-泊松对数模型
+代码中，`gp_exponential_cov` 表示空间相关性结构选择了指数型，详见 Stan 函数手册中的[指数型核函数表示](https://mc-stan.org/docs/functions-reference/gaussian-process-covariance-functions.html#exponential-kernel)。`cholesky_decompose` 表示对协方差矩阵做 Cholesky 分解，分解出来的下三角矩阵作为多元正态分布的参数，详见 Stan 函数手册中的 [Cholesky 分解](https://mc-stan.org/docs/functions-reference/linear-algebra-functions-and-solvers.html#cholesky-decomposition)。 `multi_normal_cholesky` 表示基于 Cholesky 分解的多元正态分布。详见 Stan 函数手册中的多元正态分布的 [Cholesky](https://mc-stan.org/docs/functions-reference/multi-normal-cholesky-fun.html) 参数化表示。
+
+### 泊松对数模型
+
+$$
+\begin{aligned}
+\beta &\sim \text{std_normal}(0,1) \\
+\sigma &\sim \text{inv_gamma}(5,5) \\
+\phi &\sim \text{half_std_normal}(0,1) \\
+\bm{\lambda} &\sim \text{multivariate_normal}(\bm{\beta}, \sigma^2 \Sigma+ \delta^2 I) \\
+\bm{y} &\sim \text{poisson_log}(\log(\text{offsets})+\bm{\lambda})
+\end{aligned}
+$$
+
+其中，$\beta,\sigma,\phi,\delta,\Sigma,I$ 的含义同前，$\lambda$ 代表辐射强度，$\text{offsets}$ 代表漂移项，这里是时间段，$\bm{y}$ 表示观测的辐射粒子数，$\text{poisson_log}$ 表示泊松分布的对数参数化，将频率参数 rate 的对数 $\lambda$ 作为参数，详见 Stan 函数手册中泊松分布的[对数函数表示](https://mc-stan.org/docs/functions-reference/poisson-distribution-log-parameterization.html)。
 
 ```{verbatim, file="code/rongelap_poisson.stan", lang="stan"}
 ```
@@ -262,6 +287,7 @@ fit_rongelap_gaussian <- mod_rongelap_gaussian$sample(
   threads_per_chain = 1,    # 每条链设置一个线程
   show_messages = FALSE,    # 不显示迭代的中间过程
   refresh = 0,              # 不显示采样的进度
+  output_dir = "data/",
   seed = 20232023           # 设置随机数种子，不要使用 set.seed() 函数
 )
 
@@ -276,6 +302,7 @@ fit_rongelap_poisson <- mod_rongelap_poisson$sample(
   threads_per_chain = 1, # 每条链设置一个线程
   show_messages = FALSE, # 不显示迭代的中间过程
   refresh = 0,    # 不显示采样的进度
+  output_dir = "data/",
   seed = 20232023
 )
 ```
@@ -295,7 +322,7 @@ fit_rongelap_poisson$diagnostic_summary()
 ```{r}
 # 对数高斯模型
 fit_rongelap_gaussian$summary(
-  variables = c("lp__", "alpha", "sigma", "phi"),
+  variables = c("lp__", "beta", "sigma", "phi"),
   .num_args = list(sigfig = 4, notation = "dec")
 )
 ```
@@ -303,7 +330,7 @@ fit_rongelap_gaussian$summary(
 ```{r}
 # 泊松对数模型
 fit_rongelap_poisson$summary(
-  variables = c("lp__", "alpha", "sigma", "phi"),
+  variables = c("lp__", "beta", "sigma", "phi"),
   .num_args = list(sigfig = 4, notation = "dec")
 )
 ```
@@ -327,7 +354,7 @@ fit_rongelap_nlme
 
 ## 模型诊断
 
-对数高斯模型
+### 对数高斯模型
 
 ```{r}
 #| label: fig-rongelap-gaussian-trace
@@ -357,7 +384,7 @@ mcmc_dens(fit_rongelap_gaussian$draws(c("sigma", "phi")),
 ) + theme_bw(base_size = 12)
 ```
 
-泊松对数模型
+### 泊松对数模型
 
 ```{r}
 #| label: fig-rongelap-poisson-trace
@@ -387,6 +414,8 @@ mcmc_dens(fit_rongelap_poisson$draws(c("sigma", "phi")),
 
 ## 代码优化
 
+链内并行、GPU 并行
+
 ## 模型评估
 
 -   LOO
@@ -395,14 +424,87 @@ mcmc_dens(fit_rongelap_poisson$draws(c("sigma", "phi")),
 
 ## 模型比较
 
+是否高斯分布、指数或高斯协方差函数、是否块金效应、估计方法 ML/REML 4 个维度，对比模型拟合结果
+
+```{r}
+library(nlme)
+# 高斯分布、指数型自相关结构
+fit_exp_reml <- gls(log(counts / time) ~ 1,
+  correlation = corExp(value = 200, form = ~ cX + cY, nugget = FALSE),
+  data = rongelap, method = "REML"
+)
+fit_exp_ml <- gls(log(counts / time) ~ 1,
+  correlation = corExp(value = 200, form = ~ cX + cY, nugget = FALSE),
+  data = rongelap, method = "ML"
+)
+fit_exp_reml_nugget <- gls(log(counts / time) ~ 1,
+  correlation = corExp(value = c(200, 0.1), form = ~ cX + cY, nugget = TRUE),
+  data = rongelap, method = "REML"
+)
+fit_exp_ml_nugget <- gls(log(counts / time) ~ 1,
+  correlation = corExp(value = c(200, 0.1), form = ~ cX + cY, nugget = TRUE),
+  data = rongelap, method = "ML"
+)
+
+# 高斯分布、高斯型自相关结构
+fit_gaus_reml <- gls(log(counts / time) ~ 1,
+  correlation = corGaus(value = 200, form = ~ cX + cY, nugget = FALSE),
+  data = rongelap, method = "REML"
+)
+fit_gaus_ml <- gls(log(counts / time) ~ 1,
+  correlation = corGaus(value = 200, form = ~ cX + cY, nugget = FALSE),
+  data = rongelap, method = "ML"
+)
+fit_gaus_reml_nugget <- gls(log(counts / time) ~ 1,
+  correlation = corGaus(value = c(200, 0.1), form = ~ cX + cY, nugget = TRUE),
+  data = rongelap, method = "REML"
+)
+fit_gaus_ml_nugget <- gls(log(counts / time) ~ 1,
+  correlation = corGaus(value = c(200, 0.1), form = ~ cX + cY, nugget = TRUE),
+  data = rongelap, method = "ML"
+)
+```
+
+汇总结果见下表 \@ref(tab:gls-summary)。
+
+```{r}
+#| label: gls-summary
+#| echo: false
+
+dat <- tibble::tribble(
+  ~response, ~corr, ~nugget, ~method, ~beta, ~sigmasq, ~phi, ~loglik,
+  "高斯分布", "指数型", "无", "REML", "1.826", "0.3172", "110.8", "-89.07",
+  "高斯分布", "指数型", "无", "ML", "1.828", "0.3064", "105.4", "-87.56",
+  "高斯分布", "指数型", "0.03598", "REML", "1.813", "0.2935", "169.7472", "-88.22",
+  "高斯分布", "指数型", "0.03312", "ML", "1.828", "0.2779", "150.1324", "-86.88",
+  "高斯分布", "高斯型", "无", "REML", "1.878", "0.2523", "41.96", "-100.7",
+  "高斯分布", "高斯型", "无", "ML", "1.879", "0.25", "41.81", "-98.62",
+  "高斯分布", "高斯型", "0.07055", "REML", "1.831", "0.2532", "139.1431", "-84.91",
+  "高斯分布", "高斯型", "0.07053", "ML", "1.832", "0.2459", "137.0980", "-83.32"
+)
+
+knitr::kable(dat, col.names = c(
+  "响应变量分布", "空间自相关结构", "块金效应", "估计方法",
+  "$\\beta$", "$\\sigma^2$", "$\\phi$", "对数似然值"
+  ), caption = "不同模型与参数估计方法的比较", escape = FALSE)
+```
+
+相比于其他参数，REML 和 ML 估计方法对参数 $\phi$ 影响很大，ML 估计的 $\phi$ 和对数似然函数值更大。高斯型自相关结构中，REML 和 ML 估计方法对参数 $\phi$ 的估计结果差不多。函数 `gls()` 对初值要求不高，以上初值选取比较随意，只是符合要求函数定义。
+
 ## 模型预测
+
+预测位置需要放入 Stan 代码中
 
 # 参考文献 {#references}
 
 ::: {#refs}
 :::
 
-模拟多元正态分布
+# 附录
+
+目的是将模型/线性代数与 Stan 代码对应。读者熟悉 R 代码后，对同一模型，观察、体会 Stan 代码与 R 代码的异同。Stan 常常是需要和其它编程语言一起混合来完成贝叶斯建模的。在不同编程语言之间切换需要了解它们之间的不同，比如在数据类型、模型表达、矩阵分解等。
+
+## 模拟多元正态分布
 
 设随机向量 $\bm{X} = (X_1, X_2, \cdots, X_p)^{\top}$ 服从多元正态分布 $\mathrm{MVN}(\bm{\mu}, \Sigma)$ ，其联合密度函数如下
 
@@ -416,23 +518,48 @@ $$
 
 其中，协方差矩阵 $\Sigma$ 是正定的，其 Cholesky 分解为 $\Sigma = CC^{\top}$ ，这里 $C$ 为下三角矩阵。设 $\bm{Z} = (Z_1, Z_2, \cdots, Z_p)^{\top}$ 服从 $p$ 元标准正态分布 $\mathrm{MVN}(\bm{0}, I)$ ，则 $\bm{X} = \bm{\mu} + C\bm{Z}$ 服从多元正态分布 $\mathrm{MVN}(\bm{\mu}, \Sigma)$ 。
 
+下面使用 Cholesky 分解生成多元正态分布随机数，代码稍修改自[《统计计算》](https://www.math.pku.edu.cn/teachers/lidf/docs/statcomp/html/_statcompbook/rng-multi.html)多元随机向量的模拟。
+
 ```{r}
-## 生成多元正态分布随机数，
-## n是需要的个数，
-## mu是均值向量，
-## Sigma是协方差阵，需要是对称正定阵。
-# https://www.math.pku.edu.cn/teachers/lidf/docs/statcomp/html/_statcompbook/rng-multi.html
-rng.mnorm <- function(n, mu, Sigma) {
+# n 样本点的数量
+# mu 均值向量
+# Sigma 协方差矩阵
+rng_mnorm <- function(n, mu, Sigma) {
   m <- length(mu)
   M <- chol(Sigma) # Sigma = M' M
   y <- matrix(rnorm(n * m), nrow = n, ncol = m) %*% M
   apply(y, 1, FUN = function(x) x + mu)
 }
+set.seed(20232023)
 # 1000 个样本点
-x <- rng.mnorm(n = 1000, mu = c(3, 2), Sigma = rbind(c(4, 1), c(1, 1)))
+x <- rng_mnorm(n = 1000, mu = c(3, 2), Sigma = rbind(c(4, 1), c(1, 1)))
 # 样本协方差矩阵
 var(t(x))
-
-plot(x[1, ], x[2, ], type = "p", cex = 0.1)
-abline(v = 3, h = 2, col = "green")
 ```
+
+代码中 $n$ 是样本点的个数，$\bm{\mu}$ 是均值向量，$\Sigma$ 是对称正定协方差阵。
+
+```{r}
+#| label: fig-bivar
+#| fig-cap: 生成二元正态分布的随机数
+#| fig-width: 6
+#| fig-height: 4
+#| fig-showtext: true
+#| collapse: true
+#| echo: false
+
+op <- par(mar = c(4, 4, 1, 1))
+plot(x = x[1, ], y = x[2, ],
+  col = densCols(t(x),
+    bandwidth = c(0.5, 0.5),
+    nbin = c(51L, 51L), colramp = hcl.colors
+  ),
+  type = "p", cex = 0.5, panel.first = grid(),
+  xlab = expression(x[1]), ylab = expression(x[2])
+)
+abline(v = 3, h = 2, col = "gray")
+points(x = 3, y = 2, col = "red", pch = 16)
+on.exit(par(op), add = TRUE)
+```
+
+类似地，可以用 Stan 函数 `multi_normal_cholesky_rng` 模拟多元正态分布。
