@@ -623,6 +623,12 @@ fit_multi_normal$summary(.num_args = list(sigfig = 4, notation = "dec"))
 以生成第一个服从二元正态分布的随机数（样本点）为例，这个随机数是通过采样获得的，采样过程中产生一个采样序列，采样序列的轨迹和分布如下：
 
 ```{r}
+#| label: fig-trace-dens
+#| fig-cap: 采样序列的轨迹和分布
+#| fig-width: 6
+#| fig-height: 4
+#| fig-showtext: true
+
 mcmc_trace(fit_multi_normal$draws(c("yhat[1,1]", "yhat[1,2]")),
   facet_args = list(
     labeller = ggplot2::label_parsed,
@@ -638,14 +644,20 @@ mcmc_dens(fit_multi_normal$draws(c("yhat[1,1]", "yhat[1,2]")),
 ) + theme_bw(base_size = 12)
 ```
 
-模拟采样序列的分布图，这就是一组来自二元正态分布的随机数。
+这就是一组来自二元正态分布的随机数。
 
 ```{r}
+#| label: fig-bivar-scatter
+#| fig-cap: 生成二元正态分布的随机数
+#| fig-width: 6
+#| fig-height: 4
+#| fig-showtext: true
+
 mcmc_scatter(fit_multi_normal$draws(c("yhat[1,1]", "yhat[1,2]"))) +
   theme_bw(base_size = 12)
 ```
 
-提取采样数据，整理成矩阵
+提取采样数据，整理成矩阵。
 
 ```{r}
 # 抽取原始采样数据
@@ -656,16 +668,15 @@ yhat_mean <- apply(yhat, c(1,3), mean)
 x <- as.matrix(yhat_mean)
 ```
 
-1000 个随机数的分布图
+1000 个抽自二元正态分布的随机数。
 
 ```{r}
 #| label: fig-bivar-bayes
-#| fig-cap: 生成二元正态分布的随机数
+#| fig-cap: 二元正态分布
 #| fig-width: 6
 #| fig-height: 4
 #| fig-showtext: true
 #| collapse: true
-#| echo: false
 
 op <- par(mar = c(4, 4, 1, 1))
 plot(x = x[, 1], y = x[, 2],

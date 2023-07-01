@@ -816,7 +816,12 @@ fit_multi_normal$summary(.num_args = list(sigfig = 4, notation = &quot;dec&quot;
     strip.position = &quot;top&quot;, ncol = 1
   )
 ) + theme_bw(base_size = 12)</code></pre>
-<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
+<div class="figure"><span style="display:block;" id="fig:fig-trace-dens-1"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-trace-dens-1.png" alt="采样序列的轨迹和分布" width="576" />
+<p class="caption">
+图 4.2: 采样序列的轨迹和分布
+</p>
+</div>
 <pre class="r"><code>
 mcmc_dens(fit_multi_normal$draws(c(&quot;yhat[1,1]&quot;, &quot;yhat[1,2]&quot;)),
   facet_args = list(
@@ -824,25 +829,47 @@ mcmc_dens(fit_multi_normal$draws(c(&quot;yhat[1,1]&quot;, &quot;yhat[1,2]&quot;)
     strip.position = &quot;top&quot;, ncol = 1
   )
 ) + theme_bw(base_size = 12)</code></pre>
-<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-28-2.png" width="672" /></p>
-<p>模拟采样序列的分布图，这就是一组来自二元正态分布的随机数。</p>
+<div class="figure"><span style="display:block;" id="fig:fig-trace-dens-2"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-trace-dens-2.png" alt="采样序列的轨迹和分布" width="576" />
+<p class="caption">
+图 4.3: 采样序列的轨迹和分布
+</p>
+</div>
+<p>这就是一组来自二元正态分布的随机数。</p>
 <pre class="r"><code>mcmc_scatter(fit_multi_normal$draws(c(&quot;yhat[1,1]&quot;, &quot;yhat[1,2]&quot;))) +
   theme_bw(base_size = 12)</code></pre>
-<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-29-1.png" width="672" /></p>
-<p>提取采样数据，整理成矩阵</p>
+<div class="figure"><span style="display:block;" id="fig:fig-bivar-scatter"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-bivar-scatter-1.png" alt="生成二元正态分布的随机数" width="576" />
+<p class="caption">
+图 4.4: 生成二元正态分布的随机数
+</p>
+</div>
+<p>提取采样数据，整理成矩阵。</p>
 <pre class="r"><code># 抽取原始采样数据
 yhat &lt;- fit_multi_normal$draws(c(&quot;yhat[1,1]&quot;, &quot;yhat[1,2]&quot;))
 # 合并多条链
 yhat_mean &lt;- apply(yhat, c(1,3), mean)
 # 整理成二维矩阵
 x &lt;- as.matrix(yhat_mean)</code></pre>
-<p>1000 个随机数的分布图</p>
+<p>1000 个抽自二元正态分布的随机数。</p>
+<pre class="r"><code>op &lt;- par(mar = c(4, 4, 1, 1))
+plot(x = x[, 1], y = x[, 2],
+  col = densCols(x,
+    bandwidth = c(0.5, 0.5),
+    nbin = c(51L, 51L), colramp = hcl.colors
+  ),
+  type = &quot;p&quot;, cex = 0.5, panel.first = grid(),
+  xlab = expression(x[1]), ylab = expression(x[2])
+)
+abline(v = 3, h = 2, col = &quot;gray&quot;)
+points(x = 3, y = 2, col = &quot;red&quot;, pch = 16)</code></pre>
 <div class="figure"><span style="display:block;" id="fig:fig-bivar-bayes"></span>
-<img src="{{< blogdown/postref >}}index_files/figure-html/fig-bivar-bayes-1.png" alt="生成二元正态分布的随机数" width="576" />
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-bivar-bayes-1.png" alt="二元正态分布" width="576" />
 <p class="caption">
-图 4.2: 生成二元正态分布的随机数
+图 4.5: 二元正态分布
 </p>
 </div>
+<pre class="r"><code>on.exit(par(op), add = TRUE)</code></pre>
 </div>
 </div>
 </div>
