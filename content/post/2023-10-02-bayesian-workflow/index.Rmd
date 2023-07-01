@@ -67,7 +67,7 @@ knitr::opts_chunk$set(
 相邻位置的核辐射强度是相关的，离得近的比离得远的更相关。下面对辐射强度建模，假定随机效应之间存在相关性结构，去掉随机效应相互独立的假设，这更符合位置效应存在相互影响的实际情况。
 
 $$
-\log\big(\lambda(x_i)\big) = \beta + S(x_{i})
+\log\big\{\lambda(x_i)\big\} = \beta + S(x_{i})
 $$
 
 其中，$\beta$ 表示截距，相当于平均水平，$\lambda(x_i)$ 表示位置 $x_i$ 处的辐射强度，$S(x_{i})$ 表示位置 $x_i$ 处的空间效应，$S(x),x \in \mathcal{D} \subset{\mathbb{R}^2}$ 是二维平稳空间高斯过程 $\mathcal{S}$ 的具体实现。 $\mathcal{D}$ 表示研究区域，可以理解为朗格拉普岛，它是二维实平面 $\mathbb{R}^2$ 的子集。
@@ -162,7 +162,7 @@ colnames(rongelap_grid_df) <- c("cX", "cY")
 
 ```{r}
 set.seed(20232023)
-nchains <- 4 # 4 条迭代链
+nchains <- 2 # 2 条迭代链
 # 给每条链设置不同的参数初始值
 inits_data_gaussian <- lapply(1:nchains, function(i) {
   list(
@@ -280,10 +280,10 @@ mod_rongelap_poisson <- cmdstan_model(
 fit_rongelap_gaussian <- mod_rongelap_gaussian$sample(
   data = rongelap_gaussian_d,   # 观测数据
   init = inits_data_gaussian,   # 迭代初值
-  iter_warmup = 1000,           # 每条链预处理迭代次数
-  iter_sampling = 2000,         # 每条链总迭代次数
+  iter_warmup = 500,           # 每条链预处理迭代次数
+  iter_sampling = 1000,         # 每条链总迭代次数
   chains = nchains,             # 马尔科夫链的数目
-  parallel_chains = 4,      # 指定 CPU 核心数，可以给每条链分配一个
+  parallel_chains = 2,      # 指定 CPU 核心数，可以给每条链分配一个
   threads_per_chain = 1,    # 每条链设置一个线程
   show_messages = FALSE,    # 不显示迭代的中间过程
   refresh = 0,              # 不显示采样的进度
@@ -295,10 +295,10 @@ fit_rongelap_gaussian <- mod_rongelap_gaussian$sample(
 fit_rongelap_poisson <- mod_rongelap_poisson$sample(
   data = rongelap_poisson_d, # 观测数据
   init = inits_data_poisson,    # 迭代初值
-  iter_warmup = 1000,    # 每条链预处理迭代次数
-  iter_sampling = 2000, # 每条链总迭代次数
+  iter_warmup = 500,    # 每条链预处理迭代次数
+  iter_sampling = 1000, # 每条链总迭代次数
   chains = nchains,     # 马尔科夫链的数目
-  parallel_chains = 4,  # 指定 CPU 核心数，可以给每条链分配一个
+  parallel_chains = 2,  # 指定 CPU 核心数，可以给每条链分配一个
   threads_per_chain = 1, # 每条链设置一个线程
   show_messages = FALSE, # 不显示迭代的中间过程
   refresh = 0,    # 不显示采样的进度
@@ -418,9 +418,52 @@ mcmc_dens(fit_rongelap_poisson$draws(c("sigma", "phi")),
 
 ## 模型评估
 
--   LOO
--   pDIC
--   WAIC
+-   LOO-CV （Leave-One-Out Cross-Validation，LOO-CV）留一交叉验证，越大越好。
+-   WAIC （Widely Available Information Criterion）通用信息准则，越小越好。
+
+### 对数高斯模型
+
+``` stan
+generated quantities {
+  real log_lik = multi_normal_cholesky_lpdf(y | mu, L_K);
+}
+```
+
+在 `generated quantities` 代码块中计算逐点对数似然 pointwise log-likelihood。
+
+```{r}
+fit_rongelap_gaussian$summary(
+  variables = "log_lik",
+  .num_args = list(sigfig = 4, notation = "dec")
+)
+```
+
+每一次采样迭代都会计算一次对数似然 `log_lik`
+
+```{r}
+#| label: fig-rongelap-log-lik-gaussian
+#| fig-cap: 对数似然
+#| fig-width: 6
+#| fig-height: 4
+#| fig-showtext: true
+
+mcmc_trace(fit_rongelap_gaussian$draws("log_lik")) + 
+  theme_bw(base_size = 12)
+```
+
+留一交叉验证 Leave-one-out cross-validation (LOO-CV)
+
+```{r}
+fit_rongelap_gaussian$loo(variables = "log_lik", cores = 2)
+```
+
+目前 **loo** 包还不支持 CmdStanFit 类型，所以要计算 WAIC，先用 **rstan** 包读取 CmdStan 的结果数据，再用 **loo** 包计算 StanFit 的 WAIC。
+
+```{r}
+stanfit_gaussian <- rstan::read_stan_csv(fit_rongelap_gaussian$output_files())
+stanfit_gaussian_loglik <- loo::extract_log_lik(stanfit_gaussian)
+loo::waic(stanfit_gaussian_loglik)
+```
 
 ## 模型比较
 
@@ -495,6 +538,77 @@ knitr::kable(dat, col.names = c(
 
 预测位置需要放入 Stan 代码中
 
+### 对数高斯模型
+
+``` stan
+generated quantities {
+  vector[N] yhat = multi_normal_cholesky_rng(mu, L_K);
+}
+```
+
+在 `generated quantities` 代码块中计算预测值 `yhat`。
+
+采样点的观测值服从多元正态分布，预测 `yhat`
+
+```{r}
+# 对数高斯模型
+fit_rongelap_gaussian$summary(
+  variables = c("yhat"),
+  .num_args = list(sigfig = 4, notation = "dec")
+)
+```
+
+第一个采样点的预测值
+
+```{r}
+fit_rongelap_gaussian$summary(
+  variables = "yhat[1]",
+  .num_args = list(sigfig = 4, notation = "dec")
+)
+```
+
+第一个采样点 $\log\{\lambda(x_1)\}$ 的后验预测分布
+
+```{r}
+#| label: fig-rongelap-pred-1
+#| fig-cap: $\log\{\lambda(x_1)\}$ 处核辐射强度的分布
+#| fig-width: 6
+#| fig-height: 4
+#| fig-showtext: true
+
+mcmc_dens(fit_rongelap_gaussian$draws(variables = "yhat[1]")) + 
+  theme_bw(base_size = 12) +
+  labs(x = expression(hat(y)[1]))
+```
+
+恢复到辐射强度的尺度，核辐射强度的预测分布
+
+```{r}
+#| label: fig-rongelap-pred
+#| fig-cap: 核辐射强度的分布
+#| fig-width: 6
+#| fig-height: 4
+#| fig-showtext: true
+
+yhat_gaussian <- fit_rongelap_gaussian$summary(variables = "yhat")
+rongelap$pred_gaussian <- exp(yhat_gaussian$mean)
+
+ggplot(data = rongelap, aes(x = cX, y = cY)) +
+  geom_point(aes(color = pred_gaussian), cex = 0.5) +
+  scale_color_distiller(palette = "Spectral") +
+  theme_bw() +
+  labs(x = "横坐标（米）", y = "纵坐标（米）", color = "预测值")
+```
+
+预测结果，看起来很平滑。相比于观测的辐射强度值，预测的辐射强度的变化范围变小很多了。
+
+```{r}
+# 贝叶斯预测值范围
+range(rongelap$pred_gaussian)
+# 观测值范围
+range(rongelap$counts / rongelap$time)
+```
+
 # 参考文献 {#references}
 
 ::: {#refs}
@@ -566,6 +680,8 @@ points(x = 3, y = 2, col = "red", pch = 16)
 on.exit(par(op), add = TRUE)
 ```
 
+顺便一提，函数 `MASS::mvrnorm()` 和 `mvtnorm::rmvnorm()` 都可以生成服从多元正态分布的随机数。
+
 ### Stan 代码实现
 
 类似地，可以用 Stan 函数 `multi_normal_cholesky_rng` 生成随机数模拟多元正态分布。
@@ -599,7 +715,7 @@ fit_multi_normal <- mod_multi_normal$sample(
   data = multi_normal_d,
   iter_warmup = 500,    # 每条链预处理迭代次数
   iter_sampling = 1000, # 样本量
-  chains = 1,          # 马尔科夫链的数目
+  chains = 2,          # 马尔科夫链的数目
   parallel_chains = 1, # 指定 CPU 核心数，可以给每条链分配一个
   threads_per_chain = 1, # 每条链设置一个线程
   show_messages = FALSE, # 不显示迭代的中间过程
@@ -615,7 +731,6 @@ fit_multi_normal <- mod_multi_normal$sample(
 ```{r}
 # 原始数据
 fit_multi_normal$draws(variables = "yhat", format = "array")
-
 # 数据概览
 fit_multi_normal$summary(.num_args = list(sigfig = 4, notation = "dec"))
 ```
@@ -654,7 +769,8 @@ mcmc_dens(fit_multi_normal$draws(c("yhat[1,1]", "yhat[1,2]")),
 #| fig-showtext: true
 
 mcmc_scatter(fit_multi_normal$draws(c("yhat[1,1]", "yhat[1,2]"))) +
-  theme_bw(base_size = 12)
+  theme_bw(base_size = 12) +
+  labs(x = expression(x[1]), y = expression(x[2]))
 ```
 
 提取采样数据，整理成矩阵。

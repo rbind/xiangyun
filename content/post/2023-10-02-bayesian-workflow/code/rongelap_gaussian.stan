@@ -24,3 +24,7 @@ model {
 
   y ~ multi_normal_cholesky(mu, L_K);
 }
+generated quantities {
+  real log_lik = multi_normal_cholesky_lpdf(y | mu, L_K);
+  vector[N] yhat = multi_normal_cholesky_rng(mu, L_K);
+}
