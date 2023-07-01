@@ -63,7 +63,11 @@ description: "贝叶斯数据分析工作流。一文搞懂贝叶斯空间数据
 <li><a href="#references" id="toc-references"><span class="toc-section-number">3</span> 参考文献</a></li>
 <li><a href="#附录" id="toc-附录"><span class="toc-section-number">4</span> 附录</a>
 <ul>
-<li><a href="#模拟多元正态分布" id="toc-模拟多元正态分布"><span class="toc-section-number">4.1</span> 模拟多元正态分布</a></li>
+<li><a href="#模拟多元正态分布" id="toc-模拟多元正态分布"><span class="toc-section-number">4.1</span> 模拟多元正态分布</a>
+<ul>
+<li><a href="#r-代码实现" id="toc-r-代码实现"><span class="toc-section-number">4.1.1</span> R 代码实现</a></li>
+<li><a href="#stan-代码实现" id="toc-stan-代码实现"><span class="toc-section-number">4.1.2</span> Stan 代码实现</a></li>
+</ul></li>
 </ul></li>
 </ul>
 </div>
@@ -692,6 +696,8 @@ fit_gaus_ml_nugget &lt;- gls(log(counts / time) ~ 1,
 \end{aligned}
 \]</span></p>
 <p>其中，协方差矩阵 <span class="math inline">\(\Sigma\)</span> 是正定的，其 Cholesky 分解为 <span class="math inline">\(\Sigma = CC^{\top}\)</span> ，这里 <span class="math inline">\(C\)</span> 为下三角矩阵。设 <span class="math inline">\(\bm{Z} = (Z_1, Z_2, \cdots, Z_p)^{\top}\)</span> 服从 <span class="math inline">\(p\)</span> 元标准正态分布 <span class="math inline">\(\mathrm{MVN}(\bm{0}, I)\)</span> ，则 <span class="math inline">\(\bm{X} = \bm{\mu} + C\bm{Z}\)</span> 服从多元正态分布 <span class="math inline">\(\mathrm{MVN}(\bm{\mu}, \Sigma)\)</span> 。</p>
+<div id="r-代码实现" class="section level3" number="4.1.1">
+<h3><span class="header-section-number">4.1.1</span> R 代码实现</h3>
 <p>下面使用 Cholesky 分解生成多元正态分布随机数，代码稍修改自<a href="https://www.math.pku.edu.cn/teachers/lidf/docs/statcomp/html/_statcompbook/rng-multi.html">《统计计算》</a>多元随机向量的模拟。</p>
 <pre class="r"><code># n 样本点的数量
 # mu 均值向量
@@ -705,6 +711,9 @@ rng_mnorm &lt;- function(n, mu, Sigma) {
 set.seed(20232023)
 # 1000 个样本点
 x &lt;- rng_mnorm(n = 1000, mu = c(3, 2), Sigma = rbind(c(4, 1), c(1, 1)))
+# 样本均值
+colMeans(t(x))
+#&gt; [1] 3.112 1.992
 # 样本协方差矩阵
 var(t(x))
 #&gt;       [,1]  [,2]
@@ -717,6 +726,123 @@ var(t(x))
 图 4.1: 生成二元正态分布的随机数
 </p>
 </div>
-<p>类似地，可以用 Stan 函数 <code>multi_normal_cholesky_rng</code> 模拟多元正态分布。</p>
+</div>
+<div id="stan-代码实现" class="section level3" number="4.1.2">
+<h3><span class="header-section-number">4.1.2</span> Stan 代码实现</h3>
+<p>类似地，可以用 Stan 函数 <code>multi_normal_cholesky_rng</code> 生成随机数模拟多元正态分布。</p>
+<pre class="stan"><code>data {
+  int&lt;lower=1&gt; N;
+  int&lt;lower=1&gt; D;
+  vector[D] mu;
+  matrix[D, D] Sigma;
+}
+transformed data {
+  matrix[D, D] L_K = cholesky_decompose(Sigma);
+}
+parameters {
+}
+model {
+}
+generated quantities {
+  array[N] vector[D] yhat;
+  for (n in 1:N){
+    yhat[n] = multi_normal_cholesky_rng(mu, L_K); 
+  }
+}</code></pre>
+<p>上述代码块可以同时模拟多组服从多元正态分布的随机数。其中，参数块 <code>parameters</code> 和模型块 <code>model</code> 是空白的，这是因为模拟随机数不涉及模型推断，只是采样。核心部分 <code>generated quantities</code> 代码块负责生成随机数。</p>
+<pre class="r"><code># 给定二元正态分布的参数值
+multi_normal_d &lt;- list(
+  N = 1, # 一组随机数
+  D = 2, # 维度
+  mu = c(3, 2), # 均值向量
+  Sigma = rbind(c(4, 1), c(1, 1)) # 协方差矩阵
+)
+# 编译多元正态分布模型
+mod_multi_normal &lt;- cmdstan_model(
+  stan_file = &quot;code/multi_normal.stan&quot;,
+  compile = TRUE, cpp_options = list(stan_threads = TRUE)
+)</code></pre>
+<p>抽样生成 1000 个服从二元正态分布的随机数。</p>
+<pre class="r"><code>fit_multi_normal &lt;- mod_multi_normal$sample(
+  data = multi_normal_d,
+  iter_warmup = 500,    # 每条链预处理迭代次数
+  iter_sampling = 1000, # 样本量
+  chains = 1,          # 马尔科夫链的数目
+  parallel_chains = 1, # 指定 CPU 核心数，可以给每条链分配一个
+  threads_per_chain = 1, # 每条链设置一个线程
+  show_messages = FALSE, # 不显示迭代的中间过程
+  refresh = 0,        # 不显示采样的进度
+  fixed_param = TRUE, # 固定参数
+  output_dir = &quot;data/&quot;,
+  seed = 20232023     # 设置随机数种子，不要使用 set.seed() 函数
+)</code></pre>
+<p>值得注意，这里，不需要设置参数初始值，但要设置 <code>fixed_param = TRUE</code>，表示根据模型生成模拟数据。</p>
+<pre class="r"><code># 原始数据
+fit_multi_normal$draws(variables = &quot;yhat&quot;, format = &quot;array&quot;)
+#&gt; # A draws_array: 1000 iterations, 1 chains, and 2 variables
+#&gt; , , variable = yhat[1,1]
+#&gt; 
+#&gt;          chain
+#&gt; iteration   1
+#&gt;         1 2.6
+#&gt;         2 5.3
+#&gt;         3 1.4
+#&gt;         4 3.1
+#&gt;         5 7.6
+#&gt; 
+#&gt; , , variable = yhat[1,2]
+#&gt; 
+#&gt;          chain
+#&gt; iteration    1
+#&gt;         1 0.65
+#&gt;         2 3.70
+#&gt;         3 4.36
+#&gt;         4 1.85
+#&gt;         5 2.32
+#&gt; 
+#&gt; # ... with 995 more iterations
+
+# 数据概览
+fit_multi_normal$summary(.num_args = list(sigfig = 4, notation = &quot;dec&quot;))
+#&gt; # A tibble: 2 × 10
+#&gt;   variable     mean  median      sd    mad      q5   q95  rhat ess_bulk ess_tail
+#&gt;   &lt;chr&gt;     &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:&gt; &lt;dec:4&gt; &lt;dec&gt; &lt;dec&gt;  &lt;dec:4&gt;  &lt;dec:4&gt;
+#&gt; 1 yhat[1,1]   3.076   2.979   2.038 1.916  -0.3290 6.535 1.001   1140.    1023. 
+#&gt; 2 yhat[1,2]   1.990   1.964   1.018 0.9765  0.2323 3.680 1.002    966.5    982.1</code></pre>
+<p>以生成第一个服从二元正态分布的随机数（样本点）为例，这个随机数是通过采样获得的，采样过程中产生一个采样序列，采样序列的轨迹和分布如下：</p>
+<pre class="r"><code>mcmc_trace(fit_multi_normal$draws(c(&quot;yhat[1,1]&quot;, &quot;yhat[1,2]&quot;)),
+  facet_args = list(
+    labeller = ggplot2::label_parsed,
+    strip.position = &quot;top&quot;, ncol = 1
+  )
+) + theme_bw(base_size = 12)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
+<pre class="r"><code>
+mcmc_dens(fit_multi_normal$draws(c(&quot;yhat[1,1]&quot;, &quot;yhat[1,2]&quot;)),
+  facet_args = list(
+    labeller = ggplot2::label_parsed,
+    strip.position = &quot;top&quot;, ncol = 1
+  )
+) + theme_bw(base_size = 12)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-28-2.png" width="672" /></p>
+<p>模拟采样序列的分布图，这就是一组来自二元正态分布的随机数。</p>
+<pre class="r"><code>mcmc_scatter(fit_multi_normal$draws(c(&quot;yhat[1,1]&quot;, &quot;yhat[1,2]&quot;))) +
+  theme_bw(base_size = 12)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-29-1.png" width="672" /></p>
+<p>提取采样数据，整理成矩阵</p>
+<pre class="r"><code># 抽取原始采样数据
+yhat &lt;- fit_multi_normal$draws(c(&quot;yhat[1,1]&quot;, &quot;yhat[1,2]&quot;))
+# 合并多条链
+yhat_mean &lt;- apply(yhat, c(1,3), mean)
+# 整理成二维矩阵
+x &lt;- as.matrix(yhat_mean)</code></pre>
+<p>1000 个随机数的分布图</p>
+<div class="figure"><span style="display:block;" id="fig:fig-bivar-bayes"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-bivar-bayes-1.png" alt="生成二元正态分布的随机数" width="576" />
+<p class="caption">
+图 4.2: 生成二元正态分布的随机数
+</p>
+</div>
+</div>
 </div>
 </div>
