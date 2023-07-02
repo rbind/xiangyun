@@ -74,6 +74,7 @@ description: "贝叶斯数据分析工作流。一文搞懂贝叶斯空间数据
 <li><a href="#r-代码实现" id="toc-r-代码实现"><span class="toc-section-number">4.1.1</span> R 代码实现</a></li>
 <li><a href="#stan-代码实现" id="toc-stan-代码实现"><span class="toc-section-number">4.1.2</span> Stan 代码实现</a></li>
 </ul></li>
+<li><a href="#拟合多元正态分布" id="toc-拟合多元正态分布"><span class="toc-section-number">4.2</span> 拟合多元正态分布</a></li>
 </ul></li>
 </ul>
 </div>
@@ -792,7 +793,7 @@ ggplot(data = rongelap, aes(x = cX, y = cY)) +
   theme_bw() +
   labs(x = &quot;横坐标（米）&quot;, y = &quot;纵坐标（米）&quot;, color = &quot;预测值&quot;)</code></pre>
 <div class="figure"><span style="display:block;" id="fig:fig-rongelap-pred"></span>
-<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-pred-1.png" alt="核辐射强度的分布" width="576" />
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-pred-1.png" alt="核辐射强度的分布" width="720" />
 <p class="caption">
 图 2.7: 核辐射强度的分布
 </p>
@@ -987,7 +988,16 @@ yhat &lt;- fit_multi_normal$draws(c(&quot;yhat[1,1]&quot;, &quot;yhat[1,2]&quot;
 # 合并多条链
 yhat_mean &lt;- apply(yhat, c(1,3), mean)
 # 整理成二维矩阵
-x &lt;- as.matrix(yhat_mean)</code></pre>
+x &lt;- as.matrix(yhat_mean)
+# 样本均值
+colMeans(x)
+#&gt; yhat[1,1] yhat[1,2] 
+#&gt;     3.019     1.983
+# 样本方差-协方差矩阵
+2 * var(x)
+#&gt;           yhat[1,1] yhat[1,2]
+#&gt; yhat[1,1]     4.020    1.0354
+#&gt; yhat[1,2]     1.035    0.9884</code></pre>
 <p>1000 个抽自二元正态分布的随机数。</p>
 <pre class="r"><code>op &lt;- par(mar = c(4, 4, 1, 1))
 plot(x = x[, 1], y = x[, 2],
@@ -1007,6 +1017,149 @@ points(x = 3, y = 2, col = &quot;red&quot;, pch = 16)</code></pre>
 </p>
 </div>
 <pre class="r"><code>on.exit(par(op), add = TRUE)</code></pre>
+</div>
+</div>
+<div id="拟合多元正态分布" class="section level2" number="4.2">
+<h2><span class="header-section-number">4.2</span> 拟合多元正态分布</h2>
+<p>一般地，协方差矩阵的 Cholesky 分解的矩阵表示如下：</p>
+<p><span class="math display">\[
+\begin{aligned}
+  \Sigma &amp;= \begin{bmatrix}
+\sigma^2_1 &amp; \rho_{12}\sigma_1\sigma_2 &amp; \rho_{13}\sigma_1\sigma_3 \\
+\rho_{12}\sigma_1\sigma_2 &amp; \sigma_2^2 &amp; \rho_{23}\sigma_2\sigma_3 \\
+\rho_{13}\sigma_1\sigma_3 &amp; \rho_{23}\sigma_2\sigma_3 &amp; \sigma_3^2
+\end{bmatrix} \\
+&amp; = \begin{bmatrix}
+\sigma_1 &amp; 0 &amp; 0 \\
+0 &amp; \sigma_2 &amp; 0 \\
+0 &amp; 0 &amp; \sigma_3
+\end{bmatrix}
+\underbrace{
+\begin{bmatrix}
+1 &amp; \rho_{12} &amp; \rho_{13} \\
+\rho_{12} &amp; 1 &amp; \rho_{23} \\
+\rho_{13} &amp; \rho_{23} &amp; 1
+\end{bmatrix}
+}_{R}
+\begin{bmatrix}
+\sigma_1 &amp; 0 &amp; 0 \\
+0 &amp; \sigma_2 &amp; 0 \\
+0 &amp; 0 &amp; \sigma_3
+\end{bmatrix} \\
+&amp; = \begin{bmatrix}
+\sigma_1 &amp; 0 &amp; 0 \\
+0 &amp; \sigma_2 &amp; 0 \\
+0 &amp; 0 &amp; \sigma_3
+\end{bmatrix}
+\underbrace{L_u L_u^{\top}}_{R}
+\begin{bmatrix}
+\sigma_1 &amp; 0 &amp; 0 \\
+0 &amp; \sigma_2 &amp; 0 \\
+0 &amp; 0 &amp; \sigma_3
+\end{bmatrix}
+\end{aligned}
+\]</span></p>
+<pre class="stan"><code>data {
+  int&lt;lower=1&gt; N; // number of observations
+  int&lt;lower=1&gt; K; // dimension of observations
+  array[N] vector[K] y; // observations: a list of N vectors (each has K elements)
+}
+parameters {
+  vector[K] mu;
+  cholesky_factor_corr[K] Lcorr; // cholesky factor (L_u matrix for R)
+  vector&lt;lower=0&gt;[K] sigma;
+}
+transformed parameters {
+  corr_matrix[K] R; // correlation matrix
+  cov_matrix[K] Sigma; // VCV matrix
+  R = multiply_lower_tri_self_transpose(Lcorr); // R = Lcorr * Lcorr&#39;
+  Sigma = quad_form_diag(R, sigma); // quad_form_diag: diag_matrix(sig) * R * diag_matrix(sig)
+}
+model {
+  sigma ~ cauchy(0, 5); // prior for sigma
+  Lcorr ~ lkj_corr_cholesky(2.0); // prior for cholesky factor of a correlation matrix
+  y ~ multi_normal(mu, Sigma);
+}</code></pre>
+<p>代码中， 核心部分是关于多元正态分布的协方差矩阵的参数化，先将协方差矩阵中的方差和相关矩阵剥离，然后利用 Cholesky 分解将相关矩阵分解。在 Stan 里，这是一套高效的组合。</p>
+<ul>
+<li><p>类型 <code>cholesky_factor_corr</code> 表示相关矩阵的 Cholesky 分解后的矩阵 <span class="math inline">\(L_u\)</span></p></li>
+<li><p>类型 <code>corr_matrix</code> 表示相关矩阵 <span class="math inline">\(R\)</span> 。</p></li>
+<li><p>类型 <code>cov_matrix</code> 表示协方差矩阵 <span class="math inline">\(\Sigma\)</span> 。</p></li>
+<li><p>函数 <code>lkj_corr_cholesky</code> 为相关矩阵 Cholesky 分解后的矩阵 <span class="math inline">\(L_u\)</span> 服从的分布，详见 <a href="https://mc-stan.org/docs/functions-reference/cholesky-lkj-correlation-distribution.html">Cholesky LKJ correlation distribution</a>。函数名中的 <code>lkj</code> 是以三个人的人名的首字母命名的 <a href="https://mc-stan.org/docs/functions-reference/lkj-correlation.html#ref-LewandowskiKurowickaJoe:2009">Lewandowski, Kurowicka, and Joe 2009</a>。</p></li>
+<li><p>函数 <strong><code>multiply_lower_tri_self_transpose</code></strong> 为下三角矩阵与它的转置的乘积，详见 <a href="https://mc-stan.org/docs/functions-reference/correlation-matrix-distributions.html">Correlation Matrix Distributions</a>。</p></li>
+<li><p>函数 <code>multi_normal</code> 为多元正态分布的抽样语句，详见 <a href="https://mc-stan.org/docs/functions-reference/multivariate-normal-distribution.html">Multivariate normal distribution</a>。</p></li>
+</ul>
+<p>矩阵 <span class="math inline">\(L_u\)</span> 是相关矩阵 <span class="math inline">\(R\)</span> 的 Cholesky 分解的结果，在贝叶斯框架内，参数都是随机的，相关矩阵是一个随机矩阵，矩阵 <span class="math inline">\(L_u\)</span> 是一个随机矩阵，它的分布用 Stan 代码表示为如下：</p>
+<pre class="stan"><code>L ~ lkj_corr_cholesky(2.0); # implies L * L&#39; ~ lkj_corr(2.0);</code></pre>
+<p>LKJ 分布有一个参数 <span class="math inline">\(\eta\)</span> ，此处 <span class="math inline">\(\eta = 2\)</span> ，意味着变量之间的相关性较弱，LKJ 分布的概率密度函数正比于相关矩阵的行列式的 <span class="math inline">\(\eta-1\)</span> 次幂 <span class="math inline">\((\det{R})^{\eta-1}\)</span>，LKJ 分布的详细说明见<a href="https://distribution-explorer.github.io/multivariate_continuous/lkj.html">Lewandowski-Kurowicka-Joe (LKJ) distribution</a>。</p>
+<p>有了上面的背景知识（相关矩阵的分布，随机矩阵的分布），下面先在 R 环境中，模拟一组来自多元正态分布的样本。</p>
+<pre class="r"><code>set.seed(20232023)
+# 均值
+mu &lt;- c(1, 2, -5) 
+# 相关矩阵 (R)
+R &lt;- matrix(c(
+  1, 0.7, 0.2, 
+  0.7, 1, -0.5,
+  0.2, -0.5, 1
+), 3)
+# sd1 = 0.5, sd2 = 1.2, sd3 = 2.3
+sigmas &lt;- c(0.5, 1.2, 2.3) 
+# 方差-协方差矩阵
+Sigma &lt;- diag(sigmas) %*% R %*% diag(sigmas) 
+# 模拟 1000 个样本数据
+dat &lt;- MASS::mvrnorm(1000, mu = mu, Sigma = Sigma) </code></pre>
+<p>根据 1000 个样本点，估计多元正态分布的均值参数和方差协方差参数。</p>
+<pre class="r"><code># 来自多元正态分布的一组样本
+multi_normal_chol_d &lt;- list(
+  N = 1000, # 样本量
+  K = 3,    # 三维
+  y = dat
+)
+# 编译多元正态分布模型
+mod_multi_normal_chol &lt;- cmdstan_model(
+  stan_file = &quot;code/multi_normal_chol.stan&quot;,
+  compile = TRUE, cpp_options = list(stan_threads = TRUE)
+)</code></pre>
+<pre class="r"><code>fit_multi_normal_chol &lt;- mod_multi_normal_chol$sample(
+  data = multi_normal_chol_d,
+  iter_warmup = 500,    # 每条链预处理迭代次数
+  iter_sampling = 1000, # 样本量
+  chains = 2,           # 马尔科夫链的数目
+  parallel_chains = 1,  # 指定 CPU 核心数
+  threads_per_chain = 1,  # 每条链设置一个线程
+  show_messages = FALSE,  # 不显示迭代的中间过程
+  refresh = 0,            # 不显示采样的进度
+  output_dir = &quot;data/&quot;,
+  seed = 20232023     # 设置随机数种子
+)</code></pre>
+<p>均值向量 <span class="math inline">\(\bm{\mu}\)</span> 和协方差矩阵 <span class="math inline">\(\Sigma\)</span> 估计结果如下：</p>
+<pre class="r"><code>fit_multi_normal_chol$summary(c(&quot;mu&quot;, &quot;Sigma&quot;),.num_args = list(sigfig = 4, notation = &quot;dec&quot;))
+#&gt; # A tibble: 12 × 10
+#&gt;    variable      mean  median      sd     mad      q5     q95    rhat ess_bulk
+#&gt;    &lt;chr&gt;      &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:4&gt;  &lt;dec:4&gt;
+#&gt;  1 mu[1]       0.9841  0.9841 0.01655 0.01601  0.9568  1.012   1.000     1849.
+#&gt;  2 mu[2]       1.917   1.918  0.03869 0.03786  1.853   1.982   0.9996    1760.
+#&gt;  3 mu[3]      -4.886  -4.886  0.07422 0.07045 -5.010  -4.764   1.002     1898.
+#&gt;  4 Sigma[1,1]  0.2552  0.2550 0.01143 0.01150  0.2366  0.2741  1.002     1635.
+#&gt;  5 Sigma[2,1]  0.4191  0.4187 0.02290 0.02227  0.3833  0.4584  0.9994    1526.
+#&gt;  6 Sigma[3,1]  0.2497  0.2497 0.03826 0.03758  0.1869  0.3128  1.002     1691.
+#&gt;  7 Sigma[1,2]  0.4191  0.4187 0.02290 0.02227  0.3833  0.4584  0.9994    1526.
+#&gt;  8 Sigma[2,2]  1.418   1.416  0.06288 0.06300  1.319   1.524   1.000     1483.
+#&gt;  9 Sigma[3,2] -1.342  -1.340  0.09674 0.09853 -1.504  -1.191   1.001     1629.
+#&gt; 10 Sigma[1,3]  0.2497  0.2497 0.03826 0.03758  0.1869  0.3128  1.002     1691.
+#&gt; 11 Sigma[2,3] -1.342  -1.340  0.09674 0.09853 -1.504  -1.191   1.001     1629.
+#&gt; 12 Sigma[3,3]  5.322   5.322  0.2397  0.2402   4.928   5.724   1.000     1737.
+#&gt; # ℹ 1 more variable: ess_tail &lt;dec:4&gt;</code></pre>
+<p>均值向量 <span class="math inline">\(\bm{\mu} = (\mu_1,\mu_2,\mu_3)^{\top}\)</span> 各个分量及其两两相关性，如下图所示。</p>
+<pre class="r"><code>mcmc_pairs(
+  fit_multi_normal_chol$draws(c(&quot;mu[1]&quot;, &quot;mu[2]&quot;, &quot;mu[3]&quot;)),
+  diag_fun = &quot;dens&quot;, off_diag_fun = &quot;hex&quot;
+)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-trivar-bayes"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-trivar-bayes-1.png" alt="三元正态分布" width="576" />
+<p class="caption">
+图 4.6: 三元正态分布
+</p>
 </div>
 </div>
 </div>
