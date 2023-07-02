@@ -119,6 +119,7 @@ description: "贝叶斯数据分析工作流。一文搞懂贝叶斯空间数据
 </div>
 <div id="工作流" class="section level1" number="2">
 <h1><span class="header-section-number">2</span> 工作流</h1>
+<p>Bayesian Workflow <span class="citation">[<a href="#ref-Gelman2020">1</a>]</span></p>
 <div id="统计建模" class="section level2" number="2.1">
 <h2><span class="header-section-number">2.1</span> 统计建模</h2>
 <div id="对数高斯模型" class="section level3" number="2.1.1">
@@ -131,7 +132,7 @@ description: "贝叶斯数据分析工作流。一文搞懂贝叶斯空间数据
 </div>
 <div id="泊松对数模型" class="section level3" number="2.1.2">
 <h3><span class="header-section-number">2.1.2</span> 泊松对数模型</h3>
-<p>广义线性模型并没有考虑距离相关性，它认为各个观测点的数据是相互独立的。因此，在广义线性模型的基础上添加位置相关的随机效应，用以刻画未能直接观测到的潜在影响。根据 <span class="math inline">\({}^{137}\mathrm{Cs}\)</span> 放出伽马射线，在 <span class="math inline">\(n=157\)</span> 个采样点，分别以时间间隔 <span class="math inline">\(t_i\)</span> 测量辐射量 <span class="math inline">\(y(x_i)\)</span>，建立泊松型空间广义线性混合效应模型<span class="citation">[<a href="#ref-Diggle1998">1</a>]</span>。</p>
+<p>广义线性模型并没有考虑距离相关性，它认为各个观测点的数据是相互独立的。因此，在广义线性模型的基础上添加位置相关的随机效应，用以刻画未能直接观测到的潜在影响。根据 <span class="math inline">\({}^{137}\mathrm{Cs}\)</span> 放出伽马射线，在 <span class="math inline">\(n=157\)</span> 个采样点，分别以时间间隔 <span class="math inline">\(t_i\)</span> 测量辐射量 <span class="math inline">\(y(x_i)\)</span>，建立泊松型空间广义线性混合效应模型<span class="citation">[<a href="#ref-Diggle1998">2</a>]</span>。</p>
 <p><span class="math display">\[
 \begin{aligned}
 \log\{\lambda(x_i)\} &amp; =  \beta + S(x_{i})\\
@@ -239,7 +240,7 @@ library(loo)
 library(projpred)</code></pre>
 <ul>
 <li><strong>cmdstanr</strong> 配置 Stan 环境、编译 Stan 代码（设置编译参数）和采样（设置采样算法和参数）。</li>
-<li><strong>bayesplot</strong> <span class="citation">[<a href="#ref-Gabry2019">2</a>]</span> 可视化模型参数的后验分布，迭代轨迹的散点图、迭代链的自相关图、后验分布的直方图等。</li>
+<li><strong>bayesplot</strong> <span class="citation">[<a href="#ref-Gabry2019">3</a>]</span> 可视化模型参数的后验分布，迭代轨迹的散点图、迭代链的自相关图、后验分布的直方图等。</li>
 <li><strong>loo</strong> 模型评估与比较，计算 LOO 和 WAIC 等指标。</li>
 <li><strong>projpred</strong> 变量选择</li>
 <li><strong>posterior</strong> 后验推断</li>
@@ -823,11 +824,14 @@ range(rongelap$counts / rongelap$time)
 <div id="references" class="section level1" number="3">
 <h1><span class="header-section-number">3</span> 参考文献</h1>
 <div id="refs" class="references csl-bib-body">
+<div id="ref-Gelman2020" class="csl-entry">
+<div class="csl-left-margin">[1] </div><div class="csl-right-inline"><span class="smallcaps">Gelman</span>, A., <span class="smallcaps">Vehtari</span>, A., <span class="smallcaps">Simpson</span>, D., <span class="smallcaps">Margossian</span>, C. C., <span class="smallcaps">Carpenter</span>, B., <span class="smallcaps">Yao</span>, Y., <span class="smallcaps">Kennedy</span>, L., <span class="smallcaps">Gabry</span>, J., <span class="smallcaps">Bürkner</span>, P.-C. and <span class="smallcaps">Modrák</span>, M. (2020). <a href="https://arxiv.org/abs/2011.01808">Bayesian workflow</a>.</div>
+</div>
 <div id="ref-Diggle1998" class="csl-entry">
-<div class="csl-left-margin">[1] </div><div class="csl-right-inline"><span class="smallcaps">Diggle</span>, P. J., <span class="smallcaps">Tawn</span>, J. A. and <span class="smallcaps">Moyeed</span>, R. A. (1998). <a href="https://doi.org/10.1111/1467-9876.00113">Model-based geostatistics</a>. <em>Journal of the Royal Statistical Society: Series C (Applied Statistics)</em> <strong>47</strong> 299–350.</div>
+<div class="csl-left-margin">[2] </div><div class="csl-right-inline"><span class="smallcaps">Diggle</span>, P. J., <span class="smallcaps">Tawn</span>, J. A. and <span class="smallcaps">Moyeed</span>, R. A. (1998). <a href="https://doi.org/10.1111/1467-9876.00113">Model-based geostatistics</a>. <em>Journal of the Royal Statistical Society: Series C (Applied Statistics)</em> <strong>47</strong> 299–350.</div>
 </div>
 <div id="ref-Gabry2019" class="csl-entry">
-<div class="csl-left-margin">[2] </div><div class="csl-right-inline"><span class="smallcaps">Gabry</span>, J., <span class="smallcaps">Simpson</span>, D., <span class="smallcaps">Vehtari</span>, A., <span class="smallcaps">Betancourt</span>, M. and <span class="smallcaps">Gelman</span>, A. (2019). <a href="https://doi.org/10.1111/rssa.12378">Visualization in bayesian workflow</a>. <em>J. R. Stat. Soc. A</em> <strong>182</strong> 389–402.</div>
+<div class="csl-left-margin">[3] </div><div class="csl-right-inline"><span class="smallcaps">Gabry</span>, J., <span class="smallcaps">Simpson</span>, D., <span class="smallcaps">Vehtari</span>, A., <span class="smallcaps">Betancourt</span>, M. and <span class="smallcaps">Gelman</span>, A. (2019). <a href="https://doi.org/10.1111/rssa.12378">Visualization in bayesian workflow</a>. <em>J. R. Stat. Soc. A</em> <strong>182</strong> 389–402.</div>
 </div>
 </div>
 </div>
@@ -1291,381 +1295,13 @@ sd(y1_mean)
 y_array &lt;- fit_multi_normal_gp$draws(variables = &quot;y&quot;, format = &quot;array&quot;)
 # 合并链条
 y_mean &lt;- apply(y_array, c(1, 3), mean)</code></pre>
-<p>数据概览，了解抽样结果，抽样的蒙特卡洛误差</p>
-<pre class="r"><code>fit_multi_normal_gp$summary(&quot;y&quot;, .num_args = list(sigfig = 4, notation = &quot;dec&quot;))
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-
-#&gt; Warning: The ESS has been capped to avoid unstable estimates.
-#&gt; # A tibble: 225 × 10
-#&gt;    variable     mean   median      sd     mad      q5     q95    rhat ess_bulk
-#&gt;    &lt;chr&gt;     &lt;dec:4&gt;  &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:4&gt;  &lt;dec:4&gt;
-#&gt;  1 y[1]      0.05767  0.9317    9.465  10.33   -14.42   14.74  1.039     305.3
-#&gt;  2 y[2]      0.1121   0.08113   9.493  10.53   -15.12   13.96  0.9984    295.3
-#&gt;  3 y[3]      0.1868   0.2405    9.066   8.429  -15.91   16.24  1.009     460.2
-#&gt;  4 y[4]     -0.1825   0.1822    9.188   9.309  -16.38   14.95  1.046     433.4
-#&gt;  5 y[5]     -0.2423  -0.7632    8.445   8.137  -15.08   12.97  0.9995    343.7
-#&gt;  6 y[6]      0.1683   0.6482    9.299   8.309  -15.57   14.66  1.012     326.5
-#&gt;  7 y[7]      0.6120   0.6957   10.65   10.49   -17.54   17.35  1.008     460.2
-#&gt;  8 y[8]     -0.1696  -0.1535    9.783   9.686  -16.05   14.22  1.020     299.1
-#&gt;  9 y[9]      0.03052  0.04732   9.418   8.899  -13.93   15.35  1.017     460.2
-#&gt; 10 y[10]    -0.5368  -1.067    10.52   10.07   -17.95   18.02  1.033     460.2
-#&gt; # ℹ 215 more rows
-#&gt; # ℹ 1 more variable: ess_tail &lt;dec:4&gt;</code></pre>
-<p>提取某一个样本，100 次迭代中的任意一次都可以，下面是第一次迭代的结果，然后整理数据</p>
+<p>提取某一个样本，100 次迭代中的任意一次都可以，下面是第一次迭代的结果，然后整理数据。</p>
 <pre class="r"><code># 整理数据
 sim_gp_data &lt;- cbind.data.frame(
   multi_normal_gp_d$X,
   ysim = y_mean[1,]
 )</code></pre>
-<p>绘制图形</p>
+<p>绘制二维高斯过程图形。</p>
 <pre class="r"><code>ggplot(data = sim_gp_data, aes(x = x1, y = x2)) +
   geom_point(aes(color = ysim)) +
   scale_color_distiller(palette = &quot;Spectral&quot;) +

@@ -60,6 +60,8 @@ knitr::opts_chunk$set(
 
 # 工作流
 
+Bayesian Workflow [@Gelman2020]
+
 ## 统计建模
 
 ### 对数高斯模型
@@ -1092,13 +1094,7 @@ y_array <- fit_multi_normal_gp$draws(variables = "y", format = "array")
 y_mean <- apply(y_array, c(1, 3), mean)
 ```
 
-数据概览，了解抽样结果，抽样的蒙特卡洛误差
-
-```{r}
-fit_multi_normal_gp$summary("y", .num_args = list(sigfig = 4, notation = "dec"))
-```
-
-提取某一个样本，100 次迭代中的任意一次都可以，下面是第一次迭代的结果，然后整理数据
+提取某一个样本，100 次迭代中的任意一次都可以，下面是第一次迭代的结果，然后整理数据。
 
 ```{r}
 # 整理数据
@@ -1108,7 +1104,7 @@ sim_gp_data <- cbind.data.frame(
 )
 ```
 
-绘制图形
+绘制二维高斯过程图形。
 
 ```{r}
 #| label: fig-2d-gp-bayes
