@@ -802,6 +802,10 @@ colMeans(x)
 2 * var(x)
 ```
 
+::: rmdnote
+为什么 `var(x)` 乘以 2 就恰好接近原来的协方差矩阵？
+:::
+
 1000 个抽自二元正态分布的随机数。
 
 ```{r}
@@ -893,7 +897,7 @@ L ~ lkj_corr_cholesky(2.0); # implies L * L' ~ lkj_corr(2.0);
 
 LKJ 分布有一个参数 $\eta$ ，此处 $\eta = 2$ ，意味着变量之间的相关性较弱，LKJ 分布的概率密度函数正比于相关矩阵的行列式的 $\eta-1$ 次幂 $(\det{R})^{\eta-1}$，LKJ 分布的详细说明见[Lewandowski-Kurowicka-Joe (LKJ) distribution](https://distribution-explorer.github.io/multivariate_continuous/lkj.html)。
 
-有了上面的背景知识（相关矩阵的分布，随机矩阵的分布），下面先在 R 环境中，模拟一组来自多元正态分布的样本。
+有了上面的背景知识，下面先在 R 环境中模拟一组来自多元正态分布的样本。
 
 ```{r}
 set.seed(20232023)
@@ -937,7 +941,7 @@ mod_multi_normal_chol <- cmdstan_model(
 fit_multi_normal_chol <- mod_multi_normal_chol$sample(
   data = multi_normal_chol_d,
   iter_warmup = 500,    # 每条链预处理迭代次数
-  iter_sampling = 1000, # 样本量
+  iter_sampling = 1000, # 每条链采样次数
   chains = 2,           # 马尔科夫链的数目
   parallel_chains = 1,  # 指定 CPU 核心数
   threads_per_chain = 1,  # 每条链设置一个线程
@@ -1119,3 +1123,120 @@ ggplot(data = sim_gp_data, aes(x = x1, y = x2)) +
   theme_bw() +
   labs(x = expression(x[1]), y = expression(x[2]))
 ```
+
+## Stan 函数
+
+本节要了解 Stan 函数，如何使用和自编，以及如何检查和排错。有时候，为了熟悉 Stan 内置函数的作用，或者为了排查 Stan 代码中的错误都需要单独拎出来其中的函数。
+
+### Stan 内置的函数
+
+Stan 框架的头文件都打包在 **StanHeaders** 包里。包含大量的内置函数，可以从如下三个地方了解。
+
+1.  **StanHeaders** 包的帮助文档[Using the Stan Math C++ Library](https://cran.r-project.org/web/packages/StanHeaders/vignettes/stanmath.html)，代码层面，有哪些函数及如何使用。
+
+2.  Stan 官网的[函数帮助文档](https://mc-stan.org/docs/functions-reference/index.html)，各个函数的定义，函数参数、返回值和数学表达式。只有文档，没有示例。适合根据函数名搜索。
+
+3.  只知需要什么，但不知函数是什么，采用谷歌搜索。
+
+```{r}
+library(StanHeaders)
+```
+
+以了解函数 `lkj_corr_cholesky_rng` 为例，这是一个 LKJ 分布，Cholesky 分解相关矩阵 $R$ 模拟 $L_u$，调用 Stan Math 库中的 `lkj_corr_cholesky_rng` 函数，编译 C++ 代码，将加载至 R 环境中。
+
+```{r}
+#| message: false
+#| warning: false
+
+stanFunction("lkj_corr_cholesky_rng", K = 2L, eta = 2L)
+```
+
+`K = 2L` 表示 2 阶相关矩阵，`eta = 2L` 表示相关性的强弱。这个函数是用来生成随机数的，结果是一个二阶的下三角矩阵（矩阵对角线以上的元素都是 0），设置随机数种子，则可使结果复现。
+
+```{r}
+lkj_corr_cholesky_rng(K = 2L, eta = 2L, random_seed = 20232023)
+```
+
+根据 $R = L_u L_u^{\top}$，可以计算相关矩阵。
+
+```{r}
+m <- lkj_corr_cholesky_rng(K = 2L, eta = 2L, random_seed = 20232023)
+m %*% t(m)
+```
+
+再举一个例子，前面多次使用到的 Cholesky 分解函数 `cholesky_decompose` 。根据 Stan 官网函数 `cholesky_decompose` 帮助文档，Cholesky 分解的形式（Cholesky 分解有多种形式）如下：
+
+$$
+M = LL^{\top}
+$$
+
+$M$ 是一个对称正定的矩阵，而 $L$ 是一个下三角矩阵。函数 `cholesky_decompose` 有一个参数 A， A 需要传递一个对称正定的矩阵。不妨设这个对称正定的矩阵为
+
+$$
+M = \begin{bmatrix}
+4 & 1 \\
+1 & 1
+\end{bmatrix}
+$$
+
+```{r}
+#| message: false
+#| warning: false
+
+M <- rbind(c(4, 1), c(1, 1))
+stanFunction("cholesky_decompose", A = M)
+```
+
+可以看到获得了一个下三角矩阵。其实，R 软件有内置函数 `chol()` 也可以做 Cholesky 分解，如下
+
+```{r}
+chol(M)
+cholesky_decompose(A = M)
+```
+
+函数 `chol()` 的结果正好是 `cholesky_decompose` 的转置。查看帮助文档，也可知 R 软件对 Cholesky 分解的定义如下：
+
+$$
+M = L^{\top}L
+$$
+
+::: rmdnote
+根据数学表达式，感觉上都是差不多的。R 与 Stan 混编需要注意这些表达上不同的问题，不然，排错会很麻烦。
+:::
+
+### 自编的 Stan 函数
+
+暴露用户定义的函数，目的是调试用户定义的函数，检查自己编写的 Stan 函数是否正确，还可以借此进一步优化代码，理解 Stan 内置的函数。
+
+下面这个函数示例取自 [Multivariate probit regression](https://mc-stan.org/docs/stan-users-guide/multivariate-outcomes.html#multivariate-probit-regression)。此处，笔者比较随意，在帮助文档中，抓住哪个算哪个，Stan 语言和 C/C++ 语言比较类似。变量先需要声明再使用，函数需要用 return 返回值，总而言之，类型声明比较严格。
+
+检查自编的函数分 4 步：编写代码、写入文件、编译文件、检查功能。
+
+```{r}
+#| message: false
+
+# 编写代码
+model_code <- "
+functions {
+  int sum2d(array[,] int a) {
+    int s = 0;
+    for (i in 1:size(a)) {
+      s += sum(a[i]);
+    }
+    return s;
+  }
+}
+"
+
+# 写入文件
+stan_file <- cmdstanr::write_stan_file(code = model_code)
+
+# 编译文件
+mod <- cmdstanr::cmdstan_model(stan_file = stan_file, compile_standalone = TRUE)
+
+# 检查功能
+mod$functions$sum2d(a = list(1:2))
+mod$functions$sum2d(a = list(1:2, 1:3))
+```
+
+将列表中的元素都加和，元素是整型向量，返回值是整型标量。R 环境中的列表与 Stan 环境中的数组对应。 必须先熟悉 Stan 中关于变量类型的定义，结合定义与 R 环境中的类型对应，这样，才知道如何在 R 环境中输入合适的数据。Stan 语言手册[Stan Reference Manual](https://mc-stan.org/docs/reference-manual/index.html)提供了类型说明。
