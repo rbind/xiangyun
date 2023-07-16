@@ -1,0 +1,1372 @@
+---
+title: 贝叶斯数据分析工作流
+author: 黄湘云
+date: '2023-10-02'
+slug: bayesian-workflow
+categories:
+  - 统计应用
+tags:
+  - 贝叶斯空间分析
+  - 核辐射强度预测
+  - 贝叶斯高斯过程
+  - 极大似然估计
+  - 广义最小二乘估计
+  - 边际似然函数
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+math: true
+draft: true
+csl: institute-of-mathematical-statistics.csl
+bibliography: 
+  - refer.bib
+description: "贝叶斯数据分析工作流。一文搞懂贝叶斯空间数据分析工作流"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#本文概览" id="toc-本文概览"><span class="toc-section-number">1</span> 本文概览</a></li>
+<li><a href="#工作流" id="toc-工作流"><span class="toc-section-number">2</span> 工作流</a>
+<ul>
+<li><a href="#统计建模" id="toc-统计建模"><span class="toc-section-number">2.1</span> 统计建模</a>
+<ul>
+<li><a href="#对数高斯模型" id="toc-对数高斯模型"><span class="toc-section-number">2.1.1</span> 对数高斯模型</a></li>
+<li><a href="#泊松对数模型" id="toc-泊松对数模型"><span class="toc-section-number">2.1.2</span> 泊松对数模型</a></li>
+</ul></li>
+<li><a href="#数据准备" id="toc-数据准备"><span class="toc-section-number">2.2</span> 数据准备</a>
+<ul>
+<li><a href="#观测数据" id="toc-观测数据"><span class="toc-section-number">2.2.1</span> 观测数据</a></li>
+<li><a href="#预测数据" id="toc-预测数据"><span class="toc-section-number">2.2.2</span> 预测数据</a></li>
+<li><a href="#初始数据" id="toc-初始数据"><span class="toc-section-number">2.2.3</span> 初始数据</a></li>
+</ul></li>
+<li><a href="#软件准备" id="toc-软件准备"><span class="toc-section-number">2.3</span> 软件准备</a></li>
+<li><a href="#代码编写" id="toc-代码编写"><span class="toc-section-number">2.4</span> 代码编写</a>
+<ul>
+<li><a href="#对数高斯模型-1" id="toc-对数高斯模型-1"><span class="toc-section-number">2.4.1</span> 对数高斯模型</a></li>
+<li><a href="#泊松对数模型-1" id="toc-泊松对数模型-1"><span class="toc-section-number">2.4.2</span> 泊松对数模型</a></li>
+</ul></li>
+<li><a href="#代码编译" id="toc-代码编译"><span class="toc-section-number">2.5</span> 代码编译</a></li>
+<li><a href="#模型采样" id="toc-模型采样"><span class="toc-section-number">2.6</span> 模型采样</a></li>
+<li><a href="#模型输出" id="toc-模型输出"><span class="toc-section-number">2.7</span> 模型输出</a></li>
+<li><a href="#模型诊断" id="toc-模型诊断"><span class="toc-section-number">2.8</span> 模型诊断</a>
+<ul>
+<li><a href="#对数高斯模型-2" id="toc-对数高斯模型-2"><span class="toc-section-number">2.8.1</span> 对数高斯模型</a></li>
+<li><a href="#泊松对数模型-2" id="toc-泊松对数模型-2"><span class="toc-section-number">2.8.2</span> 泊松对数模型</a></li>
+</ul></li>
+<li><a href="#代码优化" id="toc-代码优化"><span class="toc-section-number">2.9</span> 代码优化</a></li>
+<li><a href="#模型评估" id="toc-模型评估"><span class="toc-section-number">2.10</span> 模型评估</a>
+<ul>
+<li><a href="#对数高斯模型-3" id="toc-对数高斯模型-3"><span class="toc-section-number">2.10.1</span> 对数高斯模型</a></li>
+</ul></li>
+<li><a href="#模型比较" id="toc-模型比较"><span class="toc-section-number">2.11</span> 模型比较</a></li>
+<li><a href="#模型预测" id="toc-模型预测"><span class="toc-section-number">2.12</span> 模型预测</a>
+<ul>
+<li><a href="#对数高斯模型-4" id="toc-对数高斯模型-4"><span class="toc-section-number">2.12.1</span> 对数高斯模型</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#references" id="toc-references"><span class="toc-section-number">3</span> 参考文献</a></li>
+<li><a href="#附录" id="toc-附录"><span class="toc-section-number">4</span> 附录</a>
+<ul>
+<li><a href="#模拟多元正态分布" id="toc-模拟多元正态分布"><span class="toc-section-number">4.1</span> 模拟多元正态分布</a>
+<ul>
+<li><a href="#r-代码实现" id="toc-r-代码实现"><span class="toc-section-number">4.1.1</span> R 代码实现</a></li>
+<li><a href="#stan-代码实现" id="toc-stan-代码实现"><span class="toc-section-number">4.1.2</span> Stan 代码实现</a></li>
+</ul></li>
+<li><a href="#拟合多元正态分布" id="toc-拟合多元正态分布"><span class="toc-section-number">4.2</span> 拟合多元正态分布</a></li>
+<li><a href="#模拟二维高斯过程" id="toc-模拟二维高斯过程"><span class="toc-section-number">4.3</span> 模拟二维高斯过程</a>
+<ul>
+<li><a href="#r-代码实现-1" id="toc-r-代码实现-1"><span class="toc-section-number">4.3.1</span> R 代码实现</a></li>
+<li><a href="#stan-代码实现-1" id="toc-stan-代码实现-1"><span class="toc-section-number">4.3.2</span> Stan 代码实现</a></li>
+</ul></li>
+<li><a href="#拟合二维高斯过程" id="toc-拟合二维高斯过程"><span class="toc-section-number">4.4</span> 拟合二维高斯过程</a>
+<ul>
+<li><a href="#stan-代码实现-2" id="toc-stan-代码实现-2"><span class="toc-section-number">4.4.1</span> Stan 代码实现</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+
+<div class="rmdtip">
+<ol style="list-style-type: decimal">
+<li>贝叶斯高斯过程回归和贝叶斯泊松过程回归</li>
+<li>核辐射数据集的贝叶斯分析</li>
+<li>贝叶斯简单克里金插值及 Stan 实现</li>
+</ol>
+</div>
+<div id="本文概览" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> 本文概览</h1>
+<ol style="list-style-type: decimal">
+<li>本文概览：贝叶斯数据分析工作流的概览</li>
+<li>以预测朗格拉普岛核辐射强度分布为例，详细介绍贝叶斯工作流中的各个环节。
+<ol style="list-style-type: decimal">
+<li>统计建模：模型结构、组成部分、参数解释</li>
+<li>数据准备：观测数据、预测数据、参数初值</li>
+<li>软件准备：软件环境</li>
+<li>代码编写：已有函数及其解释</li>
+<li>代码编译：编译选项及解释</li>
+<li>模型采样：采样算法简介，NUTS 算法参数说明</li>
+<li>模型输出：模型采样输出结果的说明和解释，</li>
+<li>模型诊断：参数迭代轨迹和分布，诊断结果</li>
+<li>代码优化：根据诊断结果优化，比如并行和向量化</li>
+<li>模型评估：pDIC、WAIC、LOO-CV</li>
+<li>模型比较：泊松对数、对数高斯建模比较</li>
+<li>模型预测：克里金插值预测</li>
+</ol></li>
+<li>本文小结：
+<ol style="list-style-type: decimal">
+<li>分析、建模经验</li>
+<li>Stan 代码调优</li>
+</ol></li>
+</ol>
+</div>
+<div id="工作流" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> 工作流</h1>
+<p>本文主要参考《Bayesian Workflow》 <span class="citation">[<a href="#ref-Gelman2020">1</a>]</span></p>
+<div id="统计建模" class="section level2" number="2.1">
+<h2><span class="header-section-number">2.1</span> 统计建模</h2>
+<div id="对数高斯模型" class="section level3" number="2.1.1">
+<h3><span class="header-section-number">2.1.1</span> 对数高斯模型</h3>
+<p>相邻位置的核辐射强度是相关的，离得近的比离得远的更相关。下面对辐射强度建模，假定随机效应之间存在相关性结构，去掉随机效应相互独立的假设，这更符合位置效应存在相互影响的实际情况。</p>
+<p><span class="math display">\[
+\log\big\{\lambda(x_i)\big\} = \beta + S(x_{i})
+\]</span></p>
+<p>其中，<span class="math inline">\(\beta\)</span> 表示截距，相当于平均水平，<span class="math inline">\(\lambda(x_i)\)</span> 表示位置 <span class="math inline">\(x_i\)</span> 处的辐射强度，<span class="math inline">\(S(x_{i})\)</span> 表示位置 <span class="math inline">\(x_i\)</span> 处的空间效应，<span class="math inline">\(S(x),x \in \mathcal{D} \subset{\mathbb{R}^2}\)</span> 是二维平稳空间高斯过程 <span class="math inline">\(\mathcal{S}\)</span> 的具体实现。 <span class="math inline">\(\mathcal{D}\)</span> 表示研究区域，可以理解为朗格拉普岛，它是二维实平面 <span class="math inline">\(\mathbb{R}^2\)</span> 的子集。</p>
+</div>
+<div id="泊松对数模型" class="section level3" number="2.1.2">
+<h3><span class="header-section-number">2.1.2</span> 泊松对数模型</h3>
+<p>广义线性模型并没有考虑距离相关性，它认为各个观测点的数据是相互独立的。因此，在广义线性模型的基础上添加位置相关的随机效应，用以刻画未能直接观测到的潜在影响。根据 <span class="math inline">\({}^{137}\mathrm{Cs}\)</span> 放出伽马射线，在 <span class="math inline">\(n=157\)</span> 个采样点，分别以时间间隔 <span class="math inline">\(t_i\)</span> 测量辐射量 <span class="math inline">\(y(x_i)\)</span>，建立泊松型空间广义线性混合效应模型<span class="citation">[<a href="#ref-Diggle1998">2</a>]</span>。</p>
+<p><span class="math display">\[
+\begin{aligned}
+\log\{\lambda(x_i)\} &amp; =  \beta + S(x_{i})\\
+y(x_{i}) &amp;\sim \mathrm{Poisson}\big(t_i\lambda(x_i)\big)
+\end{aligned}
+\]</span></p>
+<p>其中，<span class="math inline">\(\beta\)</span> 表示截距，相当于平均水平，<span class="math inline">\(\lambda(x_i)\)</span> 表示位置 <span class="math inline">\(x_i\)</span> 处的辐射强度，<span class="math inline">\(S(x_{i})\)</span> 表示位置 <span class="math inline">\(x_i\)</span> 处的空间效应，<span class="math inline">\(S(x),x \in \mathcal{D} \subset{\mathbb{R}^2}\)</span> 是二维平稳空间高斯过程 <span class="math inline">\(\mathcal{S}\)</span> 的具体实现。 <span class="math inline">\(\mathcal{D}\)</span> 表示研究区域，可以理解为朗格拉普岛，它是二维实平面 <span class="math inline">\(\mathbb{R}^2\)</span> 的子集。</p>
+<p>随机过程 <span class="math inline">\(S(x)\)</span> 的自协方差函数常用的有指数型、幂二次指数型（高斯型）和梅隆型，形式如下：</p>
+<p><span class="math display">\[
+\begin{aligned}
+\mathsf{Cov}\{S(x_i), S(x_j)\} &amp;= \sigma^2 \exp\big( -\frac{\|x_i -x_j\|_{2}}{\phi} \big) \\
+\mathsf{Cov}\{ S(x_i), S(x_j) \} &amp;= \sigma^2 \exp\big( -\frac{\|x_i -x_j\|_{2}^{2}}{2\phi^2} \big) \\
+\mathsf{Cov}\{ S(x_i), S(x_j) \} &amp;= \sigma^2 \frac{2^{1 - \nu}}{\Gamma(\nu)}
+\left(\sqrt{2\nu}\frac{\|x_i -x_j\|_{2}}{\phi}\right)^{\nu}
+K_{\nu}\left(\sqrt{2\nu}\frac{\|x_i -x_j\|_{2}}{\phi}\right) \\
+K_{\nu}(x) &amp;= \int_{0}^{\infty}\exp(-x \cosh t) \cosh (\nu t) \mathrm{dt}
+\end{aligned}
+\]</span></p>
+<p>待估参数：代表方差的 <span class="math inline">\(\sigma^2\)</span> 和代表范围的 <span class="math inline">\(\phi\)</span> 。当 <span class="math inline">\(\nu = 1/2\)</span> 时，梅隆型退化为指数型。</p>
+</div>
+</div>
+<div id="数据准备" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span> 数据准备</h2>
+<div id="观测数据" class="section level3" number="2.2.1">
+<h3><span class="header-section-number">2.2.1</span> 观测数据</h3>
+<pre class="r"><code># 加载数据
+rongelap &lt;- readRDS(file = &quot;data/rongelap.rds&quot;)
+rongelap_coastline &lt;- readRDS(file = &quot;data/rongelap_coastline.rds&quot;)
+
+# 对数高斯模型
+rongelap_gaussian_d &lt;- list(
+  N = nrow(rongelap), # 观测记录的条数
+  D = 2, # 2 维坐标
+  X = rongelap[, c(&quot;cX&quot;, &quot;cY&quot;)] / 6000, # N x 2 坐标矩阵
+  y = log(rongelap$counts / rongelap$time) # N 向量
+)
+# 泊松对数模型
+rongelap_poisson_d &lt;- list(
+  N = nrow(rongelap), # 观测记录的条数
+  D = 2, # 2 维坐标
+  X = rongelap[, c(&quot;cX&quot;, &quot;cY&quot;)] / 6000, # N x 2 矩阵
+  y = rongelap$counts, # 响应变量
+  offsets = rongelap$time # 漂移项
+)</code></pre>
+</div>
+<div id="预测数据" class="section level3" number="2.2.2">
+<h3><span class="header-section-number">2.2.2</span> 预测数据</h3>
+<pre class="r"><code>library(sf)
+library(abind)
+library(stars)
+
+rongelap_sf &lt;- st_as_sf(rongelap, coords = c(&quot;cX&quot;, &quot;cY&quot;), dim = &quot;XY&quot;)
+rongelap_coastline_sf &lt;- st_as_sf(rongelap_coastline, coords = c(&quot;cX&quot;, &quot;cY&quot;), dim = &quot;XY&quot;)
+rongelap_coastline_sfp &lt;- st_cast(st_combine(st_geometry(rongelap_coastline_sf)), &quot;POLYGON&quot;)
+
+rongelap_coastline_buffer &lt;- st_buffer(rongelap_coastline_sfp, dist = 50)
+# 构造带边界约束的网格
+rongelap_coastline_grid &lt;- st_make_grid(rongelap_coastline_buffer, n = c(150, 75))
+# 将 sfc 类型转化为 sf 类型
+rongelap_coastline_grid &lt;- st_as_sf(rongelap_coastline_grid)
+rongelap_coastline_buffer &lt;- st_as_sf(rongelap_coastline_buffer)
+rongelap_grid &lt;- rongelap_coastline_grid[rongelap_coastline_buffer, op = st_intersects]
+# 计算网格中心点坐标
+rongelap_grid_centroid &lt;- st_centroid(rongelap_grid)
+
+# 1612 个点
+rongelap_grid_df &lt;- as.data.frame(st_coordinates(rongelap_grid_centroid))
+colnames(rongelap_grid_df) &lt;- c(&quot;cX&quot;, &quot;cY&quot;)</code></pre>
+<p><code>rongelap_grid_df</code> 即为需要预测核辐射强度的位置</p>
+</div>
+<div id="初始数据" class="section level3" number="2.2.3">
+<h3><span class="header-section-number">2.2.3</span> 初始数据</h3>
+<p>对数高斯模型</p>
+<pre class="r"><code>set.seed(20232023)
+nchains &lt;- 2 # 2 条迭代链
+# 给每条链设置不同的参数初始值
+inits_data_gaussian &lt;- lapply(1:nchains, function(i) {
+  list(
+    beta = rnorm(1),
+    sigma = runif(1),
+    phi = runif(1)
+  )
+})</code></pre>
+<p>泊松对数模型</p>
+<pre class="r"><code>inits_data_poisson &lt;- lapply(1:nchains, function(i) {
+  list(
+    beta = rnorm(1),
+    sigma = runif(1),
+    phi = runif(1),
+    lambda = rnorm(157)
+  )
+})</code></pre>
+</div>
+</div>
+<div id="软件准备" class="section level2" number="2.3">
+<h2><span class="header-section-number">2.3</span> 软件准备</h2>
+<p>下载、编译 CmdStan 软件框架，配置环境变量</p>
+<pre class="r"><code>Sys.setenv(CMDSTAN = &quot;/opt/cmdstan/cmdstan-2.32.2&quot;)
+Sys.setenv(CMDSTANR_NO_VER_CHECK = TRUE)</code></pre>
+<p>加载 <strong>cmdstanr</strong>、<strong>bayesplot</strong> 和 <strong>loo</strong> 等 R 包。</p>
+<pre class="r"><code>library(cmdstanr)
+library(ggplot2)
+library(bayesplot)
+library(loo)
+library(projpred)</code></pre>
+<ul>
+<li><strong>cmdstanr</strong> 配置 Stan 环境、编译 Stan 代码（设置编译参数）和采样（设置采样算法和参数）。</li>
+<li><strong>bayesplot</strong> <span class="citation">[<a href="#ref-Gabry2019">3</a>]</span> 可视化模型参数的后验分布，迭代轨迹的散点图、迭代链的自相关图、后验分布的直方图等。</li>
+<li><strong>loo</strong> 模型评估与比较，计算 LOO 和 WAIC 等指标。</li>
+<li><strong>projpred</strong> 变量选择</li>
+<li><strong>posterior</strong> 后验推断</li>
+</ul>
+</div>
+<div id="代码编写" class="section level2" number="2.4">
+<h2><span class="header-section-number">2.4</span> 代码编写</h2>
+<div id="对数高斯模型-1" class="section level3" number="2.4.1">
+<h3><span class="header-section-number">2.4.1</span> 对数高斯模型</h3>
+<p><span class="math display">\[
+\begin{aligned}
+\beta &amp;\sim \text{std_normal}(0,1) \\
+\sigma &amp;\sim \text{inv_gamma}(5,5) \\
+\phi &amp;\sim \text{half_std_normal}(0,1) \\
+\bm{y} &amp;\sim \text{multivariate_normal}(\bm{\beta}, \sigma^2 \Sigma+ \delta^2 I)
+\end{aligned}
+\]</span></p>
+<p>其中，<span class="math inline">\(\beta\)</span> 代表截距，先验分布为标准正态分布，<span class="math inline">\(\sigma\)</span> 代表高斯过程的方差参数（信号），先验分布为逆伽马分布，<span class="math inline">\(\phi\)</span> 代表高斯过程的范围参数，先验分布为半标准正态分布，<span class="math inline">\(y\)</span> 代表响应变量的取值，给定参数和数据的条件分布为多元正态分布，<span class="math inline">\(\Sigma\)</span> 代表协方差矩阵，<span class="math inline">\(I\)</span> 代表与采样点数量相同的单位矩阵， <span class="math inline">\(\delta\)</span> 是非常小的常数（可以看作可忽略的噪声），使得协方差矩阵正定，确保 Cholesky 分解。</p>
+<pre class="stan"><code>data {
+  int&lt;lower=1&gt; N;
+  int&lt;lower=1&gt; D;
+  array[N] vector[D] X;
+  vector[N] y;
+}
+transformed data {
+  real delta = 1e-9;
+}
+parameters {
+  real beta;
+  real&lt;lower=0&gt; sigma;
+  real&lt;lower=0&gt; phi;
+}
+transformed parameters {
+  vector[N] mu = rep_vector(beta, N);
+  matrix[N, N] K = gp_exponential_cov(X, sigma, phi) + diag_matrix(rep_vector(delta, N));
+  matrix[N, N] L_K = cholesky_decompose(K);
+}
+model {
+  beta ~ std_normal();
+  sigma ~ inv_gamma(5, 5);
+  phi ~ std_normal();
+
+  y ~ multi_normal_cholesky(mu, L_K);
+}
+generated quantities {
+  real log_lik = multi_normal_cholesky_lpdf(y | mu, L_K);
+  vector[N] yhat = multi_normal_cholesky_rng(mu, L_K);
+}</code></pre>
+<p>代码中，<code>gp_exponential_cov</code> 表示空间相关性结构选择了指数型，详见 Stan 函数手册中的<a href="https://mc-stan.org/docs/functions-reference/gaussian-process-covariance-functions.html#exponential-kernel">指数型核函数表示</a>。<code>cholesky_decompose</code> 表示对协方差矩阵做 Cholesky 分解，分解出来的下三角矩阵作为多元正态分布的参数，详见 Stan 函数手册中的 <a href="https://mc-stan.org/docs/functions-reference/linear-algebra-functions-and-solvers.html#cholesky-decomposition">Cholesky 分解</a>。 <code>multi_normal_cholesky</code> 表示基于 Cholesky 分解的多元正态分布。详见 Stan 函数手册中的多元正态分布的 <a href="https://mc-stan.org/docs/functions-reference/multi-normal-cholesky-fun.html">Cholesky</a> 参数化表示。</p>
+</div>
+<div id="泊松对数模型-1" class="section level3" number="2.4.2">
+<h3><span class="header-section-number">2.4.2</span> 泊松对数模型</h3>
+<p><span class="math display">\[
+\begin{aligned}
+\beta &amp;\sim \text{std_normal}(0,1) \\
+\sigma &amp;\sim \text{inv_gamma}(5,5) \\
+\phi &amp;\sim \text{half_std_normal}(0,1) \\
+\bm{\lambda} &amp;\sim \text{multivariate_normal}(\bm{\beta}, \sigma^2 \Sigma+ \delta^2 I) \\
+\bm{y} &amp;\sim \text{poisson_log}(\log(\text{offsets})+\bm{\lambda})
+\end{aligned}
+\]</span></p>
+<p>其中，<span class="math inline">\(\beta,\sigma,\phi,\delta,\Sigma,I\)</span> 的含义同前，<span class="math inline">\(\lambda\)</span> 代表辐射强度，<span class="math inline">\(\text{offsets}\)</span> 代表漂移项，这里是时间段，<span class="math inline">\(\bm{y}\)</span> 表示观测的辐射粒子数，<span class="math inline">\(\text{poisson_log}\)</span> 表示泊松分布的对数参数化，将频率参数 rate 的对数 <span class="math inline">\(\lambda\)</span> 作为参数，详见 Stan 函数手册中泊松分布的<a href="https://mc-stan.org/docs/functions-reference/poisson-distribution-log-parameterization.html">对数函数表示</a>。</p>
+<pre class="stan"><code>data {
+  int&lt;lower=1&gt; N;
+  int&lt;lower=1&gt; D;
+  array[N] vector[D] X;
+  array[N] int&lt;lower = 0&gt; y;
+  vector[N] offsets;
+}
+transformed data {
+  real delta = 1e-12;
+  vector[N] log_offsets = log(offsets);
+}
+parameters {
+  real beta;
+  real&lt;lower=0&gt; sigma;
+  real&lt;lower=0&gt; phi;
+  vector[N] lambda;
+}
+transformed parameters {
+  vector[N] mu = rep_vector(beta, N);
+  matrix[N, N] K = gp_exponential_cov(X, sigma, phi) + diag_matrix(rep_vector(delta, N));
+  matrix[N, N] L_K = cholesky_decompose(K);
+}
+model {
+  beta ~ std_normal();
+  sigma ~ inv_gamma(5, 5);
+  phi ~ std_normal();
+  
+  lambda ~ multi_normal_cholesky(mu, L_K);
+  y ~ poisson_log(log_offsets + lambda);
+}</code></pre>
+</div>
+</div>
+<div id="代码编译" class="section level2" number="2.5">
+<h2><span class="header-section-number">2.5</span> 代码编译</h2>
+<p>编译模型</p>
+<pre class="r"><code># 模型 I
+mod_rongelap_gaussian &lt;- cmdstan_model(
+  stan_file = &quot;code/rongelap_gaussian.stan&quot;,
+  compile = TRUE, cpp_options = list(stan_threads = TRUE)
+)
+# 模型 II
+mod_rongelap_poisson &lt;- cmdstan_model(
+  stan_file = &quot;code/rongelap_poisson.stan&quot;,
+  compile = TRUE, cpp_options = list(stan_threads = TRUE)
+)</code></pre>
+</div>
+<div id="模型采样" class="section level2" number="2.6">
+<h2><span class="header-section-number">2.6</span> 模型采样</h2>
+<p>拟合模型</p>
+<pre class="r"><code># 对数高斯模型
+fit_rongelap_gaussian &lt;- mod_rongelap_gaussian$sample(
+  data = rongelap_gaussian_d,   # 观测数据
+  init = inits_data_gaussian,   # 迭代初值
+  iter_warmup = 500,           # 每条链预处理迭代次数
+  iter_sampling = 1000,         # 每条链总迭代次数
+  chains = nchains,             # 马尔科夫链的数目
+  parallel_chains = 2,      # 指定 CPU 核心数，可以给每条链分配一个
+  threads_per_chain = 1,    # 每条链设置一个线程
+  show_messages = FALSE,    # 不显示迭代的中间过程
+  refresh = 0,              # 不显示采样的进度
+  output_dir = &quot;data/&quot;,
+  seed = 20232023           # 设置随机数种子，不要使用 set.seed() 函数
+)
+
+# 泊松对数模型
+fit_rongelap_poisson &lt;- mod_rongelap_poisson$sample(
+  data = rongelap_poisson_d, # 观测数据
+  init = inits_data_poisson,    # 迭代初值
+  iter_warmup = 500,    # 每条链预处理迭代次数
+  iter_sampling = 1000, # 每条链总迭代次数
+  chains = nchains,     # 马尔科夫链的数目
+  parallel_chains = 2,  # 指定 CPU 核心数，可以给每条链分配一个
+  threads_per_chain = 1, # 每条链设置一个线程
+  show_messages = FALSE, # 不显示迭代的中间过程
+  refresh = 0,    # 不显示采样的进度
+  output_dir = &quot;data/&quot;,
+  seed = 20232023
+)</code></pre>
+<p>跑模型的时间花费分别为 146.4s 和 216.9s</p>
+<pre class="r"><code># 诊断
+fit_rongelap_gaussian$diagnostic_summary()
+#&gt; $num_divergent
+#&gt; [1] 0 0
+#&gt; 
+#&gt; $num_max_treedepth
+#&gt; [1] 0 0
+#&gt; 
+#&gt; $ebfmi
+#&gt; [1] 0.9414 0.8484
+fit_rongelap_poisson$diagnostic_summary()
+#&gt; $num_divergent
+#&gt; [1] 0 0
+#&gt; 
+#&gt; $num_max_treedepth
+#&gt; [1] 0 0
+#&gt; 
+#&gt; $ebfmi
+#&gt; [1] 0.9968 1.0371</code></pre>
+</div>
+<div id="模型输出" class="section level2" number="2.7">
+<h2><span class="header-section-number">2.7</span> 模型输出</h2>
+<p>模型参数的估计结果，输出结果保留 4 位有效数字。</p>
+<pre class="r"><code># 对数高斯模型
+fit_rongelap_gaussian$summary(
+  variables = c(&quot;lp__&quot;, &quot;beta&quot;, &quot;sigma&quot;, &quot;phi&quot;),
+  .num_args = list(sigfig = 4, notation = &quot;dec&quot;)
+)
+#&gt; # A tibble: 4 × 10
+#&gt;   variable     mean   median      sd      mad       q5      q95    rhat ess_bulk
+#&gt;   &lt;chr&gt;     &lt;dec:4&gt;  &lt;dec:4&gt; &lt;dec:4&gt;  &lt;dec:4&gt;  &lt;dec:4&gt;  &lt;dec:4&gt; &lt;dec:4&gt;  &lt;dec:4&gt;
+#&gt; 1 lp__     43.36    43.74    1.506   1.162    40.35    44.92      1.004    574.8
+#&gt; 2 beta      1.765    1.781   0.1649  0.1181    1.517    1.970     1.003    739.5
+#&gt; 3 sigma     0.6468   0.6224  0.1377  0.07932   0.5226   0.8337    1.007    469.3
+#&gt; 4 phi       0.02796  0.02379 0.02452 0.007996  0.01438  0.04920   1.007    459.9
+#&gt; # ℹ 1 more variable: ess_tail &lt;dec:4&gt;</code></pre>
+<pre class="r"><code># 泊松对数模型
+fit_rongelap_poisson$summary(
+  variables = c(&quot;lp__&quot;, &quot;beta&quot;, &quot;sigma&quot;, &quot;phi&quot;),
+  .num_args = list(sigfig = 4, notation = &quot;dec&quot;)
+)
+#&gt; # A tibble: 4 × 10
+#&gt;   variable          mean        median      sd       mad            q5
+#&gt;   &lt;chr&gt;          &lt;dec:4&gt;       &lt;dec:4&gt; &lt;dec:4&gt;   &lt;dec:4&gt;       &lt;dec:4&gt;
+#&gt; 1 lp__     3402193.      3402190       9.406   14.83     3402180      
+#&gt; 2 beta           1.781         1.795   0.1495   0.1116         1.542  
+#&gt; 3 sigma          0.6336        0.6102  0.1166   0.07205        0.5145 
+#&gt; 4 phi            0.02675       0.02313 0.01654  0.007356       0.01425
+#&gt; # ℹ 4 more variables: q95 &lt;dec:4&gt;, rhat &lt;dec:4&gt;, ess_bulk &lt;dec:4&gt;,
+#&gt; #   ess_tail &lt;dec:4&gt;</code></pre>
+<p>相比于对数高斯模型，泊松对数模型的参数估计区间偏短，特别是范围参数 <span class="math inline">\(\phi\)</span> ，变短意味着在更小的距离范围内变化，空间分布更加曲折。</p>
+<div class="rmdtip">
+<p>作为对比，提供频率派参数估计结果，采用 <strong>nlme</strong> 包拟合对数高斯模型。</p>
+<pre class="r"><code>library(nlme)
+fit_rongelap_nlme &lt;- gls(log(counts / time) ~ 1,
+  correlation = corExp(value = 200, form = ~ cX + cY, nugget = FALSE),
+  data = rongelap, method = &quot;REML&quot;
+)
+fit_rongelap_nlme
+#&gt; Generalized least squares fit by REML
+#&gt;   Model: log(counts/time) ~ 1 
+#&gt;   Data: rongelap 
+#&gt;   Log-restricted-likelihood: -89.07
+#&gt; 
+#&gt; Coefficients:
+#&gt; (Intercept) 
+#&gt;       1.826 
+#&gt; 
+#&gt; Correlation Structure: Exponential spatial correlation
+#&gt;  Formula: ~cX + cY 
+#&gt;  Parameter estimate(s):
+#&gt; range 
+#&gt; 110.8 
+#&gt; Degrees of freedom: 157 total; 156 residual
+#&gt; Residual standard error: 0.5632</code></pre>
+<p>结果显示 <span class="math inline">\(\beta = 1.826, \phi = 110.8, \sigma^2 = 0.5632^2 = 0.3172\)</span> 。</p>
+</div>
+</div>
+<div id="模型诊断" class="section level2" number="2.8">
+<h2><span class="header-section-number">2.8</span> 模型诊断</h2>
+<div id="对数高斯模型-2" class="section level3" number="2.8.1">
+<h3><span class="header-section-number">2.8.1</span> 对数高斯模型</h3>
+<pre class="r"><code>library(ggplot2)
+library(bayesplot)
+mcmc_trace(fit_rongelap_gaussian$draws(c(&quot;sigma&quot;, &quot;phi&quot;)),
+           facet_args = list(
+             labeller = ggplot2::label_parsed,
+             strip.position = &quot;top&quot;, ncol = 1
+           )
+) + theme_bw(base_size = 12)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-gaussian-trace"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-gaussian-trace-1.png" alt="$\sigma$ 和 $\phi$ 的迭代轨迹" width="672" />
+<p class="caption">
+图 2.1: <span class="math inline">\(\sigma\)</span> 和 <span class="math inline">\(\phi\)</span> 的迭代轨迹
+</p>
+</div>
+<p>参数的后验分布</p>
+<pre class="r"><code>mcmc_dens(fit_rongelap_gaussian$draws(c(&quot;sigma&quot;, &quot;phi&quot;)),
+          facet_args = list(
+            labeller = ggplot2::label_parsed,
+            strip.position = &quot;top&quot;, ncol = 1
+          )
+) + theme_bw(base_size = 12)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-gaussian-dens"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-gaussian-dens-1.png" alt="$\sigma$ 和 $\phi$ 的后验分布" width="672" />
+<p class="caption">
+图 2.2: <span class="math inline">\(\sigma\)</span> 和 <span class="math inline">\(\phi\)</span> 的后验分布
+</p>
+</div>
+</div>
+<div id="泊松对数模型-2" class="section level3" number="2.8.2">
+<h3><span class="header-section-number">2.8.2</span> 泊松对数模型</h3>
+<pre class="r"><code># 参数的迭代轨迹
+mcmc_trace(fit_rongelap_poisson$draws(c(&quot;sigma&quot;, &quot;phi&quot;)),
+           facet_args = list(
+             labeller = ggplot2::label_parsed,
+             strip.position = &quot;top&quot;, ncol = 1
+           )
+) + theme_bw(base_size = 12)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-poisson-trace"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-poisson-trace-1.png" alt="$\sigma$ 和 $\phi$ 的迭代轨迹" width="672" />
+<p class="caption">
+图 2.3: <span class="math inline">\(\sigma\)</span> 和 <span class="math inline">\(\phi\)</span> 的迭代轨迹
+</p>
+</div>
+<pre class="r"><code># 参数的后验分布
+mcmc_dens(fit_rongelap_poisson$draws(c(&quot;sigma&quot;, &quot;phi&quot;)),
+          facet_args = list(
+            labeller = ggplot2::label_parsed,
+            strip.position = &quot;top&quot;, ncol = 1
+          )
+) + theme_bw(base_size = 12)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-poisson-dens"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-poisson-dens-1.png" alt="$\sigma$ 和 $\phi$ 的后验分布" width="672" />
+<p class="caption">
+图 2.4: <span class="math inline">\(\sigma\)</span> 和 <span class="math inline">\(\phi\)</span> 的后验分布
+</p>
+</div>
+</div>
+</div>
+<div id="代码优化" class="section level2" number="2.9">
+<h2><span class="header-section-number">2.9</span> 代码优化</h2>
+<p>链内并行、GPU 并行</p>
+</div>
+<div id="模型评估" class="section level2" number="2.10">
+<h2><span class="header-section-number">2.10</span> 模型评估</h2>
+<ul>
+<li>LOO-CV （Leave-One-Out Cross-Validation，LOO-CV）留一交叉验证，越大越好。</li>
+<li>WAIC （Widely Available Information Criterion）通用信息准则，越小越好。</li>
+</ul>
+<div id="对数高斯模型-3" class="section level3" number="2.10.1">
+<h3><span class="header-section-number">2.10.1</span> 对数高斯模型</h3>
+<pre class="stan"><code>generated quantities {
+  real log_lik = multi_normal_cholesky_lpdf(y | mu, L_K);
+}</code></pre>
+<p>在 <code>generated quantities</code> 代码块中计算逐点对数似然 pointwise log-likelihood。</p>
+<pre class="r"><code>fit_rongelap_gaussian$summary(
+  variables = &quot;log_lik&quot;,
+  .num_args = list(sigfig = 4, notation = &quot;dec&quot;)
+)
+#&gt; # A tibble: 1 × 10
+#&gt;   variable    mean  median      sd     mad     q5    q95  rhat ess_bulk ess_tail
+#&gt;   &lt;chr&gt;    &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:&gt; &lt;dec:&gt; &lt;dec&gt;  &lt;dec:4&gt;  &lt;dec:4&gt;
+#&gt; 1 log_lik   -89.96  -89.42   2.055   1.553 -93.83 -87.84 1.004    462.8    389.0</code></pre>
+<p>每一次采样迭代都会计算一次对数似然 <code>log_lik</code></p>
+<pre class="r"><code>mcmc_trace(fit_rongelap_gaussian$draws(&quot;log_lik&quot;)) + 
+  theme_bw(base_size = 12)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-log-lik-gaussian"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-log-lik-gaussian-1.png" alt="对数似然" width="576" />
+<p class="caption">
+图 2.5: 对数似然
+</p>
+</div>
+<p>留一交叉验证 Leave-one-out cross-validation (LOO-CV)</p>
+<pre class="r"><code>fit_rongelap_gaussian$loo(variables = &quot;log_lik&quot;, cores = 2)
+#&gt; Warning: Some Pareto k diagnostic values are too high. See help(&#39;pareto-k-diagnostic&#39;) for details.
+#&gt; 
+#&gt; Computed from 2000 by 1 log-likelihood matrix
+#&gt; 
+#&gt;          Estimate SE
+#&gt; elpd_loo    -97.4 NA
+#&gt; p_loo         8.4 NA
+#&gt; looic       194.8 NA
+#&gt; ------
+#&gt; Monte Carlo SE of elpd_loo is NA.
+#&gt; 
+#&gt; Pareto k diagnostic values:
+#&gt;                          Count Pct.    Min. n_eff
+#&gt; (-Inf, 0.5]   (good)     0       0.0%  &lt;NA&gt;      
+#&gt;  (0.5, 0.7]   (ok)       0       0.0%  &lt;NA&gt;      
+#&gt;    (0.7, 1]   (bad)      0       0.0%  &lt;NA&gt;      
+#&gt;    (1, Inf)   (very bad) 1     100.0%  1         
+#&gt; See help(&#39;pareto-k-diagnostic&#39;) for details.</code></pre>
+<p>目前 <strong>loo</strong> 包还不支持 CmdStanFit 类型，所以要计算 WAIC，先用 <strong>rstan</strong> 包读取 CmdStan 的结果数据，再用 <strong>loo</strong> 包计算 StanFit 的 WAIC。</p>
+<pre class="r"><code>stanfit_gaussian &lt;- rstan::read_stan_csv(fit_rongelap_gaussian$output_files())
+stanfit_gaussian_loglik &lt;- loo::extract_log_lik(stanfit_gaussian)
+loo::waic(stanfit_gaussian_loglik)
+#&gt; Warning: 
+#&gt; 1 (100.0%) p_waic estimates greater than 0.4. We recommend trying loo instead.
+#&gt; 
+#&gt; Computed from 2000 by 1 log-likelihood matrix
+#&gt; 
+#&gt;           Estimate SE
+#&gt; elpd_waic    -93.2 NA
+#&gt; p_waic         4.2 NA
+#&gt; waic         186.4 NA
+#&gt; 
+#&gt; 1 (100.0%) p_waic estimates greater than 0.4. We recommend trying loo instead.</code></pre>
+</div>
+</div>
+<div id="模型比较" class="section level2" number="2.11">
+<h2><span class="header-section-number">2.11</span> 模型比较</h2>
+<p>是否高斯分布、指数或高斯协方差函数、是否块金效应、估计方法 ML/REML 4 个维度，对比模型拟合结果</p>
+<pre class="r"><code>library(nlme)
+# 高斯分布、指数型自相关结构
+fit_exp_reml &lt;- gls(log(counts / time) ~ 1,
+  correlation = corExp(value = 200, form = ~ cX + cY, nugget = FALSE),
+  data = rongelap, method = &quot;REML&quot;
+)
+fit_exp_ml &lt;- gls(log(counts / time) ~ 1,
+  correlation = corExp(value = 200, form = ~ cX + cY, nugget = FALSE),
+  data = rongelap, method = &quot;ML&quot;
+)
+fit_exp_reml_nugget &lt;- gls(log(counts / time) ~ 1,
+  correlation = corExp(value = c(200, 0.1), form = ~ cX + cY, nugget = TRUE),
+  data = rongelap, method = &quot;REML&quot;
+)
+fit_exp_ml_nugget &lt;- gls(log(counts / time) ~ 1,
+  correlation = corExp(value = c(200, 0.1), form = ~ cX + cY, nugget = TRUE),
+  data = rongelap, method = &quot;ML&quot;
+)
+
+# 高斯分布、高斯型自相关结构
+fit_gaus_reml &lt;- gls(log(counts / time) ~ 1,
+  correlation = corGaus(value = 200, form = ~ cX + cY, nugget = FALSE),
+  data = rongelap, method = &quot;REML&quot;
+)
+fit_gaus_ml &lt;- gls(log(counts / time) ~ 1,
+  correlation = corGaus(value = 200, form = ~ cX + cY, nugget = FALSE),
+  data = rongelap, method = &quot;ML&quot;
+)
+fit_gaus_reml_nugget &lt;- gls(log(counts / time) ~ 1,
+  correlation = corGaus(value = c(200, 0.1), form = ~ cX + cY, nugget = TRUE),
+  data = rongelap, method = &quot;REML&quot;
+)
+fit_gaus_ml_nugget &lt;- gls(log(counts / time) ~ 1,
+  correlation = corGaus(value = c(200, 0.1), form = ~ cX + cY, nugget = TRUE),
+  data = rongelap, method = &quot;ML&quot;
+)</code></pre>
+<p>汇总结果见下表 <a href="#tab:gls-summary">2.1</a>。</p>
+<table>
+<caption><span id="tab:gls-summary">表 2.1: </span>不同模型与参数估计方法的比较</caption>
+<colgroup>
+<col width="15%" />
+<col width="17%" />
+<col width="10%" />
+<col width="10%" />
+<col width="9%" />
+<col width="12%" />
+<col width="10%" />
+<col width="12%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">响应变量分布</th>
+<th align="left">空间自相关结构</th>
+<th align="left">块金效应</th>
+<th align="left">估计方法</th>
+<th align="left"><span class="math inline">\(\beta\)</span></th>
+<th align="left"><span class="math inline">\(\sigma^2\)</span></th>
+<th align="left"><span class="math inline">\(\phi\)</span></th>
+<th align="left">对数似然值</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">高斯分布</td>
+<td align="left">指数型</td>
+<td align="left">无</td>
+<td align="left">REML</td>
+<td align="left">1.826</td>
+<td align="left">0.3172</td>
+<td align="left">110.8</td>
+<td align="left">-89.07</td>
+</tr>
+<tr class="even">
+<td align="left">高斯分布</td>
+<td align="left">指数型</td>
+<td align="left">无</td>
+<td align="left">ML</td>
+<td align="left">1.828</td>
+<td align="left">0.3064</td>
+<td align="left">105.4</td>
+<td align="left">-87.56</td>
+</tr>
+<tr class="odd">
+<td align="left">高斯分布</td>
+<td align="left">指数型</td>
+<td align="left">0.03598</td>
+<td align="left">REML</td>
+<td align="left">1.813</td>
+<td align="left">0.2935</td>
+<td align="left">169.7472</td>
+<td align="left">-88.22</td>
+</tr>
+<tr class="even">
+<td align="left">高斯分布</td>
+<td align="left">指数型</td>
+<td align="left">0.03312</td>
+<td align="left">ML</td>
+<td align="left">1.828</td>
+<td align="left">0.2779</td>
+<td align="left">150.1324</td>
+<td align="left">-86.88</td>
+</tr>
+<tr class="odd">
+<td align="left">高斯分布</td>
+<td align="left">高斯型</td>
+<td align="left">无</td>
+<td align="left">REML</td>
+<td align="left">1.878</td>
+<td align="left">0.2523</td>
+<td align="left">41.96</td>
+<td align="left">-100.7</td>
+</tr>
+<tr class="even">
+<td align="left">高斯分布</td>
+<td align="left">高斯型</td>
+<td align="left">无</td>
+<td align="left">ML</td>
+<td align="left">1.879</td>
+<td align="left">0.25</td>
+<td align="left">41.81</td>
+<td align="left">-98.62</td>
+</tr>
+<tr class="odd">
+<td align="left">高斯分布</td>
+<td align="left">高斯型</td>
+<td align="left">0.07055</td>
+<td align="left">REML</td>
+<td align="left">1.831</td>
+<td align="left">0.2532</td>
+<td align="left">139.1431</td>
+<td align="left">-84.91</td>
+</tr>
+<tr class="even">
+<td align="left">高斯分布</td>
+<td align="left">高斯型</td>
+<td align="left">0.07053</td>
+<td align="left">ML</td>
+<td align="left">1.832</td>
+<td align="left">0.2459</td>
+<td align="left">137.0980</td>
+<td align="left">-83.32</td>
+</tr>
+</tbody>
+</table>
+<p>相比于其他参数，REML 和 ML 估计方法对参数 <span class="math inline">\(\phi\)</span> 影响很大，ML 估计的 <span class="math inline">\(\phi\)</span> 和对数似然函数值更大。高斯型自相关结构中，REML 和 ML 估计方法对参数 <span class="math inline">\(\phi\)</span> 的估计结果差不多。函数 <code>gls()</code> 对初值要求不高，以上初值选取比较随意，只是符合要求函数定义。</p>
+</div>
+<div id="模型预测" class="section level2" number="2.12">
+<h2><span class="header-section-number">2.12</span> 模型预测</h2>
+<p>预测位置需要放入 Stan 代码中</p>
+<div id="对数高斯模型-4" class="section level3" number="2.12.1">
+<h3><span class="header-section-number">2.12.1</span> 对数高斯模型</h3>
+<pre class="stan"><code>generated quantities {
+  vector[N] yhat = multi_normal_cholesky_rng(mu, L_K);
+}</code></pre>
+<p>在 <code>generated quantities</code> 代码块中计算预测值 <code>yhat</code>。</p>
+<p>采样点的观测值服从多元正态分布，预测 <code>yhat</code></p>
+<pre class="r"><code># 对数高斯模型
+fit_rongelap_gaussian$summary(
+  variables = c(&quot;yhat&quot;),
+  .num_args = list(sigfig = 4, notation = &quot;dec&quot;)
+)
+#&gt; # A tibble: 157 × 10
+#&gt;    variable    mean  median      sd    mad     q5   q95   rhat ess_bulk ess_tail
+#&gt;    &lt;chr&gt;    &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:&gt; &lt;dec:&gt; &lt;dec&gt; &lt;dec:&gt;  &lt;dec:4&gt;  &lt;dec:4&gt;
+#&gt;  1 yhat[1]    1.773   1.781  0.6608 0.6190 0.6499 2.841 1.000     1701.    1648.
+#&gt;  2 yhat[2]    1.767   1.768  0.6607 0.6587 0.6574 2.817 1.000     1471.    1352.
+#&gt;  3 yhat[3]    1.769   1.769  0.6655 0.6471 0.6693 2.872 0.9997    1880.    1414.
+#&gt;  4 yhat[4]    1.771   1.769  0.6727 0.6511 0.6781 2.873 1.001     1464.    1604.
+#&gt;  5 yhat[5]    1.752   1.742  0.6384 0.6231 0.7162 2.781 0.9996    1935.    1571.
+#&gt;  6 yhat[6]    1.761   1.766  0.6579 0.6363 0.6911 2.820 1.003     1960.    1748.
+#&gt;  7 yhat[7]    1.747   1.745  0.6605 0.6252 0.6535 2.789 1.001     1818.    1378.
+#&gt;  8 yhat[8]    1.754   1.759  0.6285 0.5961 0.7112 2.750 1.001     1934.    1768.
+#&gt;  9 yhat[9]    1.752   1.748  0.6439 0.6385 0.7142 2.833 1.001     1972.    1734.
+#&gt; 10 yhat[10]   1.755   1.757  0.6631 0.6253 0.6733 2.841 1.001     1867.    1608.
+#&gt; # ℹ 147 more rows</code></pre>
+<p>第一个采样点的预测值</p>
+<pre class="r"><code>fit_rongelap_gaussian$summary(
+  variables = &quot;yhat[1]&quot;,
+  .num_args = list(sigfig = 4, notation = &quot;dec&quot;)
+)
+#&gt; # A tibble: 1 × 10
+#&gt;   variable    mean  median      sd     mad      q5   q95  rhat ess_bulk ess_tail
+#&gt;   &lt;chr&gt;    &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec&gt; &lt;dec&gt;  &lt;dec:4&gt;  &lt;dec:4&gt;
+#&gt; 1 yhat[1]    1.773   1.781  0.6608  0.6190  0.6499 2.841 1.000    1701.    1648.</code></pre>
+<p>第一个采样点 <span class="math inline">\(\log\{\lambda(x_1)\}\)</span> 的后验预测分布</p>
+<pre class="r"><code>mcmc_dens(fit_rongelap_gaussian$draws(variables = &quot;yhat[1]&quot;)) + 
+  theme_bw(base_size = 12) +
+  labs(x = expression(hat(y)[1]))</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-pred-1"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-pred-1-1.png" alt="$\log\{\lambda(x_1)\}$ 处核辐射强度的分布" width="576" />
+<p class="caption">
+图 2.6: <span class="math inline">\(\log\{\lambda(x_1)\}\)</span> 处核辐射强度的分布
+</p>
+</div>
+<pre class="r"><code># 抽取原始的模拟数据
+yhat_gaussian &lt;- fit_rongelap_gaussian$draws(variables = &quot;yhat&quot;, format = &quot;array&quot;)
+# 合并链条
+yhat_mean &lt;- apply(yhat_gaussian, c(1, 3), mean)
+# 整理数据
+rongelap$pred_gaussian &lt;- exp(yhat_mean[1,])</code></pre>
+<p>预测值的概览</p>
+<pre class="r"><code>summary(rongelap$pred_gaussian)
+#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#&gt;    2.10    4.17    5.11    5.73    6.79   14.44</code></pre>
+<p>恢复到辐射强度的尺度，核辐射强度的预测分布</p>
+<pre class="r"><code>ggplot(data = rongelap, aes(x = cX, y = cY)) +
+  geom_point(aes(color = pred_gaussian), cex = 0.5) +
+  scale_color_distiller(palette = &quot;Spectral&quot;) +
+  theme_bw() +
+  labs(x = &quot;横坐标（米）&quot;, y = &quot;纵坐标（米）&quot;, color = &quot;预测值&quot;)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-rongelap-pred"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-rongelap-pred-1.png" alt="核辐射强度的分布" width="720" />
+<p class="caption">
+图 2.7: 核辐射强度的分布
+</p>
+</div>
+<p>预测结果，看起来很平滑。相比于观测的辐射强度值，预测的辐射强度的变化范围变小很多了。</p>
+<pre class="r"><code># 贝叶斯预测值范围
+range(rongelap$pred_gaussian)
+#&gt; [1]  2.102 14.444
+# 观测值范围
+range(rongelap$counts / rongelap$time)
+#&gt; [1]  0.25 15.10</code></pre>
+</div>
+</div>
+</div>
+<div id="references" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> 参考文献</h1>
+<div id="refs" class="references csl-bib-body">
+<div id="ref-Gelman2020" class="csl-entry">
+<div class="csl-left-margin">[1] </div><div class="csl-right-inline"><span class="smallcaps">Gelman</span>, A., <span class="smallcaps">Vehtari</span>, A., <span class="smallcaps">Simpson</span>, D., <span class="smallcaps">Margossian</span>, C. C., <span class="smallcaps">Carpenter</span>, B., <span class="smallcaps">Yao</span>, Y., <span class="smallcaps">Kennedy</span>, L., <span class="smallcaps">Gabry</span>, J., <span class="smallcaps">Bürkner</span>, P.-C. and <span class="smallcaps">Modrák</span>, M. (2020). <a href="https://arxiv.org/abs/2011.01808">Bayesian workflow</a>.</div>
+</div>
+<div id="ref-Diggle1998" class="csl-entry">
+<div class="csl-left-margin">[2] </div><div class="csl-right-inline"><span class="smallcaps">Diggle</span>, P. J., <span class="smallcaps">Tawn</span>, J. A. and <span class="smallcaps">Moyeed</span>, R. A. (1998). <a href="https://doi.org/10.1111/1467-9876.00113">Model-based geostatistics</a>. <em>Journal of the Royal Statistical Society: Series C (Applied Statistics)</em> <strong>47</strong> 299–350.</div>
+</div>
+<div id="ref-Gabry2019" class="csl-entry">
+<div class="csl-left-margin">[3] </div><div class="csl-right-inline"><span class="smallcaps">Gabry</span>, J., <span class="smallcaps">Simpson</span>, D., <span class="smallcaps">Vehtari</span>, A., <span class="smallcaps">Betancourt</span>, M. and <span class="smallcaps">Gelman</span>, A. (2019). <a href="https://doi.org/10.1111/rssa.12378">Visualization in bayesian workflow</a>. <em>J. R. Stat. Soc. A</em> <strong>182</strong> 389–402.</div>
+</div>
+</div>
+</div>
+<div id="附录" class="section level1" number="4">
+<h1><span class="header-section-number">4</span> 附录</h1>
+<p>目的是将模型/线性代数与 Stan 代码对应。读者熟悉 R 代码后，对同一模型，观察、体会 Stan 代码与 R 代码的异同。Stan 常常是需要和其它编程语言一起混合来完成贝叶斯建模的。在不同编程语言之间切换需要了解它们之间的不同，比如在数据类型、模型表达、矩阵分解等。</p>
+<div id="模拟多元正态分布" class="section level2" number="4.1">
+<h2><span class="header-section-number">4.1</span> 模拟多元正态分布</h2>
+<p>设随机向量 <span class="math inline">\(\bm{X} = (X_1, X_2, \cdots, X_p)^{\top}\)</span> 服从多元正态分布 <span class="math inline">\(\mathrm{MVN}(\bm{\mu}, \Sigma)\)</span> ，其联合密度函数如下</p>
+<p><span class="math display">\[
+\begin{aligned}
+  p(\boldsymbol x) = (2\pi)^{-\frac{p}{2}} |\Sigma|^{-\frac12}
+    \exp\left\{ -\frac12 (\boldsymbol x - \boldsymbol \mu)^T \Sigma^{-1} (\boldsymbol x - \boldsymbol \mu) \right\},
+  \ \boldsymbol x \in \mathbb{R}^p
+\end{aligned}
+\]</span></p>
+<p>其中，协方差矩阵 <span class="math inline">\(\Sigma\)</span> 是正定的，其 Cholesky 分解为 <span class="math inline">\(\Sigma = CC^{\top}\)</span> ，这里 <span class="math inline">\(C\)</span> 为下三角矩阵。设 <span class="math inline">\(\bm{Z} = (Z_1, Z_2, \cdots, Z_p)^{\top}\)</span> 服从 <span class="math inline">\(p\)</span> 元标准正态分布 <span class="math inline">\(\mathrm{MVN}(\bm{0}, I)\)</span> ，则 <span class="math inline">\(\bm{X} = \bm{\mu} + C\bm{Z}\)</span> 服从多元正态分布 <span class="math inline">\(\mathrm{MVN}(\bm{\mu}, \Sigma)\)</span> 。</p>
+<div id="r-代码实现" class="section level3" number="4.1.1">
+<h3><span class="header-section-number">4.1.1</span> R 代码实现</h3>
+<p>下面使用 Cholesky 分解生成多元正态分布随机数，代码稍修改自<a href="https://www.math.pku.edu.cn/teachers/lidf/docs/statcomp/html/_statcompbook/rng-multi.html">《统计计算》</a>多元随机向量的模拟。</p>
+<pre class="r"><code># n 样本点的数量
+# mu 均值向量
+# Sigma 协方差矩阵
+rng_mnorm &lt;- function(n, mu, Sigma) {
+  m &lt;- length(mu)
+  M &lt;- chol(Sigma) # Sigma = M&#39; M
+  y &lt;- matrix(rnorm(n * m), nrow = n, ncol = m) %*% M
+  apply(y, 1, FUN = function(x) x + mu)
+}
+set.seed(20232023)
+# 1000 个样本点
+x &lt;- rng_mnorm(n = 1000, mu = c(3, 2), Sigma = rbind(c(4, 1), c(1, 1)))
+# 样本均值
+colMeans(t(x))
+#&gt; [1] 3.112 1.992
+# 样本协方差矩阵
+var(t(x))
+#&gt;       [,1]  [,2]
+#&gt; [1,] 3.996 1.029
+#&gt; [2,] 1.029 1.019</code></pre>
+<p>代码中 <span class="math inline">\(n\)</span> 是样本点的个数，<span class="math inline">\(\bm{\mu}\)</span> 是均值向量，<span class="math inline">\(\Sigma\)</span> 是对称正定协方差阵。</p>
+<div class="figure"><span style="display:block;" id="fig:fig-bivar"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-bivar-1.png" alt="生成二元正态分布的随机数" width="576" />
+<p class="caption">
+图 4.1: 生成二元正态分布的随机数
+</p>
+</div>
+<p>顺便一提，函数 <code>MASS::mvrnorm()</code> 和 <code>mvtnorm::rmvnorm()</code> 都可以生成服从多元正态分布的随机数。</p>
+</div>
+<div id="stan-代码实现" class="section level3" number="4.1.2">
+<h3><span class="header-section-number">4.1.2</span> Stan 代码实现</h3>
+<p>类似地，可以用 Stan 函数 <code>multi_normal_cholesky_rng</code> 生成随机数模拟多元正态分布。</p>
+<pre class="stan"><code>data {
+  int&lt;lower=1&gt; N;
+  int&lt;lower=1&gt; D;
+  vector[D] mu;
+  matrix[D, D] Sigma;
+}
+transformed data {
+  matrix[D, D] L_K = cholesky_decompose(Sigma);
+}
+parameters {
+}
+model {
+}
+generated quantities {
+  array[N] vector[D] yhat;
+  for (n in 1:N){
+    yhat[n] = multi_normal_cholesky_rng(mu, L_K); 
+  }
+}</code></pre>
+<p>上述代码块可以同时模拟多组服从多元正态分布的随机数。其中，参数块 <code>parameters</code> 和模型块 <code>model</code> 是空白的，这是因为模拟随机数不涉及模型推断，只是采样。核心部分 <code>generated quantities</code> 代码块负责生成随机数。</p>
+<pre class="r"><code># 给定二元正态分布的参数值
+multi_normal_d &lt;- list(
+  N = 1, # 一组随机数
+  D = 2, # 维度
+  mu = c(3, 2), # 均值向量
+  Sigma = rbind(c(4, 1), c(1, 1)) # 协方差矩阵
+)
+# 编译多元正态分布模型
+mod_multi_normal &lt;- cmdstan_model(
+  stan_file = &quot;code/multi_normal.stan&quot;,
+  compile = TRUE, cpp_options = list(stan_threads = TRUE)
+)</code></pre>
+<p>抽样生成 1000 个服从二元正态分布的随机数。</p>
+<pre class="r"><code>fit_multi_normal &lt;- mod_multi_normal$sample(
+  data = multi_normal_d,
+  iter_warmup = 500,    # 每条链预处理迭代次数
+  iter_sampling = 1000, # 样本量
+  chains = 2,          # 马尔科夫链的数目
+  parallel_chains = 1, # 指定 CPU 核心数，可以给每条链分配一个
+  threads_per_chain = 1, # 每条链设置一个线程
+  show_messages = FALSE, # 不显示迭代的中间过程
+  refresh = 0,        # 不显示采样的进度
+  fixed_param = TRUE, # 固定参数
+  output_dir = &quot;data/&quot;,
+  seed = 20232023     # 设置随机数种子，不要使用 set.seed() 函数
+)</code></pre>
+<p>值得注意，这里，不需要设置参数初始值，但要设置 <code>fixed_param = TRUE</code>，表示根据模型生成模拟数据。</p>
+<pre class="r"><code># 原始数据
+fit_multi_normal$draws(variables = &quot;yhat&quot;, format = &quot;array&quot;)
+#&gt; # A draws_array: 1000 iterations, 2 chains, and 2 variables
+#&gt; , , variable = yhat[1,1]
+#&gt; 
+#&gt;          chain
+#&gt; iteration   1     2
+#&gt;         1 2.6  0.82
+#&gt;         2 5.3  3.73
+#&gt;         3 1.4  2.15
+#&gt;         4 3.1  2.89
+#&gt;         5 7.6 -0.74
+#&gt; 
+#&gt; , , variable = yhat[1,2]
+#&gt; 
+#&gt;          chain
+#&gt; iteration    1   2
+#&gt;         1 0.65 2.1
+#&gt;         2 3.70 1.6
+#&gt;         3 4.36 1.5
+#&gt;         4 1.85 2.3
+#&gt;         5 2.32 2.2
+#&gt; 
+#&gt; # ... with 995 more iterations
+# 数据概览
+fit_multi_normal$summary(.num_args = list(sigfig = 4, notation = &quot;dec&quot;))
+#&gt; # A tibble: 2 × 10
+#&gt;   variable     mean  median      sd    mad      q5   q95  rhat ess_bulk ess_tail
+#&gt;   &lt;chr&gt;     &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:&gt; &lt;dec:4&gt; &lt;dec&gt; &lt;dec&gt;  &lt;dec:4&gt;  &lt;dec:4&gt;
+#&gt; 1 yhat[1,1]   3.019   2.957   2.039 1.984  -0.2867 6.483 1.000    2185.    2005.
+#&gt; 2 yhat[1,2]   1.983   1.969   1.010 0.9949  0.2685 3.652 1.000    2186.    2008.</code></pre>
+<p>以生成第一个服从二元正态分布的随机数（样本点）为例，这个随机数是通过采样获得的，采样过程中产生一个采样序列，采样序列的轨迹和分布如下：</p>
+<pre class="r"><code>mcmc_trace(fit_multi_normal$draws(c(&quot;yhat[1,1]&quot;, &quot;yhat[1,2]&quot;)),
+  facet_args = list(
+    labeller = ggplot2::label_parsed,
+    strip.position = &quot;top&quot;, ncol = 1
+  )
+) + theme_bw(base_size = 12)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-trace-dens-1"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-trace-dens-1.png" alt="采样序列的轨迹和分布" width="576" />
+<p class="caption">
+图 4.2: 采样序列的轨迹和分布
+</p>
+</div>
+<pre class="r"><code>
+mcmc_dens(fit_multi_normal$draws(c(&quot;yhat[1,1]&quot;, &quot;yhat[1,2]&quot;)),
+  facet_args = list(
+    labeller = ggplot2::label_parsed,
+    strip.position = &quot;top&quot;, ncol = 1
+  )
+) + theme_bw(base_size = 12)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-trace-dens-2"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-trace-dens-2.png" alt="采样序列的轨迹和分布" width="576" />
+<p class="caption">
+图 4.3: 采样序列的轨迹和分布
+</p>
+</div>
+<p>这就是一组来自二元正态分布的随机数。</p>
+<pre class="r"><code>mcmc_scatter(fit_multi_normal$draws(c(&quot;yhat[1,1]&quot;, &quot;yhat[1,2]&quot;))) +
+  theme_bw(base_size = 12) +
+  labs(x = expression(x[1]), y = expression(x[2]))</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-bivar-scatter"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-bivar-scatter-1.png" alt="生成二元正态分布的随机数" width="576" />
+<p class="caption">
+图 4.4: 生成二元正态分布的随机数
+</p>
+</div>
+<p>提取采样数据，整理成矩阵。</p>
+<pre class="r"><code># 抽取原始采样数据
+yhat &lt;- fit_multi_normal$draws(c(&quot;yhat[1,1]&quot;, &quot;yhat[1,2]&quot;))
+# 合并多条链
+yhat_mean &lt;- apply(yhat, c(1,3), mean)
+# 整理成二维矩阵
+x &lt;- as.matrix(yhat_mean)
+# 样本均值
+colMeans(x)
+#&gt; yhat[1,1] yhat[1,2] 
+#&gt;     3.019     1.983
+# 样本方差-协方差矩阵
+2 * var(x)
+#&gt;           yhat[1,1] yhat[1,2]
+#&gt; yhat[1,1]     4.020    1.0354
+#&gt; yhat[1,2]     1.035    0.9884</code></pre>
+<div class="rmdnote">
+<p>为什么 <code>var(x)</code> 乘以 2 就恰好接近原来的协方差矩阵？</p>
+</div>
+<p>1000 个抽自二元正态分布的随机数。</p>
+<pre class="r"><code>op &lt;- par(mar = c(4, 4, 1, 1))
+plot(x = x[, 1], y = x[, 2],
+  col = densCols(x,
+    bandwidth = c(0.5, 0.5),
+    nbin = c(51L, 51L), colramp = hcl.colors
+  ),
+  type = &quot;p&quot;, cex = 0.5, panel.first = grid(),
+  xlab = expression(x[1]), ylab = expression(x[2])
+)
+abline(v = 3, h = 2, col = &quot;gray&quot;)
+points(x = 3, y = 2, col = &quot;red&quot;, pch = 16)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-bivar-bayes"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-bivar-bayes-1.png" alt="二元正态分布" width="576" />
+<p class="caption">
+图 4.5: 二元正态分布
+</p>
+</div>
+<pre class="r"><code>on.exit(par(op), add = TRUE)</code></pre>
+</div>
+</div>
+<div id="拟合多元正态分布" class="section level2" number="4.2">
+<h2><span class="header-section-number">4.2</span> 拟合多元正态分布</h2>
+<p>一般地，协方差矩阵的 Cholesky 分解的矩阵表示如下：</p>
+<p><span class="math display">\[
+\begin{aligned}
+  \Sigma &amp;= \begin{bmatrix}
+\sigma^2_1 &amp; \rho_{12}\sigma_1\sigma_2 &amp; \rho_{13}\sigma_1\sigma_3 \\
+\rho_{12}\sigma_1\sigma_2 &amp; \sigma_2^2 &amp; \rho_{23}\sigma_2\sigma_3 \\
+\rho_{13}\sigma_1\sigma_3 &amp; \rho_{23}\sigma_2\sigma_3 &amp; \sigma_3^2
+\end{bmatrix} \\
+&amp; = \begin{bmatrix}
+\sigma_1 &amp; 0 &amp; 0 \\
+0 &amp; \sigma_2 &amp; 0 \\
+0 &amp; 0 &amp; \sigma_3
+\end{bmatrix}
+\underbrace{
+\begin{bmatrix}
+1 &amp; \rho_{12} &amp; \rho_{13} \\
+\rho_{12} &amp; 1 &amp; \rho_{23} \\
+\rho_{13} &amp; \rho_{23} &amp; 1
+\end{bmatrix}
+}_{R}
+\begin{bmatrix}
+\sigma_1 &amp; 0 &amp; 0 \\
+0 &amp; \sigma_2 &amp; 0 \\
+0 &amp; 0 &amp; \sigma_3
+\end{bmatrix} \\
+&amp; = \begin{bmatrix}
+\sigma_1 &amp; 0 &amp; 0 \\
+0 &amp; \sigma_2 &amp; 0 \\
+0 &amp; 0 &amp; \sigma_3
+\end{bmatrix}
+\underbrace{L_u L_u^{\top}}_{R}
+\begin{bmatrix}
+\sigma_1 &amp; 0 &amp; 0 \\
+0 &amp; \sigma_2 &amp; 0 \\
+0 &amp; 0 &amp; \sigma_3
+\end{bmatrix}
+\end{aligned}
+\]</span></p>
+<pre class="stan"><code>data {
+  int&lt;lower=1&gt; N; // number of observations
+  int&lt;lower=1&gt; K; // dimension of observations
+  array[N] vector[K] y; // observations: a list of N vectors (each has K elements)
+}
+parameters {
+  vector[K] mu;
+  cholesky_factor_corr[K] Lcorr; // cholesky factor (L_u matrix for R)
+  vector&lt;lower=0&gt;[K] sigma;
+}
+transformed parameters {
+  corr_matrix[K] R; // correlation matrix
+  cov_matrix[K] Sigma; // VCV matrix
+  R = multiply_lower_tri_self_transpose(Lcorr); // R = Lcorr * Lcorr&#39;
+  Sigma = quad_form_diag(R, sigma); // quad_form_diag: diag_matrix(sig) * R * diag_matrix(sig)
+}
+model {
+  sigma ~ cauchy(0, 5); // prior for sigma
+  Lcorr ~ lkj_corr_cholesky(2.0); // prior for cholesky factor of a correlation matrix
+  y ~ multi_normal(mu, Sigma);
+}</code></pre>
+<p>代码中， 核心部分是关于多元正态分布的协方差矩阵的参数化，先将协方差矩阵中的方差和相关矩阵剥离，然后利用 Cholesky 分解将相关矩阵分解。在 Stan 里，这是一套高效的组合。</p>
+<ul>
+<li><p>类型 <code>cholesky_factor_corr</code> 表示相关矩阵的 Cholesky 分解后的矩阵 <span class="math inline">\(L_u\)</span></p></li>
+<li><p>类型 <code>corr_matrix</code> 表示相关矩阵 <span class="math inline">\(R\)</span> 。</p></li>
+<li><p>类型 <code>cov_matrix</code> 表示协方差矩阵 <span class="math inline">\(\Sigma\)</span> 。</p></li>
+<li><p>函数 <code>lkj_corr_cholesky</code> 为相关矩阵 Cholesky 分解后的矩阵 <span class="math inline">\(L_u\)</span> 服从的分布，详见 <a href="https://mc-stan.org/docs/functions-reference/cholesky-lkj-correlation-distribution.html">Cholesky LKJ correlation distribution</a>。函数名中的 <code>lkj</code> 是以三个人的人名的首字母命名的 <a href="https://mc-stan.org/docs/functions-reference/lkj-correlation.html#ref-LewandowskiKurowickaJoe:2009">Lewandowski, Kurowicka, and Joe 2009</a>。</p></li>
+<li><p>函数 <code>multiply_lower_tri_self_transpose</code> 为下三角矩阵与它的转置的乘积，详见 <a href="https://mc-stan.org/docs/functions-reference/correlation-matrix-distributions.html">Correlation Matrix Distributions</a>。</p></li>
+<li><p>函数 <code>multi_normal</code> 为多元正态分布的抽样语句，详见 <a href="https://mc-stan.org/docs/functions-reference/multivariate-normal-distribution.html">Multivariate normal distribution</a>。</p></li>
+</ul>
+<p>矩阵 <span class="math inline">\(L_u\)</span> 是相关矩阵 <span class="math inline">\(R\)</span> 的 Cholesky 分解的结果，在贝叶斯框架内，参数都是随机的，相关矩阵是一个随机矩阵，矩阵 <span class="math inline">\(L_u\)</span> 是一个随机矩阵，它的分布用 Stan 代码表示为如下：</p>
+<pre class="stan"><code>L ~ lkj_corr_cholesky(2.0); # implies L * L&#39; ~ lkj_corr(2.0);</code></pre>
+<p>LKJ 分布有一个参数 <span class="math inline">\(\eta\)</span> ，此处 <span class="math inline">\(\eta = 2\)</span> ，意味着变量之间的相关性较弱，LKJ 分布的概率密度函数正比于相关矩阵的行列式的 <span class="math inline">\(\eta-1\)</span> 次幂 <span class="math inline">\((\det{R})^{\eta-1}\)</span>，LKJ 分布的详细说明见<a href="https://distribution-explorer.github.io/multivariate_continuous/lkj.html">Lewandowski-Kurowicka-Joe (LKJ) distribution</a>。</p>
+<p>有了上面的背景知识，下面先在 R 环境中模拟一组来自多元正态分布的样本。</p>
+<pre class="r"><code>set.seed(20232023)
+# 均值
+mu &lt;- c(1, 2, -5) 
+# 相关矩阵 (R)
+R &lt;- matrix(c(
+  1, 0.7, 0.2, 
+  0.7, 1, -0.5,
+  0.2, -0.5, 1
+), 3)
+# sd1 = 0.5, sd2 = 1.2, sd3 = 2.3
+sigmas &lt;- c(0.5, 1.2, 2.3) 
+# 方差-协方差矩阵
+Sigma &lt;- diag(sigmas) %*% R %*% diag(sigmas) 
+# 模拟 1000 个样本数据
+dat &lt;- MASS::mvrnorm(1000, mu = mu, Sigma = Sigma) </code></pre>
+<p>根据 1000 个样本点，估计多元正态分布的均值参数和方差协方差参数。</p>
+<pre class="r"><code># 来自多元正态分布的一组样本
+multi_normal_chol_d &lt;- list(
+  N = 1000, # 样本量
+  K = 3,    # 三维
+  y = dat
+)
+# 编译多元正态分布模型
+mod_multi_normal_chol &lt;- cmdstan_model(
+  stan_file = &quot;code/multi_normal_chol.stan&quot;,
+  compile = TRUE, cpp_options = list(stan_threads = TRUE)
+)</code></pre>
+<pre class="r"><code>fit_multi_normal_chol &lt;- mod_multi_normal_chol$sample(
+  data = multi_normal_chol_d,
+  iter_warmup = 500,    # 每条链预处理迭代次数
+  iter_sampling = 1000, # 每条链采样次数
+  chains = 2,           # 马尔科夫链的数目
+  parallel_chains = 1,  # 指定 CPU 核心数
+  threads_per_chain = 1,  # 每条链设置一个线程
+  show_messages = FALSE,  # 不显示迭代的中间过程
+  refresh = 0,            # 不显示采样的进度
+  output_dir = &quot;data/&quot;,
+  seed = 20232023     # 设置随机数种子
+)</code></pre>
+<p>均值向量 <span class="math inline">\(\bm{\mu}\)</span> 和协方差矩阵 <span class="math inline">\(\Sigma\)</span> 估计结果如下：</p>
+<pre class="r"><code>fit_multi_normal_chol$summary(c(&quot;mu&quot;, &quot;Sigma&quot;),.num_args = list(sigfig = 4, notation = &quot;dec&quot;))
+#&gt; # A tibble: 12 × 10
+#&gt;    variable      mean  median      sd     mad      q5     q95    rhat ess_bulk
+#&gt;    &lt;chr&gt;      &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:4&gt; &lt;dec:4&gt;  &lt;dec:4&gt;
+#&gt;  1 mu[1]       0.9841  0.9841 0.01655 0.01601  0.9568  1.012   1.000     1849.
+#&gt;  2 mu[2]       1.917   1.918  0.03869 0.03786  1.853   1.982   0.9996    1760.
+#&gt;  3 mu[3]      -4.886  -4.886  0.07422 0.07045 -5.010  -4.764   1.002     1898.
+#&gt;  4 Sigma[1,1]  0.2552  0.2550 0.01143 0.01150  0.2366  0.2741  1.002     1635.
+#&gt;  5 Sigma[2,1]  0.4191  0.4187 0.02290 0.02227  0.3833  0.4584  0.9994    1526.
+#&gt;  6 Sigma[3,1]  0.2497  0.2497 0.03826 0.03758  0.1869  0.3128  1.002     1691.
+#&gt;  7 Sigma[1,2]  0.4191  0.4187 0.02290 0.02227  0.3833  0.4584  0.9994    1526.
+#&gt;  8 Sigma[2,2]  1.418   1.416  0.06288 0.06300  1.319   1.524   1.000     1483.
+#&gt;  9 Sigma[3,2] -1.342  -1.340  0.09674 0.09853 -1.504  -1.191   1.001     1629.
+#&gt; 10 Sigma[1,3]  0.2497  0.2497 0.03826 0.03758  0.1869  0.3128  1.002     1691.
+#&gt; 11 Sigma[2,3] -1.342  -1.340  0.09674 0.09853 -1.504  -1.191   1.001     1629.
+#&gt; 12 Sigma[3,3]  5.322   5.322  0.2397  0.2402   4.928   5.724   1.000     1737.
+#&gt; # ℹ 1 more variable: ess_tail &lt;dec:4&gt;</code></pre>
+<p>均值向量 <span class="math inline">\(\bm{\mu} = (\mu_1,\mu_2,\mu_3)^{\top}\)</span> 各个分量及其两两相关性，如下图所示。</p>
+<pre class="r"><code>mcmc_pairs(
+  fit_multi_normal_chol$draws(c(&quot;mu[1]&quot;, &quot;mu[2]&quot;, &quot;mu[3]&quot;)),
+  diag_fun = &quot;dens&quot;, off_diag_fun = &quot;hex&quot;
+)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-trivar-bayes"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-trivar-bayes-1.png" alt="三元正态分布" width="576" />
+<p class="caption">
+图 4.6: 三元正态分布
+</p>
+</div>
+</div>
+<div id="模拟二维高斯过程" class="section level2" number="4.3">
+<h2><span class="header-section-number">4.3</span> 模拟二维高斯过程</h2>
+<p>二维高斯过程 <span class="math inline">\(\mathcal{S}\)</span> 的均值向量为 0 向量，自协方差函数为指数型，</p>
+<p><span class="math display">\[
+\sigma = 10, \phi = 0.1
+\]</span></p>
+<div id="r-代码实现-1" class="section level3" number="4.3.1">
+<h3><span class="header-section-number">4.3.1</span> R 代码实现</h3>
+<pre class="r"><code>set.seed(20232023)
+N &lt;- 15
+X &lt;- expand.grid(x1 = 1:N / N, x2 = 1:N / N)
+gp_exp_fun &lt;- function(X, sigma, phi) {
+  sigma^2 * exp(-as.matrix(dist(X)) / phi)
+}
+mu &lt;- rep(0, N * N)
+# 协方差矩阵
+Sigma &lt;- gp_exp_fun(X = X, sigma = 10, phi = 0.1)
+sim_gp_data &lt;- as.data.frame(X)
+# 模拟高斯过程
+sim_gp_data$ysim &lt;- MASS::mvrnorm(1, mu = mu, Sigma = Sigma)
+# 样本方差
+sd(sim_gp_data$ysim)
+#&gt; [1] 9.846</code></pre>
+<pre class="r"><code># 二维高斯过程
+ggplot(data = sim_gp_data, aes(x = x1, y = x2)) +
+  geom_point(aes(color = ysim)) +
+  scale_color_distiller(palette = &quot;Spectral&quot;) +
+  theme_bw() +
+  labs(x = expression(x[1]), y = expression(x[2]))</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-2d-gp"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-2d-gp-1.png" alt="模拟的二维高斯过程" width="624" />
+<p class="caption">
+图 4.7: 模拟的二维高斯过程
+</p>
+</div>
+</div>
+<div id="stan-代码实现-1" class="section level3" number="4.3.2">
+<h3><span class="header-section-number">4.3.2</span> Stan 代码实现</h3>
+<p><a href="https://mc-stan.org/docs/stan-users-guide/simulating-from-a-gaussian-process.html">Simulating from a Gaussian process</a></p>
+<pre class="stan"><code>data {
+  int&lt;lower=1&gt; N;
+  int&lt;lower=1&gt; D;
+  array[N] vector[D] X;
+  vector[N] mu;
+  real&lt;lower=0&gt; sigma;
+  real&lt;lower=0&gt; phi;
+}
+transformed data {
+  real delta = 1e-9;
+  matrix[N, N] L;
+  matrix[N, N] K = gp_exponential_cov(X, sigma, phi) + diag_matrix(rep_vector(delta, N));
+  L = cholesky_decompose(K);
+}
+parameters {
+  vector[N] eta;
+}
+model {
+  eta ~ std_normal();
+}
+generated quantities {
+  vector[N] y;
+  y = mu + L * eta;
+}</code></pre>
+<p>在二维均匀网格上采样，采样点数量为 225</p>
+<pre class="r"><code>multi_normal_gp_d &lt;- list(
+  N = 225,
+  D = 2,
+  mu = rep(0, 225),
+  sigma = 10,
+  phi = 0.1,
+  X = expand.grid(x1 = 1:15 / 15, x2 = 1:15 / 15)
+)</code></pre>
+<pre class="r"><code># 编译二维高斯过程模型
+mod_multi_normal_gp &lt;- cmdstan_model(
+  stan_file = &quot;code/multi_normal_gp.stan&quot;,
+  compile = TRUE, cpp_options = list(stan_threads = TRUE)
+)</code></pre>
+<p>模拟 100 个样本</p>
+<pre class="r"><code>fit_multi_normal_gp &lt;- mod_multi_normal_gp$sample(
+  data = multi_normal_gp_d,
+  iter_warmup = 50,    # 每条链预处理迭代次数
+  iter_sampling = 100, # 样本量
+  chains = 2,           # 马尔科夫链的数目
+  parallel_chains = 1,  # 指定 CPU 核心数
+  threads_per_chain = 1,  # 每条链设置一个线程
+  show_messages = FALSE,  # 不显示迭代的中间过程
+  refresh = 0,            # 不显示采样的进度
+  output_dir = &quot;data/&quot;,
+  seed = 20232023     # 设置随机数种子
+)</code></pre>
+<p>位置 1 和 2 处的随机变量的迭代轨迹，均值为 0 ，标准差 10 左右。</p>
+<pre class="r"><code>mcmc_trace(fit_multi_normal_gp$draws(c(&quot;y[1]&quot;, &quot;y[2]&quot;)),
+  facet_args = list(
+    labeller = ggplot2::label_parsed,
+    strip.position = &quot;top&quot;, ncol = 1
+  )
+) + theme_bw(base_size = 12)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-location-bayes"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-location-bayes-1.png" alt="位置 1 和 2 处的迭代轨迹" width="672" />
+<p class="caption">
+图 4.8: 位置 1 和 2 处的迭代轨迹
+</p>
+</div>
+<p>位置 1 处的随机变量及其分布</p>
+<pre class="r"><code>y1 &lt;- fit_multi_normal_gp$draws(c(&quot;y[1]&quot;))
+# 合并链条结果
+y1_mean &lt;- apply(y1, c(1,3), mean)
+# y[1] 的方差
+var(y1_mean)
+#&gt;       y[1]
+#&gt; y[1] 38.24
+# y[1] 的标准差
+sd(y1_mean)
+#&gt; [1] 6.184</code></pre>
+<p>100 次迭代获得 100 个样本点，每次迭代采集一个样本点，每个样本点是一个 225 维的向量。</p>
+<pre class="r"><code># 抽取原始的采样数据
+y_array &lt;- fit_multi_normal_gp$draws(variables = &quot;y&quot;, format = &quot;array&quot;)
+# 合并链条
+y_mean &lt;- apply(y_array, c(1, 3), mean)</code></pre>
+<p>从 100 次迭代中任意提取某一个样本点，比如预采样之后的第一次下迭代的结果，接着整理数据。</p>
+<pre class="r"><code># 整理数据
+sim_gp_data &lt;- cbind.data.frame(
+  multi_normal_gp_d$X, ysim = y_mean[1,]
+)</code></pre>
+<p>绘制二维高斯过程图形。</p>
+<pre class="r"><code>ggplot(data = sim_gp_data, aes(x = x1, y = x2)) +
+  geom_point(aes(color = ysim)) +
+  scale_color_distiller(palette = &quot;Spectral&quot;) +
+  theme_bw() +
+  labs(x = expression(x[1]), y = expression(x[2]))</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-2d-gp-bayes"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-2d-gp-bayes-1.png" alt="二维高斯过程" width="624" />
+<p class="caption">
+图 4.9: 二维高斯过程
+</p>
+</div>
+</div>
+</div>
+<div id="拟合二维高斯过程" class="section level2" number="4.4">
+<h2><span class="header-section-number">4.4</span> 拟合二维高斯过程</h2>
+<div id="stan-代码实现-2" class="section level3" number="4.4.1">
+<h3><span class="header-section-number">4.4.1</span> Stan 代码实现</h3>
+<p>复用 R 模拟二维高斯过程的数据，按照 Stan 官网给出的拟合代码，效率极低。</p>
+<pre class="r"><code># 二维高斯过程模型
+gaussian_process_d &lt;- list(
+  D = 2,
+  N = nrow(sim_gp_data), # 观测记录的条数
+  x = sim_gp_data[, c(&quot;x1&quot;, &quot;x1&quot;)],
+  y = sim_gp_data[, &quot;ysim&quot;]
+)
+
+nchains &lt;- 2
+set.seed(20232023)
+# 给每条链设置不同的参数初始值
+inits_gaussian_process &lt;- lapply(1:nchains, function(i) {
+  list(
+    sigma = runif(1),
+    phi = runif(1)
+  )
+})
+
+# 模型
+mod_gaussian_process &lt;- cmdstan_model(
+  stan_file = &quot;code/fit_gaussian_process.stan&quot;,
+  compile = TRUE, cpp_options = list(stan_threads = TRUE)
+)
+
+# 拟合二维高斯过程
+fit_gaussian_process &lt;- mod_gaussian_process$sample(
+  data = gaussian_process_d,   # 观测数据
+  init = inits_gaussian_process,   # 迭代初值
+  iter_warmup = 500,           # 每条链预处理迭代次数
+  iter_sampling = 1000,         # 每条链总迭代次数
+  chains = nchains,             # 马尔科夫链的数目
+  parallel_chains = 2,      # 指定 CPU 核心数，可以给每条链分配一个
+  threads_per_chain = 1,    # 每条链设置一个线程
+  show_messages = FALSE,    # 不显示迭代的中间过程
+  refresh = 0,              # 不显示采样的进度
+  output_dir = &quot;data/&quot;,
+  seed = 20232023           # 设置随机数种子，不要使用 set.seed() 函数
+)</code></pre>
+</div>
+</div>
+</div>

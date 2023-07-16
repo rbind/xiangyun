@@ -75,7 +75,7 @@ description: "本文内容属于空间分析的范畴，空间分析的内容十
 图 1.1: 朗格拉普环礁和朗格拉普岛
 </p>
 </div>
-<p><a href="https://orcid.org/0000-0002-8230-8062">Ole F. Christensen</a> 和 Paulo J. Ribeiro Jr 将 <code>rongelap</code> 数据集存放在 <a href="https://cran.r-project.org/package=geoRglm"><strong>geoRglm</strong></a><span class="citation">[<a href="#ref-Christensen2002" role="doc-biblioref">1</a>]</span> 包内，后来，<strong>geoRglm</strong> 不维护，已从 CRAN 移除了，笔者从他们主页下载了数据。数据集 <code>rongelap</code> 记录了 157 个测量点的伽马射线强度，即在时间间隔 <code>time</code> （秒）内放射的粒子数目 <code>counts</code>（个），测量点的横纵坐标分别为 <code>cX</code> （米）和 <code>cY</code>（米），下表展示部分朗格拉普岛核辐射检测数据及海岸线坐标数据。</p>
+<p><a href="https://orcid.org/0000-0002-8230-8062">Ole F. Christensen</a> 和 Paulo J. Ribeiro Jr 将 <code>rongelap</code> 数据集存放在 <a href="https://cran.r-project.org/package=geoRglm"><strong>geoRglm</strong></a><span class="citation">[<a href="#ref-Christensen2002">1</a>]</span> 包内，后来，<strong>geoRglm</strong> 不维护，已从 CRAN 移除了，笔者从他们主页下载了数据。数据集 <code>rongelap</code> 记录了 157 个测量点的伽马射线强度，即在时间间隔 <code>time</code> （秒）内放射的粒子数目 <code>counts</code>（个），测量点的横纵坐标分别为 <code>cX</code> （米）和 <code>cY</code>（米），下表展示部分朗格拉普岛核辐射检测数据及海岸线坐标数据。</p>
 <table>
 <thead>
 <tr class="header">
@@ -784,22 +784,22 @@ summary(fit_rongelap_spamm3)</code></pre>
 ## Estimation of corrPars, lambda and NB_shape by ML (P_v approximation of logL).
 ## Estimation of fixed effects by ML (P_v approximation of logL).
 ## Estimation of lambda and NB_shape by &#39;outer&#39; ML, maximizing logL.
-## family: negbin2(shape=7.244)( link = log ) 
+## family: negbin2(shape=6.035)( link = log ) 
 ##  ------------ Fixed effects (beta) ------------
 ##             Estimate Cond. SE t-value
-## (Intercept)    1.982  0.07534   26.31
+## (Intercept)    2.029  0.03253   62.35
 ##  --------------- Random effects ---------------
 ## Family: gaussian( link = identity ) 
 ##                    --- Correlation parameters:
-##     1.nu    1.rho 
-## 0.500000 0.001507 
+##   1.nu  1.rho 
+## 0.5000 0.5003 
 ##            --- Variance parameters (&#39;lambda&#39;):
 ## lambda = var(u) for u ~ Gaussian; 
-##    cX + cY  :  0.02605  
+##    cX + cY  :  6.385e-05  
 ## # of obs: 157; # of groups: cX + cY, 157 
 ##  ------------- Likelihood values  -------------
 ##                     logLik
-## logL      (P_v(h)):  -1310</code></pre>
+## logL      (P_v(h)):  -1318</code></pre>
 </div>
 </div>
 <div id="sec-rongelap-predict" class="section level1" number="4">
@@ -807,7 +807,7 @@ summary(fit_rongelap_spamm3)</code></pre>
 <p>接下来，预测给定的边界（海岸线）内任意位置的核辐射强度，展示全岛的核辐射强度分布。先从点构造多边形数据，再将多边形做网格划分，继而将网格中心点作为模型输入获得核辐射强度的预测值。</p>
 <div id="sec-rongelap-coastline" class="section level2" number="4.1">
 <h2><span class="header-section-number">4.1</span> 海岸线数据</h2>
-<p>海岸线上取一些点，点的数量越多，对海岸线的刻画越精确，这在转弯处体现得非常明显。海岸线的数据是以成对的坐标构成，导入 R 语言中，是以数据框的形式存储，为了方便后续的操作，引入空间数据操作的 <strong>sf</strong> 包<span class="citation">[<a href="#ref-Pebesma2018" role="doc-biblioref">2</a>]</span>，将核辐射数据和海岸线数据转化为 POINT 类型的空间点数据。</p>
+<p>海岸线上取一些点，点的数量越多，对海岸线的刻画越精确，这在转弯处体现得非常明显。海岸线的数据是以成对的坐标构成，导入 R 语言中，是以数据框的形式存储，为了方便后续的操作，引入空间数据操作的 <strong>sf</strong> 包<span class="citation">[<a href="#ref-Pebesma2018">2</a>]</span>，将核辐射数据和海岸线数据转化为 POINT 类型的空间点数据。</p>
 <pre class="r"><code>library(sf)
 rongelap_sf &lt;- st_as_sf(rongelap, coords = c(&quot;cX&quot;, &quot;cY&quot;), dim = &quot;XY&quot;)
 rongelap_coastline_sf &lt;- st_as_sf(rongelap_coastline, coords = c(&quot;cX&quot;, &quot;cY&quot;), dim = &quot;XY&quot;)</code></pre>
@@ -951,7 +951,7 @@ rongelap_grid_df$var_sk &lt;- sigma_sq - diag(t(m_pred) %*% solve(m_obs, m_pred)
 图 4.6: 核辐射强度预测方差的分布
 </p>
 </div>
-<p>考虑到核辐射在全岛的分布应当是连续性的，空间连续性也是这类模型的假设，接下来绘制热力图，先用 <strong>stars</strong> 包<span class="citation">[<a href="#ref-stars2022" role="doc-biblioref">3</a>]</span>将预测数据按原网格化的精度转化成栅格对象，裁减超出朗格拉普岛海岸线以外的内容。</p>
+<p>考虑到核辐射在全岛的分布应当是连续性的，空间连续性也是这类模型的假设，接下来绘制热力图，先用 <strong>stars</strong> 包<span class="citation">[<a href="#ref-stars2022">3</a>]</span>将预测数据按原网格化的精度转化成栅格对象，裁减超出朗格拉普岛海岸线以外的内容。</p>
 <pre class="r"><code>library(abind)
 library(stars)
 rongelap_grid_sf &lt;- st_as_sf(rongelap_grid_df, coords = c(&quot;cX&quot;, &quot;cY&quot;), dim = &quot;XY&quot;)
@@ -1140,7 +1140,10 @@ P = I - X(XX^{\top})^{-1}X^{\top}
 <p><span class="math display">\[
 P\bm{y} = P \bm{\epsilon}
 \]</span></p>
-<p>这就是说将整个模型投影到一个新的空间中，在这个新的空间中，模型不含有参数 <span class="math inline">\(\bm{\beta}\)</span> ，只剩下参数 <span class="math inline">\(\bm{\theta}\)</span>。然后，极大化似然函数，得到 <span class="math inline">\(\bm{\theta}\)</span> 的估计 <span class="math inline">\(\hat{\bm{\theta}}\)</span> ，再将 <span class="math inline">\(\hat{\bm{\theta}}\)</span> 代入 <span class="math inline">\(\bm{\beta}\)</span> 的广义最小二乘估计 <span class="math inline">\(\hat{\beta(\bm{\theta})}\)</span> ，至此，模型参数全部求解完毕。相比于剖面极大似然估计，限制极大似然估计是无偏的。</p>
+<p>这就是说将整个模型投影到一个新的空间中，在这个新的空间中，模型不含有参数 <span class="math inline">\(\bm{\beta}\)</span> ，只剩下参数 <span class="math inline">\(\bm{\theta}\)</span>。然后，极大化似然函数，得到 <span class="math inline">\(\bm{\theta}\)</span> 的估计 <span class="math inline">\(\hat{\bm{\theta}}\)</span> ，再将 <span class="math inline">\(\hat{\bm{\theta}}\)</span> 代入 <span class="math inline">\(\bm{\beta}\)</span> 的广义最小二乘估计 <span class="math inline">\(\hat{\beta(\bm{\theta})}\)</span> ，至此，模型参数全部求解完毕。相比于剖面极大似然估计，限制极大似然估计偏差更小。</p>
+<p><span class="math display">\[
+\log \mathcal{L}^{\star}(\bm{\theta}) = -\frac{n}{2}\log(2\pi) - \frac{1}{2}\log (\det V_{\bm{\theta}}) - \frac{1}{2}\log(\det X^{\top} V_{\theta}^{-1}X) -\frac{1}{2}\big(\bm{y} - X\hat{\bm{\beta}}(\bm{\theta})\big)^{\top}V_{\bm{\theta}}^{-1}\big(\bm{y} - X\hat{\bm{\beta}}(\bm{\theta})\big)
+\]</span></p>
 <p>在无偏性约束下，最小均方预测误差意义下，获得最佳线性无偏预测。</p>
 <p><span class="math display">\[
 \begin{aligned}
@@ -1239,20 +1242,20 @@ V &amp; \bm{1} \\
 \]</span></p>
 <p>根据数据可以估计经验半变差函数 <a href="#eq:semi-variogram">(3.4)</a> 的参数，从而 <span class="math inline">\(\beta\)</span>、<span class="math inline">\(V\)</span> 、 <span class="math inline">\(\sigma^2\)</span> 和 <span class="math inline">\(\bm{u}\)</span> 都是已知的。以 <span class="math inline">\(V + \tau^2I\)</span> 替换 <span class="math inline">\(V\)</span> ，<span class="math inline">\(\bm{\lambda} - \beta \bm{1}\)</span> 替换 <span class="math inline">\(\bm{\lambda}\)</span> ，可得普通克里金插值的预测值 <span class="math inline">\(\hat{\lambda}(x_0)\)</span> 及其方差 <span class="math inline">\(\mathsf{Var}\{\hat{\lambda}(x_0)\}\)</span> 。相比于普通克里金插值，简单克里金插值中 <span class="math inline">\(\beta\)</span> 是已知的，没有权重之和等于 1 的约束。</p>
 <div class="rmdtip">
-<p>参考《Statistics for Spatial Data》<span class="citation">[<a href="#ref-Cressie1993" role="doc-biblioref">4</a>]</span>。</p>
+<p>参考《Statistics for Spatial Data》<span class="citation">[<a href="#ref-Cressie1993">4</a>]</span>。</p>
 </div>
 </div>
 </div>
 <div id="sec-further-reading-spatial" class="section level1" number="6">
 <h1><span class="header-section-number">6</span> 拓展阅读</h1>
-<p>在过去的 20 多年里，朗格拉普岛核辐射数据集在多篇文章中作为案例分析出现，用于算法模型的比较。1998 年 Peter J. Diggle 等首次提出蒙特卡洛极大似然方法估计不带块金效应的响应变量服从泊松分布的空间广义混合效应模型的参数，分析了朗格拉普岛上核辐射强度的空间分布<span class="citation">[<a href="#ref-Diggle1998" role="doc-biblioref">5</a>]</span>。2004 年 Ole F Christensen 在 Peter J. Diggle 等人的基础上添加了块金效应，同样使用蒙特卡洛极大似然方法估计了模型中的参数<span class="citation">[<a href="#ref-Christensen2004" role="doc-biblioref">6</a>]</span>。由于现有算法表现受真实数据影响比较大，随后，2006 年 Ole F Christensen 等又提出更加稳健的 Langevin-Metropolis 算法，辅以重参数化技巧提升算法性能，可以在马尔可夫链混合和收敛方面独立于数据，并在朗格拉普岛核辐射数据中做了实验，体现出预期效果<span class="citation">[<a href="#ref-Christensen2006" role="doc-biblioref">7</a>]</span>。2015 年 Wagner Hugo Bonat 等在朗格拉普岛核辐射数据和蚕豆根腐病数据中比较了 MCMC 算法，MCEM 算法和修正的拉普拉斯近似算法，发现拉普拉斯近似可以提供类似的结果，基于剖面似然可以获得模型参数的置信区间，相比于模拟算法，不需要算法调参和收敛分析 <span class="citation">[<a href="#ref-Wagner2015" role="doc-biblioref">8</a>]</span>。2016 年 Erlis Ruli 等提出改进的拉普拉斯近似算法，用于边际似然函数，处理高维随机效应的积分，比较了现有的一些基于似然函数的推断方法，体现出渐进误差更小，在朗格拉普岛核辐射强度预测中更加精确<span class="citation">[<a href="#ref-Erlis2016" role="doc-biblioref">9</a>]</span>。对算法实现过程感兴趣的读者可以查阅前述参考文献。</p>
-<p>2002 年张首次提出蒙特卡洛极大似然算法给出空间广义线性混合效应模型的估计与预测<span class="citation">[<a href="#ref-Zhang2002" role="doc-biblioref">10</a>]</span>，因混合模型的多样性，参数计算的复杂性，后续学者们分别从贝叶斯和频率方法的视角提出精确和近似的算法。近似算法的想法是找了一个近似函数替换其中的部分或者全部，使得随着迭代次数增加的情况下，估计的参数值可以趋于真值。精确算法的想法是通过模拟计算的方式硬积一个高维积分，不断增加采样的次数逼近目标函数，比如基于 MCMC 及其改进型 HMC 和 NUTS 硬积参数的联合后验分布中的高维积分做参数的全贝叶斯推断。贝叶斯方法主流的有拉普拉斯近似和全贝叶斯推断，频率方法主流的有基于似然的拉普拉斯近似和自适应高斯-埃尔米特算法。R 语言社区的 <strong>spaMM</strong> 包<span class="citation">[<a href="#ref-Rousset2014" role="doc-biblioref">11</a>]</span>，<strong>INLA</strong> 包<span class="citation">[<a href="#ref-Rue2009" role="doc-biblioref">12</a>, <a href="#ref-Lindgren2015" role="doc-biblioref">13</a>]</span>、<strong>glmmfields</strong> 包<span class="citation">[<a href="#ref-glmmfields2018" role="doc-biblioref">14</a>]</span>、<strong>glmmTMB <span class="citation">[<a href="#ref-Brooks2017" role="doc-biblioref">15</a>]</span>、sdmTMB</strong> 包<span class="citation">[<a href="#ref-Anderson2022" role="doc-biblioref">16</a>]</span> 和 <strong>hglm 包</strong><span class="citation">[<a href="#ref-Ronnegard2010" role="doc-biblioref">17</a>]</span>都可以用来拟合模型。</p>
+<p>在过去的 20 多年里，朗格拉普岛核辐射数据集在多篇文章中作为案例分析出现，用于算法模型的比较。1998 年 Peter J. Diggle 等首次提出蒙特卡洛极大似然方法估计不带块金效应的响应变量服从泊松分布的空间广义混合效应模型的参数，分析了朗格拉普岛上核辐射强度的空间分布<span class="citation">[<a href="#ref-Diggle1998">5</a>]</span>。2004 年 Ole F Christensen 在 Peter J. Diggle 等人的基础上添加了块金效应，同样使用蒙特卡洛极大似然方法估计了模型中的参数<span class="citation">[<a href="#ref-Christensen2004">6</a>]</span>。由于现有算法表现受真实数据影响比较大，随后，2006 年 Ole F Christensen 等又提出更加稳健的 Langevin-Metropolis 算法，辅以重参数化技巧提升算法性能，可以在马尔可夫链混合和收敛方面独立于数据，并在朗格拉普岛核辐射数据中做了实验，体现出预期效果<span class="citation">[<a href="#ref-Christensen2006">7</a>]</span>。2015 年 Wagner Hugo Bonat 等在朗格拉普岛核辐射数据和蚕豆根腐病数据中比较了 MCMC 算法，MCEM 算法和修正的拉普拉斯近似算法，发现拉普拉斯近似可以提供类似的结果，基于剖面似然可以获得模型参数的置信区间，相比于模拟算法，不需要算法调参和收敛分析 <span class="citation">[<a href="#ref-Wagner2015">8</a>]</span>。2016 年 Erlis Ruli 等提出改进的拉普拉斯近似算法，用于边际似然函数，处理高维随机效应的积分，比较了现有的一些基于似然函数的推断方法，体现出渐进误差更小，在朗格拉普岛核辐射强度预测中更加精确<span class="citation">[<a href="#ref-Erlis2016">9</a>]</span>。对算法实现过程感兴趣的读者可以查阅前述参考文献。</p>
+<p>2002 年张首次提出蒙特卡洛极大似然算法给出空间广义线性混合效应模型的估计与预测<span class="citation">[<a href="#ref-Zhang2002">10</a>]</span>，因混合模型的多样性，参数计算的复杂性，后续学者们分别从贝叶斯和频率方法的视角提出精确和近似的算法。近似算法的想法是找了一个近似函数替换其中的部分或者全部，使得随着迭代次数增加的情况下，估计的参数值可以趋于真值。精确算法的想法是通过模拟计算的方式硬积一个高维积分，不断增加采样的次数逼近目标函数，比如基于 MCMC 及其改进型 HMC 和 NUTS 硬积参数的联合后验分布中的高维积分做参数的全贝叶斯推断。贝叶斯方法主流的有拉普拉斯近似和全贝叶斯推断，频率方法主流的有基于似然的拉普拉斯近似和自适应高斯-埃尔米特算法。R 语言社区的 <strong>spaMM</strong> 包<span class="citation">[<a href="#ref-Rousset2014">11</a>]</span>，<strong>INLA</strong> 包<span class="citation">[<a href="#ref-Rue2009">12</a>, <a href="#ref-Lindgren2015">13</a>]</span>、<strong>glmmfields</strong> 包<span class="citation">[<a href="#ref-glmmfields2018">14</a>]</span>、<strong>glmmTMB <span class="citation">[<a href="#ref-Brooks2017">15</a>]</span>、sdmTMB</strong> 包<span class="citation">[<a href="#ref-Anderson2022">16</a>]</span> 和 <strong>hglm 包</strong><span class="citation">[<a href="#ref-Ronnegard2010">17</a>]</span>都可以用来拟合模型。</p>
 <ul>
 <li><strong>spaMM</strong> 包采用拉普拉斯近似算法拟合空间广义线性混合效应模型，兼容 <strong>lme4</strong> 包的公式语法，提供统一的使用方式，还可以与 <strong>INLA</strong> 包集成。</li>
-<li><strong>INLA</strong> 包采用随机偏微分方程方法将目标区域划分成三角网格，以拉普拉斯集成嵌套计算方法逼近参数的后验分布<span class="citation">[<a href="#ref-Virgilio2018" role="doc-biblioref">18</a>]</span>。预测精度和速度主要由网格的细密程度决定，对于大规模空间数据集，比如数以千计的采样点，可以将网格划分得稀疏一些，总是可以计算。内部采用了并行迭代和英特尔 MKL 矩阵优化工具库。</li>
+<li><strong>INLA</strong> 包采用随机偏微分方程方法将目标区域划分成三角网格，以拉普拉斯集成嵌套计算方法逼近参数的后验分布<span class="citation">[<a href="#ref-Virgilio2018">18</a>]</span>。预测精度和速度主要由网格的细密程度决定，对于大规模空间数据集，比如数以千计的采样点，可以将网格划分得稀疏一些，总是可以计算。内部采用了并行迭代和英特尔 MKL 矩阵优化工具库。</li>
 <li><strong>glmmfields</strong> 包以多元 t 分布替代多元正态分布表示高斯马尔可夫随机场拟合带极端事件的时空模型，所以它不局限于本文涉及的空间模型。<strong>glmmfields</strong> 包内建的空间和时空模型是基于 Stan 的，因此，采用全贝叶斯精确推断方式，一般以 NUTS 采样的方式获取参数后验分布，主要算法是汉密尔顿蒙特卡洛 HMC， 对自动微分变分推断方式有试验性支持。</li>
 <li><strong>sdmTMB</strong> 包与 <strong>glmmTMB</strong> 包源自一脉，内部的计算框架都来自 TMB，相比而言，支持的模型更多，特别是生态学领域的空间和时空模型。</li>
-<li><strong>hglm</strong> 包对于具有分层结构的混合效应模型，提出 H-Likelihood 方法拟合分层广义线性模型、空间条件自回归模型 <span class="citation">[<a href="#ref-Alam2015" role="doc-biblioref">19</a>]</span>。</li>
+<li><strong>hglm</strong> 包对于具有分层结构的混合效应模型，提出 H-Likelihood 方法拟合分层广义线性模型、空间条件自回归模型 <span class="citation">[<a href="#ref-Alam2015">19</a>]</span>。</li>
 </ul>
 </div>
 <div id="references" class="section level1" number="7">

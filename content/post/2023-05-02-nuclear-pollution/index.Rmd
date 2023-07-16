@@ -1384,7 +1384,11 @@ $$
 P\bm{y} = P \bm{\epsilon}
 $$
 
-这就是说将整个模型投影到一个新的空间中，在这个新的空间中，模型不含有参数 $\bm{\beta}$ ，只剩下参数 $\bm{\theta}$。然后，极大化似然函数，得到 $\bm{\theta}$ 的估计 $\hat{\bm{\theta}}$ ，再将 $\hat{\bm{\theta}}$ 代入 $\bm{\beta}$ 的广义最小二乘估计 $\hat{\beta(\bm{\theta})}$ ，至此，模型参数全部求解完毕。相比于剖面极大似然估计，限制极大似然估计是无偏的。
+这就是说将整个模型投影到一个新的空间中，在这个新的空间中，模型不含有参数 $\bm{\beta}$ ，只剩下参数 $\bm{\theta}$。然后，极大化似然函数，得到 $\bm{\theta}$ 的估计 $\hat{\bm{\theta}}$ ，再将 $\hat{\bm{\theta}}$ 代入 $\bm{\beta}$ 的广义最小二乘估计 $\hat{\beta(\bm{\theta})}$ ，至此，模型参数全部求解完毕。相比于剖面极大似然估计，限制极大似然估计偏差更小。
+
+$$
+\log \mathcal{L}^{\star}(\bm{\theta}) = -\frac{n}{2}\log(2\pi) - \frac{1}{2}\log (\det V_{\bm{\theta}}) - \frac{1}{2}\log(\det X^{\top} V_{\theta}^{-1}X) -\frac{1}{2}\big(\bm{y} - X\hat{\bm{\beta}}(\bm{\theta})\big)^{\top}V_{\bm{\theta}}^{-1}\big(\bm{y} - X\hat{\bm{\beta}}(\bm{\theta})\big)
+$$
 
 在无偏性约束下，最小均方预测误差意义下，获得最佳线性无偏预测。
 
