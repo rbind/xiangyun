@@ -18,6 +18,7 @@ output:
     number_sections: true
 link-citations: true
 math: true
+draft: true
 csl: institute-of-mathematical-statistics.csl
 bibliography: 
   - refer.bib
@@ -80,10 +81,9 @@ description: "贝叶斯数据分析工作流。一文搞懂贝叶斯空间数据
 <li><a href="#r-代码实现-1" id="toc-r-代码实现-1"><span class="toc-section-number">4.3.1</span> R 代码实现</a></li>
 <li><a href="#stan-代码实现-1" id="toc-stan-代码实现-1"><span class="toc-section-number">4.3.2</span> Stan 代码实现</a></li>
 </ul></li>
-<li><a href="#stan-函数" id="toc-stan-函数"><span class="toc-section-number">4.4</span> Stan 函数</a>
+<li><a href="#拟合二维高斯过程" id="toc-拟合二维高斯过程"><span class="toc-section-number">4.4</span> 拟合二维高斯过程</a>
 <ul>
-<li><a href="#stan-内置的函数" id="toc-stan-内置的函数"><span class="toc-section-number">4.4.1</span> Stan 内置的函数</a></li>
-<li><a href="#自编的-stan-函数" id="toc-自编的-stan-函数"><span class="toc-section-number">4.4.2</span> 自编的 Stan 函数</a></li>
+<li><a href="#stan-代码实现-2" id="toc-stan-代码实现-2"><span class="toc-section-number">4.4.1</span> Stan 代码实现</a></li>
 </ul></li>
 </ul></li>
 </ul>
@@ -91,9 +91,9 @@ description: "贝叶斯数据分析工作流。一文搞懂贝叶斯空间数据
 
 <div class="rmdtip">
 <ol style="list-style-type: decimal">
-<li>贝叶斯高斯过程回归</li>
+<li>贝叶斯高斯过程回归和贝叶斯泊松过程回归</li>
 <li>核辐射数据集的贝叶斯分析</li>
-<li>贝叶斯克里金插值及 Stan 实现</li>
+<li>贝叶斯简单克里金插值及 Stan 实现</li>
 </ol>
 </div>
 <div id="本文概览" class="section level1" number="1">
@@ -124,7 +124,7 @@ description: "贝叶斯数据分析工作流。一文搞懂贝叶斯空间数据
 </div>
 <div id="工作流" class="section level1" number="2">
 <h1><span class="header-section-number">2</span> 工作流</h1>
-<p>Bayesian Workflow <span class="citation">[<a href="#ref-Gelman2020">1</a>]</span></p>
+<p>本文主要参考《Bayesian Workflow》 <span class="citation">[<a href="#ref-Gelman2020">1</a>]</span></p>
 <div id="统计建模" class="section level2" number="2.1">
 <h2><span class="header-section-number">2.1</span> 统计建模</h2>
 <div id="对数高斯模型" class="section level3" number="2.1.1">
@@ -1194,7 +1194,8 @@ mod_multi_normal_chol &lt;- cmdstan_model(
 \]</span></p>
 <div id="r-代码实现-1" class="section level3" number="4.3.1">
 <h3><span class="header-section-number">4.3.1</span> R 代码实现</h3>
-<pre class="r"><code>N &lt;- 15
+<pre class="r"><code>set.seed(20232023)
+N &lt;- 15
 X &lt;- expand.grid(x1 = 1:N / N, x2 = 1:N / N)
 gp_exp_fun &lt;- function(X, sigma, phi) {
   sigma^2 * exp(-as.matrix(dist(X)) / phi)
@@ -1207,7 +1208,7 @@ sim_gp_data &lt;- as.data.frame(X)
 sim_gp_data$ysim &lt;- MASS::mvrnorm(1, mu = mu, Sigma = Sigma)
 # 样本方差
 sd(sim_gp_data$ysim)
-#&gt; [1] 9.362</code></pre>
+#&gt; [1] 9.846</code></pre>
 <pre class="r"><code># 二维高斯过程
 ggplot(data = sim_gp_data, aes(x = x1, y = x2)) +
   geom_point(aes(color = ysim)) +
@@ -1248,7 +1249,7 @@ generated quantities {
   vector[N] y;
   y = mu + L * eta;
 }</code></pre>
-<p>在二维均匀网格上采样，采样点数量为 100</p>
+<p>在二维均匀网格上采样，采样点数量为 225</p>
 <pre class="r"><code>multi_normal_gp_d &lt;- list(
   N = 225,
   D = 2,
@@ -1275,7 +1276,7 @@ mod_multi_normal_gp &lt;- cmdstan_model(
   output_dir = &quot;data/&quot;,
   seed = 20232023     # 设置随机数种子
 )</code></pre>
-<p>位置 1 和 2 处的随机变量的分布</p>
+<p>位置 1 和 2 处的随机变量的迭代轨迹，均值为 0 ，标准差 10 左右。</p>
 <pre class="r"><code>mcmc_trace(fit_multi_normal_gp$draws(c(&quot;y[1]&quot;, &quot;y[2]&quot;)),
   facet_args = list(
     labeller = ggplot2::label_parsed,
@@ -1290,6 +1291,7 @@ mod_multi_normal_gp &lt;- cmdstan_model(
 </div>
 <p>位置 1 处的随机变量及其分布</p>
 <pre class="r"><code>y1 &lt;- fit_multi_normal_gp$draws(c(&quot;y[1]&quot;))
+# 合并链条结果
 y1_mean &lt;- apply(y1, c(1,3), mean)
 # y[1] 的方差
 var(y1_mean)
@@ -1298,16 +1300,15 @@ var(y1_mean)
 # y[1] 的标准差
 sd(y1_mean)
 #&gt; [1] 6.184</code></pre>
-<p>100 次迭代，100 个样本，每次迭代采集一个样本，每个样本是一个 225 维的向量。</p>
-<pre class="r"><code># 抽取原始的模拟数据
+<p>100 次迭代获得 100 个样本点，每次迭代采集一个样本点，每个样本点是一个 225 维的向量。</p>
+<pre class="r"><code># 抽取原始的采样数据
 y_array &lt;- fit_multi_normal_gp$draws(variables = &quot;y&quot;, format = &quot;array&quot;)
 # 合并链条
 y_mean &lt;- apply(y_array, c(1, 3), mean)</code></pre>
-<p>提取某一个样本，100 次迭代中的任意一次都可以，下面是第一次迭代的结果，然后整理数据。</p>
+<p>从 100 次迭代中任意提取某一个样本点，比如预采样之后的第一次下迭代的结果，接着整理数据。</p>
 <pre class="r"><code># 整理数据
 sim_gp_data &lt;- cbind.data.frame(
-  multi_normal_gp_d$X,
-  ysim = y_mean[1,]
+  multi_normal_gp_d$X, ysim = y_mean[1,]
 )</code></pre>
 <p>绘制二维高斯过程图形。</p>
 <pre class="r"><code>ggplot(data = sim_gp_data, aes(x = x1, y = x2)) +
@@ -1323,97 +1324,49 @@ sim_gp_data &lt;- cbind.data.frame(
 </div>
 </div>
 </div>
-<div id="stan-函数" class="section level2" number="4.4">
-<h2><span class="header-section-number">4.4</span> Stan 函数</h2>
-<p>本节要了解 Stan 函数，如何使用和自编，以及如何检查和排错。有时候，为了熟悉 Stan 内置函数的作用，或者为了排查 Stan 代码中的错误都需要单独拎出来其中的函数。</p>
-<div id="stan-内置的函数" class="section level3" number="4.4.1">
-<h3><span class="header-section-number">4.4.1</span> Stan 内置的函数</h3>
-<p>Stan 框架的头文件都打包在 <strong>StanHeaders</strong> 包里。包含大量的内置函数，可以从如下三个地方了解。</p>
-<ol style="list-style-type: decimal">
-<li><p><strong>StanHeaders</strong> 包的帮助文档<a href="https://cran.r-project.org/web/packages/StanHeaders/vignettes/stanmath.html">Using the Stan Math C++ Library</a>，代码层面，有哪些函数及如何使用。</p></li>
-<li><p>Stan 官网的<a href="https://mc-stan.org/docs/functions-reference/index.html">函数帮助文档</a>，各个函数的定义，函数参数、返回值和数学表达式。只有文档，没有示例。适合根据函数名搜索。</p></li>
-<li><p>只知需要什么，但不知函数是什么，采用谷歌搜索。</p></li>
-</ol>
-<pre class="r"><code>library(StanHeaders)</code></pre>
-<p>以了解函数 <code>lkj_corr_cholesky_rng</code> 为例，这是一个 LKJ 分布，Cholesky 分解相关矩阵 <span class="math inline">\(R\)</span> 模拟 <span class="math inline">\(L_u\)</span>，调用 Stan Math 库中的 <code>lkj_corr_cholesky_rng</code> 函数，编译 C++ 代码，将加载至 R 环境中。</p>
-<pre class="r"><code>stanFunction(&quot;lkj_corr_cholesky_rng&quot;, K = 2L, eta = 2L)
-#&gt;        [,1]   [,2]
-#&gt; [1,]  1.000 0.0000
-#&gt; [2,] -0.229 0.9734</code></pre>
-<p><code>K = 2L</code> 表示 2 阶相关矩阵，<code>eta = 2L</code> 表示相关性的强弱。这个函数是用来生成随机数的，结果是一个二阶的下三角矩阵（矩阵对角线以上的元素都是 0），设置随机数种子，则可使结果复现。</p>
-<pre class="r"><code>lkj_corr_cholesky_rng(K = 2L, eta = 2L, random_seed = 20232023)
-#&gt;         [,1]   [,2]
-#&gt; [1,] 1.00000 0.0000
-#&gt; [2,] 0.05875 0.9983</code></pre>
-<p>根据 <span class="math inline">\(R = L_u L_u^{\top}\)</span>，可以计算相关矩阵。</p>
-<pre class="r"><code>m &lt;- lkj_corr_cholesky_rng(K = 2L, eta = 2L, random_seed = 20232023)
-m %*% t(m)
-#&gt;         [,1]    [,2]
-#&gt; [1,] 1.00000 0.05875
-#&gt; [2,] 0.05875 1.00000</code></pre>
-<p>再举一个例子，前面多次使用到的 Cholesky 分解函数 <code>cholesky_decompose</code> 。根据 Stan 官网函数 <code>cholesky_decompose</code> 帮助文档，Cholesky 分解的形式（Cholesky 分解有多种形式）如下：</p>
-<p><span class="math display">\[
-M = LL^{\top}
-\]</span></p>
-<p><span class="math inline">\(M\)</span> 是一个对称正定的矩阵，而 <span class="math inline">\(L\)</span> 是一个下三角矩阵。函数 <code>cholesky_decompose</code> 有一个参数 A， A 需要传递一个对称正定的矩阵。不妨设这个对称正定的矩阵为</p>
-<p><span class="math display">\[
-M = \begin{bmatrix}
-4 &amp; 1 \\
-1 &amp; 1
-\end{bmatrix}
-\]</span></p>
-<pre class="r"><code>M &lt;- rbind(c(4, 1), c(1, 1))
-stanFunction(&quot;cholesky_decompose&quot;, A = M)
-#&gt;      [,1]  [,2]
-#&gt; [1,]  2.0 0.000
-#&gt; [2,]  0.5 0.866</code></pre>
-<p>可以看到获得了一个下三角矩阵。其实，R 软件有内置函数 <code>chol()</code> 也可以做 Cholesky 分解，如下</p>
-<pre class="r"><code>chol(M)
-#&gt;      [,1]  [,2]
-#&gt; [1,]    2 0.500
-#&gt; [2,]    0 0.866
-cholesky_decompose(A = M)
-#&gt;      [,1]  [,2]
-#&gt; [1,]  2.0 0.000
-#&gt; [2,]  0.5 0.866</code></pre>
-<p>函数 <code>chol()</code> 的结果正好是 <code>cholesky_decompose</code> 的转置。查看帮助文档，也可知 R 软件对 Cholesky 分解的定义如下：</p>
-<p><span class="math display">\[
-M = L^{\top}L
-\]</span></p>
-<div class="rmdnote">
-<p>根据数学表达式，感觉上都是差不多的。R 与 Stan 混编需要注意这些表达上不同的问题，不然，排错会很麻烦。</p>
-</div>
-</div>
-<div id="自编的-stan-函数" class="section level3" number="4.4.2">
-<h3><span class="header-section-number">4.4.2</span> 自编的 Stan 函数</h3>
-<p>暴露用户定义的函数，目的是调试用户定义的函数，检查自己编写的 Stan 函数是否正确，还可以借此进一步优化代码，理解 Stan 内置的函数。</p>
-<p>下面这个函数示例取自 <a href="https://mc-stan.org/docs/stan-users-guide/multivariate-outcomes.html#multivariate-probit-regression">Multivariate probit regression</a>。此处，笔者比较随意，在帮助文档中，抓住哪个算哪个，Stan 语言和 C/C++ 语言比较类似。变量先需要声明再使用，函数需要用 return 返回值，总而言之，类型声明比较严格。</p>
-<p>检查自编的函数分 4 步：编写代码、写入文件、编译文件、检查功能。</p>
-<pre class="r"><code># 编写代码
-model_code &lt;- &quot;
-functions {
-  int sum2d(array[,] int a) {
-    int s = 0;
-    for (i in 1:size(a)) {
-      s += sum(a[i]);
-    }
-    return s;
-  }
-}
-&quot;
+<div id="拟合二维高斯过程" class="section level2" number="4.4">
+<h2><span class="header-section-number">4.4</span> 拟合二维高斯过程</h2>
+<div id="stan-代码实现-2" class="section level3" number="4.4.1">
+<h3><span class="header-section-number">4.4.1</span> Stan 代码实现</h3>
+<p>复用 R 模拟二维高斯过程的数据，按照 Stan 官网给出的拟合代码，效率极低。</p>
+<pre class="r"><code># 二维高斯过程模型
+gaussian_process_d &lt;- list(
+  D = 2,
+  N = nrow(sim_gp_data), # 观测记录的条数
+  x = sim_gp_data[, c(&quot;x1&quot;, &quot;x1&quot;)],
+  y = sim_gp_data[, &quot;ysim&quot;]
+)
 
-# 写入文件
-stan_file &lt;- cmdstanr::write_stan_file(code = model_code)
+nchains &lt;- 2
+set.seed(20232023)
+# 给每条链设置不同的参数初始值
+inits_gaussian_process &lt;- lapply(1:nchains, function(i) {
+  list(
+    sigma = runif(1),
+    phi = runif(1)
+  )
+})
 
-# 编译文件
-mod &lt;- cmdstanr::cmdstan_model(stan_file = stan_file, compile_standalone = TRUE)
+# 模型
+mod_gaussian_process &lt;- cmdstan_model(
+  stan_file = &quot;code/fit_gaussian_process.stan&quot;,
+  compile = TRUE, cpp_options = list(stan_threads = TRUE)
+)
 
-# 检查功能
-mod$functions$sum2d(a = list(1:2))
-#&gt; [1] 3
-mod$functions$sum2d(a = list(1:2, 1:3))
-#&gt; [1] 9</code></pre>
-<p>将列表中的元素都加和，元素是整型向量，返回值是整型标量。R 环境中的列表与 Stan 环境中的数组对应。 必须先熟悉 Stan 中关于变量类型的定义，结合定义与 R 环境中的类型对应，这样，才知道如何在 R 环境中输入合适的数据。Stan 语言手册<a href="https://mc-stan.org/docs/reference-manual/index.html">Stan Reference Manual</a>提供了类型说明。</p>
+# 拟合二维高斯过程
+fit_gaussian_process &lt;- mod_gaussian_process$sample(
+  data = gaussian_process_d,   # 观测数据
+  init = inits_gaussian_process,   # 迭代初值
+  iter_warmup = 500,           # 每条链预处理迭代次数
+  iter_sampling = 1000,         # 每条链总迭代次数
+  chains = nchains,             # 马尔科夫链的数目
+  parallel_chains = 2,      # 指定 CPU 核心数，可以给每条链分配一个
+  threads_per_chain = 1,    # 每条链设置一个线程
+  show_messages = FALSE,    # 不显示迭代的中间过程
+  refresh = 0,              # 不显示采样的进度
+  output_dir = &quot;data/&quot;,
+  seed = 20232023           # 设置随机数种子，不要使用 set.seed() 函数
+)</code></pre>
 </div>
 </div>
 </div>
