@@ -1,6 +1,6 @@
 ---
 date: "2023-07-30"
-slug: open-mind
+slug: local-perspective
 title: 《局部》观后感
 categories:
   - 推荐文章
