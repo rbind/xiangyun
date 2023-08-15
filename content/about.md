@@ -27,9 +27,9 @@ title: 关于
 | 2019 | 第 12 届中国 R 语言会议    | [统计之都在线投稿系统](https://wp-contents.netlify.com/talks/2019-chinar12th-cos-blogdown) |
 | 2018 | 第 11 届中国 R 语言会议    | [R Markdown 应用之学位论文排版](https://wp-contents.netlify.com/talks/chinar11th.pdf)      |
 
+<!--
 近些年，因为统计之都和网上冲浪认识了一些人，也有一些人想去认识。不时去逛逛他（她）们的主页，会发现有意思的地方。（按姓氏拼音排序）
 
-<!--
 -   [成超](https://fenguoerbian.netlify.app/) R 语言、生物、并行计算
 -   [楚新元](https://cxy.rbind.io/) R 语言、经济
 -   [陈丽云](https://www.loyhome.com/) 经济、思考力
