@@ -29,6 +29,7 @@ title: 关于
 
 近些年，因为统计之都和网上冲浪认识了一些人，也有一些人想去认识。不时去逛逛他（她）们的主页，会发现有意思的地方。（按姓氏拼音排序）
 
+<!--
 -   [成超](https://fenguoerbian.netlify.app/) R 语言、生物、并行计算
 -   [楚新元](https://cxy.rbind.io/) R 语言、经济
 -   [陈丽云](https://www.loyhome.com/) 经济、思考力
@@ -64,3 +65,4 @@ title: 关于
 -   [张丹](http://fens.me/) R 语言
 -   [赵妤婕](https://sites.google.com/view/yujie-zhao) R 语言、生物
 -   [赵鹏](https://connect.xjtlu.edu.cn/user/pengzhao/zhcn) R 语言、环境
+-->
