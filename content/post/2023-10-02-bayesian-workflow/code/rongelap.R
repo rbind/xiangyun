@@ -235,8 +235,6 @@ mcmc_dens(fit_rongelap_poisson$draws(c("sigma", "phi")),
 # poisson_log_lpmf
 # https://mc-stan.org/docs/functions-reference/poisson-distribution-log-parameterization.html
 
-
-
 # 未观测的位置 1020 个
 dim(rongelap_grid_newdata)
 
@@ -250,7 +248,3 @@ phi = 0.0285
 Sigma <- sigma^2 * exp( as.matrix(dist(rongelap_krige_d$X)) / phi )
 
 y <- rongelap_krige_d$y
-
-
-
-
