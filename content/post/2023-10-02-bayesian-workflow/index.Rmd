@@ -491,13 +491,13 @@ mcmc_dens(fit_rongelap_gaussian$draws(variables = "yhat[1]")) +
 # 抽取原始的模拟数据
 yhat_gaussian <- fit_rongelap_gaussian$draws(variables = "yhat", format = "array")
 # 整理数据
-rongelap$yhat <- as.vector(yhat_gaussian[1,1,])
+rongelap$yhat <- exp(as.vector(yhat_gaussian[1,1,]))
 ```
 
 拟合值的概览
 
 ```{r}
-summary(rongelap$yhat / rongelap$time)
+summary(rongelap$yhat)
 ```
 
 恢复到辐射强度的尺度，核辐射强度的预测分布
@@ -520,7 +520,7 @@ ggplot(data = rongelap, aes(x = cX, y = cY)) +
 
 ```{r}
 # 贝叶斯预测值范围
-range(rongelap$yhat / rongelap$time)
+range(rongelap$yhat)
 # 观测值范围
 range(rongelap$counts / rongelap$time)
 ```

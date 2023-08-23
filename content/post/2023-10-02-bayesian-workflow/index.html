@@ -646,11 +646,11 @@ fit_rongelap_gaussian$summary(
 <pre class="r"><code># 抽取原始的模拟数据
 yhat_gaussian &lt;- fit_rongelap_gaussian$draws(variables = &quot;yhat&quot;, format = &quot;array&quot;)
 # 整理数据
-rongelap$yhat &lt;- as.vector(yhat_gaussian[1,1,])</code></pre>
+rongelap$yhat &lt;- exp(as.vector(yhat_gaussian[1,1,]))</code></pre>
 <p>拟合值的概览</p>
-<pre class="r"><code>summary(rongelap$yhat / rongelap$time)
-#&gt;     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#&gt; 0.000227 0.003011 0.005060 0.004953 0.006654 0.010673</code></pre>
+<pre class="r"><code>summary(rongelap$yhat)
+#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#&gt;    1.15    3.46    4.92    6.39    7.99   24.58</code></pre>
 <p>恢复到辐射强度的尺度，核辐射强度的预测分布</p>
 <pre class="r"><code>ggplot(data = rongelap, aes(x = cX, y = cY)) +
   geom_point(aes(color = yhat), cex = 0.5) +
@@ -665,8 +665,8 @@ rongelap$yhat &lt;- as.vector(yhat_gaussian[1,1,])</code></pre>
 </div>
 <p>预测结果，看起来很平滑。相比于观测的辐射强度值，预测的辐射强度的变化范围变小很多了。</p>
 <pre class="r"><code># 贝叶斯预测值范围
-range(rongelap$yhat / rongelap$time)
-#&gt; [1] 0.0002271 0.0106727
+range(rongelap$yhat)
+#&gt; [1]  1.146 24.577
 # 观测值范围
 range(rongelap$counts / rongelap$time)
 #&gt; [1]  0.25 15.10</code></pre>
