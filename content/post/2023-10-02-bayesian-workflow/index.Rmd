@@ -64,8 +64,6 @@ knitr::opts_chunk$set(
 
 ## 统计建模
 
-### 对数高斯模型
-
 相邻位置的核辐射强度是相关的，离得近的比离得远的更相关。下面对辐射强度建模，假定随机效应之间存在相关性结构，去掉随机效应相互独立的假设，这更符合位置效应存在相互影响的实际情况。
 
 $$
@@ -73,36 +71,6 @@ $$
 $$
 
 其中，$\beta$ 表示截距，相当于平均水平，$\lambda(x_i)$ 表示位置 $x_i$ 处的辐射强度，$S(x_{i})$ 表示位置 $x_i$ 处的空间效应，$S(x),x \in \mathcal{D} \subset{\mathbb{R}^2}$ 是二维平稳空间高斯过程 $\mathcal{S}$ 的具体实现。 $\mathcal{D}$ 表示研究区域，可以理解为朗格拉普岛，它是二维实平面 $\mathbb{R}^2$ 的子集。
-
-### 泊松对数模型
-
-广义线性模型并没有考虑距离相关性，它认为各个观测点的数据是相互独立的。因此，在广义线性模型的基础上添加位置相关的随机效应，用以刻画未能直接观测到的潜在影响。
-
-根据 ${}^{137}\mathrm{Cs}$ 放出伽马射线，在 $n=157$ 个采样点，分别以时间间隔 $t_i$ 测量辐射量 $y(x_i)$，建立泊松型空间广义线性混合效应模型[@Diggle1998]。
-
-$$
-\begin{aligned}
-\log\{\lambda(x_i)\} & =  \beta + S(x_{i})\\
-y(x_{i}) &\sim \mathrm{Poisson}\big(t_i\lambda(x_i)\big)
-\end{aligned}
-$$
-
-其中，$\beta$ 表示截距，相当于平均水平，$\lambda(x_i)$ 表示位置 $x_i$ 处的辐射强度，$S(x_{i})$ 表示位置 $x_i$ 处的空间效应，$S(x),x \in \mathcal{D} \subset{\mathbb{R}^2}$ 是二维平稳空间高斯过程 $\mathcal{S}$ 的具体实现。 $\mathcal{D}$ 表示研究区域，可以理解为朗格拉普岛，它是二维实平面 $\mathbb{R}^2$ 的子集。
-
-随机过程 $S(x)$ 的自协方差函数常用的有指数型、幂二次指数型（高斯型）和梅隆型，形式如下：
-
-$$
-\begin{aligned}
-\mathsf{Cov}\{S(x_i), S(x_j)\} &= \sigma^2 \exp\big( -\frac{\|x_i -x_j\|_{2}}{\phi} \big) \\
-\mathsf{Cov}\{ S(x_i), S(x_j) \} &= \sigma^2 \exp\big( -\frac{\|x_i -x_j\|_{2}^{2}}{2\phi^2} \big) \\
-\mathsf{Cov}\{ S(x_i), S(x_j) \} &= \sigma^2 \frac{2^{1 - \nu}}{\Gamma(\nu)}
-\left(\sqrt{2\nu}\frac{\|x_i -x_j\|_{2}}{\phi}\right)^{\nu}
-K_{\nu}\left(\sqrt{2\nu}\frac{\|x_i -x_j\|_{2}}{\phi}\right) \\
-K_{\nu}(x) &= \int_{0}^{\infty}\exp(-x \cosh t) \cosh (\nu t) \mathrm{dt}
-\end{aligned}
-$$
-
-待估参数：代表方差的 $\sigma^2$ 和代表范围的 $\phi$ 。当 $\nu = 1/2$ 时，梅隆型退化为指数型。
 
 ## 数据准备
 
@@ -112,14 +80,6 @@ $$
 # 加载数据
 rongelap <- readRDS(file = "data/rongelap.rds")
 rongelap_coastline <- readRDS(file = "data/rongelap_coastline.rds")
-
-# 对数高斯模型
-rongelap_gaussian_d <- list(
-  N = nrow(rongelap), # 观测记录的条数
-  D = 2, # 2 维坐标
-  X = rongelap[, c("cX", "cY")] / 6000, # N x 2 坐标矩阵
-  y = log(rongelap$counts / rongelap$time) # N 向量
-)
 ```
 
 ### 预测数据
@@ -164,11 +124,21 @@ inits_data_gaussian <- lapply(1:nchains, function(i) {
   list(
     beta = rnorm(1),
     sigma = runif(1),
-    phi = runif(1)
+    phi = runif(1),
+    tau = runif(1)
   )
 })
-```
 
+# 对数高斯模型
+rongelap_gaussian_d <- list(
+  N1 = nrow(rongelap), # 观测记录的条数
+  N2 = nrow(rongelap_grid_df),
+  D = 2, # 2 维坐标
+  x1 = rongelap[, c("cX", "cY")] / 6000, # N x 2 坐标矩阵
+  x2 = rongelap_grid_df[, c("cX", "cY")] / 6000,
+  y1 = log(rongelap$counts / rongelap$time) # N 向量
+)
+```
 
 ## 软件准备
 
@@ -188,7 +158,6 @@ library(cmdstanr)
 library(ggplot2)
 library(bayesplot)
 library(loo)
-library(projpred)
 ```
 
 -   **cmdstanr** 配置 Stan 环境、编译 Stan 代码（设置编译参数）和采样（设置采样算法和参数）。
@@ -198,8 +167,6 @@ library(projpred)
 -   **posterior** 后验推断
 
 ## 代码编写
-
-### 对数高斯模型
 
 $$
 \begin{aligned}
@@ -212,11 +179,10 @@ $$
 
 其中，$\beta$ 代表截距，先验分布为标准正态分布，$\sigma$ 代表高斯过程的方差参数（信号），先验分布为逆伽马分布，$\phi$ 代表高斯过程的范围参数，先验分布为半标准正态分布，$y$ 代表响应变量的取值，给定参数和数据的条件分布为多元正态分布，$\Sigma$ 代表协方差矩阵，$I$ 代表与采样点数量相同的单位矩阵， $\delta$ 是非常小的常数（可以看作可忽略的噪声），使得协方差矩阵正定，确保 Cholesky 分解。
 
-```{verbatim, file="code/rongelap_gaussian.stan", lang="stan"}
+```{verbatim, file="code/rongelap_gaussian_pred.stan", lang="stan"}
 ```
 
 代码中，`gp_exponential_cov` 表示空间相关性结构选择了指数型，详见 Stan 函数手册中的[指数型核函数表示](https://mc-stan.org/docs/functions-reference/gaussian-process-covariance-functions.html#exponential-kernel)。`cholesky_decompose` 表示对协方差矩阵做 Cholesky 分解，分解出来的下三角矩阵作为多元正态分布的参数，详见 Stan 函数手册中的 [Cholesky 分解](https://mc-stan.org/docs/functions-reference/linear-algebra-functions-and-solvers.html#cholesky-decomposition)。 `multi_normal_cholesky` 表示基于 Cholesky 分解的多元正态分布。详见 Stan 函数手册中的多元正态分布的 [Cholesky](https://mc-stan.org/docs/functions-reference/multi-normal-cholesky-fun.html) 参数化表示。
-
 
 ## 代码编译
 
@@ -226,7 +192,7 @@ $$
 #| message: false
 
 mod_rongelap_gaussian <- cmdstan_model(
-  stan_file = "code/rongelap_gaussian.stan",
+  stan_file = "code/rongelap_gaussian_pred.stan",
   compile = TRUE, cpp_options = list(stan_threads = TRUE)
 )
 ```
@@ -253,8 +219,6 @@ fit_rongelap_gaussian <- mod_rongelap_gaussian$sample(
   seed = 20232023           # 设置随机数种子，不要使用 set.seed() 函数
 )
 ```
-
-跑模型的时间花费分别为 146.4s 和 216.9s
 
 ```{r}
 # 诊断
@@ -289,8 +253,6 @@ fit_rongelap_nlme
 :::
 
 ## 模型诊断
-
-### 对数高斯模型
 
 ```{r}
 #| label: fig-rongelap-gaussian-trace
@@ -329,149 +291,30 @@ mcmc_dens(fit_rongelap_gaussian$draws(c("sigma", "phi")),
 -   LOO-CV （Leave-One-Out Cross-Validation，LOO-CV）留一交叉验证，越大越好。
 -   WAIC （Widely Available Information Criterion）通用信息准则，越小越好。
 
-### 对数高斯模型
-
 ``` stan
 generated quantities {
-  real log_lik = multi_normal_cholesky_lpdf(y | mu, L_K);
+  vector[N2] f2;
+  vector[N2] ypred;
+
+  f2 = gp_pred_rng(x2, y1, x1, sigma, phi, tau, delta);
+  for (n2 in 1:N2) {
+    ypred[n2] = normal_rng(f2[n2], tau);
+  }
 }
 ```
 
-在 `generated quantities` 代码块中计算逐点对数似然 pointwise log-likelihood。
+在 `generated quantities` 代码块中计算预测值 ypred。
 
 ```{r}
 fit_rongelap_gaussian$summary(
-  variables = "log_lik",
+  variables = "ypred[1]",
   .num_args = list(sigfig = 4, notation = "dec")
 )
 ```
-
-每一次采样迭代都会计算一次对数似然 `log_lik`
-
-```{r}
-#| label: fig-rongelap-log-lik-gaussian
-#| fig-cap: 对数似然
-#| fig-width: 6
-#| fig-height: 4
-#| fig-showtext: true
-
-mcmc_trace(fit_rongelap_gaussian$draws("log_lik")) + 
-  theme_bw(base_size = 12)
-```
-
-留一交叉验证 Leave-one-out cross-validation (LOO-CV)
-
-```{r}
-fit_rongelap_gaussian$loo(variables = "log_lik", cores = 2)
-```
-
-```{r}
-fit_rongelap_waic <- loo::waic(fit_rongelap_gaussian$draws(variables = "log_lik"))
-print(fit_rongelap_waic)
-```
-
-
-## 模型比较
-
-是否高斯分布、指数或高斯协方差函数、是否块金效应、估计方法 ML/REML 4 个维度，对比模型拟合结果
-
-```{r}
-library(nlme)
-# 高斯分布、指数型自相关结构
-fit_exp_reml <- gls(log(counts / time) ~ 1,
-  correlation = corExp(value = 200, form = ~ cX + cY, nugget = FALSE),
-  data = rongelap, method = "REML"
-)
-fit_exp_ml <- gls(log(counts / time) ~ 1,
-  correlation = corExp(value = 200, form = ~ cX + cY, nugget = FALSE),
-  data = rongelap, method = "ML"
-)
-fit_exp_reml_nugget <- gls(log(counts / time) ~ 1,
-  correlation = corExp(value = c(200, 0.1), form = ~ cX + cY, nugget = TRUE),
-  data = rongelap, method = "REML"
-)
-fit_exp_ml_nugget <- gls(log(counts / time) ~ 1,
-  correlation = corExp(value = c(200, 0.1), form = ~ cX + cY, nugget = TRUE),
-  data = rongelap, method = "ML"
-)
-
-# 高斯分布、高斯型自相关结构
-fit_gaus_reml <- gls(log(counts / time) ~ 1,
-  correlation = corGaus(value = 200, form = ~ cX + cY, nugget = FALSE),
-  data = rongelap, method = "REML"
-)
-fit_gaus_ml <- gls(log(counts / time) ~ 1,
-  correlation = corGaus(value = 200, form = ~ cX + cY, nugget = FALSE),
-  data = rongelap, method = "ML"
-)
-fit_gaus_reml_nugget <- gls(log(counts / time) ~ 1,
-  correlation = corGaus(value = c(200, 0.1), form = ~ cX + cY, nugget = TRUE),
-  data = rongelap, method = "REML"
-)
-fit_gaus_ml_nugget <- gls(log(counts / time) ~ 1,
-  correlation = corGaus(value = c(200, 0.1), form = ~ cX + cY, nugget = TRUE),
-  data = rongelap, method = "ML"
-)
-```
-
-汇总结果见下表 \@ref(tab:gls-summary)。
-
-```{r}
-#| label: gls-summary
-#| echo: false
-
-dat <- tibble::tribble(
-  ~response, ~corr, ~nugget, ~method, ~beta, ~sigmasq, ~phi, ~loglik,
-  "高斯分布", "指数型", "无", "REML", "1.826", "0.3172", "110.8", "-89.07",
-  "高斯分布", "指数型", "无", "ML", "1.828", "0.3064", "105.4", "-87.56",
-  "高斯分布", "指数型", "0.03598", "REML", "1.813", "0.2935", "169.7472", "-88.22",
-  "高斯分布", "指数型", "0.03312", "ML", "1.828", "0.2779", "150.1324", "-86.88",
-  "高斯分布", "高斯型", "无", "REML", "1.878", "0.2523", "41.96", "-100.7",
-  "高斯分布", "高斯型", "无", "ML", "1.879", "0.25", "41.81", "-98.62",
-  "高斯分布", "高斯型", "0.07055", "REML", "1.831", "0.2532", "139.1431", "-84.91",
-  "高斯分布", "高斯型", "0.07053", "ML", "1.832", "0.2459", "137.0980", "-83.32"
-)
-
-knitr::kable(dat, col.names = c(
-  "响应变量分布", "空间自相关结构", "块金效应", "估计方法",
-  "$\\beta$", "$\\sigma^2$", "$\\phi$", "对数似然值"
-  ), caption = "不同模型与参数估计方法的比较", escape = FALSE)
-```
-
-相比于其他参数，REML 和 ML 估计方法对参数 $\phi$ 影响很大，ML 估计的 $\phi$ 和对数似然函数值更大。高斯型自相关结构中，REML 和 ML 估计方法对参数 $\phi$ 的估计结果差不多。函数 `gls()` 对初值要求不高，以上初值选取比较随意，只是符合要求函数定义。
 
 ## 模型预测
 
-预测位置需要放入 Stan 代码中
-
-### 对数高斯模型
-
-``` stan
-generated quantities {
-  vector[N] yhat = multi_normal_cholesky_rng(mu, L_K);
-}
-```
-
-在 `generated quantities` 代码块中计算预测值 `yhat`。
-
-采样点的观测值服从多元正态分布，预测 `yhat`
-
-```{r}
-# 对数高斯模型
-fit_rongelap_gaussian$summary(
-  variables = c("yhat"),
-  .num_args = list(sigfig = 4, notation = "dec")
-)
-```
-
-第一个采样点的预测值
-
-```{r}
-fit_rongelap_gaussian$summary(
-  variables = "yhat[1]",
-  .num_args = list(sigfig = 4, notation = "dec")
-)
-```
+预测位置需要放入 Stan 代码中，采样点的观测值服从多元正态分布，预测 `ypred`
 
 第一个采样点 $\log\{\lambda(x_1)\}$ 的后验预测分布
 
@@ -482,36 +325,36 @@ fit_rongelap_gaussian$summary(
 #| fig-height: 4
 #| fig-showtext: true
 
-mcmc_dens(fit_rongelap_gaussian$draws(variables = "yhat[1]")) + 
+mcmc_dens(fit_rongelap_gaussian$draws(variables = "ypred[1]")) + 
   theme_bw(base_size = 12) +
-  labs(x = expression(hat(y)[1]))
+  labs(x = expression(ypred[1]))
 ```
 
 ```{r}
 # 抽取原始的模拟数据
-yhat_gaussian <- fit_rongelap_gaussian$draws(variables = "yhat", format = "array")
+ypred <- fit_rongelap_gaussian$summary(variables = "ypred", "mean")
 # 整理数据
-rongelap$yhat <- exp(as.vector(yhat_gaussian[1,1,]))
+rongelap_grid_df$ypred <- exp(ypred$mean)
 ```
 
 拟合值的概览
 
 ```{r}
-summary(rongelap$yhat)
+summary(rongelap_grid_df$ypred)
 ```
 
 恢复到辐射强度的尺度，核辐射强度的预测分布
 
 ```{r}
-#| label: fig-rongelap-pred
+#| label: fig-rongelap-pred1
 #| fig-cap: 核辐射强度的分布
 #| fig-width: 7.5
 #| fig-height: 4
 #| fig-showtext: true
 
-ggplot(data = rongelap, aes(x = cX, y = cY)) +
-  geom_point(aes(color = yhat), cex = 0.5) +
-  scale_color_distiller(palette = "Spectral") +
+ggplot(data = rongelap_grid_df, aes(x = cX, y = cY)) +
+  geom_point(aes(color = ypred), cex = 0.5) +
+  scale_color_viridis_c(option = "C", breaks = 3*0:4) +
   theme_bw() +
   labs(x = "横坐标（米）", y = "纵坐标（米）", color = "预测值")
 ```
@@ -520,9 +363,84 @@ ggplot(data = rongelap, aes(x = cX, y = cY)) +
 
 ```{r}
 # 贝叶斯预测值范围
-range(rongelap$yhat)
+range(rongelap_grid_df$ypred)
 # 观测值范围
 range(rongelap$counts / rongelap$time)
+```
+
+```{r}
+rongelap_grid_sf <- st_as_sf(rongelap_grid_df, coords = c("cX", "cY"), dim = "XY")
+rongelap_grid_stars <- st_rasterize(rongelap_grid_sf, nx = 150, ny = 75)
+rongelap_stars <- st_crop(x = rongelap_grid_stars, y = rongelap_coastline_sfp)
+```
+
+```{r}
+#| label: fig-rongelap-pred2
+#| fig-cap: 核辐射强度的分布
+#| fig-width: 7.5
+#| fig-height: 4.5
+#| fig-showtext: true
+
+# 虚线框数据
+dash_sfp <- st_polygon(x = list(rbind(
+  c(-6000, -3600),
+  c(-6000, -2600),
+  c(-5000, -2600),
+  c(-5000, -3600),
+  c(-6000, -3600)
+)), dim = "XY")
+# 主体内容
+p3 <- ggplot() +
+  geom_stars(
+    data = rongelap_stars, na.action = na.omit,
+    aes(fill = ypred)
+  ) +
+  # 海岸线
+  geom_sf(
+    data = rongelap_coastline_sfp,
+    fill = NA, color = "gray30", linewidth = 0.5
+  ) +
+  # 图例
+  scale_fill_viridis_c(
+    option = "C", breaks = 0:12,
+    guide = guide_colourbar(
+      barwidth = 15, barheight = 1.5,
+      title.position = "top" # 图例标题位于图例上方
+    )
+  ) +
+  # 虚线框
+  geom_sf(data = dash_sfp, fill = NA, linewidth = 0.75, lty = 2) +
+  # 箭头
+  geom_segment(
+    data = data.frame(x = -5500, xend = -5000, y = -2600, yend = -2250),
+    aes(x = x, y = y, xend = xend, yend = yend),
+    arrow = arrow(length = unit(0.03, "npc"))
+  ) +
+  theme_bw() +
+  labs(x = "横坐标（米）", y = "纵坐标（米）", fill = "辐射强度") +
+  theme(
+    legend.position = c(0.75, 0.1),
+    legend.direction = "horizontal",
+    legend.background = element_blank()
+  )
+
+p4 <- ggplot() +
+  geom_stars(
+    data = rongelap_stars, na.action = na.omit,
+    aes(fill = ypred), show.legend = FALSE
+  ) +
+  geom_sf(
+    data = rongelap_coastline_sfp,
+    fill = NA, color = "gray30", linewidth = 0.75
+  ) +
+  scale_fill_viridis_c(option = "C", breaks = 0:12) +
+  # 虚线框
+  geom_sf(data = dash_sfp, fill = NA, linewidth = 0.75, lty = 2) +
+  theme_void() +
+  coord_sf(expand = FALSE, xlim = c(-6000, -5000), ylim = c(-3600, -2600))
+# 叠加图形
+p3
+print(p4, vp = grid::viewport(x = .3, y = .65, width = .45, height = .45))
 ```
 
 # 参考文献 {#references}
@@ -621,4 +539,3 @@ ggplot(data = sim_gp_data, aes(x = x1, y = x2)) +
   theme_bw() +
   labs(x = expression(x[1]), y = expression(x[2]))
 ```
-
