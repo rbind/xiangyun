@@ -18,6 +18,7 @@ output:
     number_sections: true
 link-citations: true
 math: true
+draft: true
 csl: institute-of-mathematical-statistics.csl
 bibliography: 
   - refer.bib
@@ -33,7 +34,7 @@ knitr::opts_chunk$set(
 ```
 
 ::: rmdtip
-1.  贝叶斯高斯过程回归和贝叶斯泊松过程回归
+1.  贝叶斯高斯过程回归
 2.  核辐射数据集的贝叶斯分析
 3.  贝叶斯简单克里金插值及 Stan 实现
 :::
