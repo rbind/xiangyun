@@ -79,10 +79,10 @@ model {
 }
 generated quantities {
   vector[N2] f2;
-  vector[N2] y2;
+  vector[N2] ypred;
 
   f2 = gp_pred_rng(x2, y1, x1, sigma, phi, tau, delta);
   for (n2 in 1:N2) {
-    y2[n2] = normal_rng(f2[n2], tau);
+    ypred[n2] = normal_rng(f2[n2], tau);
   }
 }
