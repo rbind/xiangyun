@@ -1,4 +1,0 @@
-*_cache/
-code/
-!code/*.stan
-data/*.csv
