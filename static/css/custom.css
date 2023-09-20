@@ -159,6 +159,16 @@ blockquote > p:first-child {
   line-height: 1ex;
 }
 
+/* 代码按钮 */
+#toggle-all {
+  font-size: inherit;
+  margin-left: 1em;
+}
+summary {
+  border-bottom: 1px solid #ddd;
+  font-weight: bold;
+}
+
 /* https://github.com/rstudio/bookdown/blob/main/inst/templates/default.html#L89-L113 */
 /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
 div.csl-bib-body { }
