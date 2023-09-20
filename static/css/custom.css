@@ -166,6 +166,7 @@ blockquote > p:first-child {
 }
 summary {
   border-bottom: 1px solid #ddd;
+  font-weight: bold;
 }
 
 /* https://github.com/rstudio/bookdown/blob/main/inst/templates/default.html#L89-L113 */
