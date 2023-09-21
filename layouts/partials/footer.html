@@ -16,7 +16,7 @@
 </div>
 {{ if .IsPage }}
 <script src="{{ relURL "/js/wordcount.js" }}" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/@xiee/utils/js/fold-details.min.js" data-label="查看代码" data-parent=".article-metadata:last-of-type" data-position="afterend" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@xiee/utils/js/fold-details.min.js" data-label="查看代码" data-button-label="展开文中代码" data-button-label2="隐藏文中代码" defer></script>
 <script src="{{ relURL "/js/code-fold.js" }}" defer></script>
 {{ end }}
 {{ partial "footer_highlightjs" . }}
