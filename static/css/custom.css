@@ -161,8 +161,7 @@ blockquote > p:first-child {
 
 /* 代码按钮 */
 #toggle-all {
-  font-size: inherit;
-  margin-left: 1em;
+  cursor: pointer;
 }
 summary {
   border-bottom: 1px solid #ddd;
