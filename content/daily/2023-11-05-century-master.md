@@ -1,7 +1,7 @@
 ---
 date: "2023-11-05"
 slug: century-master
-title: 从《百年巨匠》到《百年巨匠》
+title: 《百年巨匠》观后感
 categories:
   - 推荐文章
 tags:
