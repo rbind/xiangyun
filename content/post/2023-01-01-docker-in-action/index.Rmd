@@ -196,7 +196,7 @@ echo "docker	ALL=(ALL) 	NOPASSWD: ALL" >> /etc/sudoers
 
 ```
 # 安装 R 软件
-dnf -y R-devel R-littler R-littler-examples
+dnf install -y R-devel R-littler R-littler-examples
 # 配置 R 软件
 ln -s /usr/lib64/R/library/littler/examples/install.r /usr/bin/install.r \
  && ln -s /usr/lib64/R/library/littler/examples/install2.r /usr/bin/install2.r \

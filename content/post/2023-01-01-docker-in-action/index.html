@@ -265,7 +265,7 @@ echo &#39;docker:docker123&#39; | chpasswd</code></pre>
 <h2><span class="header-section-number">2.5</span> 安装配置 R 软件</h2>
 <p>安装 R-devel 自不必说，安装 R-littler 和 R-littler-examples 是为了在命令行快速地安装 R 包，配置软链接相当于快捷方式，再设置 CRAN 镜像地址、R 包安装目录和 R 运行的语言环境，最后用快捷方式安装两个 R 包。</p>
 <pre><code># 安装 R 软件
-dnf -y R-devel R-littler R-littler-examples
+dnf install -y R-devel R-littler R-littler-examples
 # 配置 R 软件
 ln -s /usr/lib64/R/library/littler/examples/install.r /usr/bin/install.r \
  &amp;&amp; ln -s /usr/lib64/R/library/littler/examples/install2.r /usr/bin/install2.r \
