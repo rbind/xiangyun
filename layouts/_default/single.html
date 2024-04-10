@@ -3,7 +3,7 @@
 <main class="content" role="main">
 
   <article class="article">
-    {{ if in (split "post,daily" ",") .Section }}
+    {{ if in (split "post,daily,business" ",") .Section }}
     <span class="article-duration">预计阅读 </span>
     {{ end }}
 
@@ -25,7 +25,7 @@
       <br>
     {{ end }} 
     
-    {{ if in (split "post,daily" ",") .Section }}
+    {{ if in (split "post,daily,business" ",") .Section }}
     <span class="article-date">日期: {{ .Date.Format "2006/01/02" }}</span>
     <br>
     <span class="article-metadata article-wordcount">字数: </span>
@@ -62,7 +62,7 @@
     {{ partial "prev_next.html" . }}
     
     <br>
-    {{ if in (split "post,daily" ",") .Section }}
+    {{ if in (split "post,daily,business" ",") .Section }}
     {{ partial "comments.html" . }}
     {{ end }}
     

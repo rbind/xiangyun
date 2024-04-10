@@ -110,12 +110,12 @@ div.rmdinfo::before {
   margin-left: calc(50% - 50vw);
 }
 
-.full-width .caption {
+.full-width .caption .figcaption {
   text-align: center;
 }
 
 /* 图片居中 */
-div.img, div.figure {
+div.img, div.figure, div.float {
   text-align: center;
   display: block; 
   margin-left: auto; 
