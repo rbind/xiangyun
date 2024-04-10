@@ -15,9 +15,11 @@ rssLimit = 10
   [permalinks.page]
     post = '/:year/:month/:slug/'
     daily = '/:year/:month/:slug/'
+    business = '/:year/:month/:slug/'
   [permalinks.section]
     post = '/post/'
     daily = '/daily/'
+    business = '/business/'
 
 [[menu.main]]
     name = "主页"
@@ -32,13 +34,17 @@ rssLimit = 10
     url = "/daily/"
     weight = 3
 [[menu.main]]
+    name = "商业"
+    url = "/business/"
+    weight = 4
+[[menu.main]]
     name = "书籍"
     url = "/book/"
-    weight = 4
+    weight = 5
 [[menu.main]]
     name = "关于"
     url = "/about/"
-    weight = 5
+    weight = 6
 
 [params]
     description = "A website built through Hugo and blogdown."
