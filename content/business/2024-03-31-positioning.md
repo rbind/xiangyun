@@ -1,7 +1,7 @@
 ---
 date: "2024-03-31"
 slug: positioning
-title: 从公司品牌介绍看定位
+title: 从公司品牌的介绍看定位
 categories:
   - 商业思维
 tags:

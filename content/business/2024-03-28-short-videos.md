@@ -1,7 +1,7 @@
 ---
 date: "2024-03-28"
 slug: short-videos
-title: 谈谈短视频赛道
+title: 谈谈短视频和直播赛道
 categories:
   - 商业思维
 tags:
