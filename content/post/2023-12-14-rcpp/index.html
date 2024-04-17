@@ -1,0 +1,249 @@
+---
+title: "R 语言与 C/C++ 语言混合编程：Rcpp 入门"
+author: "黄湘云"
+date: '2023-12-14'
+slug: rcpp
+categories:
+  - R 语言
+tags:
+  - Rcpp
+  - StanHeaders
+  - 混合编程
+math: true
+output:
+  blogdown::html_page:
+    toc: true
+link-citations: true
+description: "R 语言与 C/C++ 混合编程的方式和示例。"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#r-与-c-语言混编" id="toc-r-与-c-语言混编">R 与 C 语言混编</a></li>
+<li><a href="#r-与-c-语言混编-1" id="toc-r-与-c-语言混编-1">R 与 C++ 语言混编</a>
+<ul>
+<li><a href="#rcpp" id="toc-rcpp">Rcpp</a></li>
+<li><a href="#bh" id="toc-bh">BH</a></li>
+<li><a href="#rcppeigen" id="toc-rcppeigen">RcppEigen</a></li>
+<li><a href="#stanheaders" id="toc-stanheaders">StanHeaders</a></li>
+</ul></li>
+<li><a href="#运行环境" id="toc-运行环境">运行环境</a></li>
+</ul>
+</div>
+
+<p>R 语言与 C/C++ 语言的混合编程是非常常见的。有的 R 包依赖外部的 C/C++ 文件，比如 rstan 包，而它又依赖 Rcpp、 BH、 RcppEigen 和 StanHeaders 等 R 包。这些 R 包分别封装了一些 C++ 库的头文件。</p>
+<p>本文是书籍<a href="https://bookdown.org/xiangyun/masr/probabilistic-reasoning-framework.html">《现代应用统计》</a>中概率编程框架（介绍 Stan ）的补充材料。</p>
+<div id="r-与-c-语言混编" class="section level2">
+<h2>R 与 C 语言混编</h2>
+<p>R 软件是由 C 语言、Fortran 语言和 R 语言编写的。函数 <code>.C()</code> / <code>.Call()</code> 、函数 <code>.Fortran()</code> 是面向 C/C++ 和 Fortran 代码现代编程接口。下面以一个简单示例介绍 R 语言原生支持的混合编程方式。首先在文件 <code>foo.c</code> 中实现循环输出 Hello World，代码如下：</p>
+<pre class="c" filename="code/rcpp/foo.c"><code>#include &lt;R.h&gt;
+
+void hello(int *n){
+  int i = 1;
+  for(i = 0; i &lt; *n; ++i){
+    Rprintf(&quot;Hello World %d times\n&quot;, i);
+  }
+  *n += 1;
+}</code></pre>
+<p>接着，使用命令 <code>R CMD SHLIB</code> 编译 C 源文件 <code>foo.c</code>，生成动态链接库 <code>foo.so</code> ，同时生成的还有目标文件 <code>foo.o</code> 。</p>
+<pre class="bash"><code>R CMD SHLIB -o code/rcpp/foo.so code/rcpp/foo.c</code></pre>
+<pre><code>## using C compiler: ‘Apple clang version 15.0.0 (clang-1500.3.9.4)’
+## using SDK: ‘MacOSX14.4.sdk’
+## make: Nothing to be done for `all&#39;.</code></pre>
+<p>加载动态链接库到 R 语言环境中。</p>
+<pre class="r"><code>dyn.load(x = &quot;code/rcpp/foo.so&quot;)</code></pre>
+<p>检查动态链接库是否加载到 R 语言环境中，返回 <code>TRUE</code> 表示已经加载。</p>
+<pre class="r"><code>is.loaded(&quot;hello&quot;)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p>在 R 语言环境中使用加载的函数 <code>hello()</code> ，传递参数值为整数 3。</p>
+<pre class="r"><code>.C(&quot;hello&quot;, as.integer(3))</code></pre>
+<pre><code>## Hello World 0 times
+## Hello World 1 times
+## Hello World 2 times</code></pre>
+<pre><code>## [[1]]
+## [1] 4</code></pre>
+<p>至此，在 R 语言中调用 C 语言来混编的过程介绍完了。</p>
+</div>
+<div id="r-与-c-语言混编-1" class="section level2">
+<h2>R 与 C++ 语言混编</h2>
+<div id="rcpp" class="section level3">
+<h3>Rcpp</h3>
+<p><strong>Rcpp</strong> 包可以将 R 语言和 C++ 语言无缝地衔接在一起，编译、链接、加载一气呵成，提供一种新的混合编程模式。下面的示例是根据递归公式构造斐波那契数列。</p>
+<p><span class="math display">\[
+\begin{aligned}
+F_0 &amp;= 0 \\
+F_1 &amp;= 1 \\
+F_n &amp;= F_{n-1} + F_{n-2}, \quad n \geq 2
+\end{aligned}
+\]</span></p>
+<p>主要是在 C++ 代码环境下写一个函数实现上述递归公式，代码如下：</p>
+<pre class="cpp" filename="code/rcpp/rcpp_fibonacci.cpp"><code>#include &lt;Rcpp.h&gt;
+
+// [[Rcpp::export]]
+int fibonacci(const int x) {
+  if (x &lt; 2) return(x);
+  return (fibonacci(x - 1)) + fibonacci(x - 2);
+}</code></pre>
+<p>接着，编译 C++ 文件 <code>rcpp_fibonacci.cpp</code>，如果没有报错和警告，说明一切正常。没有消息就是好消息！</p>
+<pre class="r"><code>Rcpp::sourceCpp(file = &quot;code/rcpp/rcpp_fibonacci.cpp&quot;)</code></pre>
+<p>编译成功后，R 语言运行环境中多出一个函数 <code>fibonacci()</code> 。</p>
+<pre class="r"><code>fibonacci</code></pre>
+<pre><code>## function (x) 
+## .Call(&lt;pointer: 0x103f6ad00&gt;, x)</code></pre>
+<p>此时，可以把函数 <code>fibonacci()</code> 看作 R 语言的普通函数，接着，我们可以计算第 10 个斐波那契数。</p>
+<pre class="r"><code>fibonacci(x = 10)</code></pre>
+<pre><code>## [1] 55</code></pre>
+</div>
+<div id="bh" class="section level3">
+<h3>BH</h3>
+<p>R 语言中有很多 R 包打包了一些 C++ 库文件，安装这些 R 包后，<strong>Rcpp</strong> 包就可以使用它们，比如 <a href="https://github.com/eddelbuettel/bh"><strong>BH</strong> 包</a>打包了 <a href="https://www.boost.org/">Boost</a> C++ 头文件。下面提供一个示例，在 <strong>Rcpp</strong> 包提供的环境里，借由 <strong>BH</strong> 包的 C++ 头文件计算两个整数的最大公约数，其中 factor 表示因子，integer 表示整数。Boost 中的<a href="https://www.boost.org/doc/libs/1_82_0/libs/integer/doc/html/index.html">子程序库 integer</a> 提供计算函数 <code>gcd</code> （Greatest Common Divisor），在此基础上，自定义了函数 <code>computeGCD</code>，C++ 代码如下：</p>
+<pre class="cpp" filename="code/rcpp/bh_gcd.cpp"><code>// [[Rcpp::depends(BH)]]
+
+#include &lt;Rcpp.h&gt;
+#include &lt;boost/integer/common_factor.hpp&gt;
+#include &lt;boost/integer/common_factor_ct.hpp&gt;
+#include &lt;boost/integer/common_factor_rt.hpp&gt;
+
+// [[Rcpp::export]]
+int computeGCD(int a, int b) {
+    return boost::integer::gcd(a, b);
+}</code></pre>
+<p>编译 C++ 源码，如果没有报错、警告等信息，说明一切正常。</p>
+<pre class="r"><code>Rcpp::sourceCpp(file = &quot;code/rcpp/bh_gcd.cpp&quot;)</code></pre>
+<p>编译成功后，运行环境中将出现一个函数 <code>computeGCD()</code> ，下面查看该函数内容。</p>
+<pre class="r"><code>computeGCD</code></pre>
+<pre><code>## function (a, b) 
+## .Call(&lt;pointer: 0x103f7ed00&gt;, a, b)</code></pre>
+<p><code>.Call</code> 告诉我们这是一个这样的函数，可以将 R 语言环境中的对象（数据、变量、函数）传递给编译好的可执行的 C/C++ 程序，而且这个程序已经加载到 R 语言环境中了。下面调用该程序计算 12 和 15 的最大公约数。</p>
+<pre class="r"><code>computeGCD(a = 12, b = 15)</code></pre>
+<pre><code>## [1] 3</code></pre>
+<p>Boost C++ 还有很多函数，比如 <code>lcm</code>（Least Common Multiple），下面计算两个整数的最小公倍数。</p>
+<pre class="cpp" filename="code/rcpp/bh_lcm.cpp"><code>// [[Rcpp::depends(BH)]]
+
+#include &lt;Rcpp.h&gt;
+#include &lt;boost/integer/common_factor.hpp&gt;
+#include &lt;boost/integer/common_factor_ct.hpp&gt;
+#include &lt;boost/integer/common_factor_rt.hpp&gt;
+
+// [[Rcpp::export]]
+int computeLCM(int a, int b) {
+    return boost::integer::lcm(a, b);
+}</code></pre>
+<p>类似地，编译代码，然后计算 12 和 15 的最小公倍数。</p>
+<pre class="r"><code># 编译代码
+Rcpp::sourceCpp(file = &quot;code/rcpp/bh_lcm.cpp&quot;)
+# 计算 12 和 15 的最小公倍数
+computeLCM(a = 12, b = 15)</code></pre>
+<pre><code>## [1] 60</code></pre>
+</div>
+<div id="rcppeigen" class="section level3">
+<h3>RcppEigen</h3>
+<p><strong>RcppEigen</strong> 包是一个高性能的计算矩阵特征值的 R 包，封装了 <a href="http://eigen.tuxfamily.org/">Eigen C++ 库</a>，使用方式和前面非常类似，只要知道 Eigen C++ 库封装的函数调用方式，就可以通过 <strong>Rcpp</strong> 包来编译。下面计算一个矩阵的特征值。</p>
+<pre class="cpp" filename="code/rcpp/rcpp_eigen.cpp"><code>#include &lt;RcppEigen.h&gt;
+
+// [[Rcpp::depends(RcppEigen)]]
+
+using Eigen::Map;                       // &#39;maps&#39; rather than copies
+using Eigen::MatrixXd;                  // variable size matrix, double precision
+using Eigen::VectorXd;                  // variable size vector, double precision
+using Eigen::SelfAdjointEigenSolver;    // one of the eigenvalue solvers
+
+// [[Rcpp::export]]
+VectorXd getEigenValues(Map&lt;MatrixXd&gt; M) {
+    SelfAdjointEigenSolver&lt;MatrixXd&gt; es(M);
+    return es.eigenvalues();
+}</code></pre>
+<p>编译代码，获得在 R 语言环境中可直接使用的函数 <code>getEigenValues()</code> 。</p>
+<pre class="r"><code># 编译代码
+Rcpp::sourceCpp(file = &quot;code/rcpp/rcpp_eigen.cpp&quot;)</code></pre>
+<p>首先，构造一个矩阵 <code>X</code> 。</p>
+<pre class="r"><code>X &lt;- toeplitz(x = c(1, 2, 3))
+X</code></pre>
+<pre><code>##      [,1] [,2] [,3]
+## [1,]    1    2    3
+## [2,]    2    1    2
+## [3,]    3    2    1</code></pre>
+<p>然后，函数 <code>getEigenValues()</code> 计算特征值。</p>
+<pre class="r"><code># 计算特征值
+getEigenValues(X)</code></pre>
+<pre><code>## [1] -2.0000 -0.7016  5.7016</code></pre>
+<p>作为对比，下面使用 R 语言内置的函数 <code>eigen()</code> 计算矩阵 <code>X</code> 的特征值。</p>
+<pre class="r"><code>eigen(X)</code></pre>
+<pre><code>## eigen() decomposition
+## $values
+## [1]  5.7016 -0.7016 -2.0000
+## 
+## $vectors
+##         [,1]    [,2]       [,3]
+## [1,] -0.6059  0.3645  7.071e-01
+## [2,] -0.5155 -0.8569 -5.551e-16
+## [3,] -0.6059  0.3645 -7.071e-01</code></pre>
+<p>可以观察到，两种方式计算的结果是一样的。</p>
+</div>
+<div id="stanheaders" class="section level3">
+<h3>StanHeaders</h3>
+<p>暴露用户定义的函数，目的是调试用户定义的函数，检查自己编写的 Stan 函数是否正确，还可以借此进一步优化代码，理解 Stan 内置的函数。有时候，为了熟悉 Stan 内置函数的作用，或者为了排查 Stan 代码中的错误都需要单独拎出来其中的函数。</p>
+<p><a href="https://github.com/stan-dev/stan">Stan</a> 框架的头文件都打包在 <a href="https://github.com/stan-dev/rstan/tree/develop/StanHeaders">StanHeaders</a> 包里。包含大量的内置函数，可以从如下三个地方了解。</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>StanHeaders</strong> 包的帮助文档<a href="https://cran.r-project.org/web/packages/StanHeaders/vignettes/stanmath.html">Using the Stan Math C++ Library</a>，代码层面，有哪些函数及如何使用。</p></li>
+<li><p>Stan 官网的<a href="https://mc-stan.org/docs/functions-reference/index.html">函数帮助文档</a>，各个函数的定义，函数参数、返回值和数学表达式。只有文档，没有示例。适合根据函数名搜索。</p></li>
+<li><p>只知需要什么，但不知函数是什么，采用谷歌搜索。</p></li>
+</ol>
+<pre class="r"><code>library(StanHeaders)</code></pre>
+<p>StanHeaders 就两个函数，一个导出的可直接用， <code>stanFunction()</code> 用来调用 Stan 框架中的 Math 库的函数。一个未导出的也可通过命名空间用 <code>CxxFlags()</code> ，编译 C++ 文件时带上一些编译的 Flags（开启一些选项）。</p>
+<pre class="r"><code>StanHeaders:::CxxFlags()</code></pre>
+<pre><code>## -I&#39;/Library/Frameworks/R.framework/Versions/4.3-x86_64/Resources/library/RcppParallel/include&#39; -D_REENTRANT -DSTAN_THREADS</code></pre>
+<p>可以看到这是引用 RcppParallel 包的头文件，实际上， RStan 包还依赖 RcppParallel 包。</p>
+<p>以了解函数 <code>lkj_corr_cholesky_rng</code> 为例，这是一个 LKJ 分布，Cholesky 分解相关矩阵 <span class="math inline">\(R\)</span> 模拟 <span class="math inline">\(L_u\)</span>，调用 Stan Math 库中的 <code>lkj_corr_cholesky_rng</code> 函数，编译 C++ 代码，将加载至 R 环境中。</p>
+<pre class="r"><code>stanFunction(&quot;lkj_corr_cholesky_rng&quot;, K = 2L, eta = 2L)</code></pre>
+<pre><code>##        [,1]   [,2]
+## [1,] 1.0000 0.0000
+## [2,] 0.3524 0.9359</code></pre>
+<p><code>K = 2L</code> 表示 2 阶相关矩阵，<code>eta = 2L</code> 表示相关性的强弱。这个函数是用来生成随机数的，结果是一个二阶的下三角矩阵（矩阵对角线以上的元素都是 0），设置随机数种子，则可使结果复现。</p>
+<pre class="r"><code>lkj_corr_cholesky_rng(K = 2L, eta = 2L, random_seed = 20232023)</code></pre>
+<pre><code>##         [,1]   [,2]
+## [1,] 1.00000 0.0000
+## [2,] 0.05875 0.9983</code></pre>
+<p>根据 <span class="math inline">\(R = L_u L_u^{\top}\)</span>，可以计算相关矩阵。</p>
+<pre class="r"><code>m &lt;- lkj_corr_cholesky_rng(K = 2L, eta = 2L, random_seed = 20232023)
+m %*% t(m)</code></pre>
+<pre><code>##         [,1]    [,2]
+## [1,] 1.00000 0.05875
+## [2,] 0.05875 1.00000</code></pre>
+</div>
+</div>
+<div id="运行环境" class="section level1">
+<h1>运行环境</h1>
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>## R version 4.3.3 (2024-02-29)
+## Platform: x86_64-apple-darwin20 (64-bit)
+## Running under: macOS Sonoma 14.4.1
+## 
+## Matrix products: default
+## BLAS:   /Library/Frameworks/R.framework/Versions/4.3-x86_64/Resources/lib/libRblas.0.dylib 
+## LAPACK: /Library/Frameworks/R.framework/Versions/4.3-x86_64/Resources/lib/libRlapack.dylib;  LAPACK version 3.11.0
+## 
+## locale:
+## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+## 
+## time zone: Asia/Shanghai
+## tzcode source: internal
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## other attached packages:
+## [1] StanHeaders_2.32.6
+## 
+## loaded via a namespace (and not attached):
+##  [1] digest_0.6.35       R6_2.5.1            bookdown_0.38      
+##  [4] fastmap_1.1.1       xfun_0.43           blogdown_1.19      
+##  [7] RcppEigen_0.3.4.0.0 BH_1.84.0-0         cachem_1.0.8       
+## [10] knitr_1.46          htmltools_0.5.8.1   RcppParallel_5.1.7 
+## [13] rmarkdown_2.26      lifecycle_1.0.4     cli_3.6.2          
+## [16] sass_0.4.9          withr_3.0.0         jquerylib_0.1.4    
+## [19] compiler_4.3.3      rstudioapi_0.16.0   tools_4.3.3        
+## [22] evaluate_0.23       bslib_0.7.0         Rcpp_1.0.12        
+## [25] yaml_2.3.8          jsonlite_1.8.8      rlang_1.1.3</code></pre>
+</div>

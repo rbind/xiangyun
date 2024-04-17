@@ -1,0 +1,271 @@
+---
+title: "R 语言与 C/C++ 语言混合编程：Rcpp 入门"
+author: "黄湘云"
+date: '2023-12-14'
+slug: rcpp
+categories:
+  - R 语言
+tags:
+  - Rcpp
+  - StanHeaders
+  - 混合编程
+math: true
+output:
+  blogdown::html_page:
+    toc: true
+link-citations: true
+description: "R 语言与 C/C++ 混合编程的方式和示例。"
+---
+
+R 语言与 C/C++ 语言的混合编程是非常常见的。有的 R 包依赖外部的 C/C++ 文件，比如 rstan 包，而它又依赖 Rcpp、 BH、 RcppEigen 和 StanHeaders 等 R 包。这些 R 包分别封装了一些 C++ 库的头文件。
+
+本文是书籍[《现代应用统计》](https://bookdown.org/xiangyun/masr/probabilistic-reasoning-framework.html)中概率编程框架（介绍 Stan ）的补充材料。
+
+## R 与 C 语言混编
+
+R 软件是由 C 语言、Fortran 语言和 R 语言编写的。函数 `.C()` / `.Call()` 、函数 `.Fortran()` 是面向 C/C++ 和 Fortran 代码现代编程接口。下面以一个简单示例介绍 R 语言原生支持的混合编程方式。首先在文件 `foo.c` 中实现循环输出 Hello World，代码如下：
+
+``` {.c filename="code/rcpp/foo.c"}
+#include <R.h>
+
+void hello(int *n){
+  int i = 1;
+  for(i = 0; i < *n; ++i){
+    Rprintf("Hello World %d times\n", i);
+  }
+  *n += 1;
+}
+```
+
+接着，使用命令 `R CMD SHLIB` 编译 C 源文件 `foo.c`，生成动态链接库 `foo.so` ，同时生成的还有目标文件 `foo.o` 。
+
+```{bash}
+R CMD SHLIB -o code/rcpp/foo.so code/rcpp/foo.c
+```
+
+加载动态链接库到 R 语言环境中。
+
+```{r}
+dyn.load(x = "code/rcpp/foo.so")
+```
+
+检查动态链接库是否加载到 R 语言环境中，返回 `TRUE` 表示已经加载。
+
+```{r}
+is.loaded("hello")
+```
+
+在 R 语言环境中使用加载的函数 `hello()` ，传递参数值为整数 3。
+
+```{r}
+.C("hello", as.integer(3))
+```
+
+至此，在 R 语言中调用 C 语言来混编的过程介绍完了。
+
+## R 与 C++ 语言混编
+
+### Rcpp
+
+**Rcpp** 包可以将 R 语言和 C++ 语言无缝地衔接在一起，编译、链接、加载一气呵成，提供一种新的混合编程模式。下面的示例是根据递归公式构造斐波那契数列。
+
+$$
+\begin{aligned}
+F_0 &= 0 \\
+F_1 &= 1 \\
+F_n &= F_{n-1} + F_{n-2}, \quad n \geq 2
+\end{aligned}
+$$
+
+主要是在 C++ 代码环境下写一个函数实现上述递归公式，代码如下：
+
+``` {.cpp filename="code/rcpp/rcpp_fibonacci.cpp"}
+#include <Rcpp.h>
+
+// [[Rcpp::export]]
+int fibonacci(const int x) {
+  if (x < 2) return(x);
+  return (fibonacci(x - 1)) + fibonacci(x - 2);
+}
+```
+
+接着，编译 C++ 文件 `rcpp_fibonacci.cpp`，如果没有报错和警告，说明一切正常。没有消息就是好消息！
+
+```{r}
+Rcpp::sourceCpp(file = "code/rcpp/rcpp_fibonacci.cpp")
+```
+
+编译成功后，R 语言运行环境中多出一个函数 `fibonacci()` 。
+
+```{r}
+fibonacci
+```
+
+此时，可以把函数 `fibonacci()` 看作 R 语言的普通函数，接着，我们可以计算第 10 个斐波那契数。
+
+```{r}
+fibonacci(x = 10)
+```
+
+### BH
+
+R 语言中有很多 R 包打包了一些 C++ 库文件，安装这些 R 包后，**Rcpp** 包就可以使用它们，比如 [**BH** 包](https://github.com/eddelbuettel/bh)打包了 [Boost](https://www.boost.org/) C++ 头文件。下面提供一个示例，在 **Rcpp** 包提供的环境里，借由 **BH** 包的 C++ 头文件计算两个整数的最大公约数，其中 factor 表示因子，integer 表示整数。Boost 中的[子程序库 integer](https://www.boost.org/doc/libs/1_82_0/libs/integer/doc/html/index.html) 提供计算函数 `gcd` （Greatest Common Divisor），在此基础上，自定义了函数 `computeGCD`，C++ 代码如下：
+
+``` {.cpp filename="code/rcpp/bh_gcd.cpp"}
+// [[Rcpp::depends(BH)]]
+
+#include <Rcpp.h>
+#include <boost/integer/common_factor.hpp>
+#include <boost/integer/common_factor_ct.hpp>
+#include <boost/integer/common_factor_rt.hpp>
+
+// [[Rcpp::export]]
+int computeGCD(int a, int b) {
+    return boost::integer::gcd(a, b);
+}
+```
+
+编译 C++ 源码，如果没有报错、警告等信息，说明一切正常。
+
+```{r}
+Rcpp::sourceCpp(file = "code/rcpp/bh_gcd.cpp")
+```
+
+编译成功后，运行环境中将出现一个函数 `computeGCD()` ，下面查看该函数内容。
+
+```{r}
+computeGCD
+```
+
+`.Call` 告诉我们这是一个这样的函数，可以将 R 语言环境中的对象（数据、变量、函数）传递给编译好的可执行的 C/C++ 程序，而且这个程序已经加载到 R 语言环境中了。下面调用该程序计算 12 和 15 的最大公约数。
+
+```{r}
+computeGCD(a = 12, b = 15)
+```
+
+Boost C++ 还有很多函数，比如 `lcm`（Least Common Multiple），下面计算两个整数的最小公倍数。
+
+``` {.cpp filename="code/rcpp/bh_lcm.cpp"}
+// [[Rcpp::depends(BH)]]
+
+#include <Rcpp.h>
+#include <boost/integer/common_factor.hpp>
+#include <boost/integer/common_factor_ct.hpp>
+#include <boost/integer/common_factor_rt.hpp>
+
+// [[Rcpp::export]]
+int computeLCM(int a, int b) {
+    return boost::integer::lcm(a, b);
+}
+```
+
+类似地，编译代码，然后计算 12 和 15 的最小公倍数。
+
+```{r}
+# 编译代码
+Rcpp::sourceCpp(file = "code/rcpp/bh_lcm.cpp")
+# 计算 12 和 15 的最小公倍数
+computeLCM(a = 12, b = 15)
+```
+
+### RcppEigen
+
+**RcppEigen** 包是一个高性能的计算矩阵特征值的 R 包，封装了 [Eigen C++ 库](http://eigen.tuxfamily.org/)，使用方式和前面非常类似，只要知道 Eigen C++ 库封装的函数调用方式，就可以通过 **Rcpp** 包来编译。下面计算一个矩阵的特征值。
+
+``` {.cpp filename="code/rcpp/rcpp_eigen.cpp"}
+#include <RcppEigen.h>
+
+// [[Rcpp::depends(RcppEigen)]]
+
+using Eigen::Map;                       // 'maps' rather than copies
+using Eigen::MatrixXd;                  // variable size matrix, double precision
+using Eigen::VectorXd;                  // variable size vector, double precision
+using Eigen::SelfAdjointEigenSolver;    // one of the eigenvalue solvers
+
+// [[Rcpp::export]]
+VectorXd getEigenValues(Map<MatrixXd> M) {
+    SelfAdjointEigenSolver<MatrixXd> es(M);
+    return es.eigenvalues();
+}
+```
+
+编译代码，获得在 R 语言环境中可直接使用的函数 `getEigenValues()` 。
+
+```{r}
+# 编译代码
+Rcpp::sourceCpp(file = "code/rcpp/rcpp_eigen.cpp")
+```
+
+首先，构造一个矩阵 `X` 。
+
+```{r}
+X <- toeplitz(x = c(1, 2, 3))
+X
+```
+
+然后，函数 `getEigenValues()` 计算特征值。
+
+```{r}
+# 计算特征值
+getEigenValues(X)
+```
+
+作为对比，下面使用 R 语言内置的函数 `eigen()` 计算矩阵 `X` 的特征值。
+
+```{r}
+eigen(X)
+```
+
+可以观察到，两种方式计算的结果是一样的。
+
+### StanHeaders
+
+暴露用户定义的函数，目的是调试用户定义的函数，检查自己编写的 Stan 函数是否正确，还可以借此进一步优化代码，理解 Stan 内置的函数。有时候，为了熟悉 Stan 内置函数的作用，或者为了排查 Stan 代码中的错误都需要单独拎出来其中的函数。
+
+[Stan](https://github.com/stan-dev/stan) 框架的头文件都打包在 [StanHeaders](https://github.com/stan-dev/rstan/tree/develop/StanHeaders) 包里。包含大量的内置函数，可以从如下三个地方了解。
+
+1.  **StanHeaders** 包的帮助文档[Using the Stan Math C++ Library](https://cran.r-project.org/web/packages/StanHeaders/vignettes/stanmath.html)，代码层面，有哪些函数及如何使用。
+
+2.  Stan 官网的[函数帮助文档](https://mc-stan.org/docs/functions-reference/index.html)，各个函数的定义，函数参数、返回值和数学表达式。只有文档，没有示例。适合根据函数名搜索。
+
+3.  只知需要什么，但不知函数是什么，采用谷歌搜索。
+
+```{r}
+library(StanHeaders)
+```
+
+StanHeaders 就两个函数，一个导出的可直接用， `stanFunction()` 用来调用 Stan 框架中的 Math 库的函数。一个未导出的也可通过命名空间用 `CxxFlags()` ，编译 C++ 文件时带上一些编译的 Flags（开启一些选项）。
+
+```{r}
+StanHeaders:::CxxFlags()
+```
+
+可以看到这是引用 RcppParallel 包的头文件，实际上， RStan 包还依赖 RcppParallel 包。
+
+以了解函数 `lkj_corr_cholesky_rng` 为例，这是一个 LKJ 分布，Cholesky 分解相关矩阵 $R$ 模拟 $L_u$，调用 Stan Math 库中的 `lkj_corr_cholesky_rng` 函数，编译 C++ 代码，将加载至 R 环境中。
+
+```{r}
+#| message: false
+#| warning: false
+
+stanFunction("lkj_corr_cholesky_rng", K = 2L, eta = 2L)
+```
+
+`K = 2L` 表示 2 阶相关矩阵，`eta = 2L` 表示相关性的强弱。这个函数是用来生成随机数的，结果是一个二阶的下三角矩阵（矩阵对角线以上的元素都是 0），设置随机数种子，则可使结果复现。
+
+```{r}
+lkj_corr_cholesky_rng(K = 2L, eta = 2L, random_seed = 20232023)
+```
+
+根据 $R = L_u L_u^{\top}$，可以计算相关矩阵。
+
+```{r}
+m <- lkj_corr_cholesky_rng(K = 2L, eta = 2L, random_seed = 20232023)
+m %*% t(m)
+```
+
+# 运行环境
+
+```{r}
+sessionInfo()
+```
