@@ -1,0 +1,390 @@
+---
+title: 用 Python 语言开发 Shiny 应用
+author: "黄湘云"
+date: '2024-04-16'
+slug: shiny-for-python
+categories:
+  - 统计软件
+tags:
+  - Python
+  - Shiny
+  - shinywidgets
+  - plotly
+  - matplotlib
+  - great_tables
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+code_fold: true
+description: "本文介绍如何在 Python 语言中开发 Shiny 应用，RStudio 团队曾开发了 R 语言中的 Shiny 框架，现在，他们又在 Python 语言中开发了类似功能的框架。Python 语言中缺少制作出版级表格的模块，现在， R 包 gt 的开发者又在 Python 环境中开发了类似功能的模块。在制作统计图形方面，无论是静态图形还是交互图形，Python 语言都不输 R 语言，比如 matplotlib（静态图形）、plotly（交互图形）等。"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#绘图模块-plotly" id="toc-绘图模块-plotly"><span class="toc-section-number">1</span> 绘图模块 plotly</a></li>
+<li><a href="#绘图模块-matplotlib" id="toc-绘图模块-matplotlib"><span class="toc-section-number">2</span> 绘图模块 matplotlib</a></li>
+<li><a href="#制表模块-itables" id="toc-制表模块-itables"><span class="toc-section-number">3</span> 制表模块 itables</a></li>
+<li><a href="#制表模块-great_tables" id="toc-制表模块-great_tables"><span class="toc-section-number">4</span> 制表模块 great_tables</a></li>
+<li><a href="#网页应用-shiny" id="toc-网页应用-shiny"><span class="toc-section-number">5</span> 网页应用 shiny</a></li>
+</ul>
+</div>
+
+<style type="text/css">
+.modebar {
+  display: none !important;
+}
+
+.plotly-graph-div {
+  text-align: center;
+  display: block; 
+  margin-left: auto; 
+  margin-right: auto;
+}
+</style>
+<p>本文介绍如何在 Python 语言中开发 Shiny 应用，涉及 shiny 框架、plotly 和 gt 模块。RStudio 团队曾开发了 R 语言中的 Shiny 框架，现在，他们又在 Python 语言中开发了类似功能的框架。Python 语言中缺少制作出版级表格的模块，现在， R 包 gt 的开发者又在 Python 环境中开发了类似功能的模块。在制作统计图形方面，无论是静态图形还是交互图形，Python 语言都不输 R 语言，比如 matplotlib（静态图形）、plotly（交互图形）等。</p>
+<p>下面先安装几个本文涉及的模块，截至写作时间，都是较新的版本，本文使用的 Python 版本为 3.9.6。</p>
+<pre class="bash"><code>pip install shiny        # 版本 0.8.1
+pip install shinywidgets # 版本 0.3.1
+pip install plotly       # 版本 5.20.0
+pip install kaleido      # 版本 0.2.1
+pip install great_tables # 版本 0.5.0
+pip install matplotlib.  # 版本 3.8.3</code></pre>
+<table>
+<caption>Python 与 R 的对比</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th>R 语言</th>
+<th>Python 语言</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>绘制静态图形</td>
+<td>Base R</td>
+<td>matplotlib</td>
+</tr>
+<tr class="even">
+<td>绘制交互图形</td>
+<td>plotly</td>
+<td>plotly</td>
+</tr>
+<tr class="odd">
+<td>绘制静态表格</td>
+<td>gt</td>
+<td>great_tables</td>
+</tr>
+<tr class="even">
+<td>创建交互应用</td>
+<td>shiny</td>
+<td>shiny</td>
+</tr>
+</tbody>
+</table>
+<p>相比于 R 语言，Python 语言中的这几个模块丝毫不弱，而且由于社区规模更大、活跃度更高，模块功能会更多。</p>
+<p>在制作 Shiny 应用前，复杂而耗时的计算早已完成，我们通常会在数据库中整理好数据集，所以，下面直接使用内置的数据集展示开发一个 Shiny 应用所用的 Python 模块。</p>
+<div id="绘图模块-plotly" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> 绘图模块 plotly</h1>
+<p>导入 <a href="https://github.com/plotly/plotly.py">plotly</a> 模块并加载该模块内置的数据集 iris（鸢尾花），接着，查看该数据集前几行。</p>
+<pre class="python"><code>import plotly.express as px
+iris = px.data.iris()
+iris.head()</code></pre>
+<pre><code>##    sepal_length  sepal_width  petal_length  petal_width species  species_id
+## 0           5.1          3.5           1.4          0.2  setosa           1
+## 1           4.9          3.0           1.4          0.2  setosa           1
+## 2           4.7          3.2           1.3          0.2  setosa           1
+## 3           4.6          3.1           1.5          0.2  setosa           1
+## 4           5.0          3.6           1.4          0.2  setosa           1</code></pre>
+<p>调用绘制散点图的函数 scatter，陆续设置横纵坐标变量、颜色映射、图形风格、横纵坐标标题、图形标题、配色的调色板以及与图形布局相关的参数，最终效果如下：</p>
+<!-- 产生交互式图形的 Python 代码块不支持设置交叉引用。 -->
+<pre class="python"><code>fig = px.scatter(
+  iris,
+  x=&quot;sepal_width&quot;,
+  y=&quot;sepal_length&quot;,
+  color=&quot;species&quot;,
+  template=&quot;simple_white&quot;,
+  labels={
+    &quot;sepal_length&quot;: &quot;Sepal Length (cm)&quot;,
+    &quot;sepal_width&quot;: &quot;Sepal Width (cm)&quot;,
+    &quot;species&quot;: &quot;Species of Iris&quot;,
+  },
+  title=&quot;Edgar Anderson 的鸢尾花数据&quot;,
+  color_discrete_sequence=px.colors.qualitative.Set2,
+)
+
+# 调整图形布局
+fig.update_layout(
+  autosize=False,
+  # 图形的宽高
+  width=700, height=500,
+  # 下左上右变空
+  margin=dict(b=20, l=30, t=40, r=30),
+  # 绘图区域的背景色
+  paper_bgcolor=&quot;LightSteelBlue&quot;,
+)</code></pre>
+<div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script charset="utf-8" src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>                <div id="f1a23c1b-85d7-454c-8684-4493a54349fd" class="plotly-graph-div" style="height:500px; width:700px;"></div>            <script type="text/javascript">                                    window.PLOTLYENV=window.PLOTLYENV || {};                                    if (document.getElementById("f1a23c1b-85d7-454c-8684-4493a54349fd")) {                    Plotly.newPlot(                        "f1a23c1b-85d7-454c-8684-4493a54349fd",                        [{"hovertemplate":"Species of Iris=setosa\u003cbr\u003eSepal Width (cm)=%{x}\u003cbr\u003eSepal Length (cm)=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"setosa","marker":{"color":"rgb(102,194,165)","symbol":"circle"},"mode":"markers","name":"setosa","orientation":"v","showlegend":true,"x":[3.5,3.0,3.2,3.1,3.6,3.9,3.4,3.4,2.9,3.1,3.7,3.4,3.0,3.0,4.0,4.4,3.9,3.5,3.8,3.8,3.4,3.7,3.6,3.3,3.4,3.0,3.4,3.5,3.4,3.2,3.1,3.4,4.1,4.2,3.1,3.2,3.5,3.1,3.0,3.4,3.5,2.3,3.2,3.5,3.8,3.0,3.8,3.2,3.7,3.3],"xaxis":"x","y":[5.1,4.9,4.7,4.6,5.0,5.4,4.6,5.0,4.4,4.9,5.4,4.8,4.8,4.3,5.8,5.7,5.4,5.1,5.7,5.1,5.4,5.1,4.6,5.1,4.8,5.0,5.0,5.2,5.2,4.7,4.8,5.4,5.2,5.5,4.9,5.0,5.5,4.9,4.4,5.1,5.0,4.5,4.4,5.0,5.1,4.8,5.1,4.6,5.3,5.0],"yaxis":"y","type":"scatter"},{"hovertemplate":"Species of Iris=versicolor\u003cbr\u003eSepal Width (cm)=%{x}\u003cbr\u003eSepal Length (cm)=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"versicolor","marker":{"color":"rgb(252,141,98)","symbol":"circle"},"mode":"markers","name":"versicolor","orientation":"v","showlegend":true,"x":[3.2,3.2,3.1,2.3,2.8,2.8,3.3,2.4,2.9,2.7,2.0,3.0,2.2,2.9,2.9,3.1,3.0,2.7,2.2,2.5,3.2,2.8,2.5,2.8,2.9,3.0,2.8,3.0,2.9,2.6,2.4,2.4,2.7,2.7,3.0,3.4,3.1,2.3,3.0,2.5,2.6,3.0,2.6,2.3,2.7,3.0,2.9,2.9,2.5,2.8],"xaxis":"x","y":[7.0,6.4,6.9,5.5,6.5,5.7,6.3,4.9,6.6,5.2,5.0,5.9,6.0,6.1,5.6,6.7,5.6,5.8,6.2,5.6,5.9,6.1,6.3,6.1,6.4,6.6,6.8,6.7,6.0,5.7,5.5,5.5,5.8,6.0,5.4,6.0,6.7,6.3,5.6,5.5,5.5,6.1,5.8,5.0,5.6,5.7,5.7,6.2,5.1,5.7],"yaxis":"y","type":"scatter"},{"hovertemplate":"Species of Iris=virginica\u003cbr\u003eSepal Width (cm)=%{x}\u003cbr\u003eSepal Length (cm)=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"virginica","marker":{"color":"rgb(141,160,203)","symbol":"circle"},"mode":"markers","name":"virginica","orientation":"v","showlegend":true,"x":[3.3,2.7,3.0,2.9,3.0,3.0,2.5,2.9,2.5,3.6,3.2,2.7,3.0,2.5,2.8,3.2,3.0,3.8,2.6,2.2,3.2,2.8,2.8,2.7,3.3,3.2,2.8,3.0,2.8,3.0,2.8,3.8,2.8,2.8,2.6,3.0,3.4,3.1,3.0,3.1,3.1,3.1,2.7,3.2,3.3,3.0,2.5,3.0,3.4,3.0],"xaxis":"x","y":[6.3,5.8,7.1,6.3,6.5,7.6,4.9,7.3,6.7,7.2,6.5,6.4,6.8,5.7,5.8,6.4,6.5,7.7,7.7,6.0,6.9,5.6,7.7,6.3,6.7,7.2,6.2,6.1,6.4,7.2,7.4,7.9,6.4,6.3,6.1,7.7,6.3,6.4,6.0,6.9,6.7,6.9,5.8,6.8,6.7,6.7,6.3,6.5,6.2,5.9],"yaxis":"y","type":"scatter"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"rgb(36,36,36)"},"error_y":{"color":"rgb(36,36,36)"},"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"rgb(36,36,36)","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"rgb(36,36,36)"},"baxis":{"endlinecolor":"rgb(36,36,36)","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"rgb(36,36,36)"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":1,"tickcolor":"rgb(36,36,36)","ticks":"outside"},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":1,"tickcolor":"rgb(36,36,36)","ticks":"outside"},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":1,"tickcolor":"rgb(36,36,36)","ticks":"outside"},"colorscale":[[0.0,"#440154"],[0.1111111111111111,"#482878"],[0.2222222222222222,"#3e4989"],[0.3333333333333333,"#31688e"],[0.4444444444444444,"#26828e"],[0.5555555555555556,"#1f9e89"],[0.6666666666666666,"#35b779"],[0.7777777777777778,"#6ece58"],[0.8888888888888888,"#b5de2b"],[1.0,"#fde725"]],"type":"contour"}],"heatmapgl":[{"colorbar":{"outlinewidth":1,"tickcolor":"rgb(36,36,36)","ticks":"outside"},"colorscale":[[0.0,"#440154"],[0.1111111111111111,"#482878"],[0.2222222222222222,"#3e4989"],[0.3333333333333333,"#31688e"],[0.4444444444444444,"#26828e"],[0.5555555555555556,"#1f9e89"],[0.6666666666666666,"#35b779"],[0.7777777777777778,"#6ece58"],[0.8888888888888888,"#b5de2b"],[1.0,"#fde725"]],"type":"heatmapgl"}],"heatmap":[{"colorbar":{"outlinewidth":1,"tickcolor":"rgb(36,36,36)","ticks":"outside"},"colorscale":[[0.0,"#440154"],[0.1111111111111111,"#482878"],[0.2222222222222222,"#3e4989"],[0.3333333333333333,"#31688e"],[0.4444444444444444,"#26828e"],[0.5555555555555556,"#1f9e89"],[0.6666666666666666,"#35b779"],[0.7777777777777778,"#6ece58"],[0.8888888888888888,"#b5de2b"],[1.0,"#fde725"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":1,"tickcolor":"rgb(36,36,36)","ticks":"outside"},"colorscale":[[0.0,"#440154"],[0.1111111111111111,"#482878"],[0.2222222222222222,"#3e4989"],[0.3333333333333333,"#31688e"],[0.4444444444444444,"#26828e"],[0.5555555555555556,"#1f9e89"],[0.6666666666666666,"#35b779"],[0.7777777777777778,"#6ece58"],[0.8888888888888888,"#b5de2b"],[1.0,"#fde725"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":1,"tickcolor":"rgb(36,36,36)","ticks":"outside"},"colorscale":[[0.0,"#440154"],[0.1111111111111111,"#482878"],[0.2222222222222222,"#3e4989"],[0.3333333333333333,"#31688e"],[0.4444444444444444,"#26828e"],[0.5555555555555556,"#1f9e89"],[0.6666666666666666,"#35b779"],[0.7777777777777778,"#6ece58"],[0.8888888888888888,"#b5de2b"],[1.0,"#fde725"]],"type":"histogram2d"}],"histogram":[{"marker":{"line":{"color":"white","width":0.6}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":1,"tickcolor":"rgb(36,36,36)","ticks":"outside"},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":1,"tickcolor":"rgb(36,36,36)","ticks":"outside"}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":1,"tickcolor":"rgb(36,36,36)","ticks":"outside"}},"marker":{"colorbar":{"outlinewidth":1,"tickcolor":"rgb(36,36,36)","ticks":"outside"}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":1,"tickcolor":"rgb(36,36,36)","ticks":"outside"}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":1,"tickcolor":"rgb(36,36,36)","ticks":"outside"}},"type":"scattergeo"}],"scattergl":[{"marker":{"colorbar":{"outlinewidth":1,"tickcolor":"rgb(36,36,36)","ticks":"outside"}},"type":"scattergl"}],"scattermapbox":[{"marker":{"colorbar":{"outlinewidth":1,"tickcolor":"rgb(36,36,36)","ticks":"outside"}},"type":"scattermapbox"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":1,"tickcolor":"rgb(36,36,36)","ticks":"outside"}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":1,"tickcolor":"rgb(36,36,36)","ticks":"outside"}},"type":"scatterpolar"}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":1,"tickcolor":"rgb(36,36,36)","ticks":"outside"}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":1,"tickcolor":"rgb(36,36,36)","ticks":"outside"},"colorscale":[[0.0,"#440154"],[0.1111111111111111,"#482878"],[0.2222222222222222,"#3e4989"],[0.3333333333333333,"#31688e"],[0.4444444444444444,"#26828e"],[0.5555555555555556,"#1f9e89"],[0.6666666666666666,"#35b779"],[0.7777777777777778,"#6ece58"],[0.8888888888888888,"#b5de2b"],[1.0,"#fde725"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"rgb(237,237,237)"},"line":{"color":"white"}},"header":{"fill":{"color":"rgb(217,217,217)"},"line":{"color":"white"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":1,"tickcolor":"rgb(36,36,36)","ticks":"outside"}},"colorscale":{"diverging":[[0.0,"rgb(103,0,31)"],[0.1,"rgb(178,24,43)"],[0.2,"rgb(214,96,77)"],[0.3,"rgb(244,165,130)"],[0.4,"rgb(253,219,199)"],[0.5,"rgb(247,247,247)"],[0.6,"rgb(209,229,240)"],[0.7,"rgb(146,197,222)"],[0.8,"rgb(67,147,195)"],[0.9,"rgb(33,102,172)"],[1.0,"rgb(5,48,97)"]],"sequential":[[0.0,"#440154"],[0.1111111111111111,"#482878"],[0.2222222222222222,"#3e4989"],[0.3333333333333333,"#31688e"],[0.4444444444444444,"#26828e"],[0.5555555555555556,"#1f9e89"],[0.6666666666666666,"#35b779"],[0.7777777777777778,"#6ece58"],[0.8888888888888888,"#b5de2b"],[1.0,"#fde725"]],"sequentialminus":[[0.0,"#440154"],[0.1111111111111111,"#482878"],[0.2222222222222222,"#3e4989"],[0.3333333333333333,"#31688e"],[0.4444444444444444,"#26828e"],[0.5555555555555556,"#1f9e89"],[0.6666666666666666,"#35b779"],[0.7777777777777778,"#6ece58"],[0.8888888888888888,"#b5de2b"],[1.0,"#fde725"]]},"colorway":["#1F77B4","#FF7F0E","#2CA02C","#D62728","#9467BD","#8C564B","#E377C2","#7F7F7F","#BCBD22","#17BECF"],"font":{"color":"rgb(36,36,36)"},"geo":{"bgcolor":"white","lakecolor":"white","landcolor":"white","showlakes":true,"showland":true,"subunitcolor":"white"},"hoverlabel":{"align":"left"},"hovermode":"closest","mapbox":{"style":"light"},"paper_bgcolor":"white","plot_bgcolor":"white","polar":{"angularaxis":{"gridcolor":"rgb(232,232,232)","linecolor":"rgb(36,36,36)","showgrid":false,"showline":true,"ticks":"outside"},"bgcolor":"white","radialaxis":{"gridcolor":"rgb(232,232,232)","linecolor":"rgb(36,36,36)","showgrid":false,"showline":true,"ticks":"outside"}},"scene":{"xaxis":{"backgroundcolor":"white","gridcolor":"rgb(232,232,232)","gridwidth":2,"linecolor":"rgb(36,36,36)","showbackground":true,"showgrid":false,"showline":true,"ticks":"outside","zeroline":false,"zerolinecolor":"rgb(36,36,36)"},"yaxis":{"backgroundcolor":"white","gridcolor":"rgb(232,232,232)","gridwidth":2,"linecolor":"rgb(36,36,36)","showbackground":true,"showgrid":false,"showline":true,"ticks":"outside","zeroline":false,"zerolinecolor":"rgb(36,36,36)"},"zaxis":{"backgroundcolor":"white","gridcolor":"rgb(232,232,232)","gridwidth":2,"linecolor":"rgb(36,36,36)","showbackground":true,"showgrid":false,"showline":true,"ticks":"outside","zeroline":false,"zerolinecolor":"rgb(36,36,36)"}},"shapedefaults":{"fillcolor":"black","line":{"width":0},"opacity":0.3},"ternary":{"aaxis":{"gridcolor":"rgb(232,232,232)","linecolor":"rgb(36,36,36)","showgrid":false,"showline":true,"ticks":"outside"},"baxis":{"gridcolor":"rgb(232,232,232)","linecolor":"rgb(36,36,36)","showgrid":false,"showline":true,"ticks":"outside"},"bgcolor":"white","caxis":{"gridcolor":"rgb(232,232,232)","linecolor":"rgb(36,36,36)","showgrid":false,"showline":true,"ticks":"outside"}},"title":{"x":0.05},"xaxis":{"automargin":true,"gridcolor":"rgb(232,232,232)","linecolor":"rgb(36,36,36)","showgrid":false,"showline":true,"ticks":"outside","title":{"standoff":15},"zeroline":false,"zerolinecolor":"rgb(36,36,36)"},"yaxis":{"automargin":true,"gridcolor":"rgb(232,232,232)","linecolor":"rgb(36,36,36)","showgrid":false,"showline":true,"ticks":"outside","title":{"standoff":15},"zeroline":false,"zerolinecolor":"rgb(36,36,36)"}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"Sepal Width (cm)"}},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"Sepal Length (cm)"}},"legend":{"title":{"text":"Species of Iris"},"tracegroupgap":0},"title":{"text":"Edgar Anderson \u7684\u9e22\u5c3e\u82b1\u6570\u636e"},"margin":{"b":20,"l":30,"t":40,"r":30},"autosize":false,"width":700,"height":500,"paper_bgcolor":"LightSteelBlue"},                        {"responsive": true}                    )                };                            </script>        </div>
+<p>导出标量格式图形，导出的效果图如下：</p>
+<pre class="python"><code>fig.write_image(&quot;img/iris.png&quot;)</code></pre>
+<div class="float">
+<img src="img/iris.png" alt="标量图形" />
+<div class="figcaption">标量图形</div>
+</div>
+<p>导出矢量格式图形，导出的效果图如下：</p>
+<pre class="python"><code>import plotly.io as pio
+# 设置默认的图片导出格式
+pio.kaleido.scope.default_format = &quot;svg&quot;
+# 取消加载公式库 MathJax
+pio.kaleido.scope.mathjax = None
+fig.write_image(&quot;img/iris.svg&quot;)</code></pre>
+<div class="float">
+<img src="img/iris.svg" alt="矢量图形" />
+<div class="figcaption">矢量图形</div>
+</div>
+<p>如果图形中有数学公式符号，必须加载公式库 MathJax ，此时，会在导出的图形的左下角出现一个框，这是 plotly 的<a href="https://github.com/plotly/plotly.py/issues/3469">问题</a>。</p>
+</div>
+<div id="绘图模块-matplotlib" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> 绘图模块 matplotlib</h1>
+<p><a href="https://github.com/matplotlib/matplotlib">matplotlib</a> 可谓是 Python 语言中最经典的绘图模块，非常成熟，功能也多，有不少模块都是基于它。下面还是基于鸢尾花数据集，绘制风格类似前面 plotly 的分组散点图。</p>
+<pre class="python"><code>import matplotlib.pyplot as plt
+# matplotlib 字体管理器
+import matplotlib.font_manager as fm
+import numpy as np # np.arange
+# 设置字体属性
+fontP = fm.FontProperties()
+# 查看可用的字体 fm.get_font_names()
+# 设置字体
+fontP.set_family(&#39;Noto Sans CJK SC&#39;)
+# 设置字号
+fontP.set_size(14)
+# 鸢尾花类别
+species = [&quot;setosa&quot;, &quot;versicolor&quot;, &quot;virginica&quot;]
+# 从调色板 Set2 中提取 3 个颜色值
+colors = plt.colormaps[&#39;Set2&#39;](np.arange(3))
+# 设置绘图区域
+plt.figure(figsize=[7,5], facecolor=&#39;lightsteelblue&#39;, layout=&quot;constrained&quot;)
+# 设置绘图风格 plt.style.available
+with plt.style.context(&quot;fast&quot;):
+    for i in range(len(species)):
+        plt.scatter(
+            x=&quot;sepal_width&quot;,
+            y=&quot;sepal_length&quot;,
+            color=colors[i],
+            label=species[i],
+            data=iris[iris[&quot;species&quot;] == species[i]],
+        )
+    plt.xlabel(&quot;Sepal Width (cm)&quot;) # 横坐标标题
+    plt.ylabel(&quot;Sepal Width (cm)&quot;) # 纵坐标标题
+    plt.title(&quot;Edgar Anderson 的鸢尾花数据&quot;, loc=&quot;left&quot;, fontproperties=fontP)
+    plt.legend(
+        framealpha=0,  # 图例背景透明
+        bbox_to_anchor=(1.05, 1),
+        loc=&quot;upper left&quot;,
+        borderaxespad=0.0,
+        title=&quot;Species of Iris&quot;, # 图例标题
+    )
+plt.show()</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-plt"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-plt-1.png" alt="matplotlib 绘制分组散点图" width="672" />
+<p class="caption">
+图 2.1: matplotlib 绘制分组散点图
+</p>
+</div>
+<p>无论是 R 语言还是 Python 语言，使用基础的绘图系统绘制分组散点图都不太容易。考虑到图例制作不太方便，先按鸢尾花种类分组，采用循环的方式，一组一组地绘制散点图。此外，横纵坐标轴标题，图例位置和标题，字体和颜色，全局绘图主题等内容的设置非常多。尽管如此，一旦熟悉 R 语言 Base R 的绘图系统，配置这些只需对照着功能翻 matplotlib 的帮助手册。</p>
+</div>
+<div id="制表模块-itables" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> 制表模块 itables</h1>
+<p>类似 R 包 <a href="https://github.com/rstudio/DT">DT</a>，<a href="https://github.com/mwouts/itables">itables</a> 模块也是基于 <a href="https://datatables.net/">DataTables</a> 库。</p>
+<pre class="python"><code>from itables import init_notebook_mode, show
+
+init_notebook_mode(all_interactive=True)
+show(iris, lengthMenu=[5, 10, 30])</code></pre>
+<p>以上代码需要运行在 Jupyter 环境中，在 Quarto 文档中要使用 Jupyter 引擎。</p>
+</div>
+<div id="制表模块-great_tables" class="section level1" number="4">
+<h1><span class="header-section-number">4</span> 制表模块 great_tables</h1>
+<p>先导入 <a href="https://github.com/posit-dev/great-tables">great_tables</a> 模块的 GT 函数和 html 函数，前者实现表格操作的核心功能，后者借助 HTML 格式对局部细节进行调整。制作出来的表格风格简洁，很清爽。</p>
+<pre class="python"><code>from great_tables import GT, html
+
+gt_iris = (
+  GT(iris.head())
+  .tab_header(title=&quot;Edgar Anderson 的鸢尾花数据（部分）&quot;)
+  .tab_source_note(source_note=&quot;数据来源：R 软件内置数据集&quot;)
+  .tab_spanner(label=&quot;花萼&quot;, columns=[&quot;sepal_length&quot;, &quot;sepal_width&quot;])
+  .tab_spanner(label=&quot;花瓣&quot;, columns=[&quot;petal_length&quot;, &quot;petal_width&quot;])
+  .cols_move_to_start(columns=[&quot;species&quot;])
+  .cols_label(
+    sepal_length=html(&quot;长度&quot;),
+    sepal_width=html(&quot;宽度&quot;),
+    petal_length=html(&quot;长度&quot;),
+    petal_width=html(&quot;宽度&quot;),
+    species=html(&quot;&lt;b&gt;种类&lt;/b&gt;&quot;),
+  )
+  .data_color(
+    columns=&quot;sepal_length&quot;,
+    palette=&quot;Oranges&quot;,
+    na_color=&quot;white&quot;
+  )
+  .cols_hide(columns=&quot;species_id&quot;)
+)
+gt_iris</code></pre>
+<div id="zuilogmsit" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>
+#zuilogmsit table {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+
+#zuilogmsit thead, tbody, tfoot, tr, td, th { border-style: none; }
+ tr { background-color: transparent; }
+#zuilogmsit p { margin: 0; padding: 0; }
+ #zuilogmsit .gt_table { display: table; border-collapse: collapse; line-height: normal; margin-left: auto; margin-right: auto; color: #333333; font-size: 16px; font-weight: normal; font-style: normal; background-color: #FFFFFF; width: auto; border-top-style: solid; border-top-width: 2px; border-top-color: #A8A8A8; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #A8A8A8; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; }
+ #zuilogmsit .gt_caption { padding-top: 4px; padding-bottom: 4px; }
+ #zuilogmsit .gt_title { color: #333333; font-size: 125%; font-weight: initial; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; border-bottom-color: #FFFFFF; border-bottom-width: 0; }
+ #zuilogmsit .gt_subtitle { color: #333333; font-size: 85%; font-weight: initial; padding-top: 3px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; border-top-color: #FFFFFF; border-top-width: 0; }
+ #zuilogmsit .gt_heading { background-color: #FFFFFF; text-align: center; border-bottom-color: #FFFFFF; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
+ #zuilogmsit .gt_bottom_border { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
+ #zuilogmsit .gt_col_headings { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
+ #zuilogmsit .gt_col_heading { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: normal; text-transform: inherit; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; overflow-x: hidden; }
+ #zuilogmsit .gt_column_spanner_outer { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: normal; text-transform: inherit; padding-top: 0; padding-bottom: 0; padding-left: 4px; padding-right: 4px; }
+ #zuilogmsit .gt_column_spanner_outer:first-child { padding-left: 0; }
+ #zuilogmsit .gt_column_spanner_outer:last-child { padding-right: 0; }
+ #zuilogmsit .gt_column_spanner { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; overflow-x: hidden; display: inline-block; width: 100%; }
+ #zuilogmsit .gt_spanner_row { border-bottom-style: hidden; }
+ #zuilogmsit .gt_group_heading { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; text-align: left; }
+ #zuilogmsit .gt_empty_group_heading { padding: 0.5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: middle; }
+ #zuilogmsit .gt_from_md> :first-child { margin-top: 0; }
+ #zuilogmsit .gt_from_md> :last-child { margin-bottom: 0; }
+ #zuilogmsit .gt_row { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; margin: 10px; border-top-style: solid; border-top-width: 1px; border-top-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; overflow-x: hidden; }
+ #zuilogmsit .gt_stub { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; }
+ #zuilogmsit .gt_stub_row_group { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; vertical-align: top; }
+ #zuilogmsit .gt_row_group_first td { border-top-width: 2px; }
+ #zuilogmsit .gt_row_group_first th { border-top-width: 2px; }
+ #zuilogmsit .gt_table_body { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
+ #zuilogmsit .gt_sourcenotes { color: #333333; background-color: #FFFFFF; border-bottom-style: none; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; }
+ #zuilogmsit .gt_sourcenote { font-size: 90%; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; text-align: left; }
+ #zuilogmsit .gt_left { text-align: left; }
+ #zuilogmsit .gt_center { text-align: center; }
+ #zuilogmsit .gt_right { text-align: right; font-variant-numeric: tabular-nums; }
+ #zuilogmsit .gt_font_normal { font-weight: normal; }
+ #zuilogmsit .gt_font_bold { font-weight: bold; }
+ #zuilogmsit .gt_font_italic { font-style: italic; }
+ #zuilogmsit .gt_super { font-size: 65%; }
+ #zuilogmsit .gt_footnote_marks { font-size: 75%; vertical-align: 0.4em; position: initial; }
+ #zuilogmsit .gt_asterisk { font-size: 100%; vertical-align: 0; }
+ 
+</style>
+<table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<thead class="gt_header">
+  <tr>
+    <th colspan="5" class="gt_heading gt_title gt_font_normal">Edgar Anderson 的鸢尾花数据（部分）</th>
+  </tr>
+</thead>
+<tr class="gt_col_headings gt_spanner_row">
+  <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="2" colspan="1" scope="col" id="&lt;b&gt;种类&lt;/b&gt;"><b>种类</b></th>
+  <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="2" scope="colgroup" id="花萼">
+    <span class="gt_column_spanner">花萼</span>
+  </th>
+  <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="2" scope="colgroup" id="花瓣">
+    <span class="gt_column_spanner">花瓣</span>
+  </th>
+</tr>
+<tr class="gt_col_headings">
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="长度">长度</th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="宽度">宽度</th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="长度">长度</th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="宽度">宽度</th>
+</tr>
+<tbody class="gt_table_body">
+<tr>
+  <td class="gt_row gt_left">setosa</td>
+  <td style="color: #FFFFFF; background-color: #7f2704;" class="gt_row gt_right">5.1</td>
+  <td class="gt_row gt_right">3.5</td>
+  <td class="gt_row gt_right">1.4</td>
+  <td class="gt_row gt_right">0.2</td>
+</tr>
+<tr>
+  <td class="gt_row gt_left">setosa</td>
+  <td style="color: #000000; background-color: #f3701b;" class="gt_row gt_right">4.9</td>
+  <td class="gt_row gt_right">3.0</td>
+  <td class="gt_row gt_right">1.4</td>
+  <td class="gt_row gt_right">0.2</td>
+</tr>
+<tr>
+  <td class="gt_row gt_left">setosa</td>
+  <td style="color: #000000; background-color: #fdd9b4;" class="gt_row gt_right">4.7</td>
+  <td class="gt_row gt_right">3.2</td>
+  <td class="gt_row gt_right">1.3</td>
+  <td class="gt_row gt_right">0.2</td>
+</tr>
+<tr>
+  <td class="gt_row gt_left">setosa</td>
+  <td style="color: #000000; background-color: #fff5eb;" class="gt_row gt_right">4.6</td>
+  <td class="gt_row gt_right">3.1</td>
+  <td class="gt_row gt_right">1.5</td>
+  <td class="gt_row gt_right">0.2</td>
+</tr>
+<tr>
+  <td class="gt_row gt_left">setosa</td>
+  <td style="color: #FFFFFF; background-color: #c54102;" class="gt_row gt_right">5.0</td>
+  <td class="gt_row gt_right">3.6</td>
+  <td class="gt_row gt_right">1.4</td>
+  <td class="gt_row gt_right">0.2</td>
+</tr>
+</tbody>
+  <tfoot class="gt_sourcenotes">
+  
+  <tr>
+    <td class="gt_sourcenote" colspan="5">数据来源：R 软件内置数据集</td>
+  </tr>
+
+</tfoot>
+
+</table>
+
+</div>
+        
+<p>顺便一提，plotly 模块支持<a href="https://plotly.com/python/table/">制作表格</a>，只是内置的制表功能一方面比较弱（无法交互），另一方面使用不太方便（相比于 R 包 DT 或 gt）。</p>
+<pre class="python"><code>import plotly.graph_objects as go
+
+iris_head = iris.head().drop(&quot;species_id&quot;, axis = 1)
+iris_table = go.Figure(
+    data=[
+        go.Table(
+            header=dict(
+                values=list(iris_head.columns), 
+                fill_color=&quot;paleturquoise&quot;, 
+                align=&quot;left&quot;
+            ),
+            cells=dict(
+                values=[
+                    iris_head.sepal_length,
+                    iris_head.sepal_width,
+                    iris_head.petal_length,
+                    iris_head.petal_width,
+                    iris_head.species
+                ],
+                fill_color=&quot;lavender&quot;,
+                align=&quot;left&quot;,
+            ),
+        )
+    ]
+)
+iris_table.show()</code></pre>
+<div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script charset="utf-8" src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>                <div id="3b0a3cdf-cba4-40e8-9d6d-452224deac2b" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script type="text/javascript">                                    window.PLOTLYENV=window.PLOTLYENV || {};                                    if (document.getElementById("3b0a3cdf-cba4-40e8-9d6d-452224deac2b")) {                    Plotly.newPlot(                        "3b0a3cdf-cba4-40e8-9d6d-452224deac2b",                        [{"cells":{"align":"left","fill":{"color":"lavender"},"values":[[5.1,4.9,4.7,4.6,5.0],[3.5,3.0,3.2,3.1,3.6],[1.4,1.4,1.3,1.5,1.4],[0.2,0.2,0.2,0.2,0.2],["setosa","setosa","setosa","setosa","setosa"]]},"header":{"align":"left","fill":{"color":"paleturquoise"},"values":["sepal_length","sepal_width","petal_length","petal_width","species"]},"type":"table"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmapgl":[{"type":"heatmapgl","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}}},                        {"responsive": true}                    )                };                            </script>        </div>
+</div>
+<div id="网页应用-shiny" class="section level1" number="5">
+<h1><span class="header-section-number">5</span> 网页应用 shiny</h1>
+<p>Python 语言中陆续出现很多流行的网页开发框架，其中，<a href="https://github.com/posit-dev/py-shiny">shiny</a> 框架是最近两年 RStudio 出品的。该框架汲取了原 R 语言社区的 shiny 框架经验，以及参考了 Python 社区现有网页开发框架的特点。因此，新框架往往有一些<a href="https://posit.co/blog/why-shiny-for-python/">后发优势</a>。</p>
+<div class="float">
+<img src="img/py-shiny.png" alt="Shiny for Python" />
+<div class="figcaption">Shiny for Python</div>
+</div>
+<p>相比于 Shiny for R，最直接的感受是看起来更加清爽。以上 Shiny 应用的<a href="demo/app.py">代码见链接</a>。图中表格渲染采用 shiny 内置的函数，自带行过滤和列排序，相比于 R 版功能更加强大，此外，通过<a href="https://shiny.posit.co/py/docs/jupyter-widgets.html">Jupyter Widgets</a>支持第三方的专门制表模块<a href="https://pypi.org/project/ipydatagrid">ipydatagrid</a>。图形制作采用 plotly 包，因其功能强大而成熟。</p>
+<p>在熟悉 R 语言中的 shiny 包之后，会发现很多函数是类似的。不仅如此，<a href="https://shiny.posit.co/py/layouts/">页面布局</a>、输入组件、输出控制等部分的使用逻辑都是一样的。所以，只需要从示例、模版出发，改动内容，非常方便。</p>
+</div>
