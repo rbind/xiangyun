@@ -13,102 +13,109 @@ output:
   blogdown::html_page:
     toc: true
 link-citations: true
-description: "waitingtime 作为研究变量，表示的是患者在医生诊断之后，需要等待多长时间来住院。要求探索下影响入院等待时间的因素，搭建模型预测等待入院时间，并给出合理解释，用两种预测模型。"
+description: "等待时间作为研究变量，表示的是患者在医生诊断之后，需要等待多长时间来住院。要求探索下影响入院等待时间的因素，搭建模型预测等待入院时间，并给出合理解释，用两种预测模型。"
 ---
-
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, comment = NA, message = FALSE)
 
 options(conflicts.policy = list(warn = FALSE))
 library(dplyr)
+showtext::showtext_auto()
 ```
 
 ## 本文概览
 
 1.  分析目标：患者在医生诊断后，预测需要等待多久时间来住院，探索影响入院等待时间的因素
 
-1.  分析思路：
+2.  分析思路：
 
-  1.  探索影响入院等待时间的因素
-      -  根据相关性寻找原因，用回归分析
-      -  影响等待时间的因素，时间长一点短一点，只要来住院，这个问题似乎更重要
-  1.  更加准确地预测等待时间
-	    -  预测问题，可用机器学习的方法
+3.  探索影响入院等待时间的因素
 
-1.  分析流程
+    -   根据相关性寻找原因，用回归分析
+    -   影响等待时间的因素，时间长一点短一点，只要来住院，这个问题似乎更重要
 
-   -  弄清楚各个指标的含义，特别是离群值和缺失值的实际意义
-   -  描述性统计分析，从数据中获得初步认识，为数据建模和结果解释做依据
-   -  建立广义线性模型和机器学习模型
-   -  模型评估、选择、结果分析和解释
+4.  更加准确地预测等待时间
+
+    -   预测问题，可用机器学习的方法
+
+5.  分析流程
+
+-   弄清楚各个指标的含义，特别是离群值和缺失值的实际意义
+-   描述性统计分析，从数据中获得初步认识，为数据建模和结果解释做依据
+-   建立广义线性模型和机器学习模型
+-   模型评估、选择、结果分析和解释
 
 1.  分析目标
 
-   -  患者在医生诊断后，需要等待多久时间来住院，探索影响入院等待时间的因素
-   -  根据观测结果和相关性寻找原因的问题，属于回归分析
-   -  更加准确地预测等待时间（时间长一点短一点只有来住院）
-   -  影响等待时间的因素（这个问题似乎更重要）
+-   患者在医生诊断后，需要等待多久时间来住院，探索影响入院等待时间的因素
+-   根据观测结果和相关性寻找原因的问题，属于回归分析
+-   更加准确地预测等待时间（时间长一点短一点只有来住院）
+-   影响等待时间的因素（这个问题似乎更重要）
 
 1.  分析流程
 
-   -  弄清楚各个指标的含义，包括离群值和缺失值的实际意义
-   -  描述性统计分析，从数据中获得进一步认识，为数据建模做依据
-   -  建立模型，模型评估和选择
-   -  模型结果分析和解释
-
+-   弄清楚各个指标的含义，包括离群值和缺失值的实际意义
+-   描述性统计分析，从数据中获得进一步认识，为数据建模做依据
+-   建立模型，模型评估和选择
+-   模型结果分析和解释
 
 ## 数据操作
 
 ```{r,echo=TRUE}
+#| eval: false
+
 dat <- read.csv(file = "data/hospital_waiting_time.csv", 
                 header = TRUE, check.names = FALSE, fileEncoding = "GBK")
+```
+
+```{r,echo=FALSE}
+dat <- readRDS(file = "data/hospital_waiting_time.rds")
 dat$开住院条日期 <- factor(dat$开住院条日期)
 dat$性别 <- factor(dat$性别)
 dat$入院疾病分类 <- factor(dat$入院疾病分类)
 dat$入院目的 <- factor(dat$入院目的)
 dat$住院类别 <- factor(dat$住院类别)
 dat$入院病情 <- factor(dat$入院病情)
-dat$Doctor <- factor(dat$Doctor)
+dat$医生 <- factor(dat$医生)
 tibble::as_tibble(dat)
 ```
 
-- 门诊次：挂号看诊次数
-- 住院次：办理住院的次数
-- 开住院条的日期：住院天数
-
+-   门诊次：挂号看诊次数
+-   住院次：办理住院的次数
+-   开住院条的日期：住院天数
 
 ```{r}
 plot(dat$门诊次) # 为什么有几百次的门诊
 plot(dat$开住院条日期) # 实际还有一类是缺失值
 ```
 
-1. 住院次数特别多的人，比如10次以上，是比较异常的，情况比较少，两种住院类型都有，等待时间比较短
+1.  住院次数特别多的人，比如10次以上，是比较异常的，情况比较少，两种住院类型都有，等待时间比较短
 
 ```{r}
 subset(dat, 住院次 > 10)
 plot(dat$住院次[dat$住院次 < 10], ylab = "住院次数", xlab = "")
 ```
 
-1. 等待时间为0，说明情况紧急，急需住院，也可能是着急占床位，入院病情是否相符。响应变量近似看作服从对数正态分布，取值为0，对应的密度也是0，其实可以去掉
+1.  等待时间为0，说明情况紧急，急需住院，也可能是着急占床位，入院病情是否相符。响应变量近似看作服从对数正态分布，取值为0，对应的密度也是0，其实可以去掉
 
 ```{r}
-subset(dat, WaitingTime == 0)[1:6, ]
+subset(dat, 等待时间 == 0)[1:6, ]
 ```
 
-1. 开住院条日期缺失，说明可能没办住院手续，等待时间如何分布
+1.  开住院条日期缺失，说明可能没办住院手续，等待时间如何分布
 
 ```{r}
-boxplot(subset(dat, is.na(开住院条日期), select = "WaitingTime"))
+boxplot(subset(dat, is.na(开住院条日期), select = "等待时间"))
 ```
 
-- 去掉等待时间为 0，门诊次为 0 的记录，住院次数特别多的情况
-- 年龄标准化，门诊次对数变换，开住院条日期缺失单独作为一类
-- 将罕见的情况，对模型来说，可以认为是异常情况
+-   去掉等待时间为 0，门诊次为 0 的记录，住院次数特别多的情况
+-   年龄标准化，门诊次对数变换，开住院条日期缺失单独作为一类
+-   将罕见的情况，对模型来说，可以认为是异常情况
 
 ```{r,echo=TRUE}
 # 去掉异常值
-sub_dat <- subset(dat, WaitingTime != 0 & 门诊次 != 0 & 住院次 <= 10)
+sub_dat <- subset(dat, 等待时间 != 0 & 门诊次 != 0 & 住院次 <= 10)
 # 年龄标准化，门诊次对数变换
 sub_dat <- transform(sub_dat, 年龄 = (年龄 - mean(年龄)) / sd(年龄), 门诊次 = log(门诊次), 开住院条日期 = ifelse(is.na(开住院条日期), 0, 开住院条日期))
 tibble::as_tibble(sub_dat)
@@ -118,35 +125,35 @@ tibble::as_tibble(sub_dat)
 
 ### 等待时间的分布
 
-- 等待时间的是偏态分布，右偏
+-   等待时间的是偏态分布，右偏
 
 ```{r}
 library(ggplot2)
-gWT1 <- ggplot(data = sub_dat, aes(WaitingTime)) +
+gWT1 <- ggplot(data = sub_dat, aes(等待时间)) +
   geom_histogram()
-gWT2 <- ggplot(data = sub_dat, aes(x = factor(1), y = WaitingTime)) +
+gWT2 <- ggplot(data = sub_dat, aes(x = factor(1), y = 等待时间)) +
   geom_jitter()
-gWT3 <- ggplot(data = sub_dat, aes(x = factor(1), y = WaitingTime)) +
+gWT3 <- ggplot(data = sub_dat, aes(x = factor(1), y = 等待时间)) +
   geom_boxplot()
-gWT4 <- ggplot(data = sub_dat, aes(x = factor(1), y = WaitingTime)) +
+gWT4 <- ggplot(data = sub_dat, aes(x = factor(1), y = 等待时间)) +
   geom_violin()
 library(cowplot)
 plot_grid(gWT1, gWT2, gWT3, gWT4, label_size = 12)
 ```
 
-- 对数化等待时间的分布
+-   对数化等待时间的分布
 
 ```{r}
-ggplot(data = sub_dat, aes(log(WaitingTime))) +
+ggplot(data = sub_dat, aes(log(等待时间))) +
   geom_histogram()
 ```
 
 ### 等待时间和医生及入院病情的关系
 
-- 2号病情属于比较紧急的情况，都是立即办住院，和医生的类型无关，这也符合常识
+-   2号病情属于比较紧急的情况，都是立即办住院，和医生的类型无关，这也符合常识
 
 ```{r}
-ggplot(data = dat, aes(x = Doctor, y = WaitingTime, color = Doctor)) +
+ggplot(data = dat, aes(x = 医生, y = 等待时间, color = 医生)) +
   geom_jitter() +
   facet_grid(~入院病情)
 ```
@@ -154,15 +161,15 @@ ggplot(data = dat, aes(x = Doctor, y = WaitingTime, color = Doctor)) +
 按医生类别和入院病情分组平均
 
 ```{r}
-aggregate(WaitingTime ~ Doctor + 入院病情, data = sub_dat, mean)
+aggregate(等待时间 ~ 医生 + 入院病情, data = sub_dat, mean)
 ```
 
 ### 等待时间和住院类别及入院目的的关系
 
-- 2号和3号入院目的的等待时间短，1号住院类别相比2号短
+-   2号和3号入院目的的等待时间短，1号住院类别相比2号短
 
 ```{r}
-ggplot(data = sub_dat, aes(x = 住院类别, y = WaitingTime, color = 住院类别)) +
+ggplot(data = sub_dat, aes(x = 住院类别, y = 等待时间, color = 住院类别)) +
   geom_jitter() +
   facet_grid(~入院目的)
 ```
@@ -170,20 +177,20 @@ ggplot(data = sub_dat, aes(x = 住院类别, y = WaitingTime, color = 住院类�
 按入院类别和入院目的分组平均
 
 ```{r}
-aggregate(WaitingTime ~ 住院类别 + 入院目的, data = sub_dat, mean)
+aggregate(等待时间 ~ 住院类别 + 入院目的, data = sub_dat, mean)
 ```
 
 ### 等待时间和病人性别及年龄的关系
 
-- 和性别关系不大
-- 年龄跨度从2岁到98岁
+-   和性别关系不大
+-   年龄跨度从2岁到98岁
 
 ```{r}
-g3 <- ggplot(data = dat, aes(x = 年龄, y = WaitingTime)) +
+g3 <- ggplot(data = dat, aes(x = 年龄, y = 等待时间)) +
   geom_point() +
   facet_grid(~性别)
 
-g4 <- ggplot(data = dat, aes(x = 年龄, y = log(WaitingTime))) +
+g4 <- ggplot(data = dat, aes(x = 年龄, y = log(等待时间))) +
   geom_point() +
   facet_grid(~性别)
 
@@ -194,7 +201,7 @@ plot_grid(g3, g4, label_size = 12)
 
 ```{r,echo=TRUE}
 gamma_glm_fit <- glm(
-  data = sub_dat, formula = WaitingTime ~ .,
+  data = sub_dat, formula = 等待时间 ~ .,
   family = Gamma(link = "inverse") # or Gamma(link = "log")
 )
 AIC(gamma_glm_fit)
@@ -209,7 +216,7 @@ summary(gamma_glm_fit)
 
 library(brms)
 log_glm_brm_fit1 <- brm(
-  data = sub_dat, formula = WaitingTime ~ .,
+  data = sub_dat, formula = 等待时间 ~ .,
   family = lognormal(link = "identity", link_sigma = "log"),
   refresh = 0,
   backend = "rstan"
@@ -218,7 +225,7 @@ log_glm_brm_fit1
 loo_fit1 <- loo(log_glm_brm_fit1) # LOOIC 越小越好
 
 log_glm_brm_fit2 <- brm(
-  data = sub_dat, formula = WaitingTime ~ .,
+  data = sub_dat, formula = 等待时间 ~ .,
   family = Gamma(link = "log"), 
   refresh = 0,
   backend = "rstan"
@@ -233,12 +240,12 @@ loo_compare(loo_fit1, loo_fit2, criterion = "waic")
 
 ### 结果解释
 
-1. 是男是女对等待时间的贡献水平是基本一样的，性别这个变量在这个数据集或者说这类病中影响不大；
-1. 年龄对等待时间是正的贡献，年龄越大，等待时间越长；
-1. 以疾病类型1为参照，2号疾病有更大影响，相对1号，等待时间更长，3号和4号疾病反之；
-1. 以1号入院目的为参照，2号入院目的对等待时间是负的贡献，即出现2号入院目的，等待时间会更短；
-1. 住院类型1号和2号都对等待时间有正的贡献；
-1. 相比于2号医生，3号医生对等待时间是正的贡献，4号医生是负的贡献，说明患者去4号医生那看病后，更快去办入院手续，从相对值来看，这位医生很可能挂专家门诊，并且比三号医生更加有名。
+1.  是男是女对等待时间的贡献水平是基本一样的，性别这个变量在这个数据集或者说这类病中影响不大；
+2.  年龄对等待时间是正的贡献，年龄越大，等待时间越长；
+3.  以疾病类型1为参照，2号疾病有更大影响，相对1号，等待时间更长，3号和4号疾病反之；
+4.  以1号入院目的为参照，2号入院目的对等待时间是负的贡献，即出现2号入院目的，等待时间会更短；
+5.  住院类型1号和2号都对等待时间有正的贡献；
+6.  相比于2号医生，3号医生对等待时间是正的贡献，4号医生是负的贡献，说明患者去4号医生那看病后，更快去办入院手续，从相对值来看，这位医生很可能挂专家门诊，并且比三号医生更加有名。
 
 ### 模型评估
 
@@ -260,7 +267,7 @@ cv <- function(n = 100, z = 9, seed = 2019) {
 n <- nrow(sub_dat)
 kfold <- 10
 idx <- cv(n, kfold, seed = 2019)
-D <- 1 # WaitingTime 在第 1 列
+D <- 1 # 等待时间 在第 1 列
 # 初始化向量用于存储均方误差
 MSE <- rep(0, kfold)
 ```
@@ -269,13 +276,12 @@ MSE <- rep(0, kfold)
 
 ### 伽马广义线性模型
 
-
 ```{r}
 for (i in 1:kfold) {
   m <- idx[[i]]
-  M <- mean((sub_dat[m, D] - mean(sub_dat[m, D]))^2) # 用平均值预测  WaitingTime 的均方误差
+  M <- mean((sub_dat[m, D] - mean(sub_dat[m, D]))^2) # 用平均值预测  等待时间 的均方误差
   log_lm_fit <- glm(
-    data = sub_dat[-m, ], formula = WaitingTime ~ .,
+    data = sub_dat[-m, ], formula = 等待时间 ~ .,
     family = Gamma(link = "inverse")
   )
   MSE[i] <- mean((sub_dat[m, D] - predict(log_lm_fit, sub_dat[m, ]))^2) / M # 测试集上算均方误差
@@ -283,22 +289,19 @@ for (i in 1:kfold) {
 mean(MSE) # 1.420639
 ```
 
-
-
 ### 决策树回归
-
 
 ```{r}
 library(rpart)
-rpart_fit <- rpart(data = sub_dat, WaitingTime ~ .)
+rpart_fit <- rpart(data = sub_dat, 等待时间 ~ .)
 plot(rpart_fit)
 library(rpart.plot)
 rpart.plot(rpart_fit, type = 2, faclen = 0)
 
 for (i in 1:kfold) {
   m <- idx[[i]]
-  M <- mean((sub_dat[m, D] - mean(sub_dat[m, D]))^2) # 用平均值预测  WaitingTime 的均方误差
-  rpart_fit <- rpart(data = sub_dat[-m, ], WaitingTime ~ .)
+  M <- mean((sub_dat[m, D] - mean(sub_dat[m, D]))^2) # 用平均值预测  等待时间 的均方误差
+  rpart_fit <- rpart(data = sub_dat[-m, ], 等待时间 ~ .)
   MSE[i] <- mean((sub_dat[m, D] - predict(rpart_fit, sub_dat[m, ]))^2) / M # 测试集上算均方误差
 }
 # 相对均方误差 越小越好
@@ -312,8 +315,8 @@ library(randomForest)
 
 for (i in 1:kfold) {
   m <- idx[[i]]
-  M <- mean((sub_dat[m, D] - mean(sub_dat[m, D]))^2) # 用平均值预测  WaitingTime 的均方误差
-  rf_fit <- randomForest(data = sub_dat[-m, ], WaitingTime ~ .)
+  M <- mean((sub_dat[m, D] - mean(sub_dat[m, D]))^2) # 用平均值预测  等待时间 的均方误差
+  rf_fit <- randomForest(data = sub_dat[-m, ], 等待时间 ~ .)
   MSE[i] <- mean((sub_dat[m, D] - predict(rf_fit, sub_dat[m, ]))^2) / M # 测试集上算均方误差
 }
 # 相对均方误差 越小越好
@@ -329,28 +332,24 @@ rf_fit$importance
 
 两列都是数值越大，变量越重要
 
-
 ### 支持向量机
 
 ```{r}
 library(e1071)
 # x 全部得是数值型的
-svm_fit <- svm(data = sub_dat, WaitingTime ~ .)
+svm_fit <- svm(data = sub_dat, 等待时间 ~ .)
 
 for (i in 1:kfold) {
   m <- idx[[i]]
-  M <- mean((sub_dat[m, D] - mean(sub_dat[m, D]))^2) # 用平均值预测  WaitingTime 的均方误差
-  svm_fit <- svm(data = sub_dat[-m, ], WaitingTime ~ .)
+  M <- mean((sub_dat[m, D] - mean(sub_dat[m, D]))^2) # 用平均值预测  等待时间 的均方误差
+  svm_fit <- svm(data = sub_dat[-m, ], 等待时间 ~ .)
   MSE[i] <- mean((sub_dat[m, D] - predict(svm_fit, sub_dat[m, ]))^2) / M # 测试集上算均方误差
 }
 # 相对均方误差 越小越好
 mean(MSE) # 10 折下来的平均结果 1.031385 效果非常差，不能接受
 ```
 
-
-
 ### 神经网络
-
 
 ```{r}
 library(nnet)
@@ -363,7 +362,7 @@ comp_grid <- expand.grid(
   .size = c(4, 5, 6, 7, 8)
 )
 nnet_fit <- caret::train(
-  WaitingTime / max(WaitingTime) ~ .,
+  等待时间 / max(等待时间) ~ .,
   data = sub_dat,
   method = "nnet", maxit = 1000,
   tuneGrid = comp_grid, trace = FALSE
@@ -373,23 +372,21 @@ print(nnet_fit) # size = 5 and decay = 0.05
 
 for (i in 1:kfold) {
   m <- idx[[i]]
-  M <- mean((sub_dat[m, D] - mean(sub_dat[m, D]))^2) # 用平均值预测  WaitingTime 的均方误差
-  nnet_fit <- nnet(data = sub_dat[-m, ], WaitingTime / max(sub_dat[, D]) ~ ., size = 5, decay = 0.05, trace = FALSE)
+  M <- mean((sub_dat[m, D] - mean(sub_dat[m, D]))^2) # 用平均值预测  等待时间 的均方误差
+  nnet_fit <- nnet(data = sub_dat[-m, ], 等待时间 / max(sub_dat[, D]) ~ ., size = 5, decay = 0.05, trace = FALSE)
   MSE[i] <- mean((sub_dat[m, D] - predict(nnet_fit, sub_dat[m, ]) * max(sub_dat[, D]))^2) / M # 测试集上算均方误差
 }
 # 相对均方误差 越小越好
 mean(MSE) # 10 折下来的平均结果 0.9601197
 ```
 
-
 ### Box-Cox 变换
 
 Box-Cox 变换后，再做线性拟合
 
-
 ```{r}
 library(MASS)
-b <- boxcox(WaitingTime ~ ., data = sub_dat)
+b <- boxcox(等待时间 ~ ., data = sub_dat)
 i <- which(b$y == max(b$y))
 b$x[i] # 选 lambda
 ```
@@ -397,7 +394,7 @@ b$x[i] # 选 lambda
 选好 lambda 先拟合线性模型做 baseline
 
 ```{r}
-lm_fit <- lm(WaitingTime^0.14 ~ ., data = sub_dat)
+lm_fit <- lm(等待时间^0.14 ~ ., data = sub_dat)
 step_lm_fit <- step(lm_fit, trace = FALSE)
 AIC(step_lm_fit)
 summary(step_lm_fit)
@@ -406,11 +403,10 @@ summary(step_lm_fit)
 ```{r}
 for (i in 1:kfold) {
   m <- idx[[i]]
-  M <- mean((sub_dat[m, D] - mean(sub_dat[m, D]))^2) # 用平均值预测  WaitingTime 的均方误差
-  lm_fit <- lm(WaitingTime^0.14 ~ ., data = sub_dat[-m, ])
+  M <- mean((sub_dat[m, D] - mean(sub_dat[m, D]))^2) # 用平均值预测  等待时间 的均方误差
+  lm_fit <- lm(等待时间^0.14 ~ ., data = sub_dat[-m, ])
   MSE[i] <- mean((sub_dat[m, D] - predict(nnet_fit, sub_dat[m, ]) * max(sub_dat[, D]))^2) / M # 测试集上算均方误差
 }
 # 相对均方误差 越小越好
 mean(MSE) # 10 折下来的平均结果 0.9404893
 ```
-
