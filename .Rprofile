@@ -5,7 +5,7 @@ options(
   blogdown.warn.future = FALSE,
   blogdown.method = 'html',
   digits = 4, formatR.indent = 2, 
-  servr.port = 4322,
+  servr.port = 4321,
   blogdown.yaml.empty = FALSE, 
   blogdown.rename_file = TRUE,
   blogdown.title_case = function(x) {
@@ -20,4 +20,4 @@ options(
   blogdown.serve_site.startup = FALSE
 )
 
-options(blogdown.hugo.version = "0.118.2")
+options(blogdown.hugo.version = "0.126.2")
