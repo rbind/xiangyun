@@ -35,7 +35,6 @@ bibliography:
 description: "介绍用于地理可视化的几种常用数据结构，比如 **sp** 包和**sf** 包提供的空间数据类型、数据操作和绘图方法。介绍地理可视化常用的展示形式，如瓦片图、围栏图、气泡图、热力图、等高图等，以及绘制过程中需要注意的制图规范问题。介绍 **ggplot2**、**lattice**、**leaflet**、**plotly** 和 **echarts4r** 等诸多 R 包，分别调用谷歌、高德等多个地图服务实现静态或交互式地理可视化。"
 ---
 
-
 ```{r setup, echo=FALSE}
 knitr::opts_chunk$set(
   comment = "#",
@@ -68,22 +67,22 @@ options(width = 89)
 本文引用的所有信息均为公开信息，仅代表作者本人观点，与就职单位无关。
 :::
 
-
 # 概览
 
 本文首先以实际示例介绍三类典型的空间数据，希望读者能对不同类型的空间数据的特点和使用场景有个简单印象。紧接着，介绍各类地理空间数据的可视化方法及 R 包实现，笔者从个人经验出发详细介绍了4个，相信足够让读者应付大部分使用场景。之后，再介绍 R 语言中的空间数据类型及其基本操作，空间数据操作是基本功，也是比较难的，没放在空间数据可视化前面是怕吓跑了一些读者，笔者所知也十分有限，也怕写不好。再基于一个真实数据用不同的 R 包实现类似的可视化效果，是几代空间数据可视化方法的并列介绍，最后是一些心得、总结和展望。
 
 本文有几个写作意图：
 
-1. 如何用 R 语言调用**各类**地图服务实现**各类**空间数据的**各种**可视化方法。
-1. 以丰富的实例数据和图形展示各类空间数据，帮助读者建立直觉。
-1. 对比多个可视化 R 包，提供丰富的效果图，帮助读者选择合适的可视化图形。
-1. 希望在这个颜值走遍天下的时代，能吸引更多的人入坑 R 语言，并感受 R 语言在数据可视化领域的魅力。
+1.  如何用 R 语言调用**各类**地图服务实现**各类**空间数据的**各种**可视化方法。
+2.  以丰富的实例数据和图形展示各类空间数据，帮助读者建立直觉。
+3.  对比多个可视化 R 包，提供丰富的效果图，帮助读者选择合适的可视化图形。
+4.  希望在这个颜值走遍天下的时代，能吸引更多的人入坑 R 语言，并感受 R 语言在数据可视化领域的魅力。
 
+```{=html}
 <!-- 
 无需强调：笔者不是测绘专业出身，自学过一点地统计学（Geostatistics），很多地理信息和空间分析的领域知识是现学现卖，恐有错漏，还请多多指正。 
 -->
-
+```
 # 空间数据
 
 空间数据基本类型有点、线、面（或称多边形）等，还分矢量数据和栅格数据，地理可视化的展示形式有气泡图、热力图、瓦片图、地形图等。下面通过几个实际的空间数据，以图形的展示方式以期帮助读者建立数据直觉，陆续使用 **lattice** [@lattice]、**ggplot2** [@ggplot2]和 **leaflet** [@leaflet] 来绘制静态和交互图形。
@@ -102,7 +101,6 @@ head(incidents)
 
 数据集 incidents 来自 2012 年旧金山的犯罪数据，更多数据见 [DataSF 项目](https://datasf.org/opendata/)，一些数据分析见 Github [项目](https://github.com/datasf)。数据集 incidents 随机抽取了 5000 行，16个观测变量，分别是犯罪数目 `IncidntNum`、犯罪类型 `Category`、犯罪行为描述 `Descript`、犯罪行为发生在周几 `DayOfWeek`、犯罪行为发生的日期 `Date`、犯罪行为发生的时间（hh::mm）`Time`、警局辖区 `PdDistrict`、警方处置方式 `Resolution`、位置 `Location`、经度 `lon`、纬度 `lat`、是否属于暴力行为 `violent`、发生时间（小时，以2位整数计） `HrOfDay`、发生时间（小时，以10进制计）`TimeOfDay`、发生时间（一周168个小时，0-168之间的数字）`HourOfWeek`、人口普查的区块标记 `censusBlock`。图\@ref(fig:incidents-map)展示警方出警地点，或者说犯罪行为发生地点，红点表示此处发生暴力冲突，黑点表示此处没有暴力冲突。
 
-
 ```{r,eval=FALSE}
 plotmap(
   lat = lat, lon = lon, data = incidents, 
@@ -112,8 +110,7 @@ plotmap(
 )
 ```
 
-
-![(\#fig:incidents-map) 2012 年旧金山警方出警地点的空间分布](img/incidents-map.png){.full}
+![(#fig:incidents-map) 2012 年旧金山警方出警地点的空间分布](img/incidents-map.png){.full}
 
 除了 **RgoogleMaps** 提供的 `plotmap()` 函数，当然，还可以用 **leaflet** 来绘制交互式的散点图，因为交互，可以放入更多的信息。如图\@ref(fig:incidents-leaflet)，鼠标悬浮在散点上可以看到事件发生的警区 PdDistrict，点击可以看到警方的处置方式 Resolution，这是设置 `addCircles()` 的参数 `label` 和 `popup` 实现的，实际上，它们还可以放入更加丰富的信息。
 
@@ -142,7 +139,7 @@ leaflet(options = leafletOptions(
   ), values = incidents$Resolution, opacity = 1)
 ```
 
-![(\#fig:incidents-leaflet) 2012 年旧金山警方出警地点的空间分布](img/incidents-leaflet.png){.full}
+![(#fig:incidents-leaflet) 2012 年旧金山警方出警地点的空间分布](img/incidents-leaflet.png){.full}
 
 接下来再细致一点地探索 incidents 数据集，各个警区出警次数的分布情况，
 
@@ -157,7 +154,7 @@ ggplot(data = dat, aes(x = PdDistrict, y = cnt, fill = violent)) +
   geom_col()
 ```
 
-![(\#fig:incidents-pddistrict) 事件发生次数随警区的分布](img/incidents-pddistrict.png){.full}
+![(#fig:incidents-pddistrict) 事件发生次数随警区的分布](img/incidents-pddistrict.png){.full}
 
 进一步，可将图\@ref(fig:incidents-pddistrict)所示分布绘制在地图上，如图\@ref(fig:incidents)展示事件发生次数随警区的空间分布。
 
@@ -176,7 +173,7 @@ RgoogleMapsPlot(cnt ~ lat * lon | violent,
 )
 ```
 
-![(\#fig:incidents) 事件发生次数随警区的**空间**分布：左图**非暴力**事件，右图**暴力**事件](img/incidents.png){.full}
+![(#fig:incidents) 事件发生次数随警区的**空间**分布：左图**非暴力**事件，右图**暴力**事件](img/incidents.png){.full}
 
 再从全年来看，事件发生的时间分布，发现犯罪的高峰时段从下午 5-6 点一直持续到午夜 12 点。
 
@@ -186,7 +183,7 @@ ggplot(data = dat, aes(x = HrOfDay, y = cnt, fill = violent)) +
   geom_col()
 ```
 
-![(\#fig:incidents-hour) 事件发生次数随时段的分布](img/incidents-hour.png){.full}
+![(#fig:incidents-hour) 事件发生次数随时段的分布](img/incidents-hour.png){.full}
 
 每次接报出警，警方会根据具体情况快速对事件定级分类，然后派出相应的警力以及处置方式。可以见事件性质 Category、是否发生暴力 violent 和警方处置方式 Resolution 应当有很强的关联。既然 Category， violent 和 Resolution 有很强的关联，展示关联关系非常重要，有的分类 Category 就应该给予足够的处置力度，特别对于暴力事件，关注警方的措施是否有不当或处置不力的？以此，还可以推测旧金山的治安状况。
 
@@ -200,11 +197,9 @@ ggplot(data = dat, aes(x = reorder(Category, cnt), y = cnt, fill = Resolution)) 
   labs(x = "Category")
 ```
 
-
-![(\#fig:incidents-resolution) 事件性质和警方处置情况](img/incidents-resolution.png){.full}
+![(#fig:incidents-resolution) 事件性质和警方处置情况](img/incidents-resolution.png){.full}
 
 从图\@ref(fig:incidents-resolution)看出，对于不同的事件 Category 有不同的执行措施 Resolution，执行措施和是否属于暴力有关系。一般来讲，暴力事件都应该有处置，发生暴力事件只有 5 类，按发生次数依次是打架斗殴、抢劫、性骚扰、绑架、盗窃，从图中也可看出盗窃是最多的犯罪事件。下表 \@ref(tab:incidents-category) 是对图中分类的中文翻译，笔者英文水平一般，翻译仅供参考。
-
 
 ```{r incidents-category,echo=FALSE}
 dat <- data.frame(
@@ -237,7 +232,6 @@ knitr::kable(x = dat, caption = "事件性质")
 
 **ggplot2** 提供的 `map_data()` 函数可以从 **maps** 包中提取和转化地图数据，而 `coord_map()` 函数结合 **mapproj** 包可以实现坐标转化。下面以 R 内置的数据集 state.x77 为例，它记录了美国 1977 年 50 个州的人口普查情况，Population 各州的人口数量 （1975 年 7 月 1 日估计），Income 人均收入（1974年），Illiteracy 文盲比例（人口百分比），平均寿命（1969-1971年统计），Murder 谋杀和非过失杀人率（单位：十万分之一，1976年统计），HS Grad 高中毕业生百分比（1970 年统计），Frost 首都或大城市最低气温低于冰点的平均天数（1931-1960年统计），Area 土地面积（单位：平方英里）。如图\@ref(fig:ggplot2-statex77)， **maps** 包内置的美国各州的地图数据缺少夏威夷和阿拉斯加州。
 
-
 ```{r,eval=FALSE}
 library(ggplot2)
 # 准备地图数据
@@ -266,8 +260,7 @@ ggplot(states_map, aes(x = long, y = lat, group = group)) +
   theme(legend.position = "bottom") # 图例位置图形下方
 ```
 
-![(\#fig:ggplot2-statex77) 1975年美国各个州的人口](img/ggplot2-statex77.png){.full}
-
+![(#fig:ggplot2-statex77) 1975年美国各个州的人口](img/ggplot2-statex77.png){.full}
 
 [**usmap**](https://github.com/pdil/usmap/) 提供 `plot_usmap()` 函数可谓专门用来绘制美国各州县的地图，包含夏威夷和阿拉斯加州，不包含波多黎各，参数 `data` 需要传入一个数据框，且必须有一列可以和地图提供的区域名称映射上，即需要有一列的列名是 state 或 fips。实际上，**usmap** 包 还内置有区县级地图数据，也支持抽取特定的州县，更多介绍见[这里](https://usmap.dev/)。
 
@@ -287,8 +280,7 @@ usmap::plot_usmap(data = state_x77, values = "Population", labels = TRUE) +
   theme(legend.position = "bottom") # 图例位置图形下方
 ```
 
-![(\#fig:usmap-statex77) 1975年美国各个州的人口](img/usmap-statex77.png){.full}
-
+![(#fig:usmap-statex77) 1975年美国各个州的人口](img/usmap-statex77.png){.full}
 
 ## 示例：美国锡安公园地形数据
 
@@ -311,7 +303,7 @@ data("elevation", package = "spDataLarge")
 terra::plot(elevation, asp = NA)
 ```
 
-![(\#fig:raster-elevation) **terra** 包绘制锡安国家公园地形](img/raster-elevation.png){.full}
+![(#fig:raster-elevation) **terra** 包绘制锡安国家公园地形](img/raster-elevation.png){.full}
 
 ::: rmdtip
 R 软件内置的调色板 `terrain.colors()` 专用于地形图配色，从翠绿色、土黄色、沙白色，无不暗示海拔变化，读者不妨想象一下，山上的树呈翠绿色，山腰的砂石土块呈土黄色，山脚的河床小路呈沙白色，十分符合我国南方的丘陵山地印象。
@@ -321,19 +313,13 @@ R 软件内置的调色板 `terrain.colors()` 专用于地形图配色，从翠�
 
 本节主要介绍几个 R 语言社区提供的地理可视化 R 包，分别是绘制交互式地图的 **echarts4r** 包 [@echarts4r]、**leaflet** 包和 **plotly** 包。它们各有千秋， **echarts4r** 背靠 [Apache Echarts](https://github.com/apache/echarts) 功能覆盖面比较广，但是还不够精纯，在易用性和性能上还有较大提升空间，此外，在统计方面有些弱，比如分组线性回归很难实现。**leaflet** 专注于交互式地理可视化，支持常见的矢量和栅格数据对象。**plotly** 背后的支持来自商业公司，上游依赖是开源的JavaScript 库[plotly](https://github.com/plotly)，深耕多年，功能全面，使用的体感是性能比较差。
 
-
 地理可视化的 R 包是有很多的，本文无法穷尽。[choroplethr](https://github.com/trulia/choroplethr) 和[choroplethrMaps](https://github.com/trulia/choroplethrMaps) 主要用来制作地区分布图，需要的区域数据，**choroplethrMaps** 包提供三份地图数据，分别是美国州、县地图和世界地图，相关介绍材料见[这里](https://arilamstein.com/open-source/)。[tmap](https://github.com/r-tmap/tmap) 制作交互地图，[mapsf](https://github.com/riatelab/mapsf) 制作符号地图、等值地图、拓扑地图，关于各类地图的可视化示例见[AntV 官网](https://antv.vision/zh)。[mapsapi](https://github.com/michaeldorman/mapsapi) 可以连接 4 种 Google 提供的 Web 地图服务。
 
-
 地理可视化的展示形式有多种，散点图、气泡图、峰窝图和热度图等，还可以有更加复合的专题地图，如在地图上省、市、区、县一级别，显示各个年龄段的人口比例，类似将饼图贴在地图上。为简单起见，主要以散点图为例介绍入门级别的内容。
-
-
 
 ## echarts4r
 
 **echarts4r** 支持使用多种地图服务，包括 OSM（OpenStreetMap）、Mapbox、谷歌、高德等，只要提供引用瓦片服务数据模版即可。**echarts4r** 内置了一份矢量地图数据，如图\@ref(fig:quakes-echarts4r)所示。简单起见，这里使用了 R 内置的数据集 quakes，它描述了太平洋岛国斐济及周边自 1964 年以来的四级以上的地震活动。从图中不难看出有两个非常清晰的地震带。结合背景材料，一个在主要板块交界处，另一个是新西兰附近的汤加海沟。火山爆发和地震不是一回事，但紧密相连。2022年1月14日，汤加海底火山爆发，引发海啸等一系列自然灾害，中国地震局也发布新闻资讯---[汤加火山喷发，会造成哪些影响？](https://www.cea.gov.cn/cea/xwzx/fzjzyw/5647231/index.html)详细介绍了这一事件。
-
-
 
 ```{r,eval=FALSE}
 library(echarts4r)
@@ -355,16 +341,16 @@ quakes |>
   e_visual_map(mag, scale = e_scale)
 ```
 
-![(\#fig:quakes-echarts4r) **echarts4r** 使用内置矢量地图数据](img/quakes-echarts4r.png){.full}
+![(#fig:quakes-echarts4r) **echarts4r** 使用内置矢量地图数据](img/quakes-echarts4r.png){.full}
 
 **echarts4r** 提供地理图层 `e_geo()` 专门用来加载地图数据，在这个例子中，只需要展示局部地图，因此基于数据集 quakes 提取经纬度范围，获取了边界信息，设置了参数 `boundingCoords`，即矩形的左上顶点和右下顶点的两个坐标，关于其它参数更加详尽的介绍，见 Apache Echarts 官方文档里 [地理图层](https://echarts.apache.org/en/option.html#geo.boundingCoords)。下面做一些更加细致的调整，最终效果如图\@ref(fig:quakes-chalk)。
 
-- `e_effect_scatter()` 替换 `e_scatter()` 实现一些动态特效，和地震的震波建立一些视觉联系，不过会增加渲染压力；设置 `scale = NULL` 去掉默认对 size 变量的尺度变换；
-- `e_title()` 添加一些文字介绍斐济地震带背后的数据背景；
-- `e_tooltip()` 参考 Apache Echarts 官方文档[tooltip](https://echarts.apache.org/zh/option.html#geo.tooltip.formatter)在气泡上定制悬浮提示，补充震点位置和震级信息，定性和定量结合；
-- `e_visual_map()` 设置透明度缓解数据点覆盖，设置颜色和气泡大小的变化范围，设置组件两端的文本，设置组件的位置为右下角，更多设置详见[视觉映射组件](https://echarts.apache.org/zh/option.html#visualMap)；
-- `e_legend()` 隐藏图例，已用 `e_visual_map()` 替代；
-- `e_theme()` 参考[主题配置页面](https://echarts.apache.org/zh/theme-builder.html)挑选黑色背景主题。
+-   `e_effect_scatter()` 替换 `e_scatter()` 实现一些动态特效，和地震的震波建立一些视觉联系，不过会增加渲染压力；设置 `scale = NULL` 去掉默认对 size 变量的尺度变换；
+-   `e_title()` 添加一些文字介绍斐济地震带背后的数据背景；
+-   `e_tooltip()` 参考 Apache Echarts 官方文档[tooltip](https://echarts.apache.org/zh/option.html#geo.tooltip.formatter)在气泡上定制悬浮提示，补充震点位置和震级信息，定性和定量结合；
+-   `e_visual_map()` 设置透明度缓解数据点覆盖，设置颜色和气泡大小的变化范围，设置组件两端的文本，设置组件的位置为右下角，更多设置详见[视觉映射组件](https://echarts.apache.org/zh/option.html#visualMap)；
+-   `e_legend()` 隐藏图例，已用 `e_visual_map()` 替代；
+-   `e_theme()` 参考[主题配置页面](https://echarts.apache.org/zh/theme-builder.html)挑选黑色背景主题。
 
 ```{r,eval=FALSE}
 # 使用默认的地图
@@ -428,12 +414,9 @@ quakes |>
   e_theme(name = "chalk")
 ```
 
-
-![(\#fig:quakes-chalk) **echarts4r** 使用内置矢量地图数据](img/quakes-chalk.png){.full}
-
+![(#fig:quakes-chalk) **echarts4r** 使用内置矢量地图数据](img/quakes-chalk.png){.full}
 
 下面介绍在瓦片地图数据的基础上展示 quakes 数据，如图\@ref(fig:quakes-osm) 所示，这里采用地理图层 `e_leaflet()` 调用开放的 OpenStreetMap 瓦片服务。
-
 
 ```{r,eval=FALSE}
 # OSM
@@ -444,8 +427,7 @@ quakes |>
   e_scatter(lat, size = mag, coord_system = "leaflet")
 ```
 
-
-![(\#fig:quakes-osm) **echarts4r** 使用 OpenStreetMap 地图](img/quakes-osm.png){.full}
+![(#fig:quakes-osm) **echarts4r** 使用 OpenStreetMap 地图](img/quakes-osm.png){.full}
 
 只要提供瓦片地图服务的模版，就可以切换地图底图数据，图\@ref(fig:quakes-ggmap)使用了谷歌的地图服务。
 
@@ -461,7 +443,7 @@ quakes |>
   e_scatter(lat, size = mag, coord_system = "leaflet")
 ```
 
-![(\#fig:quakes-ggmap) **echarts4r** 使用谷歌地图](img/quakes-ggmap.png){.full}
+![(#fig:quakes-ggmap) **echarts4r** 使用谷歌地图](img/quakes-ggmap.png){.full}
 
 类似谷歌的要求，使用 Mapbox 地图服务也需要先申请个人访问令牌，申请下来后，也把它设置到 R 语言环境变量里 `MAPBOX_TOKEN`，以便后续使用。
 
@@ -483,9 +465,7 @@ quakes |>
   e_visual_map(mag)
 ```
 
-
-![(\#fig:quakes-mapbox) **echarts4r** 使用 MAPBOX 地图](img/quakes-mapbox.png){.full}
-
+![(#fig:quakes-mapbox) **echarts4r** 使用 MAPBOX 地图](img/quakes-mapbox.png){.full}
 
 在国内，最好使用百度、高德这样的国家认可的地图服务提供商，这也很容易，只需用高德的 tile 服务数据替换 OSM 的。
 
@@ -501,24 +481,17 @@ quakes |>
   e_scatter(lat, size = mag, coord_system = "leaflet")
 ```
 
-
-![(\#fig:quakes-amap) **echarts4r** 使用高德地图](img/quakes-amap.png){.full}
-
+![(#fig:quakes-amap) **echarts4r** 使用高德地图](img/quakes-amap.png){.full}
 
 另外，袁凡整理的材料 --- [**echarts4r**: 从入门到应用](https://cosx.org/2021/12/introduction-to-echarts4r/)，详细介绍了如何用 **echarts4r** 绘制各种各样的常用图形，如何引入外部地图数据制图，文章完全基于用 R Markdown 编译，图文并茂，内容可重复。苏玮制作的 [日本新冠疫情看板](https://github.com/swsoyee/2019-ncov-japan) 也大量使用 **echarts4r**，可见 **echarts4r** 能力之强，此看板适合比较高阶的 R 语言读者学习，地理可视化的定制化程度比较高。
 
 百度、阿里、腾讯等公司都提供大量面向不同场景的地图服务，一些软件也内置了地图，如[tableau](https://www.tableau.com/products/desktop)、[GRASS GIS](https://grass.osgeo.org/) 和[QGIS](https://www.qgis.org/)等，下图\@ref(fig:qgis) 展示 QGIS 软件使用在线的 OpenStreetMap 地图。
 
-![(\#fig:qgis) QGIS 软件内的 OpenStreetMap 地图](img/qgis.png){.full}
-
-
+![(#fig:qgis) QGIS 软件内的 OpenStreetMap 地图](img/qgis.png){.full}
 
 ## leaflet
 
-
 **leaflet** [@leaflet] 包借助 [**htmlwidgets**](https://github.com/ramnathv/htmlwidgets) 封装了鼎鼎大名的开源交互式可视化地图库 [leaflet](https://leafletjs.com/)。注意，leaflet 只是一个渲染 GIS 数据的可视化库，并不提供 GIS 数据服务。类似的可视化库还有[OpenLayers](https://github.com/openlayers/openlayers)，及其 R 接口[openlayers](https://github.com/crazycapivara/openlayers)，另一个紧密相关的空间数据处理工具是[GeoServer](https://github.com/geoserver/geoserver)，它遵循 Open Geospatial Consortium (OGC) Web Feature Service (WFS) 和 Web Coverage Service (WCS) 标准，支持各种 GIS 数据源。
-
-
 
 在可视化的过程中，配色是非常重要的一个环节，准确地表达地图上各个区域或位置的数据信息，负责体现分类、层次、大小等信息。常见的操作是将一组数据映射成一组颜色值，还是以 quakes 数据集为例，下面将连续型的地震震级数据映射成一组颜色值。这方面的工作已经有非常成熟的 R 包来做了，比如[**scales**](https://github.com/r-lib/scales)包和[**colourvalues**](https://github.com/SymbolixAU/colourvalues) 包。如图 \@ref(fig:quakes-viridis)，默认情况下 `viridis` 调色板，颜色越黄值越大。
 
@@ -533,7 +506,7 @@ quakes <- transform(quakes, color = colorize_numeric(mag))
 plot(data = quakes, lat ~ long, col = color, pch = 19)
 ```
 
-![(\#fig:quakes-viridis) 地震震级映射连续的颜色值](img/quakes-viridis.png){.full}
+![(#fig:quakes-viridis) 地震震级映射连续的颜色值](img/quakes-viridis.png){.full}
 
 另一种情况是将分类型的变量映射上颜色，这通常采用分类型的调色板，比如 `Set2`。所有常用的调色板可见 **RColorBrewer** 包，在命令行中直接运行 `RColorBrewer::display.brewer.all()` 即可预览。稍微值得注意的是当分类太多，超出了调色板的数量，需要自己构造一下，比如 `Set2` 只有8种颜色，但是需要10种，可通过如下方法插值构造：
 
@@ -554,7 +527,7 @@ iris <- transform(iris, color = colorize_factor(Species))
 plot(data = iris, Petal.Length ~ Petal.Width, col = color, pch = 19)
 ```
 
-![(\#fig:quakes-set2) 三种鸢尾花用不同颜色标记](img/quakes-set2.png){.full}
+![(#fig:quakes-set2) 三种鸢尾花用不同颜色标记](img/quakes-set2.png){.full}
 
 实际上，还可以将地震震级分段，用梯度变化的颜色表示震级的大小，如图\@ref(fig:quakes-leaflet)所示。
 
@@ -580,8 +553,7 @@ leaflet(quakes, options = leafletOptions(attributionControl = FALSE)) |>
   addScaleBar(position = c("bottomleft"))
 ```
 
-![(\#fig:quakes-leaflet)散点图](img/quakes-leaflet.png){.full}
-
+![(#fig:quakes-leaflet)散点图](img/quakes-leaflet.png){.full}
 
 [**leaflet.extras**](https://github.com/bhaskarvk/leaflet.extras) 提供绘制热力图的扩展，另一个与之类似的包是[**leaflet.extras2**](https://github.com/trafficonese/leaflet.extras2) 包，前者虽已停止开发了，但是目前看来还可以用。
 
@@ -603,11 +575,9 @@ leaflet(quakes) |>
 
 绘制热力图就这么简单，如图 \@ref(fig:quakes-heatmap) 所示，在图\@ref(fig:quakes-leaflet)的基础上添加了热力图，实际上就是根据点的密度添加色彩，密度值根据核密度估计算法统计出来。
 
-![(\#fig:quakes-heatmap)热力图](img/quakes-heatmap.png){.full}
-
+![(#fig:quakes-heatmap)热力图](img/quakes-heatmap.png){.full}
 
 ## plotly
-
 
 **plotly** [@plotly] 包在地理可视化方面提供散点图 [scattergeo](https://plotly.com/r/reference/scattergeo/) 和等值图 [choropleth](https://plotly.com/r/reference/choropleth/) 两种基础类型。**plotly** 还为 [mapbox](https://mapbox.com/) 地图服务添加三个专门的绘图函数，分别是散点图[scattermapbox](https://plotly.com/r/reference/scattermapbox/)、等值图[choroplethmapbox](https://plotly.com/r/reference/choroplethmapbox/)和热力图[densitymapbox](https://plotly.com/r/reference/densitymapbox/)。
 
@@ -634,13 +604,11 @@ plotly::plot_mapbox(
   )
 ```
 
-![(\#fig:quakes-plotly) **plotly** 包使用 Mapbox 地图](img/quakes-plotly.png){.full}
+![(#fig:quakes-plotly) **plotly** 包使用 Mapbox 地图](img/quakes-plotly.png){.full}
 
 接下来介绍布局设置，以 `layout(mapbox = ...)` 内的 style 参数为例， 它是用来设置地图风格样式的，除了默认的参数值 `basic`，还可以设置为夜晚暗黑 `dark`，卫星地图 `satellite` 等。若设置`open-street-map`，调 OpenStreetMap 服务，则无需 `MAPBOX_TOKEN`，具体哪些用到 `MAPBOX_TOKEN` 哪些不需要用到 `MAPBOX_TOKEN`，读者可以根据需要选择，详见[mapbox-layers 文档](https://plotly.com/r/mapbox-layers/)，其他参数设置见[mapbox 文档](https://plotly.com/r/reference/layout/mapbox/)。
 
-
-![(\#fig:quakes-satellite) **plotly** 包使用 Mapbox 卫星地图](img/quakes-satellite.png){.full}
-
+![(#fig:quakes-satellite) **plotly** 包使用 Mapbox 卫星地图](img/quakes-satellite.png){.full}
 
 ```{r,eval=FALSE}
 plotly::plot_ly(
@@ -661,7 +629,7 @@ plotly::plot_ly(
   plotly::config(displayModeBar = FALSE)
 ```
 
-![(\#fig:mapbox-density) **plotly** 包使用 Mapbox 绘制热力图](img/mapbox-density.png){.full}
+![(#fig:mapbox-density) **plotly** 包使用 Mapbox 绘制热力图](img/mapbox-density.png){.full}
 
 **plotly** 包内置了两个地图数据集，一个是美国州级多边形数据`"USA-states"`，另一个是国家级多边形数据，来自 Natural Earth，需要3个字母的国家代码传给参数 `locations`。
 
@@ -686,8 +654,7 @@ plotly::plot_ly(
   plotly::config(displayModeBar = FALSE)
 ```
 
-
-![(\#fig:mapbox-choropleth) **plotly** 包使用 Mapbox 绘制面量图](img/mapbox-choropleth.png){.full}
+![(#fig:mapbox-choropleth) **plotly** 包使用 Mapbox 绘制面量图](img/mapbox-choropleth.png){.full}
 
 多边形矢量地图数据，多边形的边界常常是行政区域，choropleth 地图是填充颜色的多边形，颜色深浅表示数据指标，地图的作用在于展示指标的空间变化，在美国，郡县一级的行政区大致相当于咱们市一级行政单位，比如图\@ref(fig:mapbox-choropleth-counties) 展示美国各个县的失业率，大城市失业率相对较高。值得注意，数据量较大的时**plotly**渲染速度较慢。
 
@@ -735,7 +702,7 @@ plotly::plot_ly(
   plotly::config(displayModeBar = FALSE)
 ```
 
-![(\#fig:mapbox-choropleth-counties) **plotly** 包使用 Mapbox 绘制面量图](img/mapbox-choropleth-counties.png){.full}
+![(#fig:mapbox-choropleth-counties) **plotly** 包使用 Mapbox 绘制面量图](img/mapbox-choropleth-counties.png){.full}
 
 函数 `plot_ly(locations = ~fips,...)` 传进去的参数值 fips（Federal Information Processing Standards，即联邦信息处理标准，简称 FIPS）。FIPS 类似我国的行政区划编码，美国地图上每一块区域都有唯一的一个代码对应，详见[FIPS 代码](https://en.wikipedia.org/wiki/FIPS_county_code)。观测数据需要和地图数据 GeoJSON 里每个 feature（代表一个地理单元）的 id 或 properties （地理单元的各个属性值）下的主键性质的属性值映射。进一步，读者可参考[choropleth-maps](https://plotly.com/r/choropleth-maps/)文档中的示例。
 
@@ -760,8 +727,7 @@ xyplot(lat ~ long,
 )
 ```
 
-![(\#fig:quakes-xyplot)散点图](img/quakes-xyplot.png){.full}
-
+![(#fig:quakes-xyplot)散点图](img/quakes-xyplot.png){.full}
 
 ```{r,eval=FALSE}
 # 仅保留低密度区域上的散点
@@ -782,7 +748,7 @@ xyplot(lat ~ long,
 )
 ```
 
-![(\#fig:quakes-smooth)热力图](img/quakes-smooth.png){.full}
+![(#fig:quakes-smooth)热力图](img/quakes-smooth.png){.full}
 
 ```{r,eval=FALSE}
 library(loa)
@@ -800,7 +766,7 @@ loaPlot(mag ~ long * lat,
 )
 ```
 
-![(\#fig:quakes-bubble)气泡图](img/quakes-bubble.png){.full}
+![(#fig:quakes-bubble)气泡图](img/quakes-bubble.png){.full}
 
 ```{r,eval=FALSE}
 # 蜂窝图
@@ -819,8 +785,7 @@ loaPlot(mag ~ long * lat,
 )
 ```
 
-![(\#fig:quakes-binplot)蜂窝图](img/quakes-binplot.png){.full}
-
+![(#fig:quakes-binplot)蜂窝图](img/quakes-binplot.png){.full}
 
 ```{r,eval=FALSE}
 # 等高图
@@ -838,7 +803,7 @@ loaPlot(mag ~ long * lat,
 )
 ```
 
-![(\#fig:quakes-contour)等高图](img/quakes-contour.png){.full}
+![(#fig:quakes-contour)等高图](img/quakes-contour.png){.full}
 
 就地震数据集 quakes 来说，它还有地震深度变量，实际上，完整地描述一个地震的位置，当然需要震深，想要立体化地呈现出来必须借助三维图形。**lattice** 包就具备绘制三维图形的能力，如图\@ref(fig:quakes-cloud)所示，此外，[**rgl**](https://github.com/dmurdoch/rgl) 包[@rgl]可以绘制交互式的**真三维**图形，如图\@ref(fig:quakes-rgl)。
 
@@ -875,9 +840,7 @@ cloud(-depth ~ long * lat,
 )
 ```
 
-
-![(\#fig:quakes-cloud) **lattice** 包绘制三维气泡图](img/quakes-cloud.png){.full}
-
+![(#fig:quakes-cloud) **lattice** 包绘制三维气泡图](img/quakes-cloud.png){.full}
 
 ```{r,eval=FALSE,echo=FALSE}
 # 三维散点云图，基于 Base R 图形
@@ -902,7 +865,7 @@ with(quakes, {
 })
 ```
 
-![(\#fig:quakes-rgl) **rgl** 包绘制三维气泡图](img/quakes-rgl.png){.full}
+![(#fig:quakes-rgl) **rgl** 包绘制三维气泡图](img/quakes-rgl.png){.full}
 
 结合三维气泡图，也许读者已经发现震级和震深有一些关系，不妨再看看仔细它们之间关系，如图\@ref(fig:quakes-mag)。
 
@@ -919,17 +882,13 @@ stripplot(depth ~ factor(mag),
 )
 ```
 
-![(\#fig:quakes-mag)抖动图](img/quakes-mag.png){.full}
+![(#fig:quakes-mag)抖动图](img/quakes-mag.png){.full}
 
 无论震级如何，地震似乎集中发生在表层或深层的位置，中间带反而比较稀疏，可见震级和地震的位置关系不大，地不地震、震级如何主要是由地质条件决定的。
-
-
-
 
 # 数据结构
 
 本节开始介绍一些空间数据相关的基础知识，R 语言有一些扩展包是专门处理空间数据的，提供基础数据结构和类型，了解这些是为空间数据操作、分析、建模打基础。空间数据操作（Spatial Data Manipulation），如计算空间区域的面积、空间点的路径、区域叠加、基于空间关系的数据查询等。空间数据分析（Spatial Data Analysis），空间数据的描述性分析和探索性分析，帮助发现数据中的模式规律。空间统计分析（Spatial Statistical Analysis），传统的统计模型认为观测值之间常常是独立的，而空间数据自带空间相关性，需要专门的统计分析方法。空间数据建模（Spatial Data Modeling），面对不同的空间数据类型需要不同的建模方法，比如空间点模式分析（Spatial Point Pattern Analysis）、格网/面状数据分析（Area Data/Grid Data/lattice Data Analysis）、地统计分析（Geostatistics）等。
-
 
 ## 矢量数据 sp
 
@@ -1008,7 +967,7 @@ bbox(quakes)
 plot(quakes)
 ```
 
-![(\#fig:quakes-sp)空间数据绘图](img/quakes-sp.png){.full}
+![(#fig:quakes-sp)空间数据绘图](img/quakes-sp.png){.full}
 
 调 sp 数据对象特有的方法 `spplot()`，获取图\@ref(fig:quakes-spplot)。
 
@@ -1041,15 +1000,13 @@ print(p1, split = c(1, 1, 2, 1), more = TRUE)
 print(p2, split = c(2, 1, 2, 1), more = FALSE)
 ```
 
-
-![(\#fig:quakes-spplot)空间数据绘图](img/quakes-spplot.png){.full}
+![(#fig:quakes-spplot)空间数据绘图](img/quakes-spplot.png){.full}
 
 地震主要是由于地壳运动产生的，两条地震带由内圈到外圈，地震深度有明显的阶梯变化，暗示着断层的方向和位置。
 
 ::: rmdnote
 **sp** 会逐步退出空间数据领域，Roger Bivand 已经在为他的著作《Applied Spatial Data Analysis with R》迁移升级[代码](https://github.com/rsbivand/sf_asdar2ed)，推荐读者尽快转移到 **sf** 上。考虑到一些读者大概率还会遇到基于 **sp** 的空间数据处理、分析和可视化的案例代码，因而做一些介绍，毕竟生态的迁移过程还要一段时间。
 :::
-
 
 ## 矢量数据 sf
 
@@ -1058,6 +1015,7 @@ print(p2, split = c(2, 1, 2, 1), more = FALSE)
 ```{r}
 library(sf)
 ```
+
 ```{r}
 data(alaska, package = 'spData')
 alaska
@@ -1069,7 +1027,7 @@ alaska
 plot(alaska["total_pop_15"])
 ```
 
-![(\#fig:sf-alaska) **sf** 包绘制多边形数据](img/sf-alaska.png){.full}
+![(#fig:sf-alaska) **sf** 包绘制多边形数据](img/sf-alaska.png){.full}
 
 ```{r}
 data(world, package = 'spData')
@@ -1082,41 +1040,37 @@ world 包含 177 个国家和地区的人口数据，area_km2 面积、pop 人�
 plot(world["gdpPercap"])
 ```
 
-![(\#fig:sf-world) 2014 年世界各国人均 GDP](img/sf-world.png){.full}
+![(#fig:sf-world) 2014 年世界各国人均 GDP](img/sf-world.png){.full}
 
 ::: rmdnote
 **spData** 包内置的 world 数据集将台湾和中国大陆的地区用不同的颜色标记，严格来讲，这是不符合国家地图规范的，不能出现在期刊、书籍等正式的出版物里。
 :::
 
-
-
-
 # 数据操作
 
 先简要介绍 Base R 内置的一般数据操作，也是最常见的，然后介绍 **sf** 包和空间数据操作。**sf** 包对 Base R 内置的一些函数做了扩展以支持空间数据的合并、聚合等。
-
 
 ## 一般数据操作
 
 通过排列组合 R 软件内置的一些基础数据操作函数能够满足大部分使用场景，这些基础函数都来自 **base** 包和 **stats** 包，由 R 语言 核心团队维护，约**10**来个函数：
 
-1. 函数 `subset()` 提取数据框中的某些列和行，也可以用 `$` 或 `[` 实现。
+1.  函数 `subset()` 提取数据框中的某些列和行，也可以用 `$` 或 `[` 实现。
 
-1. 函数 `transform()` 可以在原来的数据框上添加新的一列，这个新的列通常是根据已有的列加减乘除等计算而来。
+2.  函数 `transform()` 可以在原来的数据框上添加新的一列，这个新的列通常是根据已有的列加减乘除等计算而来。
 
-1. 函数 `order()` 按照数据框的某个（些）列排序，如先按照第一列从小到大排序，再按照第二列从小到大排序。
+3.  函数 `order()` 按照数据框的某个（些）列排序，如先按照第一列从小到大排序，再按照第二列从小到大排序。
 
-1. 函数 `aggregate()` 分组聚合函数，也是很常用的。
+4.  函数 `aggregate()` 分组聚合函数，也是很常用的。
 
-1. 函数 `reshape()` 将长格式的数据框变形为宽格式的数据框，反之亦可。
+5.  函数 `reshape()` 将长格式的数据框变形为宽格式的数据框，反之亦可。
 
-1. 函数 `merge()` 合并两个数据框，有内关联、左关联、右关联等合并方式，合并操作可以和 SQL 中的关联操作对应。
+6.  函数 `merge()` 合并两个数据框，有内关联、左关联、右关联等合并方式，合并操作可以和 SQL 中的关联操作对应。
 
-1. 函数 `split()` 将数据框按照某个分类变量拆分为列表，后续常常可以接 `lapply()` 实现分组计算，最后调用 `do.call()` / `Reduce()` 等合并计算结果。
+7.  函数 `split()` 将数据框按照某个分类变量拆分为列表，后续常常可以接 `lapply()` 实现分组计算，最后调用 `do.call()` / `Reduce()` 等合并计算结果。
 
-1. 函数 `duplicated()` 查出是否有**重复**的记录，后续可以决定是否去掉。
+8.  函数 `duplicated()` 查出是否有**重复**的记录，后续可以决定是否去掉。
 
-1. 函数 `complete.cases()` 查出是否有**不完整**的记录，后续考虑是否要去掉。
+9.  函数 `complete.cases()` 查出是否有**不完整**的记录，后续考虑是否要去掉。
 
 下面以 R 软件内置的数据集 mtcars 为例，介绍数据操作的一个典型过程，拆分、计算、合并，早年Hadley Wickham 创建 **plyr** 包 [@plyr] 就是干这个事情，后来，陆续出现很多 R 包，如 **reshape** 包（已退休）、**reshape2**（已退休）、**dplyr**（活跃）、**purrr**（活跃）、**tidyr**（活跃），一直处于不太稳定的状态，此处不再细说。
 
@@ -1146,11 +1100,11 @@ mtcars <- as.data.table(mtcars)
 mtcars[, as.list(coef(lm(mpg ~ disp))), by = .(cyl)]
 ```
 
-如果想要自己的代码稳定、高效、简洁、易维护，那就先学习一下 Base R 的基本数据操作吧！熟悉之后，可以再深入学习一下 **data.table** 提供的高级数据操作，熟练掌握之后，配合 SQL，可以成为真正的生产力工具，从 Base R 到 **data.table** 可以加深理解 R 语言的精要，从而真正地提升编码水平。最后总结一点，新手都在做高难度动作[^hard]，高手都在练基本动作[^easy]。为了让自己的编码更加有效率，更加符合语言本身的特点，先从数据操作开始，一点一点从头练习。
+如果想要自己的代码稳定、高效、简洁、易维护，那就先学习一下 Base R 的基本数据操作吧！熟悉之后，可以再深入学习一下 **data.table** 提供的高级数据操作，熟练掌握之后，配合 SQL，可以成为真正的生产力工具，从 Base R 到 **data.table** 可以加深理解 R 语言的精要，从而真正地提升编码水平。最后总结一点，新手都在做高难度动作[^1]，高手都在练基本动作[^2]。为了让自己的编码更加有效率，更加符合语言本身的特点，先从数据操作开始，一点一点从头练习。
 
-[^hard]: 各种花里胡哨引入一堆 R 包和函数，直接告诉你答案，又不告诉你为什么，三天不学习就跟不少变化。
+[^1]: 各种花里胡哨引入一堆 R 包和函数，直接告诉你答案，又不告诉你为什么，三天不学习就跟不少变化。
 
-[^easy]: 基本动作就是内功心法，无论面对的数据操作如何复杂，最终都能一一化解，以不变应万变。
+[^2]: 基本动作就是内功心法，无论面对的数据操作如何复杂，最终都能一一化解，以不变应万变。
 
 ## 空间数据操作
 
@@ -1161,6 +1115,7 @@ library(sf)
 # 基础数据操作函数
 methods(class = "sf")
 ```
+
 ```{r,echo=FALSE}
 options(digits = 10)
 ```
@@ -1205,6 +1160,7 @@ st_distance(
   st_sfc(st_point(c(-74.1197, 40.6976)), crs = 4326)
 )
 ```
+
 ```{r,echo=FALSE}
 options(digits = 4)
 ```
@@ -1215,27 +1171,27 @@ options(digits = 4)
 
 平面几何，两点之间直线最短，距离就是欧氏距离。
 
-```sql
+``` sql
 ST_Distance(ST_Point(-71.0882, 42.3607), ST_Point(-74.1197, 40.6976))
 ```
-```
+
+```         
 3.457729581676387
 ```
 
 球面几何，两点之间最短距离是大圆的弧长，点的坐标视为经纬度参与计算。
 
-```sql
+``` sql
 ST_Distance(to_spherical_geography(ST_Point(-71.0882, 42.3607)), to_spherical_geography(ST_Point(-74.1197, 40.6976)))
 ```
-```
+
+```         
 312822.1793690028
 ```
 
 可见，R 包 **sf** 和 Presto 计算的结果完全一致，Presto 采用的空间坐标参考系也是 WGS 84。
 
-
 # 案例：美国北卡婴儿猝死综合征数据
-
 
 再看一个稍微复杂的例子，涉及数据读取、操作和绘图，数据集 SIDS (Sudden Infant Death Syndrome，简称 SIDS)来自 **sf** 包，更早些时候收集在 **sp** 包内，更多细节见 Edzer Pebesma 开发的 **sp** 包[帮助文档](https://edzer.github.io/sp/)，描述 1974 年和 1979 年美国北卡罗来纳州各个区县的婴儿猝死综合征的情况。
 
@@ -1247,6 +1203,7 @@ nc2 <- subset(x = nc, select = c("SID74", "SID79"))
 # 查看数据
 nc2
 ```
+
 ```{r,echo=FALSE,eval=FALSE}
 # Base R 方式的变形操作 https://gis.stackexchange.com/questions/381112/
 # 如下变形操作亦可用 tidyr::pivot_longer 实现
@@ -1285,8 +1242,7 @@ class(nc3)
 
 ## ggplot2 & sf
 
-**ggplot2** 提供的几何图层 `geom_sf()` 是专门为 sf 数据对象准备的，`facet_wrap()` 和 `facet_grid()` 都可以用来实现分面，布局样式稍有不同，更多绘图细节介绍见《ggplot2: Elegant Graphics for Data Analysis》[@Wickham2022]
-第三版的地图章节，如图 \@ref(fig:sf-nc)。在地图上绘制栅格图形，有个专业的制图术语 --- [Choropleth Map](https://en.wikipedia.org/wiki/Choropleth_map)，翻译过来，大致叫填充地图、等值域图、瓦片图、围栏图、面量图、断层图等，可以非常直观地展示观测变量在地理区域内的变化情况。
+**ggplot2** 提供的几何图层 `geom_sf()` 是专门为 sf 数据对象准备的，`facet_wrap()` 和 `facet_grid()` 都可以用来实现分面，布局样式稍有不同，更多绘图细节介绍见《ggplot2: Elegant Graphics for Data Analysis》[@Wickham2022] 第三版的地图章节，如图 \@ref(fig:sf-nc)。在地图上绘制栅格图形，有个专业的制图术语 --- [Choropleth Map](https://en.wikipedia.org/wiki/Choropleth_map)，翻译过来，大致叫填充地图、等值域图、瓦片图、围栏图、面量图、断层图等，可以非常直观地展示观测变量在地理区域内的变化情况。
 
 ```{r,eval=FALSE}
 library(ggplot2)
@@ -1299,7 +1255,7 @@ ggplot() +
 #   facet_grid(rows = vars(VAR))
 ```
 
-![(\#fig:sf-nc) sf 数据可视化](img/sf-nc.png){.full}
+![(#fig:sf-nc) sf 数据可视化](img/sf-nc.png){.full}
 
 ## leaflet & mapdeck
 
@@ -1322,7 +1278,7 @@ leaflet(nc2) |>
   addLegend(pal = pal, values = ~SID74, opacity = 1.0)
 ```
 
-![(\#fig:leaflet-nc) **leaflet** 数据可视化](img/leaflet-nc.png){.full}
+![(#fig:leaflet-nc) **leaflet** 数据可视化](img/leaflet-nc.png){.full}
 
 实现类似功能的还有 **mapdeck** 包。
 
@@ -1336,7 +1292,6 @@ mapdeck() |>
     palette = "spectral"
   )
 ```
-
 
 ## sp::spplot
 
@@ -1378,8 +1333,7 @@ spplot(nc, c("SID74", "SID79"),
 )
 ```
 
-
-![(\#fig:lattice-nc) **lattice** 数据可视化](img/lattice-nc.png){.full}
+![(#fig:lattice-nc) **lattice** 数据可视化](img/lattice-nc.png){.full}
 
 **ggmap** 包获取的 Google 瓦片地图和 **leaflet** 包 使用的 OpenStreetMap 地图在坐标参考系上是一样的，都是 EPSG:3857，想把数据绘制到地图上，需要先将数据的坐标参考系转换到 EPSG:3857，坐标单位从经纬度随之变为米。
 
@@ -1399,9 +1353,7 @@ spplot(spTransform(nc, CRSobj = CRS("EPSG:3857")),
 )
 ```
 
-![(\#fig:sp-nc) **sp** 数据可视化](img/sp-nc.png){.full}
-
-
+![(#fig:sp-nc) **sp** 数据可视化](img/sp-nc.png){.full}
 
 ## latticeExtra::mapplot
 
@@ -1460,8 +1412,7 @@ mapplot(NAME ~ SID79 + SID74,
 )
 ```
 
-![(\#fig:latticeExtra-nc) **latticeExtra** 数据可视化](img/latticeExtra-nc.png){.full}
-
+![(#fig:latticeExtra-nc) **latticeExtra** 数据可视化](img/latticeExtra-nc.png){.full}
 
 # 总结归纳
 
@@ -1507,7 +1458,6 @@ knitr::kable(sub_pdb[order(sub_pdb$Maintainer), ],
 从 **sp** 到 **sf**，从 **raster** 到 **terra**，是 R 语言在空间数据领域前进的一大步，在使用的直观感受上，数据读写、操作的性能得到极大的提升，整个空间数据处理领域的 R 包依赖也将大为减少。
 
 **rgeos** [@rgeos]、**rgdal** [@rgdal] 和 **maptools** [@maptools] 都将于 2023 年底移出 CRAN，不再维护，它们主要用来读取和操作空间数据，相比于 **sf** [@sf] 加 **terra** [@terra] 的新方案，它们都落后了。部分功能会迁移到 **sp** 包[@sp]，而 **raster** 包[@raster]也不推荐使用，大迁移背景介绍见[这里](https://github.com/r-spatial/evolution)，几十年过去了，维护者退休了，代码的历史包袱很重，很难维护，功能和性能也没新的好。2019 年出版的开源书籍[《Geocomputation with R》](https://geocompr.robinlovelace.net/) 已经在紧锣密鼓地升级了，感兴趣的读者不妨看看新旧[详细比较](https://keen-swartz-3146c4.netlify.app/older.html)。
-
 
 **ggplot2** 及其生态是很好的，可能大家不知道的是，**lattice** 在绘图能力上丝毫不逊色于 **ggplot2**，甚至还有超越。本篇主要介绍空间数据，下面以 R 软件内置的地形数据 volcano 为例。
 
@@ -1556,7 +1506,7 @@ wireframe(volcano,
 )
 ```
 
-![(\#fig:lattice-volcano-shade) [Auckland Maunga Whau 火山](https://en.wikipedia.org/wiki/Maungawhau_/_Mount_Eden)三维地形图 $10m\times 10m$](img/lattice-volcano-shade.png){.full}
+![(#fig:lattice-volcano-shade) [Auckland Maunga Whau 火山](https://en.wikipedia.org/wiki/Maungawhau_/_Mount_Eden)三维地形图 $10m\times 10m$](img/lattice-volcano-shade.png){.full}
 
 仅是图 \@ref(fig:lattice-volcano-shade) 就已经让 **ggplot2** 自愧不如了，更别说实现图\@ref(fig:lattice-volcano-contour)这样的组合图形，此例摘自 [Deepayan Sarkar](https://deepayan.github.io/) 的书《**lattice**: Multivariate Data Visualization with R》[@Sarkar2008]。
 
@@ -1616,20 +1566,15 @@ wireframe(volcano,
 )
 ```
 
-![(\#fig:lattice-volcano-contour) Auckland Maunga Whau 火山带等值线的三维地形图 $10m\times 10m$](img/lattice-volcano-contour.png){.full}
-
+![(#fig:lattice-volcano-contour) Auckland Maunga Whau 火山带等值线的三维地形图 $10m\times 10m$](img/lattice-volcano-contour.png){.full}
 
 顺便一提，Python 语言社区关于空间数据操作的流行模块有[shapely](https://github.com/shapely/shapely)和[geopandas](https://github.com/geopandas/geopandas)，后者还包含基于[matplotlib](https://github.com/matplotlib/matplotlib)的地理可视化，而做空间数据可视化的有[bokeh](https://github.com/bokeh/bokeh)、[pyecharts](https://github.com/pyecharts/pyecharts)和[plotly](https://github.com/plotly/plotly.py)等。[basemap](https://github.com/matplotlib/basemap) 基于 matplotlib 提供地图坐标映射，作用类似 R 包 **mapproj**。[geoplot](https://github.com/ResidentMario/geoplot) 提供高级易用的使用接口，扩展 [cartopy](https://github.com/SciTools/cartopy) 和 matplotlib 在地理可视化方面的能力。[rasterio](https://github.com/rasterio/rasterio) 读写栅格数据，更多 Python 语言相关的地理可视化见[地理资源列表](https://github.com/sacridini/Awesome-Geospatial)。
 
-
 # 未来展望
-
 
 本文只涉及空间数据领域的皮毛，说白了就是导入几种格式的空间数据画点小地图，也未涉及百万乃至百亿级的大规模空间数据的可视化，以及支持可视分析需要的空间数据存储、检索、操作、分析、建模和应用的知识和技术。此外，对于不同类型的空间数据有不同的分析方法和统计模型，比如点数据的模式分析，面数据的层次分析，栅格数据的图像分析等，本文亦未涉及。再有，面向具体业务问题，从问题发现到数据模型的转化、界定、拆解、优化和应用所需要的领域知识，本文也未涉及。笔者所知所学有限，空间数据领域是如此广阔，需要大家一起发力。
 
-
 在大规模空间数据可视化和计算方面，[Kepler.gl](https://github.com/keplergl/kepler.gl) 是一款开源的大规模地理数据分析工具。[deck.gl](https://github.com/visgl/deck.gl) WebGL2 加持的高性能大规模空间数据可视化框架，支持灵活的自定义。Uber 开发的[h3](https://github.com/uber/h3) 提供六边形分层时空索引，[GeoMesa](https://github.com/locationtech/geomesa) 提供点、线、多边形的时空索引，支持分布式时空数据查询分析，结合 kafka 提供近实时的时空数据流处理能力，支持自定义 [Apache Spark](https://github.com/apache/spark) 作为分布式地理分析计算引擎，要知道 Spark 本身是不提供针对空间数据操作的 SQL 函数，因此，使用成本是很高的。更进一步，[Apache Sedona](https://github.com/apache/incubator-sedona)专门应用于大规模空间数据处理的集群计算系统，扩展了 Apache Spark / SparkSQL 的能力，提供一组开箱即用的套件 SpatialSQL，支持 Python 和 R 等多种编程接口。[Presto](https://github.com/prestodb/presto) 作为一款分布式 SQL 查询引擎，内置了常用空间数据操作的函数，和 R 包 **sf** 提供的函数名基本是一致的，迁移学习成本低。更加老牌的 GIS 数据库当属站在[PostgreSQL](https://www.postgresql.org/)肩膀上的[PostGIS](http://postgis.net/)，PostgreSQL提供基础的空间数据类型，作为存储设施，PostGIS 提供空间数据特有的系列操作。
-
 
 # 环境信息
 
@@ -1648,6 +1593,7 @@ xfun::session_info(packages = c(
   "leaflet", "echarts4r", "plotly"
 ), dependencies = FALSE)
 ```
+
 ```{r write-bib, include=FALSE}
 pkgs <- c(
   "knitr", "rmarkdown", "blogdown",
@@ -1673,5 +1619,5 @@ xfun::write_utf8(bib, "packages.bib")
 
 # 参考文献 {#refer}
 
-<div id="refs"></div>
-
+::: {#refs}
+:::

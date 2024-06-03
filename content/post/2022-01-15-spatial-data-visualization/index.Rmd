@@ -28,7 +28,6 @@ csl: institute-of-mathematical-statistics.csl
 description: "数据可视化在数据探索分析中扮演了及其重要的角色，帮助了解数据的质量、分布和潜在规律，为建模和分析提供思路和假设。同时，又有助于阐述分析结果，交流分享。但要注意使用场景，切记过于花哨，引入一些不必要的炫酷手段，比如各种 3D 图，蜂窝图等。"
 ---
 
-
 ```{r setup, echo=FALSE}
 knitr::opts_chunk$set(
   comment = "#",
@@ -63,24 +62,23 @@ options(width = 89)
 本文引用的所有信息均为公开信息，仅代表作者本人观点，与就职单位无关。
 :::
 
-
 # 本文概览
-
 
 数据可视化在数据探索分析中扮演了极其重要的角色，帮助了解数据的质量、分布和潜在规律，为建模和分析提供思路和假设。同时，有助于阐述分析结果，交流分享。但要注意使用场景，切记过于花哨，引入一些不必要的炫酷手段，比如各种 3D 图，蜂窝图等。
 
-
 本文告诉读者如何在 R 语言中调用生活中常见的谷歌、必应、百度和高德等地图服务。介绍一些网址地位、地理编码和坐标转化的 R 包，为空间数据操作、可视化奠定基础。然后，介绍展示空间数据分布的常用图形及其R包实现，再重点介绍专题地图，并以不同 R 包的不同风格实现。
-
 
 # 地图服务
 
-比较常见的地图服务，国外有谷歌、微软，国内有百度、高德，凡是提供本地生活服务的公司都或多或少地依赖高精地图，如美团外卖，阿里飞猪等。本节主要带领读者了解地图服务，以及使用 R 语言来调地图服务，为增加代入感，笔者就从「中国矿业大学（北京）学院路校区」这个地标的 IP 定位开始。首先用 [curl](https://curl.se/) 工具请求网站 <https://ipinfo.io/>[^ipinfo]，它会自动获取用户上网使用的 IP 以及 IP 所处的地理位置，如下：
+比较常见的地图服务，国外有谷歌、微软，国内有百度、高德，凡是提供本地生活服务的公司都或多或少地依赖高精地图，如美团外卖，阿里飞猪等。本节主要带领读者了解地图服务，以及使用 R 语言来调地图服务，为增加代入感，笔者就从「中国矿业大学（北京）学院路校区」这个地标的 IP 定位开始。首先用 [curl](https://curl.se/) 工具请求网站 <https://ipinfo.io/>[^1]，它会自动获取用户上网使用的 IP 以及 IP 所处的地理位置，如下：
 
-```bash
+[^1]: [ipinfo](https://github.com/ipinfo) 工具是开源可商用的，由前 Facebook 工程师 Ben Dowling 于 2013 年创建，后来发展成 IPinfo 公司，专门提供 IP 定位服务，服务的公司包括腾讯、戴尔、耐克等。
+
+``` bash
 curl ipinfo.io
 ```
-```
+
+```         
 {
   "ip": "223.71.83.98",
   "city": "Beijing",
@@ -91,15 +89,9 @@ curl ipinfo.io
 }
 ```
 
-
 可知学校所处位置：纬度 39.9288 经度 116.3890，当然这离高精地图还有十万八千里。
 
-
-[^ipinfo]: [ipinfo](https://github.com/ipinfo) 工具是开源可商用的，由前 Facebook 工程师 Ben Dowling 于 2013 年创建，后来发展成 IPinfo 公司，专门提供 IP 定位服务，服务的公司包括腾讯、戴尔、耐克等。
-
-
 ## 百度地图
-
 
 杜亚磊开发的[baidumap](https://github.com/badbye/baidumap)包可以调用[百度地图服务](https://map.baidu.com/)获取地理可视化的背景底图。百度是国内比较早的互联网公司，之前介绍的 Apache Echarts 也是百度可视化团队领头开发的，百度地理信息可视化平台使用的地理可视化组件来自开源的[mapv](https://github.com/huiyan-fe/mapv)。
 
@@ -114,11 +106,13 @@ remotes::install_github('badbye/baidumap')
 ```{r,echo=FALSE}
 options(digits = 10)
 ```
+
 ```{r}
 library(baidumap)
 options(baidumap.key = Sys.getenv("BaiduMap_API_Key"))
 getCoordinate('中国矿业大学（北京）学院路校区', formatted = T)
 ```
+
 ```{r,echo=FALSE}
 options(digits = 4)
 ```
@@ -136,12 +130,11 @@ ggmap::ggmap(cumtb_map) +
   )
 ```
 
-![(\#fig:cumtb-baidu) 百度地图-中国矿业大学（北京）学院路校区](img/cumtb-baidu.png){.full}
+![(#fig:cumtb-baidu) 百度地图-中国矿业大学（北京）学院路校区](img/cumtb-baidu.png){.full}
 
 ## 高德地图
 
 高德和百度都是有甲级测绘资质的单位，意味着地图数据符合国家要求，来源权威可用。大家熟知的全球定位系统（GPS）采用 WGS 84，而 GCJ 02 由 WGS 84 加密后的坐标系，是由中国国家测绘局制定的地理坐标系统，又称火星坐标系。高德地图采用火星坐标系 GCJ 02（国测局 **G**uo **C**e **J**u，即国家测绘局），百度地图的坐标系 BD 09 在 GCJ 02 坐标系基础上再次加密，加密过程不可逆，是一种非线性加密方式，反向解密后的坐标在部分区域的定位差别很大。另外，值得注意的是对同一目标不同公司提供的定位可能是不同的，因为所选的地理参考系不同，常用的三种坐标系见文档[坐标系](https://lbsyun.baidu.com/index.php?title=coordinate)。
-
 
 高德提供很多调用地图服务的 API 接口，如将其它坐标转化为高德坐标的[坐标转化服务](https://lbs.amap.com/api/webservice/guide/api/convert)，前提是先在[高德开放平台](https://lbs.amap.com/)上申请Web服务API类型KEY。继续以地标「中国矿业大学（北京）学院路校区」为例，下面在 R 语言环境中，使用 **httr** 包[@httr]调用高德地图服务将百度坐标转化为高德坐标。
 
@@ -186,12 +179,9 @@ leaflet(options = leafletOptions(
   )
 ```
 
-
-![(\#fig:cumtb-amp) 高德地图-中国矿业大学（北京）学院路校区](img/cumtb-amp.png){.full}
-
+![(#fig:cumtb-amp) 高德地图-中国矿业大学（北京）学院路校区](img/cumtb-amp.png){.full}
 
 下面试试看，将原百度坐标不转化，直接绘制在高德地图上，如图\@ref(fig:cumtb-amp-baidu)所示，可见定位到**中国农业大学**去了，真是失之毫厘，差之千里！
-
 
 ```{r,eval=FALSE}
 # 绘图
@@ -209,15 +199,11 @@ leaflet(options = leafletOptions(
   )
 ```
 
-
-![(\#fig:cumtb-amp-baidu) 高德地图-中国矿业大学（北京）](img/cumtb-amp-baidu.png){.full}
-
-
+![(#fig:cumtb-amp-baidu) 高德地图-中国矿业大学（北京）](img/cumtb-amp-baidu.png){.full}
 
 ## 必应地图
 
 与 **ggmap** 包相比，[**RgoogleMaps**](https://github.com/markusloecher/rgooglemaps)包 [@Loecher2015] 支持调用更多的地图服务，除了 Google 地图外，还支持必应地图，以及基于 **lattice** 包的可视化，借助 [**loa**](https://r-forge.r-project.org/scm/?group_id=1400) [@loa]和 [**latticeExtra**](https://r-forge.r-project.org/projects/latticeextra/) [@latticeExtra]还可以支持高级的自定义，如何使用见[**ggmap** 使用案例](https://github.com/vertica/Vertica-Geospatial)、[**loa** 文档](https://loa.r-forge.r-project.org/loa.intro.html)和[**latticeExtra** 文档](https://latticeextra.r-forge.r-project.org/)。
-
 
 ```{r,eval=FALSE}
 library(RgoogleMaps) # 同时需要 RCurl
@@ -241,15 +227,11 @@ PlotOnStaticMap(map_cumtb,
 )
 ```
 
-
-![(\#fig:cumtb-bing) 必应地图-中国矿业大学（北京）学院路校区](img/cumtb-bing.png){.full}
-
+![(#fig:cumtb-bing) 必应地图-中国矿业大学（北京）学院路校区](img/cumtb-bing.png){.full}
 
 ## 谷歌地图
 
-
-David Kahle 开发的[**ggmap**](https://github.com/dkahle/ggmap) [@Kahle2013] 包在 2011 年发布在 CRAN 上，是一个基于 ggplot2 的空间可视化包，背景地图来自谷歌地图。目前，由于 Google 地图服务策略调整，需要申请 Google 地图服务的访问令牌才可以使用地图服务。
-可将申请到的 `GGMAP_GOOGLE_API_KEY` 保存到本地文件 `~/.Renviron`，以供 **ggmap** 后续使用。
+David Kahle 开发的[**ggmap**](https://github.com/dkahle/ggmap) [@Kahle2013] 包在 2011 年发布在 CRAN 上，是一个基于 ggplot2 的空间可视化包，背景地图来自谷歌地图。目前，由于 Google 地图服务策略调整，需要申请 Google 地图服务的访问令牌才可以使用地图服务。 可将申请到的 `GGMAP_GOOGLE_API_KEY` 保存到本地文件 `~/.Renviron`，以供 **ggmap** 后续使用。
 
 ```{r,eval=FALSE}
 library(ggmap)
@@ -262,11 +244,12 @@ ggmap::ggmap(p)
 
 Google 提供一种瓦片地图，即由一张张小图片拼凑起来形成一张完整的地图，就好像盖房用的瓦片，精度由瓦片的分辨率决定，如图 \@ref(fig:ggmap-tile) 所示。
 
+```{=html}
 <!-- 
 http://tile.stamen.com/terrain-background/5/4/10.png 
 -->
-
-![(\#fig:ggmap-tile) ggmap 地形图](img/google-tile.png){.full}
+```
+![(#fig:ggmap-tile) ggmap 地形图](img/google-tile.png){.full}
 
 **ggmap** 也可以调用多种风格样式的地图，地形图、水彩图等，如图\@ref(fig:ggmap-tiles) 所示。
 
@@ -300,16 +283,13 @@ p4 <- ggmap(dat4)
 p1 / p2 | p3 / p4
 ```
 
-![(\#fig:ggmap-tiles) ggmap 几种常用背景地图](img/ggmap-tiles.png){.full}
-
+![(#fig:ggmap-tiles) ggmap 几种常用背景地图](img/ggmap-tiles.png){.full}
 
 # 基础知识
-
 
 与地图相关的基础知识有很多，一个简易版本可参考[高德教程](https://lbs.amap.com/api/jsapi-v2/guide/abc/components)。
 
 ## 网址定位
-
 
 Os Keyes 开发的 R 包 [**rgeolocate**](https://github.com/ironholds/rgeolocate) [@rgeolocate] 可以解析 IP 地址，根据 IP 地址数据库提取位置信息，其内置 `GeoLite2-Country.mmdb` 数据支持定位到国家，是一个 [MaxMind](https://github.com/maxmind) 的 GeoIP2 数据库文件。
 
@@ -364,9 +344,7 @@ content(tmp)$rectangle
 
 ## 瓦片地图
 
-使用高德[静态地图](https://lbs.amap.com/api/webservice/guide/api/staticmaps)遵守[自定义地图服务协议](https://lbs.amap.com/pages/customize-map-terms/)，
-应国家要求，国内的地图服务厂商必须是 GCJ-02 或 BD-09 坐标系统，用户必须拿着这两个坐标系下的空间数据，调用各大 Web 地图服务制图，比如地图瓦片，它们采用 Web 墨卡托投影，坐标参考系是 EPSG:3857 或某种再次转化加密过的 Web 墨卡托投影。
-
+使用高德[静态地图](https://lbs.amap.com/api/webservice/guide/api/staticmaps)遵守[自定义地图服务协议](https://lbs.amap.com/pages/customize-map-terms/)， 应国家要求，国内的地图服务厂商必须是 GCJ-02 或 BD-09 坐标系统，用户必须拿着这两个坐标系下的空间数据，调用各大 Web 地图服务制图，比如地图瓦片，它们采用 Web 墨卡托投影，坐标参考系是 EPSG:3857 或某种再次转化加密过的 Web 墨卡托投影。
 
 继续以地标「中国矿业大学（北京）学院路校区」为例，之前已经获得它的定位 `116.347817,39.997202`，调用高德静态地图服务，返回一个静态图片地址。
 
@@ -397,9 +375,7 @@ GET(
 
 将返回的链接输入浏览器，会得到一张如下的图片。
 
-![(\#fig:cumtb)中国矿业大学（北京）学院路校区](img/cumtb.png){.full}
-
-
+![(#fig:cumtb)中国矿业大学（北京）学院路校区](img/cumtb.png){.full}
 
 ## 地理编码
 
@@ -419,7 +395,7 @@ leaflet::leaflet() |>
   leaflet::addCircles(lng = dat$longitude, lat = dat$latitude, radius = 3)
 ```
 
-![(\#fig:sf-geohash) GeoHash 地理区域编码](img/sf-geohash.png){.full}
+![(#fig:sf-geohash) GeoHash 地理区域编码](img/sf-geohash.png){.full}
 
 而 **lwgeom** 包[@lwgeom]提供函数 `st_geohash()` 可将经纬度坐标转为 GeoHash 码。在数据规模很大的情况下，这编码解码的过程方便聚合 GeoHash 粒度的数据，并呈现在地图上去观察数据中的空间规律，比如一些局部热点效应。
 
@@ -429,11 +405,9 @@ library(lwgeom)
 st_geohash(st_sfc(st_point(c(116.35688, 40.00314)), st_point(c(0, 90))), 9)
 ```
 
-
 ## 坐标系统
 
 地球既不是圆球的也不是标准的椭球，将三维的球面投影到二维的平面有不同的方法，每一种方法都对应一种坐标转化，选定坐标原点后即构成坐标参考系统（Coordinate Reference System，简称 CRS）。**maps** 包[@maps]内置了一份世界地图数据，它采用 WGS 84 坐标系，此坐标系的详细描述，读者可在 R 软件 控制台运行 `sf::st_crs("EPSG:4326")` 获取。下面以此为例介绍，本节空间数据的操作都用 **sf**包[@sf]来完成。
-
 
 ```{r}
 library(sf)
@@ -445,7 +419,6 @@ st_crs(world1)
 ```
 
 **sf** 包提供 `st_as_sf()` 函数将 map 类转化为 sf 类，`st_crs()` 函数检索地图数据中附带的坐标参考系信息。接下来，用 `st_transform()` 函数转化坐标，参数 `crs` 指定新的坐标系统，示例里 `+proj=laea` 表示 Lambert Azimuthal Equal Area 投影，而 `+ellps=WGS84` 即 [WGS 1984](https://en.wikipedia.org/wiki/World_Geodetic_System)，或称 [EPSG:4326](https://en.wikipedia.org/wiki/EPSG_Geodetic_Parameter_Dataset)。`+lon_0=155` 和 `+lat_0=-90` 分别是经纬度，东经 155 度，南纬 90 度，也就是观测视角到南极去了。
-
 
 ```{r}
 # 坐标转化
@@ -475,21 +448,19 @@ p2 <- ggplot() +
 p1 + p2
 ```
 
-
 # 空间分布
 
 相比于上一篇可视化的文章，本篇示例有一点数据规模，数万或数十万规模的数据，本节以 R 语言复现[百度地图慧眼](https://huiyan.baidu.com/)的地理可视化示例，笔者利用开源免费的软件可以获得同样的效果。展示空间点数据的图形有散点图、热力图、蜂窝图、柱状图、飞线图等等，最常见、最常用的莫过于散点图，简单明了地呈现数据随空间位置的分布，快速透视数据的空间模式。
 
-[百度地图慧眼](https://huiyan.baidu.com/)开源了一些地理信息可视化库，特别是[Mapv](https://github.com/huiyan-fe/mapv)，还有很多[示例](https://mapv.baidu.com/gl/examples/)及使用[文档](https://lbsyun.baidu.com/solutions/mapvdata)。感兴趣的读者不妨看看。下面以示例中的热力柱图为例，数据[下载地址](https://mapv.baidu.com/gl/examples/static/beijing.07102610.json)[^chinalocation]。
+[百度地图慧眼](https://huiyan.baidu.com/)开源了一些地理信息可视化库，特别是[Mapv](https://github.com/huiyan-fe/mapv)，还有很多[示例](https://mapv.baidu.com/gl/examples/)及使用[文档](https://lbsyun.baidu.com/solutions/mapvdata)。感兴趣的读者不妨看看。下面以示例中的热力柱图为例，数据[下载地址](https://mapv.baidu.com/gl/examples/static/beijing.07102610.json)[^2]。
 
-[^chinalocation]: 查看示例可以看到源数据的地址， 其它示例数据可以通过类似的方法获取，比如点图层中的全国点效果示例：
+[^2]: 查看示例可以看到源数据的地址， 其它示例数据可以通过类似的方法获取，比如点图层中的全国点效果示例：
 
-    ```bash
+    ``` bash
     curl -fLo chinalocation.json https://mapv.baidu.com/gl/examples/data/chinalocation.json
     ```
 
-
-```bash
+``` bash
 # 示例首页 https://mapv.baidu.com/gl/examples/
 curl -fLo beijing.07102610.json https://mapv.baidu.com/gl/examples/static/beijing.07102610.json
 ```
@@ -530,7 +501,7 @@ beijing_sf <- st_transform(beijing_sf, crs = 4326)
 plot(beijing_sf["den"], pch = 19, cex = 0.2)
 ```
 
-![(\#fig:beijing-sf)北京市热点分布图](img/beijing-sf.png){.full}
+![(#fig:beijing-sf)北京市热点分布图](img/beijing-sf.png){.full}
 
 **ggplot2** 早已支持 sf 数据类型，不强调精雕细琢，绘图过程也十分简单。
 
@@ -540,7 +511,7 @@ ggplot() +
   geom_sf(data = beijing_sf, aes(color = den), cex = 0.2)
 ```
 
-![(\#fig:beijing-ggplot2)北京市热点分布图](img/beijing-ggplot2.png){.full}
+![(#fig:beijing-ggplot2)北京市热点分布图](img/beijing-ggplot2.png){.full}
 
 [**rasterly**](https://github.com/plotly/rasterly) 渲染 35058 多个点毫无压力，使用方式和 **ggplot2** 非常相近，配合 **plotly** 包支持渲染交互式图形，如图\@ref(fig:beijing-rasterly)所示。**rasterly** 的基本想法来自 Python 模块[datashader](https://github.com/holoviz/datashader/)，将数据点映射到网格中，聚合每个网格中的点得到代表点，即像素点，接着照常绘图，简而言之，连续空间离散化以近似，空间点数据转栅格数据。
 
@@ -574,7 +545,7 @@ plotly::plot_ly(beijing, x = ~x, y = ~y) |>
   )
 ```
 
-![(\#fig:beijing-rasterly)北京市热点分布图](img/beijing-rasterly.png){.full}
+![(#fig:beijing-rasterly)北京市热点分布图](img/beijing-rasterly.png){.full}
 
 最后，补充介绍一下 **sp** 包绘制图形的过程，短期内恐还有必要。先将 data.frame 数据类型转为 sp 空间数据类型，以便调用更加高效且丰富的数据处理和可视化函数。
 
@@ -593,6 +564,7 @@ beijing_sp <- spTransform(beijing_sp, CRSobj = CRS("EPSG:4326"))
 # 查看转化后的数据
 summary(beijing_sp)
 ```
+
 ```{r,eval=FALSE}
 # 最后绘图
 spplot(beijing_sp, "den",
@@ -610,17 +582,13 @@ spplot(beijing_sp, "den",
 )
 ```
 
-
-![(\#fig:beijing-spplot)北京市热点分布图](img/beijing-spplot.png){.full}
-
-
+![(#fig:beijing-spplot)北京市热点分布图](img/beijing-spplot.png){.full}
 
 ## 热力图
 
 OpenStreetMap 是开放街道地图数据，由来自世界各地的贡献者维护，但不提供免费的地图 API。使用此地图服务，不会将自己的数据上传至 OpenStreetMap 的服务器上。而 Leaflet 是开源的交互式地理可视化 JS 库。Joe Cheng 开发维护的 [**leaflet**](https://github.com/rstudio/leaflet) 包[@leaflet]是 JavaScript 库 [Leaflet](https://github.com/Leaflet/Leaflet) 的 R 语言接口。一个提供基础地图服务，一个提供数据渲染可视化，一个提供封装好的 R 语言接口。
 
-![(\#fig:leaflet) 开源交互式 JavaScript 库 Leaflet](/img/leaflet.svg){.full}
-
+![(#fig:leaflet) 开源交互式 JavaScript 库 Leaflet](/img/logo/leaflet.svg){.full}
 
 ```{r,eval=FALSE}
 library(leaflet)
@@ -637,11 +605,9 @@ leaflet() |>
   addScaleBar(position = "bottomleft")
 ```
 
-![(\#fig:beijing-leaflet)北京市热点分布图](img/beijing-leaflet.png){.full}
-
+![(#fig:beijing-leaflet)北京市热点分布图](img/beijing-leaflet.png){.full}
 
 [**mapdeck**](https://github.com/SymbolixAU/mapdeck) 包将 [MapBox GL](https://www.mapbox.com/) 的地图服务和[deck.gl](https://github.com/visgl/deck.gl)的大规模可视化能力封装到一起，功能还是很强的，函数 `add_heatmap()` 可用来绘制热力图，数万散点毫无压力，如图\@ref(fig:beijing-heatmap)。
-
 
 ```{r,eval=FALSE}
 mapdeck(style = mapdeck_style("dark"), pitch = 45) |> 
@@ -651,8 +617,7 @@ mapdeck(style = mapdeck_style("dark"), pitch = 45) |>
   )
 ```
 
-![(\#fig:beijing-heatmap)北京市热点分布图](img/beijing-heatmap.png){.full}
-
+![(#fig:beijing-heatmap)北京市热点分布图](img/beijing-heatmap.png){.full}
 
 ## 蜂窝图
 
@@ -672,14 +637,11 @@ mapdeck(style = mapdeck_style("dark"), pitch = 45) |>
   )
 ```
 
-
-![(\#fig:beijing-hexagons)北京市热点分布图](img/beijing-hexagons.png){.full}
-
+![(#fig:beijing-hexagons)北京市热点分布图](img/beijing-hexagons.png){.full}
 
 ## 柱状图
 
 咋一看，读者可能会疑惑，怎么柱状图也能归到地理可视化？它在蜂窝图的基础上，用柱子的高低表示密度值大小，整个地图是三维的，可拖拽。**mapdeck** 提供函数 `add_grid()` / `add_hexagon()` 绘制三维柱状图，如图\@ref(fig:beijing-mapdeck)。
-
 
 ```{r,eval=FALSE}
 library(mapdeck)
@@ -693,11 +655,9 @@ mapdeck(style = mapdeck_style("dark"), pitch = 45) |>
   )
 ```
 
+![(#fig:beijing-mapdeck)北京市热点分布图](img/beijing-mapdeck.png){.full}
 
-![(\#fig:beijing-mapdeck)北京市热点分布图](img/beijing-mapdeck.png){.full}
-
-
-## 飞线图 
+## 飞线图
 
 以 **nycflights13** [@nycflights13] 包提供航班数据做飞线图，数据由 Hadley Wickham 收集自[OpenFlights Airports Database](https://openflights.org/data.html)，从纽约三大机场 JFK, LGA 或 EWR 的准点起飞数据。
 
@@ -761,32 +721,24 @@ mapdeck(style = "mapbox://styles/mapbox/dark-v9") |>
   )
 ```
 
-
-![(\#fig:us-flights)2013年1月1日纽约机场出发的航班](img/us-flights.png){.full}
-
-
-
+![(#fig:us-flights)2013年1月1日纽约机场出发的航班](img/us-flights.png){.full}
 
 # 专题地图
 
 Thematic Maps (or Statistical Maps) 专题地图或统计地图，重点在于呈现一个或多个地理属性（变量）的空间模式，属于制图学 Cartography 范畴。一种常见的 Thematic Maps 是 Choropleth map, 地图上每个单元（或数据收集的单元，比如州、郡、县）用色彩填充表示属性的大小。专题地图具体形式可以有比例符号图（气泡图），散点图，迁徙/流向图等。据 Michael Friendly 等[考证](https://www.datavis.ca/milestones/)，最早的 Choropleth Map 可追溯到 1819 年，一位叫 Baron Pierre Charles Dupin 的法国人，统计法国各个地区的文盲分布和比例，用从黑到白的颜色表示文盲比例的高低。
 
-
 一个现代化的示例图\@ref(fig:us-census-2020)来自[美国人口普查局](https://www.census.gov/)官网，展示2020年美国各个城镇的人口密度及相关信息，采用 Tableau 制作而成。
 
-![(\#fig:us-census-2020)2020年美国各个城镇的人口密度](img/us-census-2020.png){.full}
-
+![(#fig:us-census-2020)2020年美国各个城镇的人口密度](img/us-census-2020.png){.full}
 
 下面引用 **leaflet** 包[官方文档](https://rstudio.github.io/leaflet/choropleths.html)中的示例---2011 年美国各个州的人口密度。数据存储以[GeoJSON 格式](https://leafletjs.com/examples/geojson/)存储在文件 `us-states.geojson`里，它是矢量多边形数据，坐标参考系是 WGS 84，包含美国各个州的边界 geometry，各州人口密度数据 density（每平方英里的人口数）。[us-states.geojson](https://rstudio.github.io/leaflet/json/us-states.geojson)的数据源头是 2011 年美国人口普查局。顺便一说，2020年的最新数据可从[维基百科文章](https://en.wikipedia.org/wiki/List_of_states_and_territories_of_the_United_States_by_population_density)获取。
 
-
 笔者在此示例的基础上有几个改进点：
 
-1. 示例中调用 Mapbox 地图的方法不可用，可用 **leaflet** 自带的 OpenStreetMap 瓦片地图替换，或用函数 `addTiles()` 自定义地图瓦片的方式调用 Mapbox 地图；
-1. 示例中使用[**geojsonio**](https://github.com/ropensci/geojsonio)包读取 GeoJSON 格式的地图数据文件性能差，且上游过时的依赖很多，改用 **sf** 包读取，性能高、速度快；
-1. 添加一些数据集和代码的中文描述，补充一些细节说明；
-1. 空间数据处理从 **sp** 升级到 **sf**，使得整个数据可视化过程仅依赖 **sf** 和 **leaflet** 包，达到了稳定、高效和可靠。
-
+1.  示例中调用 Mapbox 地图的方法不可用，可用 **leaflet** 自带的 OpenStreetMap 瓦片地图替换，或用函数 `addTiles()` 自定义地图瓦片的方式调用 Mapbox 地图；
+2.  示例中使用[**geojsonio**](https://github.com/ropensci/geojsonio)包读取 GeoJSON 格式的地图数据文件性能差，且上游过时的依赖很多，改用 **sf** 包读取，性能高、速度快；
+3.  添加一些数据集和代码的中文描述，补充一些细节说明；
+4.  空间数据处理从 **sp** 升级到 **sf**，使得整个数据可视化过程仅依赖 **sf** 和 **leaflet** 包，达到了稳定、高效和可靠。
 
 ```{r}
 library(sf)
@@ -806,13 +758,11 @@ st_crs(states)
 st_bbox(states)
 ```
 
-做一点说明，西经 -188.90491，也就是东经 360 - 188.90491 = 180 - 8.90491 = 171.0951，西经 -65.62680 至西经 -188.90491 跨越范围 188.90491 - 65.62680 = 123.2781。
-中心位置经度 ((-65.62680) + (-188.90491) )/ 2 = -127.2659，纬度 (17.92956 + 71.35163)/2 = 44.64059。此中心位置不在美国大陆。
+做一点说明，西经 -188.90491，也就是东经 360 - 188.90491 = 180 - 8.90491 = 171.0951，西经 -65.62680 至西经 -188.90491 跨越范围 188.90491 - 65.62680 = 123.2781。 中心位置经度 ((-65.62680) + (-188.90491) )/ 2 = -127.2659，纬度 (17.92956 + 71.35163)/2 = 44.64059。此中心位置不在美国大陆。
 
 ::: rmdtip
 本初子午线定义为 0 度经线，是经过英国格林尼治天文台的一条经线，向东、向西分别定义为东经、西经。东经 180 度 和西经 180 度是同一条经线，穿越新西兰罗斯属地，也穿越美国阿拉斯加州。美国国土东西跨度很大，跨越了东（西）经 180 度。
 :::
-
 
 ## leaflet
 
@@ -850,7 +800,7 @@ leaflet(states) |>
   )
 ```
 
-![(\#fig:us-states-leaflet) **leaflet** 包专题地图](img/us-states-leaflet.png){.full}
+![(#fig:us-states-leaflet) **leaflet** 包专题地图](img/us-states-leaflet.png){.full}
 
 LeafLet JS 在专题地图[choropleth](https://leafletjs.com/examples/choropleth/)示例里调用了 Mapbox 瓦片服务和[地图风格](https://docs.mapbox.com/api/maps/styles/)。下面在函数 `addTiles()` 里替换瓦片服务 URL 模版路径，**leaflet** 也可用上 Mapbox 瓦片地图。
 
@@ -889,8 +839,7 @@ leaflet(states) |>
   )
 ```
 
-
-![(\#fig:us-states-mapbox) **leaflet** 包专题地图](img/us-states-mapbox.png){.full}
+![(#fig:us-states-mapbox) **leaflet** 包专题地图](img/us-states-mapbox.png){.full}
 
 借助[leaflet-providers](https://github.com/leaflet-extras/leaflet-providers)，Leaflet 已经支持很多[瓦片服务](https://leaflet-extras.github.io/leaflet-providers/preview/)，除了以上两种，比如夜景图\@ref(fig:cumtb-nasa)。
 
@@ -905,9 +854,7 @@ leaflet() |>
   )
 ```
 
-
-![(\#fig:cumtb-nasa) **leaflet** 包调 NASA 瓦片服务](img/cumtb-nasa.png){.full}
-
+![(#fig:cumtb-nasa) **leaflet** 包调 NASA 瓦片服务](img/cumtb-nasa.png){.full}
 
 ## mapdeck
 
@@ -926,8 +873,7 @@ mapdeck() |>
   )
 ```
 
-![(\#fig:us-states-mapdeck) **mapdeck** 包专题地图](img/us-states-mapdeck.png){.full}
-
+![(#fig:us-states-mapdeck) **mapdeck** 包专题地图](img/us-states-mapdeck.png){.full}
 
 ## sf
 
@@ -937,10 +883,9 @@ mapdeck() |>
 plot(states["density"], logz = TRUE)
 ```
 
-![(\#fig:us-states-sf) **sf** 包专题地图](img/us-states-sf.png){.full}
+![(#fig:us-states-sf) **sf** 包专题地图](img/us-states-sf.png){.full}
 
 ## ggplot2
-
 
 ```{r,eval=FALSE}
 library(ggplot2)
@@ -960,9 +905,7 @@ ggplot() +
   )
 ```
 
-
-![(\#fig:us-states-ggplot2) **ggplot2** 包专题地图](img/us-states-ggplot2.png){.full}
-
+![(#fig:us-states-ggplot2) **ggplot2** 包专题地图](img/us-states-ggplot2.png){.full}
 
 ```{r,eval=FALSE,echo=FALSE}
 library(patchwork)
@@ -989,24 +932,17 @@ p4= ggplot() +
 (p1 + p2) / (p3 + p4)
 ```
 
-
 # 本文小结 {#summary}
 
-
-空间数据最核心的概念还是几何元素的表示，关系及其应用。
-结合地图服务绘图需要注意坐标参考系统及其转化关系 [@Brown2016]，同时需要验证/注意地图服务提供的数据的准确性。
+空间数据最核心的概念还是几何元素的表示，关系及其应用。 结合地图服务绘图需要注意坐标参考系统及其转化关系 [@Brown2016]，同时需要验证/注意地图服务提供的数据的准确性。
 
 R 语言社区在时空数据分析、可视化方面有很多工具，继 [**sp**](https://github.com/edzer/sp) [@Pebesma2005] 之后，Edzer Pebesma 开发了 [**sf**](https://github.com/r-spatial/sf) [@Pebesma2018]，提供更加高效的矢量空间数据处理方式。紧接着，Robert J. Hijmans 也将处理栅格数据的 [**raster**](https://github.com/rspatial/raster) [@raster] 升级到 [**terra**](https://github.com/rspatial/terra/) [@terra]，提供性能强劲且向后兼容性极好的函数接口。[**satellite**](https://github.com/environmentalinformatics-marburg/satellite)包 [@satellite] 和 **landsat** 包 [@Goslee2011] 可以处理卫星遥感数据，[**rasterbc**](https://github.com/deankoch/rasterbc) [@rasterbc] 内置 2001-2018 年加拿大英属哥伦比亚省 raster 格式的栅格数据，用于森林生态学研究。
 
-
 相比于 [**ggplot2**](https://github.com/tidyverse/ggplot2) [@Wickham2022]，[**lattice**](https://github.com/deepayan/lattice) [@Sarkar2008] 是被严重低估的数据可视化包，性能不输 **ggplot2**，而且更加稳定，与上一代空间数据处理框架 **sp** 和 **raster** 有很好的集成。[**ggspatial**](https://github.com/paleolimbot/ggspatial) 提供很多针对空间数据可视化的定制，比如指北针、比例尺等。
-
 
 [**cartography**](https://github.com/riatelab/cartography) 除了基本的维护，不再添加新的功能，推荐读者转移到 [**mapsf**](https://github.com/riatelab/mapsf) 上。[**mapsf**](https://github.com/riatelab/mapsf) [@mapsf] 基于 Base R 图形系统将 sf 数据对象绘制在地图上，获得出版级的效果，支持比例气泡图、专题地图和拓扑地图等。[**tmap**](https://github.com/r-tmap/tmap) [@Tennekes2018] 功能与之类似，使用方式和 **ggplot2** 提供的图形语法一致。
 
-
 数据产品很多都基于 Web 呈现，交互式图形成为必须的组件，[**leaflet**](https://github.com/rstudio/leaflet) [@leaflet] 在交互式地理可视化方面是比较成熟的，中小规模数据集下，性能还不错。 [**mapdeck**](https://github.com/SymbolixAU/mapdeck) 包站在 [deck.gl](https://github.com/visgl/deck.gl) 的肩膀上渲染初具规模的空间数据毫无压力。[**mapview**](https://github.com/r-spatial/mapview) [@mapview]意在提供快速地交互式探索空间数据的能力，支持 **leaflet** 和 **mapdeck** 渲染方法。而[**mapedit**](https://github.com/r-spatial/mapedit) [@mapedit]提供空间数据交互式编辑能力。
-
 
 # 环境信息 {#session}
 
@@ -1024,6 +960,7 @@ xfun::session_info(packages = c(
   "sp", "maps", "raster", "rasterly"
 ), dependencies = FALSE)
 ```
+
 ```{r write-bib, include=FALSE}
 pkgs <- c(
   "knitr", "rmarkdown", "blogdown",
@@ -1048,4 +985,5 @@ xfun::write_utf8(bib, "packages.bib")
 
 # 参考文献 {#refer}
 
-<div id="refs"></div>
+::: {#refs}
+:::
