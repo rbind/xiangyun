@@ -114,6 +114,10 @@ div.rmdinfo::before {
   text-align: center;
 }
 
+figure {
+  text-align: center;
+}
+
 /* 图片居中 */
 div.img, div.figure, div.float {
   text-align: center;
