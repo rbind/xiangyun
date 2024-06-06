@@ -4,6 +4,9 @@ title: 关于
 
 我的主页开辟了博客、日志、商业三个栏目，博客栏目介绍工具、算法、模型等技术性内容，与工作要求甚为紧密，日志栏目写一些个人所见、所闻、所思，主打有的没的，甚无章法，肆意而为，是我最喜欢的；商业栏目围绕工作、生活中的现象思考背后的商业模式，用数据说话，为工作更上一层楼。
 
+
+## 我和我的文字
+
 我想努力做一个反潮流而动的青年，我认识自己经历过几个阶段。
 
 1.  过度依赖别人反馈，陷入自我否定，失去自我的境地。
@@ -17,6 +20,7 @@ title: 关于
 我发现几乎没有哪篇文章我是开门见山地说出我的写作意图的，让读者一看就明白接下里写的结构层次。有一些朋友看了后，私下跟我说，你是怎么怎么样的吗？其实，我不是，至少不完全是，而且有相当的距离。我的很多文章、日志，我自己是特别清楚当时为什么要写这些东西的，它们大多不是临时起意的，在我的一个相当长的 TODO List 里。常常曲里拐弯地在中间或末尾插入一些杂乱的感想，牵强的附会。一方面出于保护隐私的考虑，我不想透露任何与亲朋好友、就职公司的信息，另一方面又想表达自己，找一个情绪宣泄的出口。只是因为拆解的缘故，非常保留、婉转地表达自己内在的一面。所以，各位看官老爷，不必执着于我写了什么，若对你有用，看看也好，若没什么用，不看也罢。千万不要生搬硬套，我的能力、我的兴趣、我的内在就是什么什么样的。博客表现出来的我只是我的一部分，而且，是高于实际的我的，因为写的时候，我有反复地看过、改过，这要是面对面交流，我几乎难以达到这种流畅、深度。当然，这并不意味着虚伪，有些东西不能坦白交待，只能尽量坦诚地说，所以，这也是部分真实的我。
 
 
+## 技术写作与交流
 
 我曾是 <span class="latex">L<span>a</span>T<span>e</span>X</span> 粉丝，后转投 Markdown，用 [blogdown](https://github.com/rstudio/blogdown) 搭建个人博客 ，[bookdown](https://github.com/rstudio/bookdown) 组织[《R 语言技术笔记》](https://github.com/XiangyunHuang/notesdown)和[《现代统计图形》（已出版）](https://github.com/XiangyunHuang/msg)，[pagedown](https://github.com/rstudio/pagedown) 制作[个人简历](/vitae/2022-hxy-cv.pdf)，目前在用 [Quarto](https://quarto.org/) 编写第二本专著[《R 语言数据分析实战》（写作中）](https://github.com/XiangyunHuang/data-analysis-in-action)。长期活跃于[统计之都](https://cosx.org/)，还在主站发布了一些文章，如下：
 
@@ -43,15 +47,14 @@ title: 关于
 | 2019 | 第 12 届中国 R 语言会议    | [统计之都在线投稿系统](https://wp-contents.netlify.com/talks/2019-chinar12th-cos-blogdown) |
 | 2018 | 第 11 届中国 R 语言会议    | [R Markdown 应用之学位论文排版](https://wp-contents.netlify.com/talks/chinar11th.pdf)      |
 
+## 友链
+
 如下是一些我收藏的个人主页，大多与统计之都有或多或少的关联（曾在论坛、会议或工作上有交集）。
 
 -   [成超](https://fenguoerbian.netlify.app/)
--   [陈丽云](https://www.loyhome.com/) 
--   [范叶亮](https://leovan.me/) 
 -   [楚新元](https://cxy.rbind.io/)
 -   [郝鸿涛](https://hongtaoh.com/) 
 -   [刘思喆](https://bjt.name/) 
--   [林荟](https://linhui.org/) 
 -   [谭显英](https://shrektan.com/) 
 -   [谢益辉](https://yihui.org/)
 -   [肖楠](https://nanx.me/) 
@@ -64,6 +67,19 @@ title: 关于
 -   [赵妤婕](https://sites.google.com/view/yujie-zhao) 
 -   [赵鹏](https://connect.xjtlu.edu.cn/user/pengzhao/zhcn)
 
+除了友链，我还订阅了一些博主。
+
+-   [陈丽云](https://www.loyhome.com/) 统计
+-   [范叶亮](https://leovan.me/) 计算机
+-   [高策](https://gaocegege.com/Blog/) 计算机、可视化
+-   [黄晨成](https://liam.page/) 计算机、LaTeX
+-   [筷子小手](https://www.macin.org/) 生活
+-   [林荟](https://linhui.org/) 统计
+-   [冷金乘](https://stephenleng.com/) 文化批评
+-   [太隐](https://wangyurui.com/) 历史、哲学
+-   [张驰原](https://pluskid.org/) 美术、计算机
+
+
 <!--
 近些年，因为统计之都和网上冲浪认识了一些人，也有一些人想去认识。不时去逛逛他（她）们的主页，会发现有意思的地方。（按姓氏拼音排序）
 
@@ -71,8 +87,6 @@ title: 关于
 -   [邓东升](https://ddswhu.me/) LaTeX
 -   [付永超](https://s0521.github.io/) R 语言、生物
 -   [古杰娜](https://www.jienamclellan.com/) Shiny
--   [高策](http://gaocegege.com/Blog/) 计算机、可视化
--   [黄晨成](https://liam.page/) LaTeX
 -   [Jin Li](https://jinli.link/) Julia
 -   [任坤](https://renkun.me/) R 语言、对冲基金
 -   [苏玮](https://swsoyee.vercel.app/) 前端
@@ -81,7 +95,6 @@ title: 关于
 -   [夏骁凯](https://xiaokai.me/) 心理学、医生
 -   [叶寻](https://cyrusyip.org/en/) Linux
 -   [颜林林](https://yanlinlin.cn/) 生物
--   [张驰原](https://pluskid.org/) 美术、计算机
 -   [张铜川](https://tc.rbind.io/) R 语言、生物
 -   [张丹](http://fens.me/) R 语言
 -->
