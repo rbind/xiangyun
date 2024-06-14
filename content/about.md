@@ -41,11 +41,11 @@ title: 关于
 |:----------|:------------------------|:--------------------------------|
 | 2023 | 全国统计与数据科学联合会议 | [预测核辐射强度的分布](/slide/2023/rongelap-prediction.html#/title-slide)                  |
 | 2022 | 统计之都云讲堂             | [R Markdown 制作 beamer 幻灯片](https://www.bilibili.com/video/BV1GP411j7pJ/)              |
-| 2022 | 第 15 届中国 R 语言会议    | 软件工具专场组织者                                                                         |
+| 2022 | 第 15 届中国 R 语言会议    | [软件工具专场组织者](https://space.bilibili.com/22035559/channel/collectiondetail?sid=871909)                                                                         |
 | 2021 | 第 14 届中国 R 语言会议    | [开发企业级 Shiny 应用的技术栈](https://www.bilibili.com/video/BV1FY411s7iv/)              |
 | 2020 | 第 13 届中国 R 语言会议    | [可重复性数据分析及其工业实践](https://www.bilibili.com/video/BV1Vp4y1B7N1/)               |
-| 2019 | 第 12 届中国 R 语言会议    | [统计之都在线投稿系统](https://wp-contents.netlify.com/talks/2019-chinar12th-cos-blogdown) |
-| 2018 | 第 11 届中国 R 语言会议    | [R Markdown 应用之学位论文排版](https://wp-contents.netlify.com/talks/chinar11th.pdf)      |
+| 2019 | 第 12 届中国 R 语言会议    | [统计之都在线投稿系统](/slide/2019/chinar12th-cos-blogdown.html) |
+| 2018 | 第 11 届中国 R 语言会议    | [R Markdown 应用之学位论文排版](/slide/2018/chinar11th.pdf)      |
 
 ## 友链
 
