@@ -1,6 +1,6 @@
 ---
 date: "2022-12-23"
-slug: books
+slug: unfinished-book-list
 title: 未完成的书单
 categories:
   - 推荐文章
