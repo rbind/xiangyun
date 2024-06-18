@@ -20,7 +20,7 @@ img {
 ```
 
 
-![Do one thing and do it well.](img/me.jpeg)
+![Do one thing and do it well.](/img/iris.jpg)
 
 
 [统计之都](https://cosx.org/)软件工具栏目编辑，毕业于中国矿业大学（北京），多年 [R 语言](https://cran.r-project.org/)爱好者，[《现代统计图形》](https://msg2020.pzhao.org/)合著者。感兴趣的领域有数据可视化、空间分析、混合模型。曾就职于 51Talk 大数据智能中心、美团搜索技术部，从事数据开发、数据分析和数据挖掘相关的工作。
