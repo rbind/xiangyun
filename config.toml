@@ -9,7 +9,7 @@ footnotereturnlinkcontents = "↩"
 hasCJKLanguage = true
 enableEmoji = true
 paginate = 9
-rssLimit = 10
+rssLimit = 30
 
 [permalinks]
   [permalinks.page]
