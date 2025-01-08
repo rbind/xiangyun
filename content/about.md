@@ -51,10 +51,10 @@ title: 关于
 
 除了友链，我还订阅了一些博主。
 
--   [陈丽云](https://www.loyhome.com/) 统计
--   [范叶亮](https://leovan.me/) 计算机
+-   [陈丽云](https://www.loyhome.com/) 统计，经济
+-   [范叶亮](https://leovan.me/) 计算机，风控
 -   [高策](https://gaocegege.com/Blog/) 计算机、可视化
--   [黄晨成](https://liam.page/) 计算机、LaTeX
+-   [黄晨成](https://liam.page/) 计算机、LaTeX，搜索
 -   [筷子小手](https://www.macin.org/) 生活
 -   [林荟](https://linhui.org/) 统计
 -   [冷金乘](https://stephenleng.com/) 文化批评
