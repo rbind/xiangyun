@@ -2,7 +2,7 @@
 title: 2024年我在北京看展（二）
 subtitle: 《永玉 100》与《萌生》大展
 author: 黄湘云
-date: '2025-01-13'
+date: '2025-02-17'
 slug: beijing-exhibit-2
 categories:
   - 推荐文章
