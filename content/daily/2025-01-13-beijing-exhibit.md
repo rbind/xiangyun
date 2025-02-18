@@ -52,9 +52,9 @@ tags:
 
 还有太多太多，看不过来了！在2024年中国美术馆举办过的展览中，可谓别开生面！细读之下，充满了奇思妙想，出人意料。
 
-清华大学艺术博物馆这次《萌生》大展，实则是将20世纪的花鸟、虫鱼、走兽画大家聚在一起，做个回顾。除了题目中的齐白石、黄永玉，还有王雪涛等。
+清华大学艺术博物馆这次《萌生》大展，实则是将20世纪的花鸟、虫鱼、走兽画大家聚在一起，做个回顾。除了题目中的齐白石、黄永玉，还有徐悲鸿、王雪涛、吴冠中、徐累等。
 
-{{< figure src="/img/2024/IMG_7767-min.jpg" title="黄永玉笔下的猴" >}}
+{{< figure src="/img/2024/IMG_7767-min.jpg" title="黄永玉笔下的兔" >}}
 {{< figure src="/img/2024/IMG_7768-min.jpg" title="黄永玉笔下的猴" >}}
 {{< figure src="/img/2024/IMG_7770-min.jpg" title="黄永玉笔下的鸡" >}}
 {{< figure src="/img/2024/IMG_7769-min.jpg" title="黄永玉笔下的狗" >}}
@@ -67,4 +67,11 @@ tags:
 
 
 {{< figure src="/img/2024/IMG_7744-min.jpg" title="王雪涛笔下的喜鹊" >}}
+
+{{< figure src="/img/2024/IMG_7764-min.jpg" title="吴冠中笔下的鹦鹉" >}}
+{{< figure src="/img/2024/IMG_7789-min.jpg" title="吴冠中笔下的鱼" >}}
+{{< figure src="/img/2024/IMG_7786-min.jpg" title="吴冠中笔下的鸭" >}}
+
+
+{{< figure src="/img/2024/IMG_7802-min.jpg" title="徐累笔下的马" >}}
 
