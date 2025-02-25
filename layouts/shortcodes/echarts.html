@@ -1,19 +1,24 @@
 {{ $id := printf "echarts-js-%d" .Ordinal }}
-{{ $width := default "800px" (.Get "width") }}
+{{ $width := default "100%" (.Get "width") }}
 {{ $height := default "600px" (.Get "height") }}
 
 <!-- 为 ECharts 准备一个定义了宽高的 DOM -->
-
 <div id="{{ $id }}" style="width: {{ $width }}; height: {{ $height }};"></div>
 
 <script type="text/javascript">
   // 基于准备好的dom，初始化echarts实例
-  var chart = echarts.init(document.getElementById({{ $id }}));
+  var myChart = echarts.init(document.getElementById('{{ $id }}'));
 
   // 指定图表的配置项和数据
   {{ .Inner | safeJS }}
 
-  // 使用刚指定的配置项和数据显示图表。
-  chart.setOption(option);
+  // 使用刚指定的配置项和数据显示图表
+  if (typeof option !== 'undefined') {
+    myChart.setOption(option);
+  }
   
+  // Handle window resize
+  window.addEventListener('resize', function() {
+    myChart.resize();
+  });
 </script>
