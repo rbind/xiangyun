@@ -1,9 +1,10 @@
 {{ $id := printf "echarts-js-%d" .Ordinal }}
-{{ $width := "800px" }}
-{{ $height := "600px" }}
+{{ $width := default "800px" (.Get "width") }}
+{{ $height := default "600px" (.Get "height") }}
 
 <!-- 为 ECharts 准备一个定义了宽高的 DOM -->
-<div><canvas id={{ $id }} style="width: {{ $width }};height: {{ $height }};"></canvas></div>
+
+<div id="{{ $id }}" style="width: {{ $width }}; height: {{ $height }};"></div>
 
 <script type="text/javascript">
   // 基于准备好的dom，初始化echarts实例
@@ -14,4 +15,5 @@
 
   // 使用刚指定的配置项和数据显示图表。
   chart.setOption(option);
+  
 </script>

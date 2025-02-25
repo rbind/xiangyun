@@ -13,7 +13,7 @@ tags:
 
 下面通过 Hugo 的 shortcodes 引入 echarts 绘图功能
 
-{{<echarts width="900px" height="600px">}}
+{{<echarts width="800px" height="400px">}}
 var option = {
   title: {
     text: 'ECharts Getting Started Example'
