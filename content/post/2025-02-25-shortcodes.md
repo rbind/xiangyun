@@ -11,7 +11,7 @@ tags:
   - Hugo
 ---
 
-在写博客的过程中，有时候会需要绘制一些简单的统计图形，插入在正文中。图形所含数据不多，很轻量，所以，我不想用到 R 包 [echarts4r](https://github.com/JohnCoene/echarts4r)，既然不需要 R 的绘图和计算功能，那么，我也不需要用 R Markdown 文档来写我的博客文章了，直接用 Markdown 这种纯文本格式。我试了 [Chart.js](https://www.chartjs.org/docs/latest/) （适合极简单的图形）和 [Mermaid](https://github.com/mermaid-js/mermaid) （画非统计图形合适）。最后，在体验 [plotly](https://github.com/plotly/plotly.js) 之后，发现我的这个使用场景还是 [Apache ECharts](https://echarts.apache.org/zh/index.html) 比较好。
+在写博客的过程中，有时候会需要绘制一些简单的统计图形，插入在正文中。图形所含数据不多，很轻量，所以，我不想用到 R 包 [echarts4r](https://github.com/JohnCoene/echarts4r)，既然不需要 R 的绘图和计算功能，那么，我也不需要用 R Markdown 文档来写我的博客文章了，直接用 Markdown 这种纯文本格式。我试了 [Chart.js](https://www.chartjs.org/docs/latest/) （适合极简单的图形）和 [Mermaid](https://github.com/mermaid-js/mermaid) （画非统计图形合适）。最后，在体验 [plotly](https://github.com/plotly/plotly.js)（虽然慢点，但是统计功能还是非常强的） 之后，发现我的这个使用场景还是 [Apache ECharts](https://echarts.apache.org/zh/index.html) 比较好。
 
 我的网站是用 [Hugo](https://github.com/gohugoio/hugo) 来渲染的，它通过自定义的 [Shortcodes](https://gohugo.io/shortcodes/) 可以引入外部的 JavaScript 库。
 Hugo 有一些内建的 Shortcodes，比如插入图片、油管视频等。
@@ -24,6 +24,21 @@ Hugo 有一些内建的 Shortcodes，比如插入图片、油管视频等。
 >}}
 
 下面通过 Hugo 的 shortcodes 引入 echarts 绘图功能。ECharts 部分的代码复制自[ECharts 官网的快速上手文档](https://echarts.apache.org/handbook/zh/get-started/)。
+
+{{<plotly>}}
+var data = [
+  {
+    x: ['衬衫', '羊毛衫', '雪纺衫', '裤子', '高跟鞋', '袜子'],
+    y: [5, 20, 36, 10, 10, 20],
+    type: 'bar'
+  }
+];
+var layout = {
+  title: {
+      text: '销量'
+    }
+  };
+{{</plotly>}}
 
 {{<echarts width="800px" height="400px">}}
 // 指定图表的配置项和数据
