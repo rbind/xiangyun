@@ -212,6 +212,17 @@ tags:
 
 ## 2025 年要看的书籍
 
+专业课程、视频、教材
+
+| 课程名称 | 学校 | 主讲人 | 视频来源 | 主要教材 |
+|-------------|---------|-----------------|-----------------|-----------------|
+| 线性代数 | MIT | Gilbert Strang | [B 站](https://www.bilibili.com/video/BV16Z4y1U7oU/)和[MIT公开课](https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010) | *Introduction to Linear Algebra* |
+| 数值优化 | 复旦 | 吴立徳 | [B 站](https://www.bilibili.com/video/BV1Kx411m7QB/) | *Numerical Optimization* |
+| 强化学习 | 北大 | 张志华 | [B 站](https://www.bilibili.com/video/BV1Et4y1C7co/) | *Reinforcement Learning: An Introduction* |
+| 金融市场 | 耶鲁 | Robert J. Shiller | [B 站](https://www.bilibili.com/video/BV11hKLebERB/)和[Yale 公开课](https://oyc.yale.edu/economics/econ-252-08) | *Foundations of Financial Markets and Institutions* |
+
+文学
+
 -   [ ] 王 蒙 《组织部新来的年轻人》反官僚小说
 -   [ ] 李宝嘉《官场现形记》晚清谴责小说
 -   [ ] 钱钟书《围城》知识分子（高鸿渐）的清高和颓唐
@@ -221,6 +232,9 @@ tags:
 -   [ ] 鲁 迅 《呐喊》《彷惶》白话文短篇小说写在新文化运动肇始
 -   [ ] 郁达夫《春风沉醉的晚上》《沉沦》
 -   [ ] 弗拉基米尔·纳博科夫《洛丽塔》
+
+商业
+
 -   [ ] 阿尔弗雷德·诺思·怀特海《教育的本质》
 -   [ ] 卡罗尔·德韦克《终身成长》
 -   [ ] 朱迪思·汉弗莱《即兴演讲》
@@ -234,6 +248,9 @@ tags:
 -   [ ] 克里斯托弗·斯坦纳《算法帝国》
 -   [ ] 米哈里·契克森米哈赖《心流：最优体验心理学》
 -   [ ] 苏世民《我的经验与教训》
+
+历史
+
 -   [ ] 毛泽东《毛泽东选集》
 -   [ ] 朱镕基《朱镕基谈话实录》
 -   [ ] 曾国藩《曾文正公全集》
