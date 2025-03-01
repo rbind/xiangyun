@@ -212,15 +212,6 @@ tags:
 
 ## 2025 年要看的书籍
 
-专业课程、视频、教材
-
-| 课程名称 | 学校 | 主讲人 | 视频来源 | 主要教材 |
-|-------------|---------|-----------------|-----------------|-----------------|
-| 线性代数 | MIT | Gilbert Strang | [B 站](https://www.bilibili.com/video/BV16Z4y1U7oU/)和[MIT公开课](https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010) | *Introduction to Linear Algebra* |
-| 数值优化 | 复旦 | 吴立徳 | [B 站](https://www.bilibili.com/video/BV1Kx411m7QB/) | *Numerical Optimization* |
-| 强化学习 | 北大 | 张志华 | [B 站](https://www.bilibili.com/video/BV1Et4y1C7co/) | *Reinforcement Learning: An Introduction* |
-| 金融市场 | 耶鲁 | Robert J. Shiller | [B 站](https://www.bilibili.com/video/BV11hKLebERB/)和[Yale 公开课](https://oyc.yale.edu/economics/econ-252-08) | *Foundations of Financial Markets and Institutions* |
-
 文学
 
 -   [ ] 王 蒙 《组织部新来的年轻人》反官僚小说
