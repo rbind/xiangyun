@@ -32,11 +32,18 @@ tags:
 | 因果推断 1-4 （讲座） | [B 站](https://www.bilibili.com/video/BV1A3411k7tD/) 北大耿直、苗旺 |  |
 | 高维概率 | [B 站](https://www.bilibili.com/video/BV1St421g7yM/) Roman Vershynin | *High-Dimensional Probability* |
 | 高等数理统计 | [B 站](https://www.bilibili.com/video/BV15k4y1X7EX/) 清华刘思序 | *Mathematical Statistics* |
+| 神经网络与深度学习 | [B 站](https://www.bilibili.com/video/BV1P3411u7c1/) 复旦邱锡鹏 | 神经网络与深度学习 |
 | 深度学习 | [B 站](https://www.bilibili.com/video/BV1nj9wYEEoM/) 清华吴翼 | *Deep Learning* |
 | 强化学习基础 | [B 站](https://www.bilibili.com/video/BV1Et4y1C7co/) 北大张志华 | *Reinforcement Learning: An Introduction* |
 | 金融市场 | [B 站](https://www.bilibili.com/video/BV11hKLebERB/) 和 [Yale 公开课](https://oyc.yale.edu/economics/econ-252-08) | *Foundations of Financial Markets and Institutions* |
 | 十年二十人（访谈） | [B 站](https://www.bilibili.com/video/BV15b411C7CP/) 吴晓波 | 激荡四十年（水大鱼大） |
 
-因为众所周知的原因，有的课程（比如金融市场关于保险的部分，中国现代文学关于老舍的部分）在搬运到 B 站后缺少章节，读者可以自行搜索，在油管上找来看。
+因为众所周知（不可抗因素）的原因，有的课程（比如金融市场关于保险的部分，中国现代文学关于老舍的部分）在搬运到 B 站后缺少章节，读者可以自行搜索，在油管上找来看。
 
-在读研究生的时候，我还不知道学计算机的要学这么深的机器学习和统计学，此外，他们还在编程动手能力上这么强，在工业界真的比学统计的有优势得多，起点会高一些，搞统计的职业路径是做 DA（数据分析）、BA（商业分析）。职业和生活中，除了专业技能外，还有对文学、历史、艺术等方面的了解，是同等重要的，教育的目的是培养健全的共和国民性格，而不是工具人。那些做出突出成就的科学家、文学家、艺术家，几乎无一例外地会对专业领域外的世界充满好奇、兴趣。
+在读研究生的时候，我还不知道学计算机的要学这么深的机器学习和统计学，此外，他们还在编程动手能力上这么强，在工业界真的比学统计的有优势得多，起点会高一些，搞统计的职业路径是做 DA（数据分析）、BA（商业分析）、BI（商业智能）。职业和生活中，除了专业技能外，还有对文学、历史、艺术等方面的了解，是同等重要的，教育的目的是培养健全的共和国民性格，而不是工具人。那些做出突出成就的科学家、文学家、艺术家，几乎无一例外地会对专业领域外的世界充满好奇、兴趣。
+
+在业界从事数据分析相关的工作，在技能方面，要掌握一门编程语言，比如 Python 语言。多练习编程，掌握一些算法及其实现工具的使用。
+
+{{< bilibili BV15K411H7d2 >}}
+
+就我个人的经历来说，从数据清洗、数据操作、数据探索、数据展示，数据分析、结果解释，最后，交流与应用最好都会。
