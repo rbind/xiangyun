@@ -9,7 +9,7 @@ tags:
   - 公开课
 ---
 
-自研究生毕业以后，很少从头到尾地去刷专业课程、讲座访谈，一直在吃老本，也很少在本专业以外拓展。下面主要从 B 站整理一份课程列表，将来或可根据需要选择性地刷一下基础知识。因是 B 站 Up 主搬运的链接，非官方维护的，因此，可能会失效。
+自研究生毕业以后，很少从头到尾地去刷专业课程、讲座访谈，一直在吃老本，也很少在本专业以外拓展。下面主要从 B 站整理一份课程列表，将来或可根据需要选择性地刷一下基础知识。因是 B 站 Up 主搬运的链接，非官方维护的，因此，可能会失效。（吐槽一下，中国高校为什么不愿意主动公开和维护呢？还要那么多 Up 主"冒死上传"。）
 
 | 课程名称 | 视频来源 | 主要教材 |
 |------------------------|------------------------|------------------------|
@@ -37,6 +37,10 @@ tags:
 | 强化学习基础 | [B 站](https://www.bilibili.com/video/BV1Et4y1C7co/) 北大张志华 | *Reinforcement Learning: An Introduction* |
 | 金融市场 | [B 站](https://www.bilibili.com/video/BV11hKLebERB/) 和 [Yale 公开课](https://oyc.yale.edu/economics/econ-252-08) | *Foundations of Financial Markets and Institutions* |
 | 十年二十人（访谈） | [B 站](https://www.bilibili.com/video/BV15b411C7CP/) 吴晓波 | 激荡四十年（水大鱼大） |
+| 酌见（访谈） | [油管](https://www.youtube.com/hashtag/%E9%85%8C%E8%A7%81) 俞敏洪 | 俞敏洪采访 |
+| 优米网（访谈） | B 站 [俞敏洪](https://www.bilibili.com/video/BV1rB4y1i7ZB/)、[刘强东](https://www.bilibili.com/video/BV1c34y117Ag/) | 王利芬采访 |
+| 十三邀（访谈） | [油管](https://www.youtube.com/@THIRTEENTALKS) 许知远 | 许知远采访 |
+| 星空下的对话 | [B 站](https://www.bilibili.com/video/BV1aC4y1k7Ax/) 张朝阳 | 张朝阳采访 |
 
 因为众所周知（不可抗因素）的原因，有的课程（比如金融市场关于保险的部分，中国现代文学关于老舍的部分）在搬运到 B 站后缺少章节，读者可以自行搜索，在油管上找来看。
 
@@ -46,4 +50,4 @@ tags:
 
 {{< bilibili BV15K411H7d2 >}}
 
-就我个人的经历来说，从数据清洗、数据操作、数据探索、数据展示，数据分析、结果解释，最后，交流与应用最好都会。
+就我个人的经历来说，从数据清洗、数据操作、数据探索、数据展示，数据分析、结果解释，最后，交流与应用最好都会。开始熟悉 Python 的方式就是用它来做一些小事情，借此熟悉 `pandas`、`xgboost`、`scikit-learn` 等。熟悉之后，用它做一个有点规模的项目，差不多一个完整流程。比如，用 Python 做一个不小的 Shiny 应用，功能接近做假设检验的专门软件。再比如，找一个自己的感兴趣的问题，从找数据到成文，写一篇。
