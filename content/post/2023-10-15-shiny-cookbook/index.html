@@ -1,0 +1,255 @@
+---
+date: "2023-10-15"
+slug: shiny-cookbook
+author: 黄湘云
+title: R Shiny 食谱
+subtitle: R Shiny 踩坑记录（aka R Shiny FAQ）
+categories:
+  - 统计软件
+tags:
+  - R Shiny
+output:
+  blogdown::html_page:
+    toc: true
+description: "现在大厂都有自研的 BI 工具，只在遇到一些探索性的、定制化的需求时，需要 R Shiny 这套工具。"
+thumbnail: /img/logo/shiny.svg
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#%E4%B8%80.-%E8%83%8C%E6%99%AF%E4%BB%8B%E7%BB%8D" id="toc-一.-背景介绍">一. 背景介绍</a></li>
+<li><a href="#%E4%BA%8C.-%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95" id="toc-二.-踩坑记录">二. 踩坑记录</a>
+<ul>
+<li><a href="#%E4%B8%89%E5%B1%82%E7%BA%A7%E8%81%94%E7%AD%9B%E9%80%89%E5%99%A8%E7%9A%84%E5%AE%9E%E7%8E%B0" id="toc-三层级联筛选器的实现">2.1 三层级联筛选器的实现</a></li>
+<li><a href="#%E6%9F%A5%E8%AF%A2%E6%8C%89%E9%92%AE%E5%92%8C%E7%AD%9B%E9%80%89%E5%99%A8%E4%BA%A4%E4%BA%92" id="toc-查询按钮和筛选器交互">2.2 查询按钮和筛选器交互</a></li>
+<li><a href="#%E6%9F%A5%E8%AF%A2%E6%8C%89%E9%92%AE%E5%92%8C%E7%BB%93%E6%9E%9C%E6%B8%B2%E6%9F%93%E4%BA%A4%E4%BA%92" id="toc-查询按钮和结果渲染交互">2.3 查询按钮和结果渲染交互</a></li>
+<li><a href="#%E6%9C%8D%E5%8A%A1%E7%AB%AF%E6%B8%B2%E6%9F%93%E7%AD%9B%E9%80%89%E5%99%A8" id="toc-服务端渲染筛选器">2.4 服务端渲染筛选器</a></li>
+<li><a href="#%E7%AD%9B%E9%80%89%E5%99%A8%E6%8E%92%E5%88%97%E5%B8%83%E5%B1%80" id="toc-筛选器排列布局">2.5 筛选器排列布局</a></li>
+<li><a href="#%E8%BE%93%E5%85%A5%E5%AD%97%E7%AC%A6%E4%B8%B2%E8%BD%AC%E5%8F%98%E9%87%8F" id="toc-输入字符串转变量">2.6 输入字符串转变量</a></li>
+<li><a href="#%E8%A1%A8%E6%A0%BC%E4%B8%AD%E6%B7%BB%E5%8A%A0%E8%B6%85%E9%93%BE%E6%8E%A5" id="toc-表格中添加超链接">2.7 表格中添加超链接</a></li>
+<li><a href="#r-%E4%B8%AD%E6%B8%B2%E6%9F%93-sql-%E4%BB%A3%E7%A0%81" id="toc-r-中渲染-sql-代码">2.8 R 中渲染 SQL 代码</a></li>
+<li><a href="#%E5%AE%9A%E5%88%B6%E9%A1%B5%E9%9D%A2%E5%B8%83%E5%B1%80" id="toc-定制页面布局">2.9 定制页面布局</a></li>
+<li><a href="#%E8%B7%AF%E5%BE%84%E4%BC%A0%E5%8F%82%E6%95%B0" id="toc-路径传参数">2.10 路径传参数</a></li>
+</ul></li>
+<li><a href="#%E4%B8%89.-%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE" id="toc-三.-参考文献">三. 参考文献</a></li>
+</ul>
+</div>
+
+<div class="rmdinfo">
+<p>本文引用的所有信息均为公开信息，仅代表作者本人观点，与就职单位无关。</p>
+</div>
+<style type="text/css">
+figure {
+  text-align: center;
+  display: block; 
+  margin-left: auto; 
+  margin-right: auto;
+}
+</style>
+{{% figure src="/img/logo/shiny.svg" width="25%" caption="R Shiny 框架" link="https://github.com/rstudio/shiny" alt="R Shiny 框架" target="_blank" %}}
+<div id="一.-背景介绍" class="section level1">
+<h1>一. 背景介绍</h1>
+<p>现在大厂都有自研的 BI 工具，只在遇到一些探索性的、定制化的需求时，需要 R Shiny 这套工具。有固定模式的需求通常都可以用工具固定下来，以拖拉拽的方式便捷的完成。与之相反，则需要通过编程实现灵活性、特异性。这样的话，原有工具的部分功能就得在 R Shiny 中实现，比如级联筛选器，表格中的超链接等。R Shiny 实现一种低代码的响应式设计，作为开发者，需要考虑四个方面。其一页面布局设计、开发，其二页面元素设计、开发，其三用户和页面元素交互设计、开发 ，其四页面元素之间交互设计、开发。</p>
+</div>
+<div id="二.-踩坑记录" class="section level1">
+<h1>二. 踩坑记录</h1>
+<div id="三层级联筛选器的实现" class="section level2">
+<h2>2.1 三层级联筛选器的实现</h2>
+<p>筛选器之间存在联动，筛选器 A 的选项影响筛选器 B 的选项，筛选器 B 的选项又影响筛选器 C 的选项。从用户的视角看，这是一种数据的下钻，举例来说，从省到市再到区县。以筛选器联动的方式来处理，是因为省-市-区（县）的行政体系存在层级隶属关系，往往维度表也很大。在零售行业广泛存在品类体系，当我们逛超市的时候，会发现这样的现象，在不同的区域进行不同风格的装饰，比如生鲜、家电、水酒等等，每个大的类目下面又有很多小的品类。</p>
+</div>
+<div id="查询按钮和筛选器交互" class="section level2">
+<h2>2.2 查询按钮和筛选器交互</h2>
+<p>我改变了筛选器的选项，并不是立马改变输出结果，而是等待用户点击查询按钮才开始执行。</p>
+</div>
+<div id="查询按钮和结果渲染交互" class="section level2">
+<h2>2.3 查询按钮和结果渲染交互</h2>
+<p>点击查询才开始渲染后续的结果，比如绘制图形和制作表格等。举例如下：</p>
+<pre class="r"><code># 数据集 economics 来自 ggplot2 包
+index_vec &lt;- c(
+  &quot;个人消费支出（单位：10亿美金）&quot; = &quot;pce&quot;,
+  &quot;总人口（单位：千）&quot; = &quot;pop&quot;,
+  &quot;个人储蓄率（单位：%）&quot; = &quot;psavert&quot;,
+  &quot;失业时长（单位：周）&quot; = &quot;uempmed&quot;,
+  &quot;失业人数（单位：千）&quot; = &quot;unemploy&quot;
+)
+
+div(
+  class = &quot;row justify-content-start&quot;,
+  column(
+    width = 4,
+    dateRangeInput(&quot;daterange&quot;, &quot;日期范围&quot;,
+      start = &quot;1967-07-01&quot;, end = &quot;2015-04-01&quot;,
+      min = &quot;1967-07-01&quot;, max = &quot;2015-04-01&quot;
+    )
+  ),
+  column(
+    width = 5,
+    selectInput(&quot;index&quot;, &quot;经济指标&quot;, choices = index_vec, selected = &quot;psavert&quot;)
+  ),
+  column(
+    width = 2,
+    actionButton(&quot;action&quot;,
+      label = &quot;查询&quot;,
+      style = &quot;margin-top:25px; color: #fff; background-color: #5b89f7; border-color: #5b89f7&quot;
+    )
+  )
+)
+
+# 点击执行按钮，才渲染后续结果
+input_vec2 &lt;- eventReactive(input$action, {
+  list(
+    &quot;开始日期&quot; = input$daterange[1],
+    &quot;结束日期&quot; = input$daterange[2],
+    &quot;指标&quot; = input$index
+  )
+})</code></pre>
+<p>对一个时间序列数据集，想选择其中某个指标数据，绘制时序图展示趋势变化。有时候，并不想打开 Shiny 应用的时候就加载数据，而是等用户选择时间范围和数据指标后，开始查询数据，展示结果。这会节省 R Shiny 应用启动的时间，和一部分计算资源。核心的交互逻辑是 shiny 包的两个函数实现的。</p>
+<pre class="r"><code># 查询动作的按钮
+actionButton
+# 对查询动作的再响应
+eventReactive</code></pre>
+</div>
+<div id="服务端渲染筛选器" class="section level2">
+<h2>2.4 服务端渲染筛选器</h2>
+<p>当筛选器的项目非常多时，<code>selectInput()</code> 和 <code>selectizeInput()</code> 运行起来会非常慢，此时，可将有关计算转移到 R 软件。详情见<a href="https://shiny.posit.co/r/articles/build/selectize/">Using selectize input</a>。</p>
+<pre class="r"><code># in ui
+selectizeInput(&#39;foo&#39;, choices = NULL, ...)
+
+# in server
+server &lt;- function(input, output, session) {
+  updateSelectizeInput(session, &#39;foo&#39;, choices = data, server = TRUE)
+}</code></pre>
+</div>
+<div id="筛选器排列布局" class="section level2">
+<h2>2.5 筛选器排列布局</h2>
+<pre class="r"><code># ?column()
+column(width, ..., offset = 0)</code></pre>
+<ul>
+<li>width: 宽度范围是 1-12</li>
+<li>… 放筛选器</li>
+<li>offset 距离左侧筛选器漂移一段距离，负值表示靠近，正值表示远离</li>
+</ul>
+<pre class="r"><code>library(shiny)
+column</code></pre>
+<pre><code>## function (width, ..., offset = 0) 
+## {
+##     if (!is.numeric(width) || (width &lt; 1) || (width &gt; 12)) 
+##         stop(&quot;column width must be between 1 and 12&quot;)
+##     colClass &lt;- paste0(&quot;col-sm-&quot;, width)
+##     if (offset &gt; 0) {
+##         colClass &lt;- paste0(colClass, &quot; offset-md-&quot;, offset, &quot; col-sm-offset-&quot;, 
+##             offset)
+##     }
+##     div(class = colClass, ...)
+## }
+## &lt;bytecode: 0x7f9f8bd12df0&gt;
+## &lt;environment: namespace:shiny&gt;</code></pre>
+</div>
+<div id="输入字符串转变量" class="section level2">
+<h2>2.6 输入字符串转变量</h2>
+<p>函数 <code>get()</code> 和 <code>mget()</code> 可以将用户输入的字符串转为 R 语言环境中的变量，用户切换不同的筛选框的选项，可以获得不同的结果。与 <strong>data.table</strong> 包组合使用非常合适。</p>
+<pre class="r"><code>INPUT = &quot;Species&quot;
+library(data.table)
+iris_dt &lt;- as.data.table(iris)
+# 筛选数据集 iris 中的 Species 列
+iris_dt[, get(INPUT)]</code></pre>
+<pre><code>##   [1] setosa     setosa     setosa     setosa     setosa     setosa    
+##   [7] setosa     setosa     setosa     setosa     setosa     setosa    
+##  [13] setosa     setosa     setosa     setosa     setosa     setosa    
+##  [19] setosa     setosa     setosa     setosa     setosa     setosa    
+##  [25] setosa     setosa     setosa     setosa     setosa     setosa    
+##  [31] setosa     setosa     setosa     setosa     setosa     setosa    
+##  [37] setosa     setosa     setosa     setosa     setosa     setosa    
+##  [43] setosa     setosa     setosa     setosa     setosa     setosa    
+##  [49] setosa     setosa     versicolor versicolor versicolor versicolor
+##  [55] versicolor versicolor versicolor versicolor versicolor versicolor
+##  [61] versicolor versicolor versicolor versicolor versicolor versicolor
+##  [67] versicolor versicolor versicolor versicolor versicolor versicolor
+##  [73] versicolor versicolor versicolor versicolor versicolor versicolor
+##  [79] versicolor versicolor versicolor versicolor versicolor versicolor
+##  [85] versicolor versicolor versicolor versicolor versicolor versicolor
+##  [91] versicolor versicolor versicolor versicolor versicolor versicolor
+##  [97] versicolor versicolor versicolor versicolor virginica  virginica 
+## [103] virginica  virginica  virginica  virginica  virginica  virginica 
+## [109] virginica  virginica  virginica  virginica  virginica  virginica 
+## [115] virginica  virginica  virginica  virginica  virginica  virginica 
+## [121] virginica  virginica  virginica  virginica  virginica  virginica 
+## [127] virginica  virginica  virginica  virginica  virginica  virginica 
+## [133] virginica  virginica  virginica  virginica  virginica  virginica 
+## [139] virginica  virginica  virginica  virginica  virginica  virginica 
+## [145] virginica  virginica  virginica  virginica  virginica  virginica 
+## Levels: setosa versicolor virginica</code></pre>
+</div>
+<div id="表格中添加超链接" class="section level2">
+<h2>2.7 表格中添加超链接</h2>
+<p>表格中添加超链接是为了和相关的资源联系起来，可以从一个工具跳转到另一个工具，甚至跳转到外部网络。下面给搜索关键词批量的添加跳转链接，跳转链接支持传递文本和日期类型的字段，构造的跳转链接可以用 <code>DT::datatable()</code> 展示出来。</p>
+<pre class="r"><code># 生成链接
+hyperlink &lt;- function(text = &quot;肯德基&quot;, begin_date = Sys.Date() - 1, end_date = Sys.Date()) {
+  links &lt;- sprintf(&#39;网站访问链接/query/queryquery?filter=[{&quot;name&quot;:&quot;请输入关键词&quot;,&quot;type&quot;:31,&quot;value&quot;:&quot;%s&quot;},{&quot;name&quot;:&quot;开始日期&quot;,&quot;type&quot;:11,&quot;value&quot;:&quot;%s&quot;},{&quot;name&quot;:&quot;结束日期&quot;,&quot;type&quot;:11,&quot;value&quot;:&quot;%s&quot;}]&#39;, text, begin_date, end_date)
+  as.character(htmltools::a(href = links, text, target = &quot;_blank&quot;))
+}
+# 批量化生成链接
+hyperlink2vec &lt;- function(
+    text2vec = c(&quot;肯德基&quot;, &quot;外卖&quot;),
+    begin_date = Sys.Date() - 1,
+    end_date = Sys.Date) {
+  unlist(lapply(text2vec, hyperlink,
+    begin_date = begin_date,
+    end_date = end_date
+  ))
+}</code></pre>
+<p>注意：路径中支持传递多个不同类型的筛选器参数，筛选器参数之间不要有空格，即路径中 <code>?filter</code> 后面跟的 JSON 串不要有空格。</p>
+</div>
+<div id="r-中渲染-sql-代码" class="section level2">
+<h2>2.8 R 中渲染 SQL 代码</h2>
+<p>R 中渲染 SQL 代码的常用函数是 <code>sprintf()</code> ，就是字符串格式化打印，用 <code>%s</code> 替换真实的字符串。只是遇到特殊字符的时候，需要一些注意。比如，函数 <code>sprintf()</code> 渲染带百分号 <code>%</code> 的 SQL 语句。当遇到 SQL 语言里日期格式化函数 <code>date_format()</code> 时，函数 <code>sprintf()</code> 使用字面 <code>%</code> 需要用 <code>%%</code>。</p>
+<pre class="r"><code>SELECT date_format(partition_date, &#39;%X-%m&#39;) as year_month
+  FROM app_xx_metric_d_d
+  AND  partition_date BETWEEN &#39;2020-04-01&#39; AND &#39;2020-04-30&#39;</code></pre>
+<pre class="r"><code># sprintf 使用字面 % 需要用 %% 
+SELECT date_format(partition_date, &#39;%%X-%%m&#39;) as year_month
+  FROM app_xx_metric_d_d
+  AND  partition_date BETWEEN &#39;2020-04-01&#39; AND &#39;2020-04-30&#39;</code></pre>
+<p><strong>值得注意</strong>，函数 <code>sprintf()</code> 支持的字符串长度有限。当 SQL 语句非常长时，推荐使用 <strong>glue</strong> 包的函数 <code>glue()</code> 代替函数 <code>sprintf()</code> ，使用方法详见 <code>glue()</code> 函数帮助文档。</p>
+</div>
+<div id="定制页面布局" class="section level2">
+<h2>2.9 定制页面布局</h2>
+<p><strong>shiny</strong> 包有四个常用的页面布局函数，布局函数 <code>flowLayout()</code> 实现一个从左到右，从上到下的排列，其他三个函数分别是 <code>sidebarLayout()</code>, <code>splitLayout()</code>, <code>verticalLayout()</code> 。在 bslib 包出现之前，定制页面布局用的最多的是 <strong>flexdashboard</strong> 包，常常在导言区做类似如下的设置。</p>
+<pre class="r"><code>---
+title: &quot;-&quot;
+runtime: shiny
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows # 横向
+    vertical_layout: scroll # 垂直滚动
+    theme: bootstrap # 配色
+    mathjax: NULL # 不加载数学库
+---</code></pre>
+</div>
+<div id="路径传参数" class="section level2">
+<h2>2.10 路径传参数</h2>
+<p>每个用户访问 Shiny 页面，都会自带个人信息，在 Shiny 应用中比对访问人的信息，有权限的页面可以访问，没权限的不可访问，达到一个数据鉴权的效果。函数 <code>parseQueryString</code> 可以获取用户访问 Shiny 页面时的个人信息。</p>
+</div>
+</div>
+<div id="三.-参考文献" class="section level1">
+<h1>三. 参考文献</h1>
+<p>参考材料主要来源于 Hadley Wickham 的书籍《Mastering Shiny》，Shiny 框架官网，RStudio 官网。</p>
+<ol style="list-style-type: decimal">
+<li><p>DT 包渲染的交互表格里实现超链接跳转，见 <a href="https://rstudio.github.io/DT/">DT 包帮助文档</a>的 2.10 Escaping Table Content 。</p></li>
+<li><p>动态 UI 实现级联筛选器，见书籍《Mastering Shiny》的第10章 <a href="https://mastering-shiny.org/action-dynamic.html">Dynamic UI</a> 。</p></li>
+<li><p>使用函数 <code>actionButton</code> 实现 <code>submitButton</code> 提交（查询）效果，见<a href="https://shiny.posit.co/r/articles/build/action-buttons/">帮助文档</a>。</p></li>
+<li><p>shiny 函数 <code>isolate</code> 赋能 <code>observeEvent</code> 和 <code>eventReactive</code> 实现多个查询按钮之间的交互，见书籍《Mastering Shiny》的第 15 章 <a href="https://mastering-shiny.org/reactivity-objects.html#isolating-code">Reactive building blocks</a> 。</p></li>
+<li><p>用户输入反馈见书籍《Mastering Shiny》的第8章 <a href="https://mastering-shiny.org/action-feedback.html">User feedback</a> 。</p></li>
+<li><p><strong>flexdashboard 包</strong>定制页面布局参考 Bootstrap 布局样式 <a href="https://getbootstrap.com/docs/5.0/layout/columns/">Columns</a> 。</p></li>
+<li><p>R 语言中的拟引用 <a href="https://adv-r.hadley.nz/quasiquotation.html#quasiquotation" class="uri">quasiquotation</a> 。</p></li>
+<li><p>将字符串转变量的函数 <code>get()</code> 和 <code>mget()</code> ，见其<a href="https://stat.ethz.ch/R-manual/R-devel/library/base/html/get.html">帮助文档</a> 。</p></li>
+<li><p>从前端 JavaScript 转移到后端 R 服务渲染选择筛选器 <a href="https://shiny.posit.co/r/articles/build/selectize/">Using selectize input</a> 。</p></li>
+<li><p>在 Shiny 中实现异步查询数据库 <a href="https://github.com/blairj09/shiny-query-async">Shiny Asynchronous Database Queries</a> 。</p></li>
+<li><p>利用用户访问 Shiny 页面的会话 session 数据做路径传参。见帮助文档 <a href="https://shiny.posit.co/r/reference/shiny/1.7.0/session.html" class="uri">Session 对象</a> 和客户端数据和查询字符串 <a href="https://shiny.rstudio.com/gallery/client-data-and-query-string.html" class="uri">Client data and query string</a>。</p></li>
+<li><p>Shiny 框架的 Github <a href="https://github.com/rstudio/shiny-examples">示例仓库</a>。</p></li>
+<li><p>John Coene. Javascript for R. 2022. <a href="https://book.javascript-for-r.com/" class="uri">https://book.javascript-for-r.com/</a></p></li>
+<li><p>Hadley Wickham. Mastering Shiny. 2021. <a href="https://mastering-shiny.org/" class="uri">https://mastering-shiny.org/</a></p></li>
+<li><p>Colin Fay, Sébastien Rochette, Vincent Guyader, Cervan Girard. Engineering Production-Grade Shiny Apps. 2022. <a href="https://engineering-shiny.org/" class="uri">https://engineering-shiny.org/</a></p></li>
+</ol>
+</div>

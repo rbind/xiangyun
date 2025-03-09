@@ -1,0 +1,242 @@
+---
+date: "2023-10-15"
+slug: shiny-cookbook
+author: 黄湘云
+title: R Shiny 食谱
+subtitle: R Shiny 踩坑记录（aka R Shiny FAQ）
+categories:
+  - 统计软件
+tags:
+  - R Shiny
+output:
+  blogdown::html_page:
+    toc: true
+description: "现在大厂都有自研的 BI 工具，只在遇到一些探索性的、定制化的需求时，需要 R Shiny 这套工具。"
+thumbnail: /img/logo/shiny.svg
+---
+
+::: rmdinfo
+本文引用的所有信息均为公开信息，仅代表作者本人观点，与就职单位无关。
+:::
+
+```{css, echo=FALSE}
+figure {
+  text-align: center;
+  display: block; 
+  margin-left: auto; 
+  margin-right: auto;
+}
+```
+
+```{r shiny-logo, echo=FALSE}
+blogdown::shortcode("figure", src = "/img/logo/shiny.svg", width = "25%", caption = "R Shiny 框架", link = "https://github.com/rstudio/shiny", alt = "R Shiny 框架", target = "_blank")
+```
+
+# 一. 背景介绍
+
+现在大厂都有自研的 BI 工具，只在遇到一些探索性的、定制化的需求时，需要 R Shiny 这套工具。有固定模式的需求通常都可以用工具固定下来，以拖拉拽的方式便捷的完成。与之相反，则需要通过编程实现灵活性、特异性。这样的话，原有工具的部分功能就得在 R Shiny 中实现，比如级联筛选器，表格中的超链接等。R Shiny 实现一种低代码的响应式设计，作为开发者，需要考虑四个方面。其一页面布局设计、开发，其二页面元素设计、开发，其三用户和页面元素交互设计、开发 ，其四页面元素之间交互设计、开发。
+
+# 二. 踩坑记录
+
+## 2.1 三层级联筛选器的实现
+
+筛选器之间存在联动，筛选器 A 的选项影响筛选器 B 的选项，筛选器 B 的选项又影响筛选器 C 的选项。从用户的视角看，这是一种数据的下钻，举例来说，从省到市再到区县。以筛选器联动的方式来处理，是因为省-市-区（县）的行政体系存在层级隶属关系，往往维度表也很大。在零售行业广泛存在品类体系，当我们逛超市的时候，会发现这样的现象，在不同的区域进行不同风格的装饰，比如生鲜、家电、水酒等等，每个大的类目下面又有很多小的品类。
+
+## 2.2 查询按钮和筛选器交互
+
+我改变了筛选器的选项，并不是立马改变输出结果，而是等待用户点击查询按钮才开始执行。
+
+## 2.3 查询按钮和结果渲染交互
+
+点击查询才开始渲染后续的结果，比如绘制图形和制作表格等。举例如下：
+
+``` r
+# 数据集 economics 来自 ggplot2 包
+index_vec <- c(
+  "个人消费支出（单位：10亿美金）" = "pce",
+  "总人口（单位：千）" = "pop",
+  "个人储蓄率（单位：%）" = "psavert",
+  "失业时长（单位：周）" = "uempmed",
+  "失业人数（单位：千）" = "unemploy"
+)
+
+div(
+  class = "row justify-content-start",
+  column(
+    width = 4,
+    dateRangeInput("daterange", "日期范围",
+      start = "1967-07-01", end = "2015-04-01",
+      min = "1967-07-01", max = "2015-04-01"
+    )
+  ),
+  column(
+    width = 5,
+    selectInput("index", "经济指标", choices = index_vec, selected = "psavert")
+  ),
+  column(
+    width = 2,
+    actionButton("action",
+      label = "查询",
+      style = "margin-top:25px; color: #fff; background-color: #5b89f7; border-color: #5b89f7"
+    )
+  )
+)
+
+# 点击执行按钮，才渲染后续结果
+input_vec2 <- eventReactive(input$action, {
+  list(
+    "开始日期" = input$daterange[1],
+    "结束日期" = input$daterange[2],
+    "指标" = input$index
+  )
+})
+```
+
+对一个时间序列数据集，想选择其中某个指标数据，绘制时序图展示趋势变化。有时候，并不想打开 Shiny 应用的时候就加载数据，而是等用户选择时间范围和数据指标后，开始查询数据，展示结果。这会节省 R Shiny 应用启动的时间，和一部分计算资源。核心的交互逻辑是 shiny 包的两个函数实现的。
+
+``` r
+# 查询动作的按钮
+actionButton
+# 对查询动作的再响应
+eventReactive
+```
+
+## 2.4 服务端渲染筛选器
+
+当筛选器的项目非常多时，`selectInput()` 和 `selectizeInput()` 运行起来会非常慢，此时，可将有关计算转移到 R 软件。详情见[Using selectize input](https://shiny.posit.co/r/articles/build/selectize/)。
+
+``` r
+# in ui
+selectizeInput('foo', choices = NULL, ...)
+
+# in server
+server <- function(input, output, session) {
+  updateSelectizeInput(session, 'foo', choices = data, server = TRUE)
+}
+```
+
+## 2.5 筛选器排列布局
+
+``` r
+# ?column()
+column(width, ..., offset = 0)
+```
+
+-   width: 宽度范围是 1-12
+-   ... 放筛选器
+-   offset 距离左侧筛选器漂移一段距离，负值表示靠近，正值表示远离
+
+```{r}
+library(shiny)
+column
+```
+
+## 2.6 输入字符串转变量
+
+函数 `get()` 和 `mget()` 可以将用户输入的字符串转为 R 语言环境中的变量，用户切换不同的筛选框的选项，可以获得不同的结果。与 **data.table** 包组合使用非常合适。
+
+```{r}
+INPUT = "Species"
+library(data.table)
+iris_dt <- as.data.table(iris)
+# 筛选数据集 iris 中的 Species 列
+iris_dt[, get(INPUT)]
+```
+
+## 2.7 表格中添加超链接
+
+表格中添加超链接是为了和相关的资源联系起来，可以从一个工具跳转到另一个工具，甚至跳转到外部网络。下面给搜索关键词批量的添加跳转链接，跳转链接支持传递文本和日期类型的字段，构造的跳转链接可以用 `DT::datatable()` 展示出来。
+
+``` r
+# 生成链接
+hyperlink <- function(text = "肯德基", begin_date = Sys.Date() - 1, end_date = Sys.Date()) {
+  links <- sprintf('网站访问链接/query/queryquery?filter=[{"name":"请输入关键词","type":31,"value":"%s"},{"name":"开始日期","type":11,"value":"%s"},{"name":"结束日期","type":11,"value":"%s"}]', text, begin_date, end_date)
+  as.character(htmltools::a(href = links, text, target = "_blank"))
+}
+# 批量化生成链接
+hyperlink2vec <- function(
+    text2vec = c("肯德基", "外卖"),
+    begin_date = Sys.Date() - 1,
+    end_date = Sys.Date) {
+  unlist(lapply(text2vec, hyperlink,
+    begin_date = begin_date,
+    end_date = end_date
+  ))
+}
+```
+
+注意：路径中支持传递多个不同类型的筛选器参数，筛选器参数之间不要有空格，即路径中 `?filter` 后面跟的 JSON 串不要有空格。
+
+## 2.8 R 中渲染 SQL 代码
+
+R 中渲染 SQL 代码的常用函数是 `sprintf()` ，就是字符串格式化打印，用 `%s` 替换真实的字符串。只是遇到特殊字符的时候，需要一些注意。比如，函数 `sprintf()` 渲染带百分号 `%` 的 SQL 语句。当遇到 SQL 语言里日期格式化函数 `date_format()` 时，函数 `sprintf()` 使用字面 `%` 需要用 `%%`。
+
+``` r
+SELECT date_format(partition_date, '%X-%m') as year_month
+  FROM app_xx_metric_d_d
+  AND  partition_date BETWEEN '2020-04-01' AND '2020-04-30'
+```
+
+``` r
+# sprintf 使用字面 % 需要用 %% 
+SELECT date_format(partition_date, '%%X-%%m') as year_month
+  FROM app_xx_metric_d_d
+  AND  partition_date BETWEEN '2020-04-01' AND '2020-04-30'
+```
+
+**值得注意**，函数 `sprintf()` 支持的字符串长度有限。当 SQL 语句非常长时，推荐使用 **glue** 包的函数 `glue()` 代替函数 `sprintf()` ，使用方法详见 `glue()` 函数帮助文档。
+
+## 2.9 定制页面布局
+
+**shiny** 包有四个常用的页面布局函数，布局函数 `flowLayout()` 实现一个从左到右，从上到下的排列，其他三个函数分别是 `sidebarLayout()`, `splitLayout()`, `verticalLayout()` 。在 bslib 包出现之前，定制页面布局用的最多的是 **flexdashboard** 包，常常在导言区做类似如下的设置。
+
+``` r
+---
+title: "-"
+runtime: shiny
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows # 横向
+    vertical_layout: scroll # 垂直滚动
+    theme: bootstrap # 配色
+    mathjax: NULL # 不加载数学库
+---
+```
+
+## 2.10 路径传参数
+
+每个用户访问 Shiny 页面，都会自带个人信息，在 Shiny 应用中比对访问人的信息，有权限的页面可以访问，没权限的不可访问，达到一个数据鉴权的效果。函数 `parseQueryString` 可以获取用户访问 Shiny 页面时的个人信息。
+
+# 三. 参考文献
+
+参考材料主要来源于 Hadley Wickham 的书籍《Mastering Shiny》，Shiny 框架官网，RStudio 官网。
+
+1.  DT 包渲染的交互表格里实现超链接跳转，见 [DT 包帮助文档](https://rstudio.github.io/DT/)的 2.10 Escaping Table Content 。
+
+2.  动态 UI 实现级联筛选器，见书籍《Mastering Shiny》的第10章 [Dynamic UI](https://mastering-shiny.org/action-dynamic.html) 。
+
+3.  使用函数 `actionButton` 实现 `submitButton` 提交（查询）效果，见[帮助文档](https://shiny.posit.co/r/articles/build/action-buttons/)。
+
+4.  shiny 函数 `isolate` 赋能 `observeEvent` 和 `eventReactive` 实现多个查询按钮之间的交互，见书籍《Mastering Shiny》的第 15 章 [Reactive building blocks](https://mastering-shiny.org/reactivity-objects.html#isolating-code) 。
+
+5.  用户输入反馈见书籍《Mastering Shiny》的第8章 [User feedback](https://mastering-shiny.org/action-feedback.html) 。
+
+6.  **flexdashboard 包**定制页面布局参考 Bootstrap 布局样式 [Columns](https://getbootstrap.com/docs/5.0/layout/columns/) 。
+
+7.  R 语言中的拟引用 [quasiquotation](https://adv-r.hadley.nz/quasiquotation.html#quasiquotation){.uri} 。
+
+8.  将字符串转变量的函数 `get()` 和 `mget()` ，见其[帮助文档](https://stat.ethz.ch/R-manual/R-devel/library/base/html/get.html) 。
+
+9.  从前端 JavaScript 转移到后端 R 服务渲染选择筛选器 [Using selectize input](https://shiny.posit.co/r/articles/build/selectize/) 。
+
+10. 在 Shiny 中实现异步查询数据库 [Shiny Asynchronous Database Queries](https://github.com/blairj09/shiny-query-async) 。
+
+11. 利用用户访问 Shiny 页面的会话 session 数据做路径传参。见帮助文档 [Session 对象](https://shiny.posit.co/r/reference/shiny/1.7.0/session.html){.uri} 和客户端数据和查询字符串 [Client data and query string](https://shiny.rstudio.com/gallery/client-data-and-query-string.html){.uri}。
+
+12. Shiny 框架的 Github [示例仓库](https://github.com/rstudio/shiny-examples)。
+
+13. John Coene. Javascript for R. 2022. <https://book.javascript-for-r.com/>
+
+14. Hadley Wickham. Mastering Shiny. 2021. <https://mastering-shiny.org/>
+
+15. Colin Fay, Sébastien Rochette, Vincent Guyader, Cervan Girard. Engineering Production-Grade Shiny Apps. 2022. <https://engineering-shiny.org/>
