@@ -1,0 +1,224 @@
+---
+title:  贝叶斯计算扩展包 RStan & brms
+date: '2024-05-01'
+author: 黄湘云
+slug: stan-interfaces
+categories:
+  - 统计软件
+tags:
+  - 贝叶斯
+  - 线性模型
+  - Stan
+  - RStan
+  - brms
+math: true
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+description: "本文介绍贝叶斯计算扩展包 RStan & brms。"
+---
+
+## Stan 编码 {#sec-stan-code}
+
+考虑一个 Stan 编码的线性模型，代码来自 [Stan 用户指南](https://mc-stan.org/docs/stan-users-guide/linear-regression.html)，如下：
+
+```{verbatim, file="code/cars.stan", lang="stan"}
+```
+
+Stan 模型代码至少需要三块：数据、参数和模型，各个部分尽量采用向量化的编程方式，少用 for 循环。编译 Stan 模型，传递数据进去，采样计算获得结果。
+
+## Stan 配置 {#sec-stan-setup}
+
+在 R 语言社区，很早就存在一个 R 包 [rstan](https://github.com/stan-dev/rstan) ，它整合了编译代码、运行采样、模型输出等功能。下面先加载 R 包，设置 Stan 运行参数，准备输入数据，拟合模型。
+
+```{r}
+#| label: fit-cars-data
+#| echo: true
+#| message: false
+
+library(StanHeaders)
+library(rstan)
+# Stan 代码不变就不要重复编译模型
+rstan_options(auto_write = TRUE)
+# 单核跑模型
+options(mc.cores = 1)
+# 每条链用一个线程
+rstan_options(threads_per_chain = 1)
+# 准备数据
+cars_d <- list(
+  N = nrow(cars), # 观测记录的条数
+  K = 1,          # 协变量个数
+  x = cars[, "speed", drop = F], # N x 1 矩阵
+  y = cars[, "dist"]             # N 向量
+)
+```
+
+设置拟合模型的算法的各项参数。
+
+```{r}
+#| label: fit-cars-lm
+# 拟合模型
+fit_rstan_cars <- stan(
+  file = "code/cars.stan",   # stan 代码文件路径
+  data = cars_d,             # 观测数据
+  iter = 3000,               # 每条链迭代次数
+  warmup = 1000,             # 初始化阶段迭代次数
+  chains = 4,                # MCMC 链条数
+  model_name = "cars_model", # 模型名称
+  verbose = FALSE,           # 不显示中间输出
+  algorithm = "HMC",         # 指定 HMC 算法
+  seed = 2022,               # 设置随机数种子
+  control = list(adapt_delta = 0.8),
+  refresh = 0                # 不显示采样进度
+)
+```
+
+
+## Stan 输出 {#sec-stan-output}
+
+`fit_rstan_cars` 是一个模型输出对象，可以用函数 `print()` 打印结果。
+
+```{r}
+# 模型结果
+print(fit_rstan_cars, probs = c(0.025, 0.5, 0.975), digits_summary = 3)
+```
+
+设置 4 条迭代链，每条链初始化阶段 warmup 迭代 1000 次，总迭代 3000 次，则初始化后阶段迭代 2000 次，4 条链总迭代 8000 次。
+
+参数 `alpha` 是截距，`beta[1]` 是斜率，`sigma` 是标准差，`lp__` 后验似然的对数，`n_eff` 表示采样效率，值越大越好，`Rhat` 表示马氏链混合效果，越接近 1 越好。
+
+## 分布检查 {#sec-stan-check}
+
+### 参数迭代轨迹 {#sec-trace}
+
+以参数 $\alpha$ 的迭代轨迹为例，如下图所示：
+
+```{r}
+#| label: fig-cars-trace
+#| fig-cap: 参数 $\alpha$ 的迭代轨迹
+#| fig-width: 7
+#| fig-height: 5
+#| fig-showtext: true
+
+library(ggplot2)
+stan_trace(fit_rstan_cars, pars = "alpha") +
+  labs(y = expression(alpha), color = "链条")
+```
+
+可见，4条链在初始化阶段之后的混合很好，很平稳。参数 $\alpha$ 和 $\beta_1$ 的联合分布如下：
+
+```{r}
+#| label: fig-cars-scat
+#| fig-cap: 参数 $\alpha$ 和 $\beta_1$ 的联合分布
+#| fig-width: 6
+#| fig-height: 5
+#| fig-showtext: true
+
+stan_scat(fit_rstan_cars,
+  pars = c("alpha", "beta[1]"),
+  size = 1, color = "lightblue"
+) +
+  geom_point(
+    data = data.frame(alpha = -17.579, beta1 = 3.932),
+    aes(x = alpha, y = beta1), color = "orange", size = 2
+  ) +
+  labs(x = expression(alpha), y = expression(beta[1]))
+```
+
+理论上，参数 $\alpha$ 和 $\beta_1$ 的联合分布是二元正态分布，图上所示也是吻合的。
+
+### 参数后验分布 {#sec-distr}
+
+根据每条马氏链的迭代值，获得参数 $\alpha$ 的后验分布，每条链都是接近正态分布。
+
+```{r}
+#| label: fig-cars-dens
+#| fig-cap: 参数 $\alpha$ 的核密度估计
+#| fig-width: 6
+#| fig-height: 5
+#| fig-showtext: true
+
+stan_dens(fit_rstan_cars, pars = "alpha", 
+          separate_chains = TRUE, alpha = 0.35) +
+  labs(x = expression(alpha), fill = "链条")
+```
+
+分别查看参数 $\alpha$ 和 $\beta_1$ 的后验分布。
+
+```{r}
+#| label: fig-cars-dens-posterior
+#| fig-cap: 参数的后验分布
+#| fig-subcap: 
+#| - 参数 $\alpha$ 的后验分布 
+#| - 参数 $\beta_1$ 的后验分布
+#| fig-ncol: 2
+#| out-width: 50%
+#| fig-showtext: true
+#| fig-width: 6
+#| fig-height: 5
+
+stan_dens(fit_rstan_cars, pars = "alpha", fill = "lightblue") +
+  geom_vline(xintercept = -17.579, color = "orange", lwd = 1) +
+  labs(x = expression(alpha))
+
+stan_dens(fit_rstan_cars, pars = "beta[1]", fill = "lightblue") +
+  geom_vline(xintercept = 3.932, color = "orange", lwd = 1) +
+  labs(x = expression(beta[1]))
+```
+
+## brms 包 {#sec-brms}
+
+Paul-Christian Bürkner 开发和维护的[brms](https://github.com/paul-buerkner/brms) 包是站在 RStan 和 cmdstanr 包肩膀上扩展包，封装了大量基于 Stan 语言的贝叶斯统计模型，可以拟合相当广泛的模型，线性模型不在话下。
+
+```{r}
+fit_brm_cars <- brms::brm(
+  dist ~ speed, # 使用语法与 lme4 包类似
+  data = cars, # 数据集
+  family = gaussian(), # 响应变量的分布
+  backend = "cmdstanr", # 调用 cmdstanr 还是 rstan 包
+  algorithm = "sampling", # Stan 采样器
+  refresh = 0, # 不显示采样详细过程
+  seed = 2022, cores = 1, # 设置随机数种子和不并行
+  chains = 4, iter = 2000 # 4条马氏链迭代2000次
+)
+```
+
+此线性模型是非常简单的，模型拟合时间非常短。拟合模型的输出结果如下：
+
+```{r}
+fit_brm_cars
+```
+
+可见 **brms** 包与 **rstan** 包拟合模型的输出结果是非常相近的。各个参数的后验分布如下：
+
+```{r}
+#| label: fig-cars-brms
+#| fig-cap: 参数的后验分布和迭代轨迹
+#| fig-width: 7
+#| fig-height: 6
+#| fig-showtext: true
+
+plot(fit_brm_cars)
+```
+
+在得知迭代过程平稳，后验分布也已获得，接下来，想要知道模型的效果，这有一些评估指标，函数 `brms::loo()` 基于后验似然做近似交叉留一验证。类似 AIC 和 BIC，针对贝叶斯模型这里有 LOOIC 以及 Pareto k 诊断。
+
+```{r}
+brms::loo(fit_brm_cars)
+```
+
+类似调整的 $R^2$ ，这里也可以计算贝叶斯 $R^2$ 。
+
+```{r}
+brms::bayes_R2(fit_brm_cars)
+```
+
+与频率派结果对照。
+
+```{r}
+m <- lm(dist ~ speed, data = cars)
+summary(m)
+```
+

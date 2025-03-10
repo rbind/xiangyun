@@ -1,0 +1,268 @@
+---
+title:  贝叶斯计算扩展包 RStan & brms
+date: '2024-05-01'
+author: 黄湘云
+slug: stan-interfaces
+categories:
+  - 统计软件
+tags:
+  - 贝叶斯
+  - 线性模型
+  - Stan
+  - RStan
+  - brms
+math: true
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+description: "本文介绍贝叶斯计算扩展包 RStan & brms。"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#sec-stan-code" id="toc-sec-stan-code"><span class="toc-section-number">1</span> Stan 编码</a></li>
+<li><a href="#sec-stan-setup" id="toc-sec-stan-setup"><span class="toc-section-number">2</span> Stan 配置</a></li>
+<li><a href="#sec-stan-output" id="toc-sec-stan-output"><span class="toc-section-number">3</span> Stan 输出</a></li>
+<li><a href="#sec-stan-check" id="toc-sec-stan-check"><span class="toc-section-number">4</span> 分布检查</a>
+<ul>
+<li><a href="#sec-trace" id="toc-sec-trace"><span class="toc-section-number">4.1</span> 参数迭代轨迹</a></li>
+<li><a href="#sec-distr" id="toc-sec-distr"><span class="toc-section-number">4.2</span> 参数后验分布</a></li>
+</ul></li>
+<li><a href="#sec-brms" id="toc-sec-brms"><span class="toc-section-number">5</span> brms 包</a></li>
+</ul>
+</div>
+
+<div id="sec-stan-code" class="section level2" number="1">
+<h2><span class="header-section-number">1</span> Stan 编码</h2>
+<p>考虑一个 Stan 编码的线性模型，代码来自 <a href="https://mc-stan.org/docs/stan-users-guide/linear-regression.html">Stan 用户指南</a>，如下：</p>
+<pre class="stan"><code>data {
+  int&lt;lower=0&gt; N;   // number of data items
+  int&lt;lower=0&gt; K;   // number of predictors
+  matrix[N, K] x;   // predictor matrix
+  vector[N] y;      // outcome vector
+}
+parameters {
+  real alpha;           // intercept
+  vector[K] beta;       // coefficients for predictors
+  real&lt;lower=0&gt; sigma;  // error scale
+}
+model {
+  // alpha ~ normal(0, 1);  // prior
+  // beta ~ normal(0, 1);   // prior
+  y ~ normal(x * beta + alpha, sigma);  // likelihood
+}</code></pre>
+<p>Stan 模型代码至少需要三块：数据、参数和模型，各个部分尽量采用向量化的编程方式，少用 for 循环。编译 Stan 模型，传递数据进去，采样计算获得结果。</p>
+</div>
+<div id="sec-stan-setup" class="section level2" number="2">
+<h2><span class="header-section-number">2</span> Stan 配置</h2>
+<p>在 R 语言社区，很早就存在一个 R 包 <a href="https://github.com/stan-dev/rstan">rstan</a> ，它整合了编译代码、运行采样、模型输出等功能。下面先加载 R 包，设置 Stan 运行参数，准备输入数据，拟合模型。</p>
+<pre class="r"><code>library(StanHeaders)
+library(rstan)
+# Stan 代码不变就不要重复编译模型
+rstan_options(auto_write = TRUE)
+# 单核跑模型
+options(mc.cores = 1)
+# 每条链用一个线程
+rstan_options(threads_per_chain = 1)
+# 准备数据
+cars_d &lt;- list(
+  N = nrow(cars), # 观测记录的条数
+  K = 1,          # 协变量个数
+  x = cars[, &quot;speed&quot;, drop = F], # N x 1 矩阵
+  y = cars[, &quot;dist&quot;]             # N 向量
+)</code></pre>
+<p>设置拟合模型的算法的各项参数。</p>
+<pre class="r"><code># 拟合模型
+fit_rstan_cars &lt;- stan(
+  file = &quot;code/cars.stan&quot;,   # stan 代码文件路径
+  data = cars_d,             # 观测数据
+  iter = 3000,               # 每条链迭代次数
+  warmup = 1000,             # 初始化阶段迭代次数
+  chains = 4,                # MCMC 链条数
+  model_name = &quot;cars_model&quot;, # 模型名称
+  verbose = FALSE,           # 不显示中间输出
+  algorithm = &quot;HMC&quot;,         # 指定 HMC 算法
+  seed = 2022,               # 设置随机数种子
+  control = list(adapt_delta = 0.8),
+  refresh = 0                # 不显示采样进度
+)</code></pre>
+</div>
+<div id="sec-stan-output" class="section level2" number="3">
+<h2><span class="header-section-number">3</span> Stan 输出</h2>
+<p><code>fit_rstan_cars</code> 是一个模型输出对象，可以用函数 <code>print()</code> 打印结果。</p>
+<pre class="r"><code># 模型结果
+print(fit_rstan_cars, probs = c(0.025, 0.5, 0.975), digits_summary = 3)</code></pre>
+<pre><code>## Inference for Stan model: cars_model.
+## 4 chains, each with iter=3000; warmup=1000; thin=1; 
+## post-warmup draws per chain=2000, total post-warmup draws=8000.
+## 
+##             mean se_mean    sd     2.5%      50%    97.5% n_eff  Rhat
+## alpha    -17.606   0.070 6.943  -31.268  -17.640   -3.751  9719 1.000
+## beta[1]    3.935   0.004 0.429    3.077    3.933    4.781 10281 1.000
+## sigma     15.772   0.025 1.697   12.868   15.618   19.507  4593 1.001
+## lp__    -159.481   0.024 1.266 -162.730 -159.170 -158.033  2888 1.000
+## 
+## Samples were drawn using HMC(diag_e) at Mon Mar 10 10:37:39 2025.
+## For each parameter, n_eff is a crude measure of effective sample size,
+## and Rhat is the potential scale reduction factor on split chains (at 
+## convergence, Rhat=1).</code></pre>
+<p>设置 4 条迭代链，每条链初始化阶段 warmup 迭代 1000 次，总迭代 3000 次，则初始化后阶段迭代 2000 次，4 条链总迭代 8000 次。</p>
+<p>参数 <code>alpha</code> 是截距，<code>beta[1]</code> 是斜率，<code>sigma</code> 是标准差，<code>lp__</code> 后验似然的对数，<code>n_eff</code> 表示采样效率，值越大越好，<code>Rhat</code> 表示马氏链混合效果，越接近 1 越好。</p>
+</div>
+<div id="sec-stan-check" class="section level2" number="4">
+<h2><span class="header-section-number">4</span> 分布检查</h2>
+<div id="sec-trace" class="section level3" number="4.1">
+<h3><span class="header-section-number">4.1</span> 参数迭代轨迹</h3>
+<p>以参数 <span class="math inline">\(\alpha\)</span> 的迭代轨迹为例，如下图所示：</p>
+<pre class="r"><code>library(ggplot2)
+stan_trace(fit_rstan_cars, pars = &quot;alpha&quot;) +
+  labs(y = expression(alpha), color = &quot;链条&quot;)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-cars-trace"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-cars-trace-1.png" alt="参数 $\alpha$ 的迭代轨迹" width="672" />
+<p class="caption">
+图 1: 参数 <span class="math inline">\(\alpha\)</span> 的迭代轨迹
+</p>
+</div>
+<p>可见，4条链在初始化阶段之后的混合很好，很平稳。参数 <span class="math inline">\(\alpha\)</span> 和 <span class="math inline">\(\beta_1\)</span> 的联合分布如下：</p>
+<pre class="r"><code>stan_scat(fit_rstan_cars,
+  pars = c(&quot;alpha&quot;, &quot;beta[1]&quot;),
+  size = 1, color = &quot;lightblue&quot;
+) +
+  geom_point(
+    data = data.frame(alpha = -17.579, beta1 = 3.932),
+    aes(x = alpha, y = beta1), color = &quot;orange&quot;, size = 2
+  ) +
+  labs(x = expression(alpha), y = expression(beta[1]))</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-cars-scat"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-cars-scat-1.png" alt="参数 $\alpha$ 和 $\beta_1$ 的联合分布" width="576" />
+<p class="caption">
+图 2: 参数 <span class="math inline">\(\alpha\)</span> 和 <span class="math inline">\(\beta_1\)</span> 的联合分布
+</p>
+</div>
+<p>理论上，参数 <span class="math inline">\(\alpha\)</span> 和 <span class="math inline">\(\beta_1\)</span> 的联合分布是二元正态分布，图上所示也是吻合的。</p>
+</div>
+<div id="sec-distr" class="section level3" number="4.2">
+<h3><span class="header-section-number">4.2</span> 参数后验分布</h3>
+<p>根据每条马氏链的迭代值，获得参数 <span class="math inline">\(\alpha\)</span> 的后验分布，每条链都是接近正态分布。</p>
+<pre class="r"><code>stan_dens(fit_rstan_cars, pars = &quot;alpha&quot;, 
+          separate_chains = TRUE, alpha = 0.35) +
+  labs(x = expression(alpha), fill = &quot;链条&quot;)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-cars-dens"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-cars-dens-1.png" alt="参数 $\alpha$ 的核密度估计" width="576" />
+<p class="caption">
+图 3: 参数 <span class="math inline">\(\alpha\)</span> 的核密度估计
+</p>
+</div>
+<p>分别查看参数 <span class="math inline">\(\alpha\)</span> 和 <span class="math inline">\(\beta_1\)</span> 的后验分布。</p>
+<pre class="r"><code>stan_dens(fit_rstan_cars, pars = &quot;alpha&quot;, fill = &quot;lightblue&quot;) +
+  geom_vline(xintercept = -17.579, color = &quot;orange&quot;, lwd = 1) +
+  labs(x = expression(alpha))
+
+stan_dens(fit_rstan_cars, pars = &quot;beta[1]&quot;, fill = &quot;lightblue&quot;) +
+  geom_vline(xintercept = 3.932, color = &quot;orange&quot;, lwd = 1) +
+  labs(x = expression(beta[1]))</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-cars-dens-posterior"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-cars-dens-posterior-1.png" alt="参数的后验分布" width="50%" /><img src="{{< blogdown/postref >}}index_files/figure-html/fig-cars-dens-posterior-2.png" alt="参数的后验分布" width="50%" />
+<p class="caption">
+图 4: 参数的后验分布
+</p>
+</div>
+</div>
+</div>
+<div id="sec-brms" class="section level2" number="5">
+<h2><span class="header-section-number">5</span> brms 包</h2>
+<p>Paul-Christian Bürkner 开发和维护的<a href="https://github.com/paul-buerkner/brms">brms</a> 包是站在 RStan 和 cmdstanr 包肩膀上扩展包，封装了大量基于 Stan 语言的贝叶斯统计模型，可以拟合相当广泛的模型，线性模型不在话下。</p>
+<pre class="r"><code>fit_brm_cars &lt;- brms::brm(
+  dist ~ speed, # 使用语法与 lme4 包类似
+  data = cars, # 数据集
+  family = gaussian(), # 响应变量的分布
+  backend = &quot;cmdstanr&quot;, # 调用 cmdstanr 还是 rstan 包
+  algorithm = &quot;sampling&quot;, # Stan 采样器
+  refresh = 0, # 不显示采样详细过程
+  seed = 2022, cores = 1, # 设置随机数种子和不并行
+  chains = 4, iter = 2000 # 4条马氏链迭代2000次
+)</code></pre>
+<pre><code>## Start sampling</code></pre>
+<pre><code>## Running MCMC with 4 sequential chains...
+## 
+## Chain 1 finished in 0.0 seconds.
+## Chain 2 finished in 0.0 seconds.
+## Chain 3 finished in 0.0 seconds.
+## Chain 4 finished in 0.0 seconds.
+## 
+## All 4 chains finished successfully.
+## Mean chain execution time: 0.0 seconds.
+## Total execution time: 0.7 seconds.</code></pre>
+<p>此线性模型是非常简单的，模型拟合时间非常短。拟合模型的输出结果如下：</p>
+<pre class="r"><code>fit_brm_cars</code></pre>
+<pre><code>##  Family: gaussian 
+##   Links: mu = identity; sigma = identity 
+## Formula: dist ~ speed 
+##    Data: cars (Number of observations: 50) 
+##   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
+##          total post-warmup draws = 4000
+## 
+## Regression Coefficients:
+##           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## Intercept   -17.57      6.99   -31.59    -3.97 1.00     3667     2596
+## speed         3.92      0.43     3.09     4.76 1.00     3792     2995
+## 
+## Further Distributional Parameters:
+##       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## sigma    15.71      1.70    12.78    19.40 1.00     3915     2523
+## 
+## Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
+## and Tail_ESS are effective sample size measures, and Rhat is the potential
+## scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
+<p>可见 <strong>brms</strong> 包与 <strong>rstan</strong> 包拟合模型的输出结果是非常相近的。各个参数的后验分布如下：</p>
+<pre class="r"><code>plot(fit_brm_cars)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-cars-brms"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-cars-brms-1.png" alt="参数的后验分布和迭代轨迹" width="672" />
+<p class="caption">
+图 5: 参数的后验分布和迭代轨迹
+</p>
+</div>
+<p>在得知迭代过程平稳，后验分布也已获得，接下来，想要知道模型的效果，这有一些评估指标，函数 <code>brms::loo()</code> 基于后验似然做近似交叉留一验证。类似 AIC 和 BIC，针对贝叶斯模型这里有 LOOIC 以及 Pareto k 诊断。</p>
+<pre class="r"><code>brms::loo(fit_brm_cars)</code></pre>
+<pre><code>## 
+## Computed from 4000 by 50 log-likelihood matrix.
+## 
+##          Estimate   SE
+## elpd_loo   -210.1  6.5
+## p_loo         3.5  1.3
+## looic       420.2 13.0
+## ------
+## MCSE of elpd_loo is 0.1.
+## MCSE and ESS estimates assume MCMC draws (r_eff in [0.7, 1.0]).
+## 
+## All Pareto k estimates are good (k &lt; 0.7).
+## See help(&#39;pareto-k-diagnostic&#39;) for details.</code></pre>
+<p>类似调整的 <span class="math inline">\(R^2\)</span> ，这里也可以计算贝叶斯 <span class="math inline">\(R^2\)</span> 。</p>
+<pre class="r"><code>brms::bayes_R2(fit_brm_cars)</code></pre>
+<pre><code>##    Estimate Est.Error  Q2.5  Q97.5
+## R2    0.641   0.05341 0.514 0.7163</code></pre>
+<p>与频率派结果对照。</p>
+<pre class="r"><code>m &lt;- lm(dist ~ speed, data = cars)
+summary(m)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = dist ~ speed, data = cars)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -29.07  -9.53  -2.27   9.21  43.20 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  -17.579      6.758   -2.60    0.012 *  
+## speed          3.932      0.416    9.46  1.5e-12 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 15.4 on 48 degrees of freedom
+## Multiple R-squared:  0.651,	Adjusted R-squared:  0.644 
+## F-statistic: 89.6 on 1 and 48 DF,  p-value: 1.49e-12</code></pre>
+</div>
