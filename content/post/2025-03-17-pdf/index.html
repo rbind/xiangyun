@@ -1,0 +1,388 @@
+---
+title: R 语言操作 PDF 文件
+author: 黄湘云
+date: '2025-03-17'
+slug: pdf
+categories:
+  - R 语言
+tags:
+  - Adobe
+  - PDF
+  - qpdf
+  - pdftools
+  - magick
+  - tesseract
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+description: "在 R 语言环境中操作 PDF 文件。PDF 文档处理，用开源工具实现 PDF 加密、解密、提取等 Adobe Acrobat 拥有的能力，很多人其实舍不得花费那么昂贵的价值购买正版，不要都用盗版，开源的工具也很好的。这是一篇价值过万元的文档：Adobe Acrobat 开源替代方案，对标 Adobe Acrobat 的功能，给出尽可能多的替代方法"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#qpdf" id="toc-qpdf"><span class="toc-section-number">1</span> qpdf</a>
+<ul>
+<li><a href="#%E7%BB%9F%E8%AE%A1-pdf-%E6%96%87%E4%BB%B6%E7%9A%84%E9%A1%B5%E6%95%B0" id="toc-统计-pdf-文件的页数"><span class="toc-section-number">1.1</span> 统计 PDF 文件的页数</a></li>
+<li><a href="#%E6%8C%89%E9%A1%B5%E6%8B%86%E5%88%86-pdf-%E6%96%87%E4%BB%B6" id="toc-按页拆分-pdf-文件"><span class="toc-section-number">1.2</span> 按页拆分 PDF 文件</a></li>
+<li><a href="#%E6%8F%90%E5%8F%96-pdf-%E7%9A%84%E9%83%A8%E5%88%86%E9%A1%B5%E9%9D%A2" id="toc-提取-pdf-的部分页面"><span class="toc-section-number">1.3</span> 提取 PDF 的部分页面</a></li>
+<li><a href="#%E5%90%88%E5%B9%B6-pdf-%E6%96%87%E4%BB%B6" id="toc-合并-pdf-文件"><span class="toc-section-number">1.4</span> 合并 PDF 文件</a></li>
+<li><a href="#%E6%97%8B%E8%BD%AC-pdf-%E6%96%87%E4%BB%B6" id="toc-旋转-pdf-文件"><span class="toc-section-number">1.5</span> 旋转 PDF 文件</a></li>
+<li><a href="#%E5%8E%8B%E7%BC%A9-pdf-%E6%96%87%E4%BB%B6" id="toc-压缩-pdf-文件"><span class="toc-section-number">1.6</span> 压缩 PDF 文件</a></li>
+</ul></li>
+<li><a href="#pdftools" id="toc-pdftools"><span class="toc-section-number">2</span> pdftools</a>
+<ul>
+<li><a href="#pdf-%E6%96%87%E6%A1%A3%E8%BD%AC%E5%9B%BE%E7%89%87" id="toc-pdf-文档转图片"><span class="toc-section-number">2.1</span> PDF 文档转图片</a></li>
+<li><a href="#%E8%AF%BB%E5%8F%96-pdf-%E7%9A%84%E5%85%83%E6%95%B0%E6%8D%AE" id="toc-读取-pdf-的元数据"><span class="toc-section-number">2.2</span> 读取 PDF 的元数据</a></li>
+<li><a href="#%E8%AF%BB%E5%8F%96-pdf-%E6%96%87%E6%A1%A3%E4%B8%AD%E7%9A%84%E6%96%87%E6%9C%AC" id="toc-读取-pdf-文档中的文本"><span class="toc-section-number">2.3</span> 读取 PDF 文档中的文本</a></li>
+<li><a href="#%E8%AF%BB%E5%8F%96-pdf-%E6%96%87%E6%A1%A3%E4%B8%AD%E4%BD%BF%E7%94%A8%E7%9A%84%E5%AD%97%E4%BD%93" id="toc-读取-pdf-文档中使用的字体"><span class="toc-section-number">2.4</span> 读取 PDF 文档中使用的字体</a></li>
+<li><a href="#%E8%AF%BB%E5%8F%96-pdf-%E6%96%87%E6%A1%A3%E4%B8%AD%E5%8C%85%E5%90%AB%E7%9A%84%E9%99%84%E4%BB%B6" id="toc-读取-pdf-文档中包含的附件"><span class="toc-section-number">2.5</span> 读取 PDF 文档中包含的附件</a></li>
+<li><a href="#%E8%AF%BB%E5%8F%96-pdf-%E6%96%87%E6%A1%A3%E4%B8%AD%E7%9A%84%E7%9B%AE%E5%BD%95" id="toc-读取-pdf-文档中的目录"><span class="toc-section-number">2.6</span> 读取 PDF 文档中的目录</a></li>
+<li><a href="#%E8%AF%BB%E5%8F%96-pdf-%E6%96%87%E6%A1%A3%E7%9A%84%E9%A1%B5%E9%9D%A2%E5%A4%A7%E5%B0%8F" id="toc-读取-pdf-文档的页面大小"><span class="toc-section-number">2.7</span> 读取 PDF 文档的页面大小</a></li>
+</ul></li>
+<li><a href="#magick" id="toc-magick"><span class="toc-section-number">3</span> magick</a></li>
+<li><a href="#%E5%85%B6%E5%AE%83" id="toc-其它"><span class="toc-section-number">4</span> 其它</a>
+<ul>
+<li><a href="#%E6%94%BE%E5%A4%A7-pdf-%E6%96%87%E6%A1%A3" id="toc-放大-pdf-文档"><span class="toc-section-number">4.1</span> 放大 PDF 文档</a></li>
+<li><a href="#%E7%94%9F%E6%88%90-pdf-%E6%96%87%E6%A1%A3" id="toc-生成-pdf-文档"><span class="toc-section-number">4.2</span> 生成 PDF 文档</a></li>
+</ul></li>
+<li><a href="#%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83" id="toc-运行环境"><span class="toc-section-number">5</span> 运行环境</a></li>
+</ul>
+</div>
+
+<p>PDF 格式的示例文件 <code>pandoc-beamer.pdf</code> 是一个 LaTeX 编译出来的幻灯片，一共有 8 页。下面的操作都在这个文件上进行。</p>
+<div id="qpdf" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> qpdf</h1>
+<div id="统计-pdf-文件的页数" class="section level2" number="1.1">
+<h2><span class="header-section-number">1.1</span> 统计 PDF 文件的页数</h2>
+<pre class="r"><code>qpdf::pdf_length(input = &quot;data/pandoc-beamer.pdf&quot;)</code></pre>
+<pre><code>## [1] 8</code></pre>
+<p>计数正确。</p>
+</div>
+<div id="按页拆分-pdf-文件" class="section level2" number="1.2">
+<h2><span class="header-section-number">1.2</span> 按页拆分 PDF 文件</h2>
+<p><code>qpdf::pdf_split()</code> 将一个含有多页的 PDF 文档逐页拆分。执行如下操作，拆分后变成 8 个 PDF 文件，每个文件是一页。</p>
+<pre class="r"><code>qpdf::pdf_split(input = &quot;data/pandoc-beamer.pdf&quot;, output = &quot;data/&quot;)</code></pre>
+<pre><code>## [1] &quot;data/_1.pdf&quot; &quot;data/_2.pdf&quot; &quot;data/_3.pdf&quot; &quot;data/_4.pdf&quot; &quot;data/_5.pdf&quot;
+## [6] &quot;data/_6.pdf&quot; &quot;data/_7.pdf&quot; &quot;data/_8.pdf&quot;</code></pre>
+</div>
+<div id="提取-pdf-的部分页面" class="section level2" number="1.3">
+<h2><span class="header-section-number">1.3</span> 提取 PDF 的部分页面</h2>
+<p>设置参数 <code>pages = c(1,3,5)</code> 表示提取原 PDF 文档中的第 1、3 和 5 页。</p>
+<pre class="r"><code>qpdf::pdf_subset(input = &quot;data/pandoc-beamer.pdf&quot;, 
+                 pages = c(1,3,5),
+                 output = &quot;data/pdf_subset.pdf&quot;)</code></pre>
+<pre><code>## [1] &quot;/Users/xiangyun/Downloads/Document/xiangyun/content/post/2025-03-17-pdf/data/pdf_subset.pdf&quot;</code></pre>
+</div>
+<div id="合并-pdf-文件" class="section level2" number="1.4">
+<h2><span class="header-section-number">1.4</span> 合并 PDF 文件</h2>
+<p>将多个 PDF 文件合并成一个文件。</p>
+<pre class="r"><code>qpdf::pdf_combine(
+  input = c(&quot;data/_1.pdf&quot;, &quot;data/_1.pdf&quot;,&quot;data/_1.pdf&quot;), 
+  output = &quot;data/pdf_combine.pdf&quot;)</code></pre>
+<pre><code>## [1] &quot;/Users/xiangyun/Downloads/Document/xiangyun/content/post/2025-03-17-pdf/data/pdf_combine.pdf&quot;</code></pre>
+</div>
+<div id="旋转-pdf-文件" class="section level2" number="1.5">
+<h2><span class="header-section-number">1.5</span> 旋转 PDF 文件</h2>
+<p>将示例 PDF 文件的第 1,3,5 页旋转 90 度。</p>
+<pre class="r"><code>qpdf::pdf_rotate_pages(
+  input = &quot;data/pandoc-beamer.pdf&quot;,
+  pages = c(1,3,5),
+  angle = 90,
+  output = &quot;data/pdf_rotate_pages.pdf&quot;
+)</code></pre>
+<pre><code>## [1] &quot;/Users/xiangyun/Downloads/Document/xiangyun/content/post/2025-03-17-pdf/data/pdf_rotate_pages.pdf&quot;</code></pre>
+</div>
+<div id="压缩-pdf-文件" class="section level2" number="1.6">
+<h2><span class="header-section-number">1.6</span> 压缩 PDF 文件</h2>
+<pre class="r"><code>qpdf::pdf_compress(input = &quot;data/pandoc-beamer.pdf&quot;,
+                   output = &quot;data/pdf_compress.pdf&quot;)</code></pre>
+<pre><code>## [1] &quot;/Users/xiangyun/Downloads/Document/xiangyun/content/post/2025-03-17-pdf/data/pdf_compress.pdf&quot;</code></pre>
+</div>
+</div>
+<div id="pdftools" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> pdftools</h1>
+<p>相比于 qpdf 包，pdftools 包提供更多的功能。</p>
+<div id="pdf-文档转图片" class="section level2" number="2.1">
+<h2><span class="header-section-number">2.1</span> PDF 文档转图片</h2>
+<p>受支持的图片转化格式如下</p>
+<pre class="r"><code>pdftools::poppler_config()</code></pre>
+<pre><code>## $version
+## [1] &quot;23.04.0&quot;
+## 
+## $can_render
+## [1] TRUE
+## 
+## $has_pdf_data
+## [1] TRUE
+## 
+## $has_local_font_info
+## [1] TRUE
+## 
+## $supported_image_formats
+## [1] &quot;png&quot;  &quot;jpeg&quot; &quot;jpg&quot;  &quot;tiff&quot; &quot;pnm&quot;</code></pre>
+<p>将 PDF 文档中的部分页面转化为图片</p>
+<pre class="r"><code>pdftools::pdf_convert(
+  pdf = &quot;data/pandoc-beamer.pdf&quot;, pages = c(1, 3, 5), 
+  format = &quot;png&quot;, # supported_image_formats
+  dpi = 72, # 值越大图片越清晰
+  filenames = c(&quot;data/pdf_convert_1.png&quot;, &quot;data/pdf_convert_2.png&quot;, &quot;data/pdf_convert_3.png&quot;)
+)</code></pre>
+<pre><code>## Converting page 1 to data/pdf_convert_1.png... done!
+## Converting page 3 to data/pdf_convert_2.png... done!
+## Converting page 5 to data/pdf_convert_3.png... done!</code></pre>
+<pre><code>## [1] &quot;data/pdf_convert_1.png&quot; &quot;data/pdf_convert_2.png&quot; &quot;data/pdf_convert_3.png&quot;</code></pre>
+</div>
+<div id="读取-pdf-的元数据" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span> 读取 PDF 的元数据</h2>
+<p>PDF 文档有自己的元数据，元数据中记录了谁什么时间用什么软件创建的等信息。</p>
+<pre class="r"><code>pdftools::pdf_info(pdf = &quot;data/pandoc-beamer.pdf&quot;)</code></pre>
+<pre><code>## $version
+## [1] &quot;1.5&quot;
+## 
+## $pages
+## [1] 8
+## 
+## $encrypted
+## [1] FALSE
+## 
+## $linearized
+## [1] FALSE
+## 
+## $keys
+## $keys$Author
+## [1] &quot;张三, 李四&quot;
+## 
+## $keys$Title
+## [1] &quot;Quarto 幻灯片模版&quot;
+## 
+## $keys$Subject
+## [1] &quot;&quot;
+## 
+## $keys$Creator
+## [1] &quot;LaTeX via pandoc&quot;
+## 
+## $keys$Keywords
+## [1] &quot;&quot;
+## 
+## $keys$Producer
+## [1] &quot;LuaTeX-1.17.0&quot;
+## 
+## $keys$Trapped
+## [1] &quot;&quot;
+## 
+## $keys$PTEX.FullBanner
+## [1] &quot;This is LuaHBTeX, Version 1.17.0 (TeX Live 2023)&quot;
+## 
+## 
+## $created
+## [1] &quot;2023-09-01 23:37:06 CST&quot;
+## 
+## $modified
+## [1] &quot;2023-09-01 23:37:06 CST&quot;
+## 
+## $metadata
+## [1] &quot;&quot;
+## 
+## $locked
+## [1] FALSE
+## 
+## $attachments
+## [1] FALSE
+## 
+## $layout
+## [1] &quot;no_layout&quot;</code></pre>
+</div>
+<div id="读取-pdf-文档中的文本" class="section level2" number="2.3">
+<h2><span class="header-section-number">2.3</span> 读取 PDF 文档中的文本</h2>
+<p>分页提取 PDF 文档中的文本数据，返回一个与PDF文档页数相同的字符串向量。</p>
+<pre class="r"><code>pdftools::pdf_text(pdf = &quot;data/pandoc-beamer.pdf&quot;)</code></pre>
+<pre><code>## [1] &quot;In the morning                  In the evening\n\n\n\n\n                 Quarto 幻灯片模版\n\n                    张三   李四\n\n                     XX 大学\n\n                     XX 学院\n&quot;
+## [2] &quot;In the morning                In the evening\n\n\n\n                       目录 I\n      In the morning\n\n\n      In the evening\n&quot;                                                            
+## [3] &quot;In the morning                    In the evening\n\n\n\n\n                 In the morning\n&quot;                                                                                                    
+## [4] &quot;In the morning                            In the evening\n\n\n\n                             Getting up\n\n\n\n\n          • Turn off alarm\n          • Get out of bed\n&quot;                      
+## [5] &quot;In the morning                         In the evening\n\n\n\n                           Breakfast\n\n\n\n\n          • Eat eggs\n          • Drink coffee\n&quot;                                    
+## [6] &quot;In the morning                    In the evening\n\n\n\n\n                 In the evening\n&quot;                                                                                                    
+## [7] &quot;In the morning                       In the evening\n\n\n\n                            Dinner\n\n\n\n\n          • Eat spaghetti\n          • Drink wine\n&quot;                                     
+## [8] &quot;In the morning                             In the evening\n\n\n\n                          Going to sleep\n\n\n\n\n          • Get in bed\n          • Count sheep\n&quot;</code></pre>
+<p>可见返回 8 个字符串，每个字符串的内容来自 PDF 文档的相应页面。</p>
+</div>
+<div id="读取-pdf-文档中使用的字体" class="section level2" number="2.4">
+<h2><span class="header-section-number">2.4</span> 读取 PDF 文档中使用的字体</h2>
+<pre class="r"><code>pdftools::pdf_fonts(pdf = &quot;data/pandoc-beamer.pdf&quot;)</code></pre>
+<pre><code>##                             name       type embedded file
+## 1           VSAGHM+LMSans10-Bold cid_type0c     TRUE     
+## 2          CESELI+FandolHei-Bold cid_type0c     TRUE     
+## 3       RLLOJF+FandolHei-Regular cid_type0c     TRUE     
+## 4         FBPCKK+LMSans8-Regular cid_type0c     TRUE     
+## 5 ALCPBK+LatinModernMath-Regular cid_type0c     TRUE     
+## 6        UNGCGM+LMSans10-Regular cid_type0c     TRUE</code></pre>
+</div>
+<div id="读取-pdf-文档中包含的附件" class="section level2" number="2.5">
+<h2><span class="header-section-number">2.5</span> 读取 PDF 文档中包含的附件</h2>
+<pre class="r"><code>pdftools::pdf_attachments(pdf = &quot;data/pandoc-beamer.pdf&quot;)</code></pre>
+<pre><code>## list()</code></pre>
+<p>我的这个示例文件不含附件</p>
+</div>
+<div id="读取-pdf-文档中的目录" class="section level2" number="2.6">
+<h2><span class="header-section-number">2.6</span> 读取 PDF 文档中的目录</h2>
+<pre class="r"><code>pdftools::pdf_toc(pdf = &quot;data/pandoc-beamer.pdf&quot;)</code></pre>
+<pre><code>## $title
+## [1] &quot;&quot;
+## 
+## $children
+## $children[[1]]
+## $children[[1]]$title
+## [1] &quot;In the morning&quot;
+## 
+## $children[[1]]$children
+## list()
+## 
+## 
+## $children[[2]]
+## $children[[2]]$title
+## [1] &quot;In the evening&quot;
+## 
+## $children[[2]]$children
+## list()</code></pre>
+</div>
+<div id="读取-pdf-文档的页面大小" class="section level2" number="2.7">
+<h2><span class="header-section-number">2.7</span> 读取 PDF 文档的页面大小</h2>
+<pre class="r"><code>pdftools::pdf_pagesize(pdf = &quot;data/pandoc-beamer.pdf&quot;)</code></pre>
+<pre><code>##   top right bottom left width height
+## 1   0 362.8  272.1    0 362.8  272.1
+## 2   0 362.8  272.1    0 362.8  272.1
+## 3   0 362.8  272.1    0 362.8  272.1
+## 4   0 362.8  272.1    0 362.8  272.1
+## 5   0 362.8  272.1    0 362.8  272.1
+## 6   0 362.8  272.1    0 362.8  272.1
+## 7   0 362.8  272.1    0 362.8  272.1
+## 8   0 362.8  272.1    0 362.8  272.1</code></pre>
+<p>示例文档一共 8 页，每页的长宽都一样大。示例文档是一个 LaTeX 制作的 beamer 幻灯片，长宽比为 4:3，正好是 362.8 / 272.1 = 4/3.</p>
+</div>
+</div>
+<div id="magick" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> magick</h1>
+<p><strong>magick</strong> 包配合 <strong>tesseract</strong> 包可以做 OCR 识别，比如提取 PDF（扫描图片） 或图片文件中的文本。国家统计局的统计年鉴是以 JPEG 格式的图形发布的。为了快一点整理数据，我用到了 OCR 识别。</p>
+<pre class="r"><code>library(magick)</code></pre>
+<pre><code>## Linking to ImageMagick 7.1.1.38
+## Enabled features: fontconfig, freetype, ghostscript, heic, lcms, raw, webp
+## Disabled features: cairo, fftw, pango, rsvg, x11</code></pre>
+<pre><code>## Using 11 threads</code></pre>
+<pre class="r"><code>input &lt;- image_read(&quot;data/C02-26.jpeg&quot;)
+
+# 去掉背景
+text &lt;- input %&gt;%
+  image_resize(&quot;2000x&quot;) %&gt;%
+  image_convert(type = &#39;Grayscale&#39;) %&gt;%
+  image_trim(fuzz = 40) %&gt;%
+  image_write(format = &#39;png&#39;, density = &#39;300x300&#39;)
+
+# OCR 识别
+text_ocr &lt;- text %&gt;%
+  tesseract::ocr()
+# 输出文本（主要是数字）
+cat(text_ocr,sep = &quot;\\n&quot;)</code></pre>
+<pre><code>## 2-26 FHKE AIT ISS RUALCM BAO (2020)
+## b2R XB MBAOA
+## “A x WA B x ADRS Es x
+## %)
+## 
+## 2B 1156394786 586822815 569571971 37750200 9518082 28232118 3.26 1.62 4.96
+## dt me 19301588 9847962 9453626 172244 38270 133974 0.89 0.39 1.42
+## KX # 11997953 6162151 5835802 169973 41646 128327 1.42 0.68 2.20
+## sl 4k 59521267 29691311 29829956 1128423 260881 867542 1.90 0.88 2.91
+##  &amp; 29205721 14857263 14348458 422524 123823 298701 1.45 0.83 2.08
+## ARA 20671482 10519559 10151923 793074 216560 576514 3.84 2.06 5.68
+## Ne ap 37853468 18801024 19052444 382208 105686 276522 1.01 0.56 1.45
+## a at 21254730 10556023 10698707 321318 96020 225298 1.51 0.91 241
+## PHL 28563622 14253881 14309741 437943 132119 305824 1.53 0.93 2.14
+## + 8 22434599 11600663 10833936 401585 81132 320453 1.79 0.70 2.96
+## I 71856068 36156582 35699486 2211291 460758 1750533 3.08 1.27 4.90
+## af I 55885807 29069882 26815925 1754402 437933 1316469 3.14 1.51 4.91
+## zh 49284489 24775087 24509402 2739952 668212 2071740 5.56 2.70 8.45
+## ia 2 33514861 17115416 16399445 970202 174482 795720 2.89 1.02 4.85
+## a) 35266271 17908471 17357800 876897 179241 697656 249 1.00 4.02
+## wy FR 82464815 41142117 41322698 3308280 735197 2573083 4.01 1.79 6.23
+## a 76376565 37582340 38794225 2228594 544348 1684246 2.92 1.45 4.34
+## $A dk 48332080 24601435 23730645 1341340 294484 1046856 2.78 1.20 441
+## 4h 53475342 27071624 26403718 1137340 287428 849912 2.13 1.06 3.22
+## DOR 102262628 54125030 48137598 1826344 394059 1432285 1.79 0.73 2.98
+## a) 38284303 19595172 18689131 1188381 248888 939493 3.10 1.27 5.03
+## 88 8067507 4244519 3822988 327406 77970 249436 4.06 1.84 6.52
+## BRK 26955796 13541057 13414739 521169 138879 382290 1.93 1.03 2.85
+## Jil 70203754 35298112 34905642 3330733 954914 2375819 4.74 2.71 6.81
+## BON 29320110 14772958 14547152 2574322 604189 1970133 8.78 4.09 13.54
+## zB 37971803 19601151 18370652 2193281 641814 1551467 5.78 3.27 8.45
+## Ae 2753235 1457393 1295842 773442 297954 475488 28.09 20.44 36.69
+## BE 32676794 16632837 16043957 1088905 313163 775742 3.33 1.88 4.84
+## HOR 20166288 10168955 9997333 1680299 474829 1205470 8.33 467 12.06
+## #8 4691001 2398640 2292361 470197 147534 322663 10.02 6.15 14.08
+## 7s 5734650 2906355 2828295 291030 77018 214012 5.07 2.65 7.57
+## iE 20046189 10367845 9678344 687101 268651 418450 3.43 2.59 4.32
+## S$: RE“VWBAO” HSS Bisse EHXOSROSPRDAOS</code></pre>
+<p>最后，边核对边手动整理一下，去掉一些乱码。</p>
+</div>
+<div id="其它" class="section level1" number="4">
+<h1><span class="header-section-number">4</span> 其它</h1>
+<div id="放大-pdf-文档" class="section level2" number="4.1">
+<h2><span class="header-section-number">4.1</span> 放大 PDF 文档</h2>
+<p><a href="https://bjt.name/2010/03/01/latex-pdfpages.html">用 LaTeX 放大 pdf 文档</a>，使用场景是将一些电子版书籍去掉白边、适当放大，在电子设备上观看起来体验更好。</p>
+<pre class="latex"><code>\documentclass[a4paper,12pt]{report}
+\usepackage[final]{pdfpages}
+\begin{document}
+\includepdf[pages=19-26, scale=1.3,
+delta=0mm 5mm, frame]{quarto-chinese.pdf}
+\end{document}</code></pre>
+</div>
+<div id="生成-pdf-文档" class="section level2" number="4.2">
+<h2><span class="header-section-number">4.2</span> 生成 PDF 文档</h2>
+<p>编辑 PDF 中的文本和图像。</p>
+<ul>
+<li>LaTeX 源码编辑（LaTeX 语法）</li>
+<li>Makdown + Pandoc + LaTeX （Markdown 语法）</li>
+<li>R Markdown / R Sweave（R Markdown 语法）</li>
+<li>写轮眼 / pagedown 网页转化（R Markdown 语法）</li>
+<li>Office Word / PowerPoint 转化</li>
+</ul>
+</div>
+</div>
+<div id="运行环境" class="section level1" number="5">
+<h1><span class="header-section-number">5</span> 运行环境</h1>
+<p>R 软件及 R 包的版本信息</p>
+<pre class="r"><code>sessionInfo(package = c(
+  &quot;qpdf&quot;, &quot;pdftools&quot;, &quot;magick&quot;
+))</code></pre>
+<pre><code>## R version 4.4.3 (2025-02-28)
+## Platform: x86_64-apple-darwin20
+## Running under: macOS Sequoia 15.3.2
+## 
+## Matrix products: default
+## BLAS:   /Library/Frameworks/R.framework/Versions/4.4-x86_64/Resources/lib/libRblas.0.dylib 
+## LAPACK: /Library/Frameworks/R.framework/Versions/4.4-x86_64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.0
+## 
+## locale:
+## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+## 
+## time zone: Asia/Shanghai
+## tzcode source: internal
+## 
+## attached base packages:
+## character(0)
+## 
+## other attached packages:
+## [1] qpdf_1.3.4     pdftools_3.5.0 magick_2.8.5  
+## 
+## loaded via a namespace (and not attached):
+##  [1] cli_3.6.4         knitr_1.49        rlang_1.1.5       xfun_0.51        
+##  [5] promises_1.3.2    jsonlite_1.9.1    tesseract_5.2.2   askpass_1.2.1    
+##  [9] htmltools_0.5.8.1 httpuv_1.6.15     sass_0.4.9        methods_4.4.3    
+## [13] rappdirs_0.3.3    datasets_4.4.3    rmarkdown_2.29    evaluate_1.0.3   
+## [17] jquerylib_0.1.4   fastmap_1.2.0     yaml_2.3.10       lifecycle_1.0.4  
+## [21] utils_4.4.3       bookdown_0.42     compiler_4.4.3    Rcpp_1.0.14      
+## [25] rstudioapi_0.17.1 base_4.4.3        stats_4.4.3       graphics_4.4.3   
+## [29] later_1.4.1       blogdown_1.20     digest_0.6.37     R6_2.6.1         
+## [33] servr_0.32        magrittr_2.0.3    bslib_0.9.0       tools_4.4.3      
+## [37] grDevices_4.4.3   cachem_1.1.0</code></pre>
+</div>

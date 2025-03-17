@@ -1,0 +1,208 @@
+---
+title: R 语言操作 PDF 文件
+author: 黄湘云
+date: '2025-03-17'
+slug: pdf
+categories:
+  - R 语言
+tags:
+  - Adobe
+  - PDF
+  - qpdf
+  - pdftools
+  - magick
+  - tesseract
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+description: "在 R 语言环境中操作 PDF 文件。PDF 文档处理，用开源工具实现 PDF 加密、解密、提取等 Adobe Acrobat 拥有的能力，很多人其实舍不得花费那么昂贵的价值购买正版，不要都用盗版，开源的工具也很好的。这是一篇价值过万元的文档：Adobe Acrobat 开源替代方案，对标 Adobe Acrobat 的功能，给出尽可能多的替代方法"
+---
+
+PDF 格式的示例文件 `pandoc-beamer.pdf` 是一个 LaTeX 编译出来的幻灯片，一共有 8 页。下面的操作都在这个文件上进行。
+
+# qpdf
+
+## 统计 PDF 文件的页数
+
+```{r}
+qpdf::pdf_length(input = "data/pandoc-beamer.pdf")
+```
+
+计数正确。
+
+## 按页拆分 PDF 文件
+
+`qpdf::pdf_split()` 将一个含有多页的 PDF 文档逐页拆分。执行如下操作，拆分后变成 8 个 PDF 文件，每个文件是一页。
+
+```{r}
+qpdf::pdf_split(input = "data/pandoc-beamer.pdf", output = "data/")
+```
+
+## 提取 PDF 的部分页面
+
+设置参数 `pages = c(1,3,5)` 表示提取原 PDF 文档中的第 1、3 和 5 页。
+
+```{r}
+qpdf::pdf_subset(input = "data/pandoc-beamer.pdf", 
+                 pages = c(1,3,5),
+                 output = "data/pdf_subset.pdf")
+```
+
+## 合并 PDF 文件
+
+将多个 PDF 文件合并成一个文件。
+
+```{r}
+qpdf::pdf_combine(
+  input = c("data/_1.pdf", "data/_1.pdf","data/_1.pdf"), 
+  output = "data/pdf_combine.pdf")
+```
+
+## 旋转 PDF 文件
+
+将示例 PDF 文件的第 1,3,5 页旋转 90 度。
+
+```{r}
+qpdf::pdf_rotate_pages(
+  input = "data/pandoc-beamer.pdf",
+  pages = c(1,3,5),
+  angle = 90,
+  output = "data/pdf_rotate_pages.pdf"
+)
+```
+
+## 压缩 PDF 文件
+
+```{r}
+qpdf::pdf_compress(input = "data/pandoc-beamer.pdf",
+                   output = "data/pdf_compress.pdf")
+```
+
+# pdftools
+
+相比于 qpdf 包，pdftools 包提供更多的功能。
+
+## PDF 文档转图片
+
+受支持的图片转化格式如下
+
+```{r}
+pdftools::poppler_config()
+```
+
+将 PDF 文档中的部分页面转化为图片
+
+```{r}
+pdftools::pdf_convert(
+  pdf = "data/pandoc-beamer.pdf", pages = c(1, 3, 5), 
+  format = "png", # supported_image_formats
+  dpi = 72, # 值越大图片越清晰
+  filenames = c("data/pdf_convert_1.png", "data/pdf_convert_2.png", "data/pdf_convert_3.png")
+)
+```
+
+## 读取 PDF 的元数据
+
+PDF 文档有自己的元数据，元数据中记录了谁什么时间用什么软件创建的等信息。
+
+```{r}
+pdftools::pdf_info(pdf = "data/pandoc-beamer.pdf")
+```
+
+## 读取 PDF 文档中的文本
+
+分页提取 PDF 文档中的文本数据，返回一个与PDF文档页数相同的字符串向量。
+
+```{r}
+pdftools::pdf_text(pdf = "data/pandoc-beamer.pdf")
+```
+
+可见返回 8 个字符串，每个字符串的内容来自 PDF 文档的相应页面。
+
+## 读取 PDF 文档中使用的字体
+
+```{r}
+pdftools::pdf_fonts(pdf = "data/pandoc-beamer.pdf")
+```
+
+## 读取 PDF 文档中包含的附件
+
+```{r}
+pdftools::pdf_attachments(pdf = "data/pandoc-beamer.pdf")
+```
+
+我的这个示例文件不含附件
+
+## 读取 PDF 文档中的目录
+
+```{r}
+pdftools::pdf_toc(pdf = "data/pandoc-beamer.pdf")
+```
+
+## 读取 PDF 文档的页面大小
+
+```{r}
+pdftools::pdf_pagesize(pdf = "data/pandoc-beamer.pdf")
+```
+
+示例文档一共 8 页，每页的长宽都一样大。示例文档是一个 LaTeX 制作的 beamer 幻灯片，长宽比为 4:3，正好是 362.8 / 272.1 = 4/3.
+
+# magick
+
+**magick** 包配合 **tesseract** 包可以做 OCR 识别，比如提取 PDF（扫描图片） 或图片文件中的文本。国家统计局的统计年鉴是以 JPEG 格式的图形发布的。为了快一点整理数据，我用到了 OCR 识别。
+
+```{r}
+library(magick)
+input <- image_read("data/C02-26.jpeg")
+
+# 去掉背景
+text <- input %>%
+  image_resize("2000x") %>%
+  image_convert(type = 'Grayscale') %>%
+  image_trim(fuzz = 40) %>%
+  image_write(format = 'png', density = '300x300')
+
+# OCR 识别
+text_ocr <- text %>%
+  tesseract::ocr()
+# 输出文本（主要是数字）
+cat(text_ocr,sep = "\\n")
+```
+
+最后，边核对边手动整理一下，去掉一些乱码。
+
+# 其它
+
+## 放大 PDF 文档
+
+[用 LaTeX 放大 pdf 文档](https://bjt.name/2010/03/01/latex-pdfpages.html)，使用场景是将一些电子版书籍去掉白边、适当放大，在电子设备上观看起来体验更好。
+
+``` latex
+\documentclass[a4paper,12pt]{report}
+\usepackage[final]{pdfpages}
+\begin{document}
+\includepdf[pages=19-26, scale=1.3,
+delta=0mm 5mm, frame]{quarto-chinese.pdf}
+\end{document}
+```
+
+## 生成 PDF 文档
+
+编辑 PDF 中的文本和图像。
+
+-   LaTeX 源码编辑（LaTeX 语法）
+-   Makdown + Pandoc + LaTeX （Markdown 语法）
+-   R Markdown / R Sweave（R Markdown 语法）
+-   写轮眼 / pagedown 网页转化（R Markdown 语法）
+-   Office Word / PowerPoint 转化
+
+# 运行环境
+
+R 软件及 R 包的版本信息
+
+```{r}
+sessionInfo(package = c(
+  "qpdf", "pdftools", "magick"
+))
+```
