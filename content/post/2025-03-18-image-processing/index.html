@@ -1,0 +1,386 @@
+---
+date: "2025-03-25"
+slug: image-processing
+author: 黄湘云
+title: 图像处理与 R 语言
+categories:
+  - 统计软件
+tags:
+  - EBImage
+  - magick
+  - 图像处理
+  - 计算机视觉
+math: true
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+bibliography: refer.bib
+description: "R 语言生态中专门做图像处理的工具也不少，最流行的莫过于 magick 包。计算机视觉方面的前沿技术和理论还是卷积神经网络这套工具，什么神经网络就不说了，什么是卷积本文以简单的示例揭开其神秘面纱。像 ImageMagick 和 Adobe Photoshop 等图像处理软件，其背后都有卷积，甚至神经网络算法。"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#Primary" id="toc-Primary"><span class="toc-section-number">1</span> 基础篇</a>
+<ul>
+<li><a href="#%E5%87%BD%E6%95%B0-rasterimage" id="toc-函数-rasterimage"><span class="toc-section-number">1.1</span> 函数 <code>rasterImage()</code></a></li>
+<li><a href="#%E5%87%BD%E6%95%B0-image" id="toc-函数-image"><span class="toc-section-number">1.2</span> 函数 <code>image()</code></a></li>
+</ul></li>
+<li><a href="#Intermediate" id="toc-Intermediate"><span class="toc-section-number">2</span> 进阶篇</a>
+<ul>
+<li><a href="#%E8%BD%AF%E4%BB%B6%E5%87%86%E5%A4%87" id="toc-软件准备"><span class="toc-section-number">2.1</span> 软件准备</a></li>
+<li><a href="#%E8%AF%BB%E5%8F%96%E5%9B%BE%E7%89%87" id="toc-读取图片"><span class="toc-section-number">2.2</span> 读取图片</a></li>
+<li><a href="#%E5%8D%B7%E7%A7%AF%E6%93%8D%E4%BD%9C" id="toc-卷积操作"><span class="toc-section-number">2.3</span> 卷积操作</a></li>
+<li><a href="#%E5%9B%BE%E5%83%8F%E5%90%88%E6%88%90" id="toc-图像合成"><span class="toc-section-number">2.4</span> 图像合成</a></li>
+</ul></li>
+<li><a href="#Advanced" id="toc-Advanced"><span class="toc-section-number">3</span> 高级篇</a>
+<ul>
+<li><a href="#%E6%89%B9%E5%A4%84%E7%90%86" id="toc-批处理"><span class="toc-section-number">3.1</span> 批处理</a></li>
+<li><a href="#%E6%8D%A2%E9%A3%8E%E6%A0%BC%E5%BE%85" id="toc-换风格待"><span class="toc-section-number">3.2</span> 换风格（待）</a></li>
+<li><a href="#%E5%8E%BB%E9%9B%BE%E9%9C%BE%E5%BE%85" id="toc-去雾霾待"><span class="toc-section-number">3.3</span> 去雾霾（待）</a></li>
+<li><a href="#%E5%8E%BB%E5%8F%8D%E5%85%89%E5%BE%85" id="toc-去反光待"><span class="toc-section-number">3.4</span> 去反光（待）</a></li>
+</ul></li>
+<li><a href="#%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83" id="toc-运行环境"><span class="toc-section-number">4</span> 运行环境</a></li>
+<li><a href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE" id="toc-参考文献"><span class="toc-section-number">5</span> 参考文献</a></li>
+</ul>
+</div>
+
+<p>R 语言生态中专门做图像处理的工具也不少，最流行的莫过于 magick 包。计算机视觉方面的前沿技术和理论还是卷积神经网络这套工具，什么神经网络就不说了，什么是卷积本文以简单的示例揭开其神秘面纱。像 ImageMagick 和 Adobe Photoshop 等图像处理软件，其背后都有卷积，甚至神经网络算法。</p>
+<div id="Primary" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> 基础篇</h1>
+<p>R 软件内置的 graphics 包有几个读取位图的函数，如显示图片 <code>image()</code>，制作位图 <code>rasterImage()</code>，绘制位图 <code>plot.raster()</code>。</p>
+<p>灰度图像本质上就是一个二维矩阵，在 R 语言环境中，可由函数 <code>as.raster()</code> 将矩阵生成图像（颜色值），再用函数 <code>rasterImage()</code> 显示图像。</p>
+<pre class="r"><code>img &lt;- as.raster(matrix(0:1, ncol = 5, nrow = 4, byrow = T))
+img</code></pre>
+<pre><code>##      [,1]      [,2]      [,3]      [,4]      [,5]     
+## [1,] &quot;#000000&quot; &quot;#FFFFFF&quot; &quot;#000000&quot; &quot;#FFFFFF&quot; &quot;#000000&quot;
+## [2,] &quot;#FFFFFF&quot; &quot;#000000&quot; &quot;#FFFFFF&quot; &quot;#000000&quot; &quot;#FFFFFF&quot;
+## [3,] &quot;#000000&quot; &quot;#FFFFFF&quot; &quot;#000000&quot; &quot;#FFFFFF&quot; &quot;#000000&quot;
+## [4,] &quot;#FFFFFF&quot; &quot;#000000&quot; &quot;#FFFFFF&quot; &quot;#000000&quot; &quot;#FFFFFF&quot;</code></pre>
+<div id="函数-rasterimage" class="section level2" number="1.1">
+<h2><span class="header-section-number">1.1</span> 函数 <code>rasterImage()</code></h2>
+<p>函数 <code>plot.raster()</code> 是函数 <code>rasterImage()</code> 的马甲，可将函数 <code>rasterImage()</code> 的参数 <code>interpolate</code> 传递进来，它的作用是差值（平滑），效果如下图所示。</p>
+<pre class="r"><code>layout(mat = matrix(c(1, 2, 1, 2), 2, 2, byrow = TRUE))
+plot(img, interpolate = FALSE)
+plot(img, interpolate = TRUE)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:unnamed-chunk-2"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-2-1.png" alt="用函数 `plot.raster()` 生成灰度矩阵" width="576" />
+<p class="caption">
+图 1.1: 用函数 <code>plot.raster()</code> 生成灰度矩阵
+</p>
+</div>
+<pre class="r"><code>plot(cars)
+rasterImage(img, xleft = 21, ybottom = 0, 
+            xright = 25, ytop = 30, interpolate = FALSE)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:unnamed-chunk-3"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" alt="用函数 `rasterImage()` 生成灰度矩阵" width="480" />
+<p class="caption">
+图 1.2: 用函数 <code>rasterImage()</code> 生成灰度矩阵
+</p>
+</div>
+<p>在绘图函数 <code>plot()</code> 之后，再调用 <code>rasterImage()</code> 函数可以实现类似图层叠加的效果。若是要在主图的右下角添加水印的话，就可以用这个函数。</p>
+<pre class="r"><code>library(magick)
+## Linking to ImageMagick 7.1.1.44
+## Enabled features: fontconfig, freetype, ghostscript, heic, lcms, raw, webp
+## Disabled features: cairo, fftw, pango, rsvg, x11
+## Using 11 threads
+# logo 数据集来自 magick 包
+logo</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.gif" /><!-- --></p>
+<pre class="r"><code>image_info(logo)
+##   format width height colorspace matte filesize density
+## 1    GIF   640    480       sRGB FALSE    28576 +72x+72</code></pre>
+<pre class="r"><code>plot(cars)
+rasterImage(logo, xleft = 20, ybottom = 0,
+            xright = 25, ytop = 30, interpolate = FALSE)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:unnamed-chunk-5"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-5-1.png" alt="主图添加水印" width="480" />
+<p class="caption">
+图 1.3: 主图添加水印
+</p>
+</div>
+</div>
+<div id="函数-image" class="section level2" number="1.2">
+<h2><span class="header-section-number">1.2</span> 函数 <code>image()</code></h2>
+<p>函数 <code>image()</code> / <code>filled.contour()</code> 可将数值型矩阵转化为栅格（位图）图像，以记录了地形信息的数据集 volcano 为例，下面将奥克兰火山 Maunga Whau 的海拔展示出来。</p>
+<pre class="r"><code>x &lt;- 10*(1:nrow(volcano))
+y &lt;- 10*(1:ncol(volcano))
+# filled.contour(x, y, volcano, color.palette = terrain.colors, axes = FALSE, ann = F)
+image(x, y, volcano, axes = FALSE, ann = F, useRaster = TRUE)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:unnamed-chunk-6"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-1.png" alt="奥克兰火山 Maunga Whau 的地形图" width="576" />
+<p class="caption">
+图 1.4: 奥克兰火山 Maunga Whau 的地形图
+</p>
+</div>
+<p>对于地形数据，R 语言社区由一个专门的 R 包 <strong>terra</strong> 来处理，它还可以处理卫星图像。</p>
+<pre class="r"><code>library(terra)
+## terra 1.8.29
+f &lt;- system.file(&quot;ex/elev.tif&quot;, package=&quot;terra&quot;)
+r &lt;- rast(f)
+plot(r)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+</div>
+</div>
+<div id="Intermediate" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> 进阶篇</h1>
+<p>R 语言社区中图像处理的 R 包有很多，比如 <a href="https://github.com/asgr/imager">imager</a>、<a href="https://github.com/ShotaOchi/imagerExtra">imagerExtra</a>、<a href="https://github.com/mlampros/OpenImageR">OpenImageR</a>、<a href="https://github.com/ropensci/magick">magick</a> 和 <a href="https://github.com/aoles/EBImage">EBImage</a> 等。操作矩阵即操作图像，操作图像背后其实也是操作矩阵。本文介绍 EBImage 包<span class="citation">(<a href="#ref-EBImage2010">Pau et al. 2010</a>)</span> 和 magick 包<span class="citation">(<a href="#ref-magick2024">Ooms 2024</a>)</span>。</p>
+<div id="软件准备" class="section level2" number="2.1">
+<h2><span class="header-section-number">2.1</span> 软件准备</h2>
+<p>EBImage 包存放在仓库<a href="https://bioconductor.org/packages/release/bioc/html/EBImage.html">BioC</a>，下面先来安装下。</p>
+<pre class="r"><code>BiocManager::install(&quot;EBImage&quot;)</code></pre>
+<p>接着，加载这两个 R 包。</p>
+<pre class="r"><code># library(EBImage)
+library(magick)</code></pre>
+<p>查看 magick 包支持的图片格式和特性。</p>
+<pre class="r"><code>str(magick::magick_config())</code></pre>
+<pre><code>## List of 24
+##  $ version           :Class &#39;numeric_version&#39;  hidden list of 1
+##   ..$ : int [1:4] 7 1 1 44
+##  $ modules           : logi TRUE
+##  $ cairo             : logi FALSE
+##  $ fontconfig        : logi TRUE
+##  $ freetype          : logi TRUE
+##  $ fftw              : logi FALSE
+##  $ ghostscript       : logi TRUE
+##  $ heic              : logi TRUE
+##  $ jpeg              : logi TRUE
+##  $ lcms              : logi TRUE
+##  $ libopenjp2        : logi TRUE
+##  $ lzma              : logi TRUE
+##  $ pangocairo        : logi FALSE
+##  $ pango             : logi FALSE
+##  $ png               : logi TRUE
+##  $ raw               : logi TRUE
+##  $ rsvg              : logi FALSE
+##  $ tiff              : logi TRUE
+##  $ webp              : logi TRUE
+##  $ wmf               : logi FALSE
+##  $ x11               : logi FALSE
+##  $ xml               : logi TRUE
+##  $ zero-configuration: logi FALSE
+##  $ threads           : int 11</code></pre>
+</div>
+<div id="读取图片" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span> 读取图片</h2>
+<p>我第一次接触图像处理是本科在一本关于 Matlab 的使用教程里，当时在图书馆借阅这本书是因为正在参加全国大学生数学建模比赛，选了那道关于碎纸片复原的问题。就这样我第一次认识了计算机视觉和图像处理领域最为著名的图像 — <a href="https://en.wikipedia.org/wiki/Lenna">Lenna</a>。直到 2019 年，我才识得庐山真面目 — 刊登在杂志《花花公子》上的一张完整的照片，娱乐杂志的女星成了一大帮计算机宅男的谋女郎。</p>
+<pre class="r"><code>lenna &lt;- magick::image_read(path = &quot;img/Lenna_mini.png&quot;)
+lenna</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-10-1.png" width="256" /></p>
+<p>模特上半身是裸露的，侧对着镜子，脸转向读者，面带着微笑。整个环境让我想到《镖客三部曲》和《夺宝奇兵》，夕阳、草帽、风沙、浅浅的微笑一起营造一种朦胧感、含蓄美，半裸又透露出一些野性、奔放。</p>
+<p>其实，完整的照片是这样的，摄于 1972 年。以我有限的审美，如果不看全身照，会更好。因为从构图来看，图片的焦点聚在模特的臀部，全身照透出一点色情的味道。</p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-11-1.png" width="234" /></p>
+<p>在摄影和美术领域，面对裸人体是磨练基本功的，历史上，刘海粟在上海美专办人体素描课是面对真人裸体的。徐悲鸿在北平艺专也是，而且也画过不少。下面分别是徐悲鸿和常书鸿（研究敦煌文化，他女儿常莎娜承父业）的作品。</p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-12-1.png" width="375" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-12-2.png" width="375" /></p>
+</div>
+<div id="卷积操作" class="section level2" number="2.3">
+<h2><span class="header-section-number">2.3</span> 卷积操作</h2>
+<p>卷积操作是图像处理中非常基础的部分，快速傅立叶变换是实现卷积操作的有效算法，R 包实现有 <a href="https://github.com/FFTW/fftw3">fftw3</a>、<a href="https://cran.r-project.org/package=fftw">fftw</a> 和 <a href="https://github.com/krahim/fftwtools">fftwtools</a>。</p>
+<p>本小节参考 ImageMagick 文档 <a href="https://legacy.imagemagick.org/Usage/convolve/#intro">Introduction to Convolution</a> 和二维卷积操作示例 <a href="https://www.songho.ca/dsp/convolution/convolution2d_example.html">Example of 2D Convolution</a>、<a href="https://github.com/vdumoulin/conv_arithmetic">深度学习的卷积操作</a>。</p>
+<p>简单起见，先考虑一维的卷积操作，即将一个序列转为另一个序列。</p>
+<pre class="r"><code>x &lt;- 1:10
+filter(x, filter = rep(1, 3) / 3, method = &quot;convolution&quot;)</code></pre>
+<pre><code>## Time Series:
+## Start = 1 
+## End = 10 
+## Frequency = 1 
+##  [1] NA  2  3  4  5  6  7  8  9 NA</code></pre>
+<p>这实际是时间序列中的一个移动平均操作，移动窗口的长度是 3 期，对新序列中的任意一个位置，它的值是原序列对应位置及其前后位置的加权平均。推广到一般的卷积，并不要求权重之和等于 1。</p>
+<pre class="r"><code>filter(x, filter = rep(1, 3), method = &quot;convolution&quot;)</code></pre>
+<pre><code>## Time Series:
+## Start = 1 
+## End = 10 
+## Frequency = 1 
+##  [1] NA  6  9 12 15 18 21 24 27 NA</code></pre>
+<p>再考虑二维的情形，类似地，在新的图片中，对给定的一个位置，它的值是原图该位置及其周围的值的加权平均，权重矩阵由核矩阵决定。考虑如下核矩阵。</p>
+<p><span class="math display">\[
+K = \frac{1}{4}
+\begin{bmatrix}
+0 &amp; 1 &amp; 0 \\
+1 &amp; 0 &amp; 1 \\
+0 &amp; 1 &amp; 0
+\end{bmatrix}
+\]</span></p>
+<pre class="r"><code># 初始化核矩阵
+kern &lt;- matrix(0, ncol = 3, nrow = 3)
+kern[1, 2] &lt;- 0.25
+kern[2, c(1, 3)] &lt;- 0.25
+kern[3, 2] &lt;- 0.25
+# 基础篇的示例矩阵，转成 magick 对象
+img &lt;- matrix(0:1, ncol = 5, nrow = 4, byrow = T) |&gt; 
+  as.raster() |&gt; 
+  image_read() |&gt; 
+  image_scale(&quot;300x300&quot;)
+# 卷一下
+img_blurred &lt;- image_convolve(img, kernel = kern)
+img_gaussian &lt;- image_convolve(img, kernel = &quot;Gaussian:0x4&quot;)
+image_append(c(img, img_blurred, img_gaussian))</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-15-1.png" width="450" /></p>
+<p>核矩阵是 <span class="math inline">\(3\times3\)</span> 的，阶数比较小，影响范围小。再试一个例子，会更清楚些。</p>
+<pre class="r"><code># 将原图缩放到像素 300x300 
+img &lt;- image_resize(logo, &quot;300x300&quot;)
+# 模糊图像的卷积操作
+img_blurred &lt;- image_convolve(img, kernel = kern)
+image_append(c(img, img_blurred))</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-16-1.gif" /><!-- --></p>
+<p>在核矩阵的作用下，图片变模糊了。不同的核函数有很多，<strong>magick</strong> 包支持的核函数如下。</p>
+<pre class="r"><code>kernel_types()</code></pre>
+<pre><code>##  [1] &quot;Undefined&quot;     &quot;Unity&quot;         &quot;Gaussian&quot;      &quot;DoG&quot;          
+##  [5] &quot;LoG&quot;           &quot;Blur&quot;          &quot;Comet&quot;         &quot;Binomial&quot;     
+##  [9] &quot;Laplacian&quot;     &quot;Sobel&quot;         &quot;FreiChen&quot;      &quot;Roberts&quot;      
+## [13] &quot;Prewitt&quot;       &quot;Compass&quot;       &quot;Kirsch&quot;        &quot;Diamond&quot;      
+## [17] &quot;Square&quot;        &quot;Rectangle&quot;     &quot;Disk&quot;          &quot;Octagon&quot;      
+## [21] &quot;Plus&quot;          &quot;Cross&quot;         &quot;Ring&quot;          &quot;Peaks&quot;        
+## [25] &quot;Edges&quot;         &quot;Corners&quot;       &quot;Diagonals&quot;     &quot;LineEnds&quot;     
+## [29] &quot;LineJunctions&quot; &quot;Ridges&quot;        &quot;ConvexHull&quot;    &quot;ThinSe&quot;       
+## [33] &quot;Skeleton&quot;      &quot;Chebyshev&quot;     &quot;Manhattan&quot;     &quot;Octagonal&quot;    
+## [37] &quot;Euclidean&quot;     &quot;User Defined&quot;</code></pre>
+<p>下面用2 倍的高斯模糊，看看效果。</p>
+<pre class="r"><code># 高斯模糊
+img_gaussian &lt;- image_convolve(img, kernel = &quot;Gaussian:0x2&quot;)
+# 拼图
+image_append(c(img, img_blurred, img_gaussian))</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-18-1.gif" /><!-- --></p>
+<p>用2倍的高斯模糊，效果就更明显了。</p>
+<pre class="r"><code># 像素 600x600
+img &lt;- image_resize(lenna, &quot;600x600&quot;)
+img_blurred &lt;- image_convolve(img, kernel = kern)
+img_gaussian &lt;- image_convolve(img, kernel = &quot;Gaussian:0x4&quot;)
+image_append(c(img, img_blurred, img_gaussian))</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-19-1.png" width="900" /></p>
+<p>前两张 Lenna 照片，看不出来差别，为什么呢？因为模糊的效果不够强，第三张照片用上4倍高斯模糊后效果就很明显了。下面再给出两个示例。</p>
+<pre class="r"><code>img1 &lt;- img |&gt; image_convolve(kernel = &#39;Sobel&#39;)
+img2 &lt;- img |&gt; image_convolve(kernel = &#39;Sobel&#39;) |&gt; image_negate()
+img3 &lt;- img |&gt; image_convolve(kernel = &#39;DoG:0,0,2&#39;)
+img4 &lt;- img |&gt; image_convolve(kernel = &#39;DoG:0,0,2&#39;) |&gt; image_negate()
+image_append(c(img1,img2,img3,img4))</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-20-1.png" width="1200" /></p>
+</div>
+<div id="图像合成" class="section level2" number="2.4">
+<h2><span class="header-section-number">2.4</span> 图像合成</h2>
+<p>还可以使用原图和高斯模糊后的图像<strong>合成</strong>一个弱化的高斯模糊图像。合成方法采用 Blend，混合比例是原图 60% 和高斯模糊后的 40% 。</p>
+<pre class="r"><code>image_composite(image = img, composite_image = img_gaussian,
+                operator = &quot;Blend&quot;, compose_args = &quot;60,40%&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-21-1.png" width="300" /></p>
+<p>以上合成命令参考 ImageMagick 文档<a href="https://legacy.imagemagick.org/Usage/convolve/#soft_blur">Softened Blurring</a>，等价于</p>
+<pre class="bash"><code>magick face.png  -morphology Convolve Gaussian:0x4  face_strong_blur.png
+magick face.png  face_strong_blur.png \
+        -compose Blend -define compose:args=60,40% -composite \
+        face_soft_blur.png</code></pre>
+<p>合成方法亦是很多的。</p>
+<pre class="r"><code>compose_types()</code></pre>
+<pre><code>##  [1] &quot;Undefined&quot;        &quot;Add&quot;              &quot;Atop&quot;             &quot;Blend&quot;           
+##  [5] &quot;Blur&quot;             &quot;Bumpmap&quot;          &quot;ChangeMask&quot;       &quot;Clear&quot;           
+##  [9] &quot;ColorBurn&quot;        &quot;ColorDodge&quot;       &quot;Colorize&quot;         &quot;CopyAlpha&quot;       
+## [13] &quot;CopyBlack&quot;        &quot;CopyBlue&quot;         &quot;Copy&quot;             &quot;CopyCyan&quot;        
+## [17] &quot;CopyGreen&quot;        &quot;CopyMagenta&quot;      &quot;CopyOpacity&quot;      &quot;CopyRed&quot;         
+## [21] &quot;CopyYellow&quot;       &quot;Darken&quot;           &quot;DarkenIntensity&quot;  &quot;Difference&quot;      
+## [25] &quot;Displace&quot;         &quot;Dissolve&quot;         &quot;Distort&quot;          &quot;Divide&quot;          
+## [29] &quot;DivideDst&quot;        &quot;DivideSrc&quot;        &quot;DstAtop&quot;          &quot;Dst&quot;             
+## [33] &quot;DstIn&quot;            &quot;DstOut&quot;           &quot;DstOver&quot;          &quot;Exclusion&quot;       
+## [37] &quot;Freeze&quot;           &quot;HardLight&quot;        &quot;HardMix&quot;          &quot;Hue&quot;             
+## [41] &quot;In&quot;               &quot;Intensity&quot;        &quot;Interpolate&quot;      &quot;LightenIntensity&quot;
+## [45] &quot;Lighten&quot;          &quot;LinearBurn&quot;       &quot;LinearDodge&quot;      &quot;LinearLight&quot;     
+## [49] &quot;Luminize&quot;         &quot;Mathematics&quot;      &quot;MinusDst&quot;         &quot;Minus&quot;           
+## [53] &quot;MinusSrc&quot;         &quot;Modulate&quot;         &quot;ModulusAdd&quot;       &quot;ModulusSubtract&quot; 
+## [57] &quot;Multiply&quot;         &quot;Negate&quot;           &quot;None&quot;             &quot;Out&quot;             
+## [61] &quot;Overlay&quot;          &quot;Over&quot;             &quot;PegtopLight&quot;      &quot;PinLight&quot;        
+## [65] &quot;Plus&quot;             &quot;Reflect&quot;          &quot;Replace&quot;          &quot;RMSE&quot;            
+## [69] &quot;Saturate&quot;         &quot;Screen&quot;           &quot;SaliencyBlend&quot;    &quot;SeamlessBlend&quot;   
+## [73] &quot;SoftBurn&quot;         &quot;SoftDodge&quot;        &quot;SoftLight&quot;        &quot;SrcAtop&quot;         
+## [77] &quot;SrcIn&quot;            &quot;SrcOut&quot;           &quot;SrcOver&quot;          &quot;Src&quot;             
+## [81] &quot;Stamp&quot;            &quot;Stereo&quot;           &quot;Subtract&quot;         &quot;Threshold&quot;       
+## [85] &quot;VividLight&quot;       &quot;Xor&quot;</code></pre>
+</div>
+</div>
+<div id="Advanced" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> 高级篇</h1>
+<div id="批处理" class="section level2" number="3.1">
+<h2><span class="header-section-number">3.1</span> 批处理</h2>
+<p>我在博文<a href="/2025/03/imagemagick">《我曾用过的 ImageMagick 命令》</a>里曾使用 ImageMagick 在命令行终端中批量将 HEIC 格式图片转化为 JPG，现在有 magick 包，它将 ImageMagick 功能整个打包，这样图片转化、优化等操作都可以整合到 R 语言工作流中来了。举例来说，将目录下的 HEIC 格式图片转化为 JPG 格式，并调用无损压缩工具优化图片大小。</p>
+<pre class="r"><code># HEIC 图片路径
+img_heic &lt;- list.files(path = &quot;img&quot;, pattern = &quot;HEIC$&quot;, full.names = T)
+# JPG 图片路径
+img_jpg &lt;- sub(x = img_heic, pattern = &quot;HEIC&quot;, replacement = &quot;jpg&quot;)
+# 格式转化
+for (i in seq(length(img_heic))) {
+    image_read(path = img_heic[i]) |&gt; 
+     image_write(path = img_jpg[i], format = &quot;jpg&quot;)
+}
+# 压缩优化图片
+xfun::tinify(input = img_jpg, output = img_jpg)</code></pre>
+</div>
+<div id="换风格待" class="section level2" number="3.2">
+<h2><span class="header-section-number">3.2</span> 换风格（待）</h2>
+<p>模特对着镜子的画面，我在美术馆也看过一些，下面这个是油画作品，徐明华（1932-）创作的油画《镜前》。这是很印象派的人物画，可否转成现实主义风格的？</p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-24-1.png" width="363" /></p>
+</div>
+<div id="去雾霾待" class="section level2" number="3.3">
+<h2><span class="header-section-number">3.3</span> 去雾霾（待）</h2>
+<p>我在北京地铁望京东站出站口对着远处的望京SOHO大厦拍摄的照片，可否将有雾霾的照片转成无雾霾的照片。连SOHO大厦的轮廓都没有了，如何复原？</p>
+<div class="float">
+<img src="img/soho.JPG" width="492" alt="视野正中的望京SOHO大厦" />
+<div class="figcaption">视野正中的望京SOHO大厦</div>
+</div>
+<p>类似地，去沙尘的图像处理办法，有没有？</p>
+<div class="float">
+<img src="img/lvdi.JPG" width="496" alt="望京绿地大厦" />
+<div class="figcaption">望京绿地大厦</div>
+</div>
+</div>
+<div id="去反光待" class="section level2" number="3.4">
+<h2><span class="header-section-number">3.4</span> 去反光（待）</h2>
+<p>我在中国美术馆拍摄了几千张照片，凡是放在玻璃罩内的美术作品，照片都带着玻璃的反光，影响照片的二次观看效果。如何去掉图片中的灯条、人影？</p>
+<div class="float">
+<img src="/img/hongyi.jpg" alt="丰子恺为弘一法师创作的遗像" />
+<div class="figcaption">丰子恺为弘一法师创作的遗像</div>
+</div>
+</div>
+</div>
+<div id="运行环境" class="section level1" number="4">
+<h1><span class="header-section-number">4</span> 运行环境</h1>
+<pre class="r"><code>sessionInfo(package = c(&quot;graphics&quot;, &quot;terra&quot;, &quot;EBImage&quot;, &quot;magick&quot;))</code></pre>
+<pre><code>## R version 4.4.3 (2025-02-28)
+## Platform: x86_64-apple-darwin20
+## Running under: macOS Sequoia 15.3.2
+## 
+## Matrix products: default
+## BLAS:   /Library/Frameworks/R.framework/Versions/4.4-x86_64/Resources/lib/libRblas.0.dylib 
+## LAPACK: /Library/Frameworks/R.framework/Versions/4.4-x86_64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.0
+## 
+## locale:
+## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+## 
+## time zone: Asia/Shanghai
+## tzcode source: internal
+## 
+## attached base packages:
+## [1] graphics
+## 
+## other attached packages:
+## [1] terra_1.8-29   EBImage_4.42.0 magick_2.8.5  
+## 
+## loaded via a namespace (and not attached):
+##  [1] cli_3.6.4         knitr_1.50        rlang_1.1.5       xfun_0.51        
+##  [5] png_0.1-8         promises_1.3.2    jsonlite_1.9.1    htmltools_0.5.8.1
+##  [9] httpuv_1.6.15     sass_0.4.9        methods_4.4.3     datasets_4.4.3   
+## [13] rmarkdown_2.29    evaluate_1.0.3    jquerylib_0.1.4   fastmap_1.2.0    
+## [17] yaml_2.3.10       lifecycle_1.0.4   utils_4.4.3       bookdown_0.42    
+## [21] compiler_4.4.3    codetools_0.2-20  Rcpp_1.0.14       rstudioapi_0.17.1
+## [25] base_4.4.3        stats_4.4.3       later_1.4.1       blogdown_1.21    
+## [29] digest_0.6.37     R6_2.6.1          servr_0.32        magrittr_2.0.3   
+## [33] bslib_0.9.0       tools_4.4.3       grDevices_4.4.3   cachem_1.1.0</code></pre>
+</div>
+<div id="参考文献" class="section level1" number="5">
+<h1><span class="header-section-number">5</span> 参考文献</h1>
+<p>虽说是参考文献，EBImage 包的使用文档，我看过，但是引用论文没看过。</p>
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="ref-magick2024" class="csl-entry">
+Ooms, Jeroen. 2024. <em><span class="nocase">magick</span>: Advanced Graphics and Image-Processing in <span>R</span></em>. <a href="https://CRAN.R-project.org/package=magick">https://CRAN.R-project.org/package=magick</a>.
+</div>
+<div id="ref-EBImage2010" class="csl-entry">
+Pau, Gregoire, Florian Fuchs, Oleg Sklyar, Michael Boutros, and Wolfgang Huber. 2010. <span>“<span>EBImage</span>—an <span>R</span> Package for Image Processing with Applications to Cellular Phenotypes.”</span> <em>Bioinformatics</em> 26 (7): 979–81. <a href="https://doi.org/10.1093/bioinformatics/btq046">https://doi.org/10.1093/bioinformatics/btq046</a>.
+</div>
+</div>
+</div>

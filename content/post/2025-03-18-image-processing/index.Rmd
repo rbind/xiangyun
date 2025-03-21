@@ -1,0 +1,343 @@
+---
+date: "2025-03-25"
+slug: image-processing
+author: 黄湘云
+title: 图像处理与 R 语言
+categories:
+  - 统计软件
+tags:
+  - EBImage
+  - magick
+  - 图像处理
+  - 计算机视觉
+math: true
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+bibliography: refer.bib
+description: "R 语言生态中专门做图像处理的工具也不少，最流行的莫过于 magick 包。计算机视觉方面的前沿技术和理论还是卷积神经网络这套工具，什么神经网络就不说了，什么是卷积本文以简单的示例揭开其神秘面纱。像 ImageMagick 和 Adobe Photoshop 等图像处理软件，其背后都有卷积，甚至神经网络算法。"
+---
+
+R 语言生态中专门做图像处理的工具也不少，最流行的莫过于 magick 包。计算机视觉方面的前沿技术和理论还是卷积神经网络这套工具，什么神经网络就不说了，什么是卷积本文以简单的示例揭开其神秘面纱。像 ImageMagick 和 Adobe Photoshop 等图像处理软件，其背后都有卷积，甚至神经网络算法。
+
+# 基础篇 {#Primary}
+
+R 软件内置的 graphics 包有几个读取位图的函数，如显示图片 `image()`，制作位图 `rasterImage()`，绘制位图 `plot.raster()`。
+
+灰度图像本质上就是一个二维矩阵，在 R 语言环境中，可由函数 `as.raster()` 将矩阵生成图像（颜色值），再用函数 `rasterImage()` 显示图像。
+
+```{r}
+img <- as.raster(matrix(0:1, ncol = 5, nrow = 4, byrow = T))
+img
+```
+
+## 函数 `rasterImage()`
+
+函数 `plot.raster()` 是函数 `rasterImage()` 的马甲，可将函数 `rasterImage()` 的参数 `interpolate` 传递进来，它的作用是差值（平滑），效果如下图所示。
+
+```{r}
+#| fig-cap: 用函数 `plot.raster()` 生成灰度矩阵
+#| fig-width: 6
+#| fig-height: 3
+
+layout(mat = matrix(c(1, 2, 1, 2), 2, 2, byrow = TRUE))
+plot(img, interpolate = FALSE)
+plot(img, interpolate = TRUE)
+```
+
+```{r}
+#| fig-cap: 用函数 `rasterImage()` 生成灰度矩阵
+#| fig-width: 5
+#| fig-height: 5
+
+plot(cars)
+rasterImage(img, xleft = 21, ybottom = 0, 
+            xright = 25, ytop = 30, interpolate = FALSE)
+```
+
+在绘图函数 `plot()` 之后，再调用 `rasterImage()` 函数可以实现类似图层叠加的效果。若是要在主图的右下角添加水印的话，就可以用这个函数。
+
+```{r}
+#| collapse: true
+
+library(magick)
+# logo 数据集来自 magick 包
+logo
+image_info(logo)
+```
+
+```{r}
+#| fig-cap: 主图添加水印
+#| fig-width: 5
+#| fig-height: 5
+
+plot(cars)
+rasterImage(logo, xleft = 20, ybottom = 0,
+            xright = 25, ytop = 30, interpolate = FALSE)
+```
+
+## 函数 `image()`
+
+函数 `image()` / `filled.contour()` 可将数值型矩阵转化为栅格（位图）图像，以记录了地形信息的数据集 volcano 为例，下面将奥克兰火山 Maunga Whau 的海拔展示出来。
+
+```{r}
+#| fig-cap: 奥克兰火山 Maunga Whau 的地形图
+#| fig-width: 6
+#| fig-height: 5
+
+x <- 10*(1:nrow(volcano))
+y <- 10*(1:ncol(volcano))
+# filled.contour(x, y, volcano, color.palette = terrain.colors, axes = FALSE, ann = F)
+image(x, y, volcano, axes = FALSE, ann = F, useRaster = TRUE)
+```
+
+对于地形数据，R 语言社区由一个专门的 R 包 **terra** 来处理，它还可以处理卫星图像。
+
+```{r collapse=TRUE}
+library(terra)
+f <- system.file("ex/elev.tif", package="terra")
+r <- rast(f)
+plot(r)
+```
+
+# 进阶篇 {#Intermediate}
+
+R 语言社区中图像处理的 R 包有很多，比如 [imager](https://github.com/asgr/imager)、[imagerExtra](https://github.com/ShotaOchi/imagerExtra)、[OpenImageR](https://github.com/mlampros/OpenImageR)、[magick](https://github.com/ropensci/magick) 和 [EBImage](https://github.com/aoles/EBImage) 等。操作矩阵即操作图像，操作图像背后其实也是操作矩阵。本文介绍 EBImage 包[@EBImage2010] 和 magick 包[@magick2024]。
+
+## 软件准备
+
+EBImage 包存放在仓库[BioC](https://bioconductor.org/packages/release/bioc/html/EBImage.html)，下面先来安装下。
+
+``` r
+BiocManager::install("EBImage")
+```
+
+接着，加载这两个 R 包。
+
+```{r collapse=TRUE}
+# library(EBImage)
+library(magick)
+```
+
+查看 magick 包支持的图片格式和特性。
+
+```{r}
+str(magick::magick_config())
+```
+
+## 读取图片
+
+我第一次接触图像处理是本科在一本关于 Matlab 的使用教程里，当时在图书馆借阅这本书是因为正在参加全国大学生数学建模比赛，选了那道关于碎纸片复原的问题。就这样我第一次认识了计算机视觉和图像处理领域最为著名的图像 --- [Lenna](https://en.wikipedia.org/wiki/Lenna)。直到 2019 年，我才识得庐山真面目 --- 刊登在杂志《花花公子》上的一张完整的照片，娱乐杂志的女星成了一大帮计算机宅男的谋女郎。
+
+```{r}
+#| fig-width: 5
+#| fig-height: 4
+
+lenna <- magick::image_read(path = "img/Lenna_mini.png")
+lenna
+```
+
+模特上半身是裸露的，侧对着镜子，脸转向读者，面带着微笑。整个环境让我想到《镖客三部曲》和《夺宝奇兵》，夕阳、草帽、风沙、浅浅的微笑一起营造一种朦胧感、含蓄美，半裸又透露出一些野性、奔放。
+
+其实，完整的照片是这样的，摄于 1972 年。以我有限的审美，如果不看全身照，会更好。因为从构图来看，图片的焦点聚在模特的臀部，全身照透出一点色情的味道。
+
+```{r}
+#| fig-width: 6
+#| fig-height: 8
+#| echo: false
+
+magick::image_read(path = "img/Lenna.JPG")|> 
+  magick::image_resize("1000x1000")
+```
+
+在摄影和美术领域，面对裸人体是磨练基本功的，历史上，刘海粟在上海美专办人体素描课是面对真人裸体的。徐悲鸿在北平艺专也是，而且也画过不少。下面分别是徐悲鸿和常书鸿（研究敦煌文化，他女儿常莎娜承父业）的作品。
+
+```{r}
+#| echo: false
+
+magick::image_read(path = "img/xu.HEIC")|> 
+  magick::image_resize("1000x1000")
+magick::image_read(path = "img/chang.HEIC")|> 
+  magick::image_resize("1000x1000")
+```
+
+## 卷积操作
+
+卷积操作是图像处理中非常基础的部分，快速傅立叶变换是实现卷积操作的有效算法，R 包实现有 [fftw3](https://github.com/FFTW/fftw3)、[fftw](https://cran.r-project.org/package=fftw) 和 [fftwtools](https://github.com/krahim/fftwtools)。
+
+本小节参考 ImageMagick 文档 [Introduction to Convolution](https://legacy.imagemagick.org/Usage/convolve/#intro) 和二维卷积操作示例 [Example of 2D Convolution](https://www.songho.ca/dsp/convolution/convolution2d_example.html)、[深度学习的卷积操作](https://github.com/vdumoulin/conv_arithmetic)。
+
+简单起见，先考虑一维的卷积操作，即将一个序列转为另一个序列。
+
+```{r}
+x <- 1:10
+filter(x, filter = rep(1, 3) / 3, method = "convolution")
+```
+
+这实际是时间序列中的一个移动平均操作，移动窗口的长度是 3 期，对新序列中的任意一个位置，它的值是原序列对应位置及其前后位置的加权平均。推广到一般的卷积，并不要求权重之和等于 1。
+
+```{r}
+filter(x, filter = rep(1, 3), method = "convolution")
+```
+
+再考虑二维的情形，类似地，在新的图片中，对给定的一个位置，它的值是原图该位置及其周围的值的加权平均，权重矩阵由核矩阵决定。考虑如下核矩阵。
+
+$$
+K = \frac{1}{4}
+\begin{bmatrix}
+0 & 1 & 0 \\
+1 & 0 & 1 \\
+0 & 1 & 0
+\end{bmatrix}
+$$
+
+```{r}
+# 初始化核矩阵
+kern <- matrix(0, ncol = 3, nrow = 3)
+kern[1, 2] <- 0.25
+kern[2, c(1, 3)] <- 0.25
+kern[3, 2] <- 0.25
+# 基础篇的示例矩阵，转成 magick 对象
+img <- matrix(0:1, ncol = 5, nrow = 4, byrow = T) |> 
+  as.raster() |> 
+  image_read() |> 
+  image_scale("300x300")
+# 卷一下
+img_blurred <- image_convolve(img, kernel = kern)
+img_gaussian <- image_convolve(img, kernel = "Gaussian:0x4")
+image_append(c(img, img_blurred, img_gaussian))
+```
+
+核矩阵是 $3\times3$ 的，阶数比较小，影响范围小。再试一个例子，会更清楚些。
+
+```{r}
+# 将原图缩放到像素 300x300 
+img <- image_resize(logo, "300x300")
+# 模糊图像的卷积操作
+img_blurred <- image_convolve(img, kernel = kern)
+image_append(c(img, img_blurred))
+```
+
+在核矩阵的作用下，图片变模糊了。不同的核函数有很多，**magick** 包支持的核函数如下。
+
+```{r}
+kernel_types()
+```
+
+下面用2 倍的高斯模糊，看看效果。
+
+```{r}
+# 高斯模糊
+img_gaussian <- image_convolve(img, kernel = "Gaussian:0x2")
+# 拼图
+image_append(c(img, img_blurred, img_gaussian))
+```
+
+用2倍的高斯模糊，效果就更明显了。
+
+```{r}
+# 像素 600x600
+img <- image_resize(lenna, "600x600")
+img_blurred <- image_convolve(img, kernel = kern)
+img_gaussian <- image_convolve(img, kernel = "Gaussian:0x4")
+image_append(c(img, img_blurred, img_gaussian))
+```
+
+前两张 Lenna 照片，看不出来差别，为什么呢？因为模糊的效果不够强，第三张照片用上4倍高斯模糊后效果就很明显了。下面再给出两个示例。
+
+```{r}
+img1 <- img |> image_convolve(kernel = 'Sobel')
+img2 <- img |> image_convolve(kernel = 'Sobel') |> image_negate()
+img3 <- img |> image_convolve(kernel = 'DoG:0,0,2')
+img4 <- img |> image_convolve(kernel = 'DoG:0,0,2') |> image_negate()
+image_append(c(img1,img2,img3,img4))
+```
+
+## 图像合成
+
+还可以使用原图和高斯模糊后的图像**合成**一个弱化的高斯模糊图像。合成方法采用 Blend，混合比例是原图 60% 和高斯模糊后的 40% 。
+
+```{r}
+image_composite(image = img, composite_image = img_gaussian,
+                operator = "Blend", compose_args = "60,40%")
+```
+
+以上合成命令参考 ImageMagick 文档[Softened Blurring](https://legacy.imagemagick.org/Usage/convolve/#soft_blur)，等价于
+
+``` bash
+magick face.png  -morphology Convolve Gaussian:0x4  face_strong_blur.png
+magick face.png  face_strong_blur.png \
+        -compose Blend -define compose:args=60,40% -composite \
+        face_soft_blur.png
+```
+
+合成方法亦是很多的。
+
+```{r}
+compose_types()
+```
+
+# 高级篇 {#Advanced}
+
+## 批处理
+
+我在博文[《我曾用过的 ImageMagick 命令》](/2025/03/imagemagick)里曾使用 ImageMagick 在命令行终端中批量将 HEIC 格式图片转化为 JPG，现在有 magick 包，它将 ImageMagick 功能整个打包，这样图片转化、优化等操作都可以整合到 R 语言工作流中来了。举例来说，将目录下的 HEIC 格式图片转化为 JPG 格式，并调用无损压缩工具优化图片大小。
+
+```{r}
+#| eval: false
+
+# HEIC 图片路径
+img_heic <- list.files(path = "img", pattern = "HEIC$", full.names = T)
+# JPG 图片路径
+img_jpg <- sub(x = img_heic, pattern = "HEIC", replacement = "jpg")
+# 格式转化
+for (i in seq(length(img_heic))) {
+    image_read(path = img_heic[i]) |> 
+     image_write(path = img_jpg[i], format = "jpg")
+}
+# 压缩优化图片
+xfun::tinify(input = img_jpg, output = img_jpg)
+```
+
+## 换风格（待）
+
+模特对着镜子的画面，我在美术馆也看过一些，下面这个是油画作品，徐明华（1932-）创作的油画《镜前》。这是很印象派的人物画，可否转成现实主义风格的？
+
+```{r}
+#| fig-width: 6
+#| fig-height: 8
+#| echo: false
+
+magick::image_read(path = "img/mirror.jpeg")|> 
+  magick::image_resize("1000x1000")
+```
+
+## 去雾霾（待）
+
+我在北京地铁望京东站出站口对着远处的望京SOHO大厦拍摄的照片，可否将有雾霾的照片转成无雾霾的照片。连SOHO大厦的轮廓都没有了，如何复原？
+
+![视野正中的望京SOHO大厦](img/soho.JPG){width="492"}
+
+类似地，去沙尘的图像处理办法，有没有？
+
+![望京绿地大厦](img/lvdi.JPG){width="496"}
+
+## 去反光（待）
+
+我在中国美术馆拍摄了几千张照片，凡是放在玻璃罩内的美术作品，照片都带着玻璃的反光，影响照片的二次观看效果。如何去掉图片中的灯条、人影？
+
+![丰子恺为弘一法师创作的遗像](/img/hongyi.jpg)
+
+# 运行环境
+
+```{r}
+sessionInfo(package = c("graphics", "terra", "EBImage", "magick"))
+```
+
+# 参考文献
+
+虽说是参考文献，EBImage 包的使用文档，我看过，但是引用论文没看过。
+
+::: {#refs}
+:::
