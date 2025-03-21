@@ -1,0 +1,149 @@
+---
+title: 文本挖掘的一些基础概念
+date: '2025-02-27'
+author: 黄湘云
+slug: text-mining-with-r
+categories:
+  - 统计软件
+tags:
+  - 文本挖掘
+  - spacyr
+  - TF-IDF
+  - 分词
+  - 词干
+  - 停止词
+  - 词频
+output:
+  blogdown::html_page:
+    toc: true
+description: "本文介绍做文本挖掘的几个基础术语与 R 包。"
+---
+
+# 基础术语
+
+## 中文分词
+
+采用 [jiebaR](https://github.com/qinwf/jiebaR/) 作为中文分词工具，相比于 [Rwordseg](https://github.com/lijian13/Rwordseg) 包，不仅效果好，而且没有 rJava 包 (JAVA) 环境依赖。
+
+```{r}
+library(jiebaRD)
+library(jiebaR)
+jieba_seg <- worker()
+segment("齐白石对花鸟虫鱼都有研究呢", jieba_seg)
+```
+
+## 英文分词
+
+英文环境下，词与词之间本身就是以空格分开的。
+
+```{r}
+segment("Hello world!", jieba_seg)
+```
+
+## 停止词
+
+数字、标点符号、空格不参与分词，会被抹掉。
+
+```{r}
+segment("国画大师齐白石对花鸟虫鱼都有研究呢！", jieba_seg)
+```
+
+还可以添加停止词，将「花鸟虫鱼」作为停止词添加到停止词库中。
+
+```{r}
+jieba_seg <- worker(stop_word = "data/text/stop_word.txt")
+segment("国画大师齐白石对花鸟虫鱼都有研究呢", jieba_seg)
+```
+
+## 词频统计
+
+输入字符串向量，计算每个字符串出现的次数。jiebaR 包的函数 `freq()` 可以统计词出现的频次。
+
+```{r}
+freq(c("a", "a", "c"))
+```
+
+## TF-IDF
+
+输入一个列表，列表中每个元素是字符串向量，每个字符串向量代表一个文档。jiebaR 包的函数 `get_idf()` 可以计算 [TF-IDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf)（Document Frequency - Inverse Document Frequency） 值。
+
+```{r}
+get_idf(list(c("abc", "def"), c("abc", " ")))
+```
+
+## 提取词干 {#stemming}
+
+中文环境没有词干化（stemming）过程（比如 applied / applies -\> apply），只考虑分词、词性，但是英文有，举例如下。
+
+```{r}
+library(tm)
+# 动词 appli
+stemDocument(x = c("apply", "applying", "applied", "applies"))
+# 名词
+stemDocument(x = c("data", "models", "functions", "foxes", "wives", "children"))
+```
+
+## 词形还原 {#lemmatize}
+
+还是举个例子来说明，词形还原（lemmatize）就是将 appli 转化为 applied 或 apply 的过程。
+
+```{r}
+# 词形还原 stemCompletion
+stemCompletion(x = "appli", dictionary =  c("apply", "applying", "applied", "applies"), type = "shortest")
+```
+
+SemNetCleaner 包（Converts Words to their Singular Form）处理名词，一次只能处理一个词，分词后可以用，统计词频时合并同类项。
+
+```{r}
+SemNetCleaner::singularize(word = "data")
+SemNetCleaner::singularize(word = "models")
+```
+
+# 拓展阅读
+
+## spacyr 包
+
+[spacyr](https://github.com/quanteda/spacyr/) 包通过 reticulate 包调用 Python 社区的自然语言处理模块 [spacy](https://spacy.io) ，支持多种语言的分词、词性识别等。配置好 Python 环境，下载中文环境下的语言模型。
+
+```{r}
+library(spacyr)
+# 下载语言模型
+# spacy_download_langmodel("zh_core_web_sm")
+# 初始化语言模型
+spacy_initialize(model = "zh_core_web_sm")
+# Token 化是分词
+spacy_tokenize("国画大师齐白石对花鸟虫鱼都有研究呢")
+# 示例
+txt <- c(d1 = "国画大师齐白石对花鸟虫鱼都有研究呢",
+         d2 = "中国人民银行很行",
+         d3 = "张大千在研究国画")
+# 解析
+parsed_txt <- spacy_parse(txt)
+# 结果
+parsed_txt
+```
+
+人名都是名词，如齐白石、张大千等，「研究」既可做动词，也可做名词，「都」和「很」是副词。「中国人民银行很行」的「行」应当是形容词，但被识别为动词。
+
+## 文本处理
+
+1.  [**stringr**](https://github.com/tidyverse/stringr) 包和 Base R 通过正则表达式对字符串（文本）清洗、处理。
+
+2.  [quanteda](https://github.com/quanteda/quanteda) 、[text2map](https://gitlab.com/culturalcartography/text2map) 和 [tidytext](https://github.com/juliasilge/tidytext) 文本分析。
+
+3.  [tm](https://CRAN.R-project.org/package=tm) 包在自然语言处理任务视图中被列为核心扩展包，有多个扩展插件包，支持外部数据和模型，两个文本数据 [R-devel](https://datacube.wu.ac.at/src/contrib/tm.corpus.R.devel.mails_2024.01.22.tar.gz) 和 [R-help](https://datacube.wu.ac.at/src/contrib/tm.corpus.R.help.mails_2024.01.22.tar.gz) 来自 R 语言社区的邮件列表，整理后，适合用 tm 包来处理，语料库和模型。
+
+## 文本建模
+
+1.  [fastTextR](https://github.com/FlorianSchwendinger/fastTextR) 是 [fasttext](https://github.com/facebookresearch/fastText) 的 R 语言接口，适用于大数据集，监督文本分类、词表示学习。
+2.  [text2vec](https://github.com/dselivanov/text2vec/) 文本向量化、主题建模、距离和相似性度量、GloVe 词嵌入。
+3.  [word2vec](https://github.com/bnosac/word2vec) 词向量化
+4.  [doc2vec](https://github.com/bnosac/doc2vec) 文档向量化
+
+# 运行环境
+
+本文运行中用到的相关 R 包的版本信息如下：
+
+```{r}
+sessionInfo()
+```

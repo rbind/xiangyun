@@ -1,0 +1,220 @@
+---
+title: 文本挖掘的一些基础概念
+date: '2025-02-27'
+author: 黄湘云
+slug: text-mining-with-r
+categories:
+  - 统计软件
+tags:
+  - 文本挖掘
+  - spacyr
+  - TF-IDF
+  - 分词
+  - 词干
+  - 停止词
+  - 词频
+output:
+  blogdown::html_page:
+    toc: true
+description: "本文介绍做文本挖掘的几个基础术语与 R 包。"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#%E5%9F%BA%E7%A1%80%E6%9C%AF%E8%AF%AD" id="toc-基础术语">基础术语</a>
+<ul>
+<li><a href="#%E4%B8%AD%E6%96%87%E5%88%86%E8%AF%8D" id="toc-中文分词">中文分词</a></li>
+<li><a href="#%E8%8B%B1%E6%96%87%E5%88%86%E8%AF%8D" id="toc-英文分词">英文分词</a></li>
+<li><a href="#%E5%81%9C%E6%AD%A2%E8%AF%8D" id="toc-停止词">停止词</a></li>
+<li><a href="#%E8%AF%8D%E9%A2%91%E7%BB%9F%E8%AE%A1" id="toc-词频统计">词频统计</a></li>
+<li><a href="#tf-idf" id="toc-tf-idf">TF-IDF</a></li>
+<li><a href="#stemming" id="toc-stemming">提取词干</a></li>
+<li><a href="#lemmatize" id="toc-lemmatize">词形还原</a></li>
+</ul></li>
+<li><a href="#%E6%8B%93%E5%B1%95%E9%98%85%E8%AF%BB" id="toc-拓展阅读">拓展阅读</a>
+<ul>
+<li><a href="#spacyr-%E5%8C%85" id="toc-spacyr-包">spacyr 包</a></li>
+<li><a href="#%E6%96%87%E6%9C%AC%E5%A4%84%E7%90%86" id="toc-文本处理">文本处理</a></li>
+<li><a href="#%E6%96%87%E6%9C%AC%E5%BB%BA%E6%A8%A1" id="toc-文本建模">文本建模</a></li>
+</ul></li>
+<li><a href="#%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83" id="toc-运行环境">运行环境</a></li>
+</ul>
+</div>
+
+<div id="基础术语" class="section level1">
+<h1>基础术语</h1>
+<div id="中文分词" class="section level2">
+<h2>中文分词</h2>
+<p>采用 <a href="https://github.com/qinwf/jiebaR/">jiebaR</a> 作为中文分词工具，相比于 <a href="https://github.com/lijian13/Rwordseg">Rwordseg</a> 包，不仅效果好，而且没有 rJava 包 (JAVA) 环境依赖。</p>
+<pre class="r"><code>library(jiebaRD)
+library(jiebaR)
+jieba_seg &lt;- worker()
+segment(&quot;齐白石对花鸟虫鱼都有研究呢&quot;, jieba_seg)</code></pre>
+<pre><code>## [1] &quot;齐白石&quot;   &quot;对&quot;       &quot;花鸟虫鱼&quot; &quot;都&quot;       &quot;有&quot;       &quot;研究&quot;     &quot;呢&quot;</code></pre>
+</div>
+<div id="英文分词" class="section level2">
+<h2>英文分词</h2>
+<p>英文环境下，词与词之间本身就是以空格分开的。</p>
+<pre class="r"><code>segment(&quot;Hello world!&quot;, jieba_seg)</code></pre>
+<pre><code>## [1] &quot;Hello&quot; &quot;world&quot;</code></pre>
+</div>
+<div id="停止词" class="section level2">
+<h2>停止词</h2>
+<p>数字、标点符号、空格不参与分词，会被抹掉。</p>
+<pre class="r"><code>segment(&quot;国画大师齐白石对花鸟虫鱼都有研究呢！&quot;, jieba_seg)</code></pre>
+<pre><code>## [1] &quot;国画&quot;     &quot;大师&quot;     &quot;齐白石&quot;   &quot;对&quot;       &quot;花鸟虫鱼&quot; &quot;都&quot;       &quot;有&quot;      
+## [8] &quot;研究&quot;     &quot;呢&quot;</code></pre>
+<p>还可以添加停止词，将「花鸟虫鱼」作为停止词添加到停止词库中。</p>
+<pre class="r"><code>jieba_seg &lt;- worker(stop_word = &quot;data/text/stop_word.txt&quot;)
+segment(&quot;国画大师齐白石对花鸟虫鱼都有研究呢&quot;, jieba_seg)</code></pre>
+<pre><code>## [1] &quot;国画&quot;   &quot;大师&quot;   &quot;齐白石&quot; &quot;对&quot;     &quot;都&quot;     &quot;有&quot;     &quot;研究&quot;   &quot;呢&quot;</code></pre>
+</div>
+<div id="词频统计" class="section level2">
+<h2>词频统计</h2>
+<p>输入字符串向量，计算每个字符串出现的次数。jiebaR 包的函数 <code>freq()</code> 可以统计词出现的频次。</p>
+<pre class="r"><code>freq(c(&quot;a&quot;, &quot;a&quot;, &quot;c&quot;))</code></pre>
+<pre><code>##   char freq
+## 1    c    1
+## 2    a    2</code></pre>
+</div>
+<div id="tf-idf" class="section level2">
+<h2>TF-IDF</h2>
+<p>输入一个列表，列表中每个元素是字符串向量，每个字符串向量代表一个文档。jiebaR 包的函数 <code>get_idf()</code> 可以计算 <a href="https://en.wikipedia.org/wiki/Tf%E2%80%93idf">TF-IDF</a>（Document Frequency - Inverse Document Frequency） 值。</p>
+<pre class="r"><code>get_idf(list(c(&quot;abc&quot;, &quot;def&quot;), c(&quot;abc&quot;, &quot; &quot;)))</code></pre>
+<pre><code>##   name  count
+## 1  def 0.6931
+## 2  abc 0.0000</code></pre>
+</div>
+<div id="stemming" class="section level2">
+<h2>提取词干</h2>
+<p>中文环境没有词干化（stemming）过程（比如 applied / applies -&gt; apply），只考虑分词、词性，但是英文有，举例如下。</p>
+<pre class="r"><code>library(tm)</code></pre>
+<pre><code>## Loading required package: NLP</code></pre>
+<pre class="r"><code># 动词 appli
+stemDocument(x = c(&quot;apply&quot;, &quot;applying&quot;, &quot;applied&quot;, &quot;applies&quot;))</code></pre>
+<pre><code>## [1] &quot;appli&quot; &quot;appli&quot; &quot;appli&quot; &quot;appli&quot;</code></pre>
+<pre class="r"><code># 名词
+stemDocument(x = c(&quot;data&quot;, &quot;models&quot;, &quot;functions&quot;, &quot;foxes&quot;, &quot;wives&quot;, &quot;children&quot;))</code></pre>
+<pre><code>## [1] &quot;data&quot;     &quot;model&quot;    &quot;function&quot; &quot;fox&quot;      &quot;wive&quot;     &quot;children&quot;</code></pre>
+</div>
+<div id="lemmatize" class="section level2">
+<h2>词形还原</h2>
+<p>还是举个例子来说明，词形还原（lemmatize）就是将 appli 转化为 applied 或 apply 的过程。</p>
+<pre class="r"><code># 词形还原 stemCompletion
+stemCompletion(x = &quot;appli&quot;, dictionary =  c(&quot;apply&quot;, &quot;applying&quot;, &quot;applied&quot;, &quot;applies&quot;), type = &quot;shortest&quot;)</code></pre>
+<pre><code>##     appli 
+## &quot;applied&quot;</code></pre>
+<p>SemNetCleaner 包（Converts Words to their Singular Form）处理名词，一次只能处理一个词，分词后可以用，统计词频时合并同类项。</p>
+<pre class="r"><code>SemNetCleaner::singularize(word = &quot;data&quot;)</code></pre>
+<pre><code>## [1] &quot;data&quot;</code></pre>
+<pre class="r"><code>SemNetCleaner::singularize(word = &quot;models&quot;)</code></pre>
+<pre><code>## [1] &quot;model&quot;</code></pre>
+</div>
+</div>
+<div id="拓展阅读" class="section level1">
+<h1>拓展阅读</h1>
+<div id="spacyr-包" class="section level2">
+<h2>spacyr 包</h2>
+<p><a href="https://github.com/quanteda/spacyr/">spacyr</a> 包通过 reticulate 包调用 Python 社区的自然语言处理模块 <a href="https://spacy.io">spacy</a> ，支持多种语言的分词、词性识别等。配置好 Python 环境，下载中文环境下的语言模型。</p>
+<pre class="r"><code>library(spacyr)
+# 下载语言模型
+# spacy_download_langmodel(&quot;zh_core_web_sm&quot;)
+# 初始化语言模型
+spacy_initialize(model = &quot;zh_core_web_sm&quot;)</code></pre>
+<pre><code>## successfully initialized (spaCy Version: 3.7.2, language model: zh_core_web_sm)</code></pre>
+<pre class="r"><code># Token 化是分词
+spacy_tokenize(&quot;国画大师齐白石对花鸟虫鱼都有研究呢&quot;)</code></pre>
+<pre><code>## $text1
+##  [1] &quot;国画&quot;   &quot;大师&quot;   &quot;齐白石&quot; &quot;对&quot;     &quot;花鸟&quot;   &quot;虫鱼&quot;   &quot;都&quot;     &quot;有&quot;    
+##  [9] &quot;研究&quot;   &quot;呢&quot;</code></pre>
+<pre class="r"><code># 示例
+txt &lt;- c(d1 = &quot;国画大师齐白石对花鸟虫鱼都有研究呢&quot;,
+         d2 = &quot;中国人民银行很行&quot;,
+         d3 = &quot;张大千在研究国画&quot;)
+# 解析
+parsed_txt &lt;- spacy_parse(txt)</code></pre>
+<pre><code>## Warning in spacy_parse.character(txt): lemmatization may not work properly in
+## model &#39;zh_core_web_sm&#39;</code></pre>
+<pre class="r"><code># 结果
+parsed_txt</code></pre>
+<pre><code>##    doc_id sentence_id token_id  token lemma   pos   entity
+## 1      d1           1        1   国画        NOUN         
+## 2      d1           1        2   大师        NOUN         
+## 3      d1           1        3 齐白石       PROPN PERSON_B
+## 4      d1           1        4     对         ADP         
+## 5      d1           1        5   花鸟        NOUN         
+## 6      d1           1        6   虫鱼        NOUN         
+## 7      d1           1        7     都         ADV         
+## 8      d1           1        8     有        VERB         
+## 9      d1           1        9   研究        NOUN         
+## 10     d1           1       10     呢        PART         
+## 11     d2           1        1   中国       PROPN    ORG_B
+## 12     d2           1        2   人民        NOUN    ORG_I
+## 13     d2           1        3   银行        NOUN    ORG_I
+## 14     d2           1        4     很         ADV         
+## 15     d2           1        5     行        VERB         
+## 16     d3           1        1 张大千       PROPN PERSON_B
+## 17     d3           1        2     在         ADP         
+## 18     d3           1        3   研究        VERB         
+## 19     d3           1        4   国画        NOUN</code></pre>
+<p>人名都是名词，如齐白石、张大千等，「研究」既可做动词，也可做名词，「都」和「很」是副词。「中国人民银行很行」的「行」应当是形容词，但被识别为动词。</p>
+</div>
+<div id="文本处理" class="section level2">
+<h2>文本处理</h2>
+<ol style="list-style-type: decimal">
+<li><p><a href="https://github.com/tidyverse/stringr"><strong>stringr</strong></a> 包和 Base R 通过正则表达式对字符串（文本）清洗、处理。</p></li>
+<li><p><a href="https://github.com/quanteda/quanteda">quanteda</a> 、<a href="https://gitlab.com/culturalcartography/text2map">text2map</a> 和 <a href="https://github.com/juliasilge/tidytext">tidytext</a> 文本分析。</p></li>
+<li><p><a href="https://CRAN.R-project.org/package=tm">tm</a> 包在自然语言处理任务视图中被列为核心扩展包，有多个扩展插件包，支持外部数据和模型，两个文本数据 <a href="https://datacube.wu.ac.at/src/contrib/tm.corpus.R.devel.mails_2024.01.22.tar.gz">R-devel</a> 和 <a href="https://datacube.wu.ac.at/src/contrib/tm.corpus.R.help.mails_2024.01.22.tar.gz">R-help</a> 来自 R 语言社区的邮件列表，整理后，适合用 tm 包来处理，语料库和模型。</p></li>
+</ol>
+</div>
+<div id="文本建模" class="section level2">
+<h2>文本建模</h2>
+<ol style="list-style-type: decimal">
+<li><a href="https://github.com/FlorianSchwendinger/fastTextR">fastTextR</a> 是 <a href="https://github.com/facebookresearch/fastText">fasttext</a> 的 R 语言接口，适用于大数据集，监督文本分类、词表示学习。</li>
+<li><a href="https://github.com/dselivanov/text2vec/">text2vec</a> 文本向量化、主题建模、距离和相似性度量、GloVe 词嵌入。</li>
+<li><a href="https://github.com/bnosac/word2vec">word2vec</a> 词向量化</li>
+<li><a href="https://github.com/bnosac/doc2vec">doc2vec</a> 文档向量化</li>
+</ol>
+</div>
+</div>
+<div id="运行环境" class="section level1">
+<h1>运行环境</h1>
+<p>本文运行中用到的相关 R 包的版本信息如下：</p>
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>## R version 4.4.3 (2025-02-28)
+## Platform: x86_64-apple-darwin20
+## Running under: macOS Sequoia 15.3.2
+## 
+## Matrix products: default
+## BLAS:   /Library/Frameworks/R.framework/Versions/4.4-x86_64/Resources/lib/libRblas.0.dylib 
+## LAPACK: /Library/Frameworks/R.framework/Versions/4.4-x86_64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.0
+## 
+## locale:
+## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+## 
+## time zone: Asia/Shanghai
+## tzcode source: internal
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## other attached packages:
+## [1] spacyr_1.3.0 tm_0.7-16    NLP_0.3-2    jiebaR_0.11  jiebaRD_0.1 
+## 
+## loaded via a namespace (and not attached):
+##  [1] Matrix_1.7-3             jsonlite_1.9.1           compiler_4.4.3          
+##  [4] promises_1.3.2           Rcpp_1.0.14              slam_0.1-55             
+##  [7] xml2_1.3.8               parallel_4.4.3           later_1.4.1             
+## [10] jquerylib_0.1.4          png_0.1-8                SemNetDictionaries_0.2.0
+## [13] yaml_2.3.10              fastmap_1.2.0            lattice_0.22-6          
+## [16] reticulate_1.41.0.1      R6_2.6.1                 SemNetCleaner_1.3.4     
+## [19] SnowballC_0.7.1          knitr_1.50               bookdown_0.42           
+## [22] bslib_0.9.0              rlang_1.1.5              cachem_1.1.0            
+## [25] httpuv_1.6.15            xfun_0.51                sass_0.4.9              
+## [28] cli_3.6.4                magrittr_2.0.3           digest_0.6.37           
+## [31] grid_4.4.3               rstudioapi_0.17.1        lifecycle_1.0.4         
+## [34] servr_0.32               evaluate_1.0.3           data.table_1.17.0       
+## [37] blogdown_1.21            rmarkdown_2.29           tools_4.4.3             
+## [40] htmltools_0.5.8.1</code></pre>
+</div>
