@@ -1,0 +1,99 @@
+---
+title: 用 tikz 绘制一个凸锥
+author: 黄湘云
+date: '2025-03-26'
+slug: tikz
+categories:
+  - 开源软件
+tags:
+  - 凸锥
+  - TikZ
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+math: true
+description: "2023年我想用 tikz 绘制一个凸锥。"
+---
+
+2023年我想用 tikz 绘制一个凸锥（[凸锥优化](https://bookdown.org/xiangyun/data-analysis-in-action/numerical-optimization.html#sec-cone-optimization)），遇到一个问题，这个问题[Maybe a bug in addplot3](https://github.com/pgf-tikz/pgfplots/issues/461)，最终发现不是软件的BUG，而是遇到了浮点数计算溢出的问题，这个问题是绘图者自己应该考虑的。本文将 TikZ 绘图的代码和问题暂记于此。
+
+方程 $$x^2+y^2+z^2-2xyz=1,\quad x,y,z\in[-1,1]$$ 是一个闭合的曲面，见下图。
+
+
+```{tikz}
+#| label: fig-tikz-1
+#| fig-cap: TikZ 绘制三维图
+#| engine-opts: !expr list(extra.preamble=c("\\usepackage{pgfplots}","\\pgfplotsset{width=15cm,compat=1.18}"))
+#| fig-width: 7
+
+
+\begin{tikzpicture}
+\begin{axis}
+[ 
+  view/h=-30,
+  colormap/viridis, % 调色板
+  colorbar,   % 图例
+  3d box,     % 前景的框
+  samples=25, % 分割数
+  axis equal image,
+  z buffer=sort, 
+  grid=major, % 网格线
+  title={$x^2+y^2+z^2-2xyz=1$}, % 标题
+  % opacity=0.7,   % 透明度
+  % shader=interp, % 插值
+]
+\addplot3 [surf,domain=-1:1] (
+ {x},
+ {y},
+ {x*y - sqrt((x^2-1)*(y^2-1))}
+);
+\addplot3 [surf,domain=-1:1] (
+ {x},
+ {y},
+ {x*y + sqrt((x^2-1)*(y^2-1))}
+);
+\end{axis}
+\end{tikzpicture}
+```
+
+用 tikz 绘制此图形的办法是绘制两个曲面，它们合在一起就是目标曲面，从数学上 $x*y + \sqrt{x^2*y^2 - x^2 - y^2 + 1}$ 和
+$x*y + \sqrt{(x^2-1)*(y^2-1)}$ 是一样的，但是，在计算机的世界要考虑浮点数溢出的问题，数学上等价与计算机等价不同，因为计算机所能表示的实数和数学课本里的实数域不是等价的。
+
+```{tikz}
+#| label: fig-tikz-2
+#| fig-cap: TikZ 绘制三维图
+#| engine-opts: !expr list(extra.preamble=c("\\usepackage{pgfplots}","\\pgfplotsset{width=15cm,compat=1.18}"))
+#| fig-width: 7
+
+
+\begin{tikzpicture}
+\begin{axis}
+[ 
+  view/h=-30,
+  colormap/viridis,
+  colorbar,
+  3d box,
+  samples=25,
+  axis equal image,
+  z buffer=sort,
+  grid=major,
+  title={$x^2+y^2+z^2-2xyz=1$},
+  % opacity=0.7,
+  shader=interp,
+]
+\addplot3 [surf,domain=-1:1] (
+ {x},
+ {y},
+ {x*y - sqrt((x^2-1)*(y^2-1))}
+);
+\addplot3 [surf,domain=-1:1] (
+ {x},
+ {y},
+ {x*y + sqrt((x^2-1)*(y^2-1))}
+);
+\end{axis}
+\end{tikzpicture}
+```
+
