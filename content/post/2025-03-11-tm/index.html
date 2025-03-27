@@ -1,0 +1,398 @@
+---
+title: 文本处理与 tm 包 
+author: 黄湘云
+date: "2025-03-22"
+slug: tm
+categories:
+  - 统计软件
+tags:
+  - tm
+  - 文本挖掘
+math: true
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+bibliography: refer.bib
+description: "本文以 BioC 仓库的 R 包元数据作为语料，介绍文本挖掘的 R 包 tm。为什么现在都 deepseek 了，我还在学习上个世纪的工具呢？因为很多基础的、共同的概念、方法。在 R 语言社区， tm 包被列为文本分析领域的核心包，值得一学。在掌握了基本的概念之后，就可以直接上大语言模型了，毕竟我也不是大语言模型的研究者和开发者，我只是使用者，知道一些基本的原理，就可以简单改造拿来用了。"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#%E6%95%B0%E6%8D%AE%E8%8E%B7%E5%8F%96" id="toc-数据获取"><span class="toc-section-number">1</span> 数据获取</a></li>
+<li><a href="#%E6%95%B0%E6%8D%AE%E6%B8%85%E7%90%86" id="toc-数据清理"><span class="toc-section-number">2</span> 数据清理</a></li>
+<li><a href="#%E8%AF%8D%E5%BD%A2%E8%BF%98%E5%8E%9F" id="toc-词形还原"><span class="toc-section-number">3</span> 词形还原</a></li>
+<li><a href="#%E5%88%B6%E4%BD%9C%E8%AF%AD%E6%96%99" id="toc-制作语料"><span class="toc-section-number">4</span> 制作语料</a></li>
+<li><a href="#%E8%AF%AD%E6%96%99%E5%85%83%E6%95%B0%E6%8D%AE" id="toc-语料元数据"><span class="toc-section-number">5</span> 语料元数据</a></li>
+<li><a href="#%E6%B8%85%E7%90%86%E8%AF%AD%E6%96%99" id="toc-清理语料"><span class="toc-section-number">6</span> 清理语料</a></li>
+<li><a href="#%E6%96%87%E6%A1%A3%E8%AF%8D%E7%9F%A9%E9%98%B5" id="toc-文档词矩阵"><span class="toc-section-number">7</span> 文档词矩阵</a></li>
+<li><a href="#%E6%96%87%E6%9C%AC%E4%B8%BB%E9%A2%98" id="toc-文本主题"><span class="toc-section-number">8</span> 文本主题</a></li>
+<li><a href="#references" id="toc-references"><span class="toc-section-number">9</span> 参考文献</a></li>
+</ul>
+</div>
+
+<p>本文以 R 包元数据中的描述字段作为语料，基于 <strong>tm</strong> 包 <span class="citation">(<a href="#ref-tm2008">Feinerer, Hornik, and Meyer 2008</a>)</span> 介绍文本分析中的基本概念和操作。我的专业背景不涉及生物信息，但是我会以 BioC 仓库(<a href="https://www.bioconductor.org/" class="uri">https://www.bioconductor.org/</a>)而不是 CRAN 的R包元数据作为语料，一是了解一个陌生的领域，这令人兴奋，二是学习新的技术脱离熟悉的地方可以检查一下学习的效果，本文若有分析错误的地方，希望看到的朋友给提出来。</p>
+<pre class="r"><code>library(tm) # 文本语料库
+## Loading required package: NLP
+library(spacyr) # 词性标注</code></pre>
+<div id="数据获取" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> 数据获取</h1>
+<p>首先从 BioC 仓库下载获取 R 包元数据，存储到本地，后续就可以不连接网络了。加载数据后，去除重复的 R 包，筛选出 Package 和 Description 两个字段。</p>
+<pre class="r"><code># bpdb &lt;- tools:::BioC_package_db()
+bpdb &lt;- readRDS(file = &quot;data/bioc-package-db-20250311.rds&quot;)
+bpdb &lt;- subset(bpdb,
+  subset = !duplicated(Package), select = c(&quot;Package&quot;, &quot;Description&quot;)
+)</code></pre>
+<p>截至本文写作时间 2025-03-11 仓库 BioC 存放的 R 包有 3648 个，这就是本次示例中语料的规模了。下面是前几个 R 包的描述信息，这些 R 包默认是按照字母顺序排列的。</p>
+<pre class="r"><code>bpdb[1:6, ]</code></pre>
+<pre><code>##       Package
+## 1          a4
+## 2      a4Base
+## 3   a4Classif
+## 4      a4Core
+## 5   a4Preproc
+## 6 a4Reporting
+##                                                                                                                                       Description
+## 1                                             Umbrella package is available for the entire Automated\nAffymetrix Array Analysis suite of package.
+## 2                                              Base utility functions are available for the Automated\nAffymetrix Array Analysis set of packages.
+## 3 Functionalities for classification of Affymetrix\nmicroarray data, integrating within the Automated Affymetrix\nArray Analysis set of packages.
+## 4                                                                 Utility functions for the Automated Affymetrix Array\nAnalysis set of packages.
+## 5                                             Utility functions to pre-process data for the Automated\nAffymetrix Array Analysis set of packages.
+## 6                            Utility functions to facilitate the reporting of the\nAutomated Affymetrix Array Analysis Reporting set of packages.</code></pre>
+</div>
+<div id="数据清理" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> 数据清理</h1>
+<p>在作为语料之前，先简单清洗一下，移除与文本无关的内容，比如链接、换行符、制表符、单双引号。</p>
+<pre class="r"><code># 移除链接
+bpdb$Description &lt;- gsub(
+  pattern = &quot;(&lt;https:.*?&gt;)|(&lt;http:.*?&gt;)|(&lt;www.*?&gt;)|(&lt;doi:.*?&gt;)|(&lt;DOI:.*?&gt;)|(&lt;arXiv:.*?&gt;)|(&lt;bioRxiv:.*?&gt;)&quot;,
+  x = bpdb$Description, replacement = &quot;&quot;
+)
+# 移除 \n \t \&quot; \&#39;
+bpdb$Description &lt;- gsub(pattern = &quot;\n&quot;, x = bpdb$Description, replacement = &quot; &quot;, fixed = TRUE)
+bpdb$Description &lt;- gsub(pattern = &quot;\t&quot;, x = bpdb$Description, replacement = &quot; &quot;, fixed = TRUE)
+bpdb$Description &lt;- gsub(pattern = &quot;\&quot;&quot;, x = bpdb$Description, replacement = &quot; &quot;, fixed = TRUE)
+bpdb$Description &lt;- gsub(pattern = &quot;\&#39;&quot;, x = bpdb$Description, replacement = &quot; &quot;, fixed = TRUE)</code></pre>
+</div>
+<div id="词形还原" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> 词形还原</h1>
+<p>tm 包也支持提取词干 stemming 和词形还原 lemmatize 操作。不过，在这个例子里，我们只需要 lemmatize 操作。</p>
+<p><strong>tm</strong> 包自带的函数 <code>stemCompletion()</code> 需要一个词典或语料库来做还原 lemmatize 操作，不方便。<strong>SemNetCleaner</strong> 包的函数 <code>singularize()</code> 对名词效果不错。还原动词 (比如 applied, applies –&gt; apply) 和副词 aux (was –&gt; be) 使用 <strong>spacyr</strong> 包的函数 <code>spacy_parse()</code> ，该函数可以识别词性。</p>
+<pre class="r"><code>library(spacyr)</code></pre>
+<p>先看一个例子，可以看到 spacyr 包解析文本的结果。结果是一个数据框，doc_id、sentence_id 和 token_id 分别对应文档、句子和 Token 的编号。Token 化 就是句子转化为词的过程，单个词叫 Token 。lemma 表示词形还原的结果，pos 表示词性。</p>
+<pre class="r"><code># R 包 a4 的描述字段
+x &lt;- &quot;Umbrella package is available for the entire Automated Affymetrix Array Analysis suite of package.&quot;
+names(x) &lt;- &quot;a4&quot;
+spacy_parse(x)
+## successfully initialized (spaCy Version: 3.7.2, language model: en_core_web_sm)
+##    doc_id sentence_id token_id      token      lemma   pos entity
+## 1      a4           1        1   Umbrella   umbrella  NOUN  ORG_B
+## 2      a4           1        2    package    package  NOUN       
+## 3      a4           1        3         is         be   AUX       
+## 4      a4           1        4  available  available   ADJ       
+## 5      a4           1        5        for        for   ADP       
+## 6      a4           1        6        the        the   DET       
+## 7      a4           1        7     entire     entire   ADJ       
+## 8      a4           1        8  Automated  Automated PROPN  ORG_B
+## 9      a4           1        9 Affymetrix Affymetrix PROPN  ORG_I
+## 10     a4           1       10      Array      Array PROPN  ORG_I
+## 11     a4           1       11   Analysis   Analysis PROPN  ORG_I
+## 12     a4           1       12      suite      suite  NOUN       
+## 13     a4           1       13         of         of   ADP       
+## 14     a4           1       14    package    package  NOUN       
+## 15     a4           1       15          .          . PUNCT</code></pre>
+<p><a href="https://github.com/quanteda/spacyr/"><strong>spacyr</strong></a> 是 <a href="https://spacy.io">spaCy</a> 的 R 语言接口（通过 <strong>reticulate</strong> 包引入的），实际解析效果要看其内部调用的 spacy 模块。本文使用的 spaCy 版本 3.7.2，对于英文环境还是不错的。下面解析全量的数据，简单起见就用 <strong>spacyr</strong> 包来做 lemmatize。</p>
+<pre class="r"><code>db &lt;- bpdb$Description
+names(db) &lt;- bpdb$Package
+db_parse &lt;- spacy_parse(db)
+# 恢复
+db_parse &lt;- aggregate(db_parse, lemma ~ doc_id, paste, collapse = &quot; &quot;, sep = &quot;&quot;)
+bpdb &lt;- merge(bpdb, db_parse, by.x = &quot;Package&quot;, by.y = &quot;doc_id&quot;, all.x = TRUE, sort = FALSE)
+head(bpdb)</code></pre>
+<pre><code>##       Package
+## 1          a4
+## 2      a4Base
+## 3   a4Classif
+## 4      a4Core
+## 5   a4Preproc
+## 6 a4Reporting
+##                                                                                                                                     Description
+## 1                                            Umbrella package is available for the entire Automated Affymetrix Array Analysis suite of package.
+## 2                                             Base utility functions are available for the Automated Affymetrix Array Analysis set of packages.
+## 3 Functionalities for classification of Affymetrix microarray data, integrating within the Automated Affymetrix Array Analysis set of packages.
+## 4                                                                Utility functions for the Automated Affymetrix Array Analysis set of packages.
+## 5                                            Utility functions to pre-process data for the Automated Affymetrix Array Analysis set of packages.
+## 6                           Utility functions to facilitate the reporting of the Automated Affymetrix Array Analysis Reporting set of packages.
+##                                                                                                                                         lemma
+## 1                                         umbrella package be available for the entire Automated Affymetrix Array Analysis suite of package .
+## 2                                             base utility function be available for the Automated Affymetrix Array Analysis set of package .
+## 3 functionality for classification of Affymetrix microarray datum , integrate within the Automated Affymetrix Array Analysis set of package .
+## 4                                                               utility function for the Automated Affymetrix Array Analysis set of package .
+## 5                                        utility function to pre - process datum for the Automated Affymetrix Array Analysis set of package .
+## 6                             utility function to facilitate the reporting of the Automated Affymetrix Array Analysis report set of package .</code></pre>
+<pre class="r"><code># 提取词干
+# bpdb_desc &lt;- tm_map(bpdb_desc, stemDocument, language = &quot;english&quot;)
+# 或者调用 SnowballC 包
+# bpdb_desc &lt;- tm_map(bpdb_desc, content_transformer(SnowballC::wordStem), language = &quot;english&quot;)
+# 词形还原
+# bpdb_desc &lt;- tm_map(bpdb_desc, SemNetCleaner::singularize)</code></pre>
+</div>
+<div id="制作语料" class="section level1" number="4">
+<h1><span class="header-section-number">4</span> 制作语料</h1>
+<p>清洗后的文本作为语料，3000 多个 R 包的描述字段，tm 包的函数 <code>VCorpus()</code> 和 <code>VectorSource()</code> 就是将字符串（文本）向量转化为语料的。</p>
+<pre class="r"><code>library(tm)
+bpdb_desc &lt;- VCorpus(x = VectorSource(bpdb$lemma))</code></pre>
+<p>查看数据类型，这是一个比较复杂的数据结构 — tm 包定义的 <code>"VCorpus" "Corpus"</code> 类型，本质上还是一个列表，但是层层嵌套。</p>
+<pre class="r"><code>class(bpdb_desc)</code></pre>
+<pre><code>## [1] &quot;VCorpus&quot; &quot;Corpus&quot;</code></pre>
+<pre class="r"><code>is.list(bpdb_desc)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p>查看列表中第一个元素，这个元素本身也是列表。</p>
+<pre class="r"><code>str(bpdb_desc[1])</code></pre>
+<pre><code>## Classes &#39;VCorpus&#39;, &#39;Corpus&#39;  hidden list of 3
+##  $ content:List of 1
+##   ..$ :List of 2
+##   .. ..$ content: chr &quot;umbrella package be available for the entire Automated Affymetrix Array Analysis suite of package .&quot;
+##   .. ..$ meta   :List of 7
+##   .. .. ..$ author       : chr(0) 
+##   .. .. ..$ datetimestamp: POSIXlt[1:1], format: &quot;2025-03-27 12:41:25&quot;
+##   .. .. ..$ description  : chr(0) 
+##   .. .. ..$ heading      : chr(0) 
+##   .. .. ..$ id           : chr &quot;1&quot;
+##   .. .. ..$ language     : chr &quot;en&quot;
+##   .. .. ..$ origin       : chr(0) 
+##   .. .. ..- attr(*, &quot;class&quot;)= chr &quot;TextDocumentMeta&quot;
+##   .. ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;PlainTextDocument&quot; &quot;TextDocument&quot;
+##  $ meta   : list()
+##   ..- attr(*, &quot;class&quot;)= chr &quot;CorpusMeta&quot;
+##  $ dmeta  :&#39;data.frame&#39;:	1 obs. of  0 variables</code></pre>
+<pre class="r"><code>str(bpdb_desc[[1]])</code></pre>
+<pre><code>## List of 2
+##  $ content: chr &quot;umbrella package be available for the entire Automated Affymetrix Array Analysis suite of package .&quot;
+##  $ meta   :List of 7
+##   ..$ author       : chr(0) 
+##   ..$ datetimestamp: POSIXlt[1:1], format: &quot;2025-03-27 12:41:25&quot;
+##   ..$ description  : chr(0) 
+##   ..$ heading      : chr(0) 
+##   ..$ id           : chr &quot;1&quot;
+##   ..$ language     : chr &quot;en&quot;
+##   ..$ origin       : chr(0) 
+##   ..- attr(*, &quot;class&quot;)= chr &quot;TextDocumentMeta&quot;
+##  - attr(*, &quot;class&quot;)= chr [1:2] &quot;PlainTextDocument&quot; &quot;TextDocument&quot;</code></pre>
+<pre class="r"><code>str(bpdb_desc[[1]][[1]])</code></pre>
+<pre><code>##  chr &quot;umbrella package be available for the entire Automated Affymetrix Array Analysis suite of package .&quot;</code></pre>
+<p>查看文档的内容，tm 包提供自己的函数 <code>inspect()</code> 来查看语料信息。</p>
+<pre class="r"><code>inspect(bpdb_desc[[1]])</code></pre>
+<pre><code>## &lt;&lt;PlainTextDocument&gt;&gt;
+## Metadata:  7
+## Content:  chars: 99
+## 
+## umbrella package be available for the entire Automated Affymetrix Array Analysis suite of package .</code></pre>
+<pre class="r"><code>inspect(bpdb_desc[1])</code></pre>
+<pre><code>## &lt;&lt;VCorpus&gt;&gt;
+## Metadata:  corpus specific: 0, document level (indexed): 0
+## Content:  documents: 1
+## 
+## [[1]]
+## &lt;&lt;PlainTextDocument&gt;&gt;
+## Metadata:  7
+## Content:  chars: 99</code></pre>
+<p>语料库中的第一段文本的长度 98 个字符。不妨顺便统计一下语料库中文本长度的分布，如下。</p>
+<pre class="r"><code>hist(nchar(bpdb$Description))</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<pre class="r"><code>quantile(nchar(bpdb$Description))</code></pre>
+<pre><code>##     0%    25%    50%    75%   100% 
+##   20.0  110.0  242.5  433.0 2439.0</code></pre>
+<p>75% 的 R 包的描述信息不超过 500 个字符。</p>
+</div>
+<div id="语料元数据" class="section level1" number="5">
+<h1><span class="header-section-number">5</span> 语料元数据</h1>
+<p>函数 <code>VCorpus()</code> 将文本向量制作成语料后，制作语料的过程信息就成了语料的元数据，比如制作语料时间等。下面查看语料的元数据。</p>
+<pre class="r"><code>meta(bpdb_desc)</code></pre>
+<pre><code>## data frame with 0 columns and 3648 rows</code></pre>
+<pre class="r"><code>meta(bpdb_desc[[1]])</code></pre>
+<pre><code>##   author       : character(0)
+##   datetimestamp: 2025-03-27 12:41:25.953104019165
+##   description  : character(0)
+##   heading      : character(0)
+##   id           : 1
+##   language     : en
+##   origin       : character(0)</code></pre>
+<p>在制作语料的过程中，可以添加一些元数据信息，比如语料的来源、创建者。元数据的管理由函数 <code>DublinCore()</code> 完成。</p>
+<pre class="r"><code>DublinCore(bpdb_desc[[1]], tag = &quot;creator&quot;) &lt;- &quot;The Core CRAN Team&quot;</code></pre>
+<p>元数据中包含贡献者 contributor、 创建者 creator 和创建日期 date 等信息。</p>
+<pre class="r"><code>meta(bpdb_desc[[1]])</code></pre>
+<pre><code>##   author       : The Core CRAN Team
+##   datetimestamp: 2025-03-27 12:41:25.953104019165
+##   description  : character(0)
+##   heading      : character(0)
+##   id           : 1
+##   language     : en
+##   origin       : character(0)</code></pre>
+<p>元数据的 author 字段加上了 “The Core CRAN Team” 。</p>
+</div>
+<div id="清理语料" class="section level1" number="6">
+<h1><span class="header-section-number">6</span> 清理语料</h1>
+<p>我们的语料库 <code>bpdb_desc</code> 本质上是一个文本向量， tm 包有一个函数 <code>tm_map()</code> 可以向量化的操作，类似于 Base R 内置的 <code>lapply()</code> 函数 。如下一连串操作分别是转小写、移除多余空格、去除数字、去除标点。</p>
+<pre class="r"><code># 转小写
+bpdb_desc &lt;- tm_map(bpdb_desc, content_transformer(tolower))
+# 去除多余空白
+bpdb_desc &lt;- tm_map(bpdb_desc, stripWhitespace)
+# 去除数字
+bpdb_desc &lt;- tm_map(bpdb_desc, removeNumbers)
+# 去除标点，如逗号、括号等
+bpdb_desc &lt;- tm_map(bpdb_desc, removePunctuation)</code></pre>
+<p>还可以去除一些停止词，哪些是停止词也可以自定义。</p>
+<pre class="r"><code># 停止词去除
+bpdb_desc &lt;- tm_map(bpdb_desc, removeWords, words = stopwords(&quot;english&quot;))
+# 自定义的停止词
+bpdb_desc &lt;- tm_map(
+  bpdb_desc, removeWords,
+  words = c(
+    &quot;et&quot;, &quot;etc&quot;, &quot;al&quot;, &quot;i.e.&quot;, &quot;e.g.&quot;, &quot;package&quot;, &quot;provide&quot;, &quot;method&quot;,
+    &quot;function&quot;, &quot;approach&quot;, &quot;reference&quot;, &quot;implement&quot;, &quot;contain&quot;, &quot;include&quot;, &quot;can&quot;, &quot;file&quot;, &quot;use&quot;
+  )
+)</code></pre>
+</div>
+<div id="文档词矩阵" class="section level1" number="7">
+<h1><span class="header-section-number">7</span> 文档词矩阵</h1>
+<p>由语料库可以生成一个巨大的文档词矩阵，矩阵中的元素是词在文档中出现的次数（词频）。3648 个文档 9888 个词构成一个维度为 <span class="math inline">\(3648\times9888\)</span> 的矩阵，非 0 元素 80479 个，0 元素 35990945 个，矩阵是非常稀疏的，稀疏性接近 100%（四舍五入的结果）。最长的一个词达到 76 字符。</p>
+<pre class="r"><code>dtm &lt;- DocumentTermMatrix(bpdb_desc)
+inspect(dtm)</code></pre>
+<pre><code>## &lt;&lt;DocumentTermMatrix (documents: 3648, terms: 9888)&gt;&gt;
+## Non-/sparse entries: 80479/35990945
+## Sparsity           : 100%
+## Maximal term length: 76
+## Weighting          : term frequency (tf)
+## Sample             :
+##       Terms
+## Docs   analysis annotation base cell datum expression gene sample seq sequence
+##   1302        1          0    1    0     1          1   15      0   0        0
+##   1695        1          2    3    0     0          0    0      0   0        6
+##   178         2          0    1   13     2          5    5      1   1        3
+##   1798        9          0    0    0     3          0    8      0   0        0
+##   2052        3          0    0    0     3          2   11      0   0        0
+##   2271        5          0    1    0     7          0    0      3   0        0
+##   2542        1          0    4    0     6          4    6      0   0        0
+##   2913        4          0    1    0     3          3   11      0   0        2
+##   3024        0          2    0    0     0          0    0      2   0        0
+##   3343        2          0    2    0     3          0    0      0   0        2</code></pre>
+<p>每个 R 包的描述文本是一个文档，共有 3648 个文档，每段文本分词后，最终构成 9888 个词。</p>
+<p>有了文档词矩阵，可以基于矩阵来操作，比如统计出来出现 500 次以上的词，找到与词 array 关联度 0.2 以上的词。</p>
+<pre class="r"><code># 出现 500 次以上的词
+findFreqTerms(dtm, 500)</code></pre>
+<pre><code>##  [1] &quot;analysis&quot;   &quot;annotation&quot; &quot;base&quot;       &quot;cell&quot;       &quot;datum&quot;     
+##  [6] &quot;expression&quot; &quot;gene&quot;       &quot;model&quot;      &quot;sample&quot;     &quot;seq&quot;       
+## [11] &quot;sequence&quot;   &quot;set&quot;</code></pre>
+<pre class="r"><code># 找到与词 array 关联度 0.2 以上的词
+findAssocs(dtm, &quot;array&quot;, 0.2)</code></pre>
+<pre><code>## $array
+##        affymetrix              acme        algorithms       insensitive 
+##              0.35              0.30              0.30              0.30 
+##             quite              epic           additon          audience 
+##              0.30              0.28              0.25              0.25 
+##          calculte horvathmethylchip          infinium           sarrays 
+##              0.25              0.25              0.25              0.25 
+##             tango      tranditional              puma            tiling 
+##              0.25              0.25              0.23              0.23 
+##          ordinary           showing 
+##              0.21              0.21</code></pre>
+<pre class="r"><code>findAssocs(dtm, &quot;annotation&quot;, 0.2)</code></pre>
+<pre><code>## $annotation
+##      assemble    repository        public annotationdbi          chip 
+##          0.45          0.44          0.42          0.29          0.29 
+##      database       regular    affymetrix        expose        intend 
+##          0.28          0.27          0.25          0.24          0.20</code></pre>
+<pre class="r"><code>findAssocs(dtm, &quot;gene&quot;, 0.2)</code></pre>
+<pre><code>## $gene
+##     expression            set     enrichment     biological       identify 
+##           0.46           0.35           0.33           0.27           0.25 
+##           term         driver       analysis           bear        express 
+##           0.25           0.23           0.22           0.22           0.22 
+##           gsea       gseamine     gseamining hierarchically        leadind 
+##           0.22           0.22           0.22           0.22           0.22 
+##      meaninful     popularity     reundandcy     suppressor  unfortunately 
+##           0.22           0.22           0.22           0.22           0.22 
+##      wordcloud         always         answer         reason 
+##           0.22           0.21           0.21           0.20</code></pre>
+<p>所谓关联度即二者出现在同一个文档中的频率，即共现率。</p>
+<pre class="r"><code># 参数 sparse 值越大保留的词越多
+dtm2 &lt;- removeSparseTerms(dtm, sparse = 0.9)
+# 移除稀疏词后的文档词矩阵
+inspect(dtm2)</code></pre>
+<pre><code>## &lt;&lt;DocumentTermMatrix (documents: 3648, terms: 14)&gt;&gt;
+## Non-/sparse entries: 8292/42780
+## Sparsity           : 84%
+## Maximal term length: 10
+## Weighting          : term frequency (tf)
+## Sample             :
+##       Terms
+## Docs   analysis annotation base cell datum expression gene sample seq sequence
+##   1121        6          0    1    0     5          0    3      1   1        0
+##   1258        0          1    1    0     1          5    8      4   1        0
+##   1302        1          0    1    0     1          1   15      0   0        0
+##   1749        2          0    0    6     0          3    8      0   3        1
+##   178         2          0    1   13     2          5    5      1   1        3
+##   2542        1          0    4    0     6          4    6      0   0        0
+##   2913        4          0    1    0     3          3   11      0   0        2
+##   2953        1          0    3    0     1          4    5      8   0        0
+##   3040        5          0    1    5     1          3    2      0   2        0
+##   3435        0          1    0    0     7          0    2      1   7        2</code></pre>
+<p>原始的文档词矩阵非常稀疏，是因为有些词很少在文档中出现，移除那些给矩阵带来很大稀疏性的词，把这些词去掉并不会太影响与原来矩阵的相关性。</p>
+<p>有了矩阵之后，各种统计分析手段，即矩阵的各种操作都可以招呼上来。</p>
+</div>
+<div id="文本主题" class="section level1" number="8">
+<h1><span class="header-section-number">8</span> 文本主题</h1>
+<p>都是属于生物信息这个大类，不妨考虑 3 个主题，具体多少个主题合适，留待下回分解（比较不同主题数量下 perplexity 的值来决定）。类似 CRAN 上的任务视图，<a href="https://www.bioconductor.org/packages/release/BiocViews.html">BiocViews</a> 是生物信息的任务视图，还有层次关系。</p>
+<pre class="r"><code>library(topicmodels)
+BVEM &lt;- LDA(dtm, k = 3, control = list(seed = 2025))</code></pre>
+<p>找到每个文档最可能归属的主题。</p>
+<pre class="r"><code>BTopic &lt;- topics(BVEM, 1)
+head(BTopic, 10)</code></pre>
+<pre><code>##  1  2  3  4  5  6  7  8  9 10 
+##  1  1  1  1  1  2  2  2  3  3</code></pre>
+<pre class="r"><code># 每个主题各有多少 R 包
+table(BTopic)</code></pre>
+<pre><code>## BTopic
+##    1    2    3 
+##  971 1253 1424</code></pre>
+<pre class="r"><code># 1 号主题对应的 R 包
+bpdb[which(BTopic == 1), c(&quot;Package&quot;, &quot;Description&quot;)] |&gt; head()</code></pre>
+<pre><code>##      Package
+## 1         a4
+## 2     a4Base
+## 3  a4Classif
+## 4     a4Core
+## 5  a4Preproc
+## 14   ADaCGH2
+##                                                                                                                                                                                                                                                                                                                                      Description
+## 1                                                                                                                                                                                                                                             Umbrella package is available for the entire Automated Affymetrix Array Analysis suite of package.
+## 2                                                                                                                                                                                                                                              Base utility functions are available for the Automated Affymetrix Array Analysis set of packages.
+## 3                                                                                                                                                                                                  Functionalities for classification of Affymetrix microarray data, integrating within the Automated Affymetrix Array Analysis set of packages.
+## 4                                                                                                                                                                                                                                                                 Utility functions for the Automated Affymetrix Array Analysis set of packages.
+## 5                                                                                                                                                                                                                                             Utility functions to pre-process data for the Automated Affymetrix Array Analysis set of packages.
+## 14 Analysis and plotting of array CGH data. Allows usage of Circular Binary Segementation, wavelet-based smoothing (both as in Liu et al., and HaarSeg as in Ben-Yaacov and Eldar), HMM, GLAD, CGHseg. Most computations are parallelized (either via forking or with clusters, including MPI and sockets clusters) and use ff for storing data.</code></pre>
+<p>每个主题下的 10 个 Top 词</p>
+<pre class="r"><code>BTerms &lt;- terms(BVEM, 10)
+BTerms[, 1:3]</code></pre>
+<pre><code>##       Topic 1      Topic 2    Topic 3     
+##  [1,] &quot;datum&quot;      &quot;datum&quot;    &quot;gene&quot;      
+##  [2,] &quot;annotation&quot; &quot;sequence&quot; &quot;datum&quot;     
+##  [3,] &quot;object&quot;     &quot;analysis&quot; &quot;analysis&quot;  
+##  [4,] &quot;affymetrix&quot; &quot;design&quot;   &quot;cell&quot;      
+##  [5,] &quot;mask&quot;       &quot;user&quot;     &quot;expression&quot;
+##  [6,] &quot;genome&quot;     &quot;platform&quot; &quot;model&quot;     
+##  [7,] &quot;database&quot;   &quot;read&quot;     &quot;base&quot;      
+##  [8,] &quot;chip&quot;       &quot;plot&quot;     &quot;sample&quot;    
+##  [9,] &quot;store&quot;      &quot;name&quot;     &quot;seq&quot;       
+## [10,] &quot;public&quot;     &quot;create&quot;   &quot;set&quot;</code></pre>
+</div>
+<div id="references" class="section level1" number="9">
+<h1><span class="header-section-number">9</span> 参考文献</h1>
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="ref-tm2008" class="csl-entry">
+Feinerer, Ingo, Kurt Hornik, and David Meyer. 2008. <span>“Text Mining Infrastructure in r.”</span> <em>Journal of Statistical Software</em> 25 (5): 1–54. <a href="https://doi.org/10.18637/jss.v025.i05">https://doi.org/10.18637/jss.v025.i05</a>.
+</div>
+</div>
+</div>

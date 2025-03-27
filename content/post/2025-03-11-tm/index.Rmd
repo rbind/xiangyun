@@ -1,0 +1,265 @@
+---
+title: 文本处理与 tm 包 
+author: 黄湘云
+date: "2025-03-22"
+slug: tm
+categories:
+  - 统计软件
+tags:
+  - tm
+  - 文本挖掘
+math: true
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+bibliography: refer.bib
+description: "本文以 BioC 仓库的 R 包元数据作为语料，介绍文本挖掘的 R 包 tm。为什么现在都 deepseek 了，我还在学习上个世纪的工具呢？因为很多基础的、共同的概念、方法。在 R 语言社区， tm 包被列为文本分析领域的核心包，值得一学。在掌握了基本的概念之后，就可以直接上大语言模型了，毕竟我也不是大语言模型的研究者和开发者，我只是使用者，知道一些基本的原理，就可以简单改造拿来用了。"
+---
+
+本文以 R 包元数据中的描述字段作为语料，基于 **tm** 包 [@tm2008] 介绍文本分析中的基本概念和操作。我的专业背景不涉及生物信息，但是我会以 BioC 仓库(<https://www.bioconductor.org/>)而不是 CRAN 的R包元数据作为语料，一是了解一个陌生的领域，这令人兴奋，二是学习新的技术脱离熟悉的地方可以检查一下学习的效果，本文若有分析错误的地方，希望看到的朋友给提出来。
+
+```{r collapse=TRUE}
+library(tm) # 文本语料库
+library(spacyr) # 词性标注
+```
+
+# 数据获取
+
+首先从 BioC 仓库下载获取 R 包元数据，存储到本地，后续就可以不连接网络了。加载数据后，去除重复的 R 包，筛选出 Package 和 Description 两个字段。
+
+```{r}
+# bpdb <- tools:::BioC_package_db()
+bpdb <- readRDS(file = "data/bioc-package-db-20250311.rds")
+bpdb <- subset(bpdb,
+  subset = !duplicated(Package), select = c("Package", "Description")
+)
+```
+
+截至本文写作时间 2025-03-11 仓库 BioC 存放的 R 包有 `r length(bpdb$Package)` 个，这就是本次示例中语料的规模了。下面是前几个 R 包的描述信息，这些 R 包默认是按照字母顺序排列的。
+
+```{r}
+bpdb[1:6, ]
+```
+
+# 数据清理
+
+在作为语料之前，先简单清洗一下，移除与文本无关的内容，比如链接、换行符、制表符、单双引号。
+
+```{r}
+# 移除链接
+bpdb$Description <- gsub(
+  pattern = "(<https:.*?>)|(<http:.*?>)|(<www.*?>)|(<doi:.*?>)|(<DOI:.*?>)|(<arXiv:.*?>)|(<bioRxiv:.*?>)",
+  x = bpdb$Description, replacement = ""
+)
+# 移除 \n \t \" \'
+bpdb$Description <- gsub(pattern = "\n", x = bpdb$Description, replacement = " ", fixed = TRUE)
+bpdb$Description <- gsub(pattern = "\t", x = bpdb$Description, replacement = " ", fixed = TRUE)
+bpdb$Description <- gsub(pattern = "\"", x = bpdb$Description, replacement = " ", fixed = TRUE)
+bpdb$Description <- gsub(pattern = "\'", x = bpdb$Description, replacement = " ", fixed = TRUE)
+```
+
+
+# 词形还原
+
+tm 包也支持提取词干 stemming 和词形还原 lemmatize 操作。不过，在这个例子里，我们只需要 lemmatize 操作。
+
+**tm** 包自带的函数 `stemCompletion()` 需要一个词典或语料库来做还原  lemmatize 操作，不方便。**SemNetCleaner** 包的函数 `singularize()` 对名词效果不错。还原动词 (比如 applied, applies --> apply) 和副词 aux (was --> be) 使用 **spacyr** 包的函数 `spacy_parse()` ，该函数可以识别词性。
+
+```{r}
+library(spacyr)
+```
+
+先看一个例子，可以看到 spacyr 包解析文本的结果。结果是一个数据框，doc_id、sentence_id 和 token_id 分别对应文档、句子和 Token 的编号。Token 化 就是句子转化为词的过程，单个词叫 Token 。lemma 表示词形还原的结果，pos 表示词性。
+
+```{r collapse=TRUE}
+# R 包 a4 的描述字段
+x <- "Umbrella package is available for the entire Automated Affymetrix Array Analysis suite of package."
+names(x) <- "a4"
+spacy_parse(x)
+```
+
+[**spacyr**](https://github.com/quanteda/spacyr/) 是 [spaCy](https://spacy.io) 的 R 语言接口（通过 **reticulate** 包引入的），实际解析效果要看其内部调用的 spacy 模块。本文使用的 spaCy 版本 3.7.2，对于英文环境还是不错的。下面解析全量的数据，简单起见就用 **spacyr** 包来做 lemmatize。
+
+```{r}
+db <- bpdb$Description
+names(db) <- bpdb$Package
+db_parse <- spacy_parse(db)
+# 恢复
+db_parse <- aggregate(db_parse, lemma ~ doc_id, paste, collapse = " ", sep = "")
+bpdb <- merge(bpdb, db_parse, by.x = "Package", by.y = "doc_id", all.x = TRUE, sort = FALSE)
+head(bpdb)
+```
+
+
+```{r}
+# 提取词干
+# bpdb_desc <- tm_map(bpdb_desc, stemDocument, language = "english")
+# 或者调用 SnowballC 包
+# bpdb_desc <- tm_map(bpdb_desc, content_transformer(SnowballC::wordStem), language = "english")
+# 词形还原
+# bpdb_desc <- tm_map(bpdb_desc, SemNetCleaner::singularize)
+```
+
+
+# 制作语料
+
+清洗后的文本作为语料，3000 多个 R 包的描述字段，tm 包的函数 `VCorpus()` 和 `VectorSource()` 就是将字符串（文本）向量转化为语料的。
+
+```{r}
+library(tm)
+bpdb_desc <- VCorpus(x = VectorSource(bpdb$lemma))
+```
+
+查看数据类型，这是一个比较复杂的数据结构 --- tm 包定义的 `"VCorpus" "Corpus"` 类型，本质上还是一个列表，但是层层嵌套。
+
+```{r}
+class(bpdb_desc)
+is.list(bpdb_desc)
+```
+
+查看列表中第一个元素，这个元素本身也是列表。
+
+```{r}
+str(bpdb_desc[1])
+str(bpdb_desc[[1]])
+str(bpdb_desc[[1]][[1]])
+```
+
+查看文档的内容，tm 包提供自己的函数 `inspect()` 来查看语料信息。
+
+```{r}
+inspect(bpdb_desc[[1]])
+inspect(bpdb_desc[1])
+```
+
+语料库中的第一段文本的长度 98 个字符。不妨顺便统计一下语料库中文本长度的分布，如下。
+
+```{r}
+hist(nchar(bpdb$Description))
+quantile(nchar(bpdb$Description))
+```
+
+75% 的 R 包的描述信息不超过 500 个字符。
+
+# 语料元数据
+
+函数 `VCorpus()` 将文本向量制作成语料后，制作语料的过程信息就成了语料的元数据，比如制作语料时间等。下面查看语料的元数据。
+
+```{r}
+meta(bpdb_desc)
+meta(bpdb_desc[[1]])
+```
+
+在制作语料的过程中，可以添加一些元数据信息，比如语料的来源、创建者。元数据的管理由函数 `DublinCore()` 完成。
+
+```{r}
+DublinCore(bpdb_desc[[1]], tag = "creator") <- "The Core CRAN Team"
+```
+
+元数据中包含贡献者 contributor、 创建者 creator 和创建日期 date 等信息。
+
+```{r}
+meta(bpdb_desc[[1]])
+```
+
+元数据的 author 字段加上了 "The Core CRAN Team" 。
+
+
+
+# 清理语料
+
+我们的语料库 `bpdb_desc` 本质上是一个文本向量， tm 包有一个函数 `tm_map()` 可以向量化的操作，类似于 Base R 内置的 `lapply()` 函数 。如下一连串操作分别是转小写、移除多余空格、去除数字、去除标点。
+
+```{r}
+# 转小写
+bpdb_desc <- tm_map(bpdb_desc, content_transformer(tolower))
+# 去除多余空白
+bpdb_desc <- tm_map(bpdb_desc, stripWhitespace)
+# 去除数字
+bpdb_desc <- tm_map(bpdb_desc, removeNumbers)
+# 去除标点，如逗号、括号等
+bpdb_desc <- tm_map(bpdb_desc, removePunctuation)
+```
+
+还可以去除一些停止词，哪些是停止词也可以自定义。
+
+```{r}
+# 停止词去除
+bpdb_desc <- tm_map(bpdb_desc, removeWords, words = stopwords("english"))
+# 自定义的停止词
+bpdb_desc <- tm_map(
+  bpdb_desc, removeWords,
+  words = c(
+    "et", "etc", "al", "i.e.", "e.g.", "package", "provide", "method",
+    "function", "approach", "reference", "implement", "contain", "include", "can", "file", "use"
+  )
+)
+```
+
+# 文档词矩阵
+
+由语料库可以生成一个巨大的文档词矩阵，矩阵中的元素是词在文档中出现的次数（词频）。3648 个文档 9888 个词构成一个维度为 $3648\times9888$ 的矩阵，非 0 元素 80479 个，0 元素 35990945 个，矩阵是非常稀疏的，稀疏性接近 100%（四舍五入的结果）。最长的一个词达到 76 字符。
+
+```{r}
+dtm <- DocumentTermMatrix(bpdb_desc)
+inspect(dtm)
+```
+
+每个 R 包的描述文本是一个文档，共有 3648 个文档，每段文本分词后，最终构成 9888 个词。
+
+有了文档词矩阵，可以基于矩阵来操作，比如统计出来出现 500 次以上的词，找到与词 array 关联度 0.2 以上的词。
+
+```{r}
+# 出现 500 次以上的词
+findFreqTerms(dtm, 500)
+# 找到与词 array 关联度 0.2 以上的词
+findAssocs(dtm, "array", 0.2)
+findAssocs(dtm, "annotation", 0.2)
+findAssocs(dtm, "gene", 0.2)
+```
+
+所谓关联度即二者出现在同一个文档中的频率，即共现率。
+
+```{r}
+# 参数 sparse 值越大保留的词越多
+dtm2 <- removeSparseTerms(dtm, sparse = 0.9)
+# 移除稀疏词后的文档词矩阵
+inspect(dtm2)
+```
+
+原始的文档词矩阵非常稀疏，是因为有些词很少在文档中出现，移除那些给矩阵带来很大稀疏性的词，把这些词去掉并不会太影响与原来矩阵的相关性。
+
+有了矩阵之后，各种统计分析手段，即矩阵的各种操作都可以招呼上来。
+
+# 文本主题
+
+都是属于生物信息这个大类，不妨考虑 3 个主题，具体多少个主题合适，留待下回分解（比较不同主题数量下 perplexity 的值来决定）。类似 CRAN 上的任务视图，[BiocViews](https://www.bioconductor.org/packages/release/BiocViews.html) 是生物信息的任务视图，还有层次关系。
+
+```{r}
+library(topicmodels)
+BVEM <- LDA(dtm, k = 3, control = list(seed = 2025))
+```
+
+找到每个文档最可能归属的主题。
+
+```{r}
+BTopic <- topics(BVEM, 1)
+head(BTopic, 10)
+# 每个主题各有多少 R 包
+table(BTopic)
+# 1 号主题对应的 R 包
+bpdb[which(BTopic == 1), c("Package", "Description")] |> head()
+```
+
+每个主题下的 10 个 Top 词
+
+```{r}
+BTerms <- terms(BVEM, 10)
+BTerms[, 1:3]
+```
+
+# 参考文献 {#references}
+
+::: {#refs}
+:::
