@@ -1,0 +1,224 @@
+---
+title: "可视化可加模型与 mgcv 包"
+author: "黄湘云"
+date: '2025-03-26'
+slug: vis-gam
+categories:
+  - 统计应用
+tags:
+  - 广义可加模型
+  - 泊松分布
+  - 立方样条
+  - 高斯过程
+  - 低秩近似
+  - 三维可视化
+  - 等高曲面
+  - rgl
+  - mgcv
+  - misc3d
+math: true
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+csl: institute-of-mathematical-statistics.csl
+bibliography: refer.bib
+description: "在广义可加模型中用高斯过程低秩近似或立方样条来估计/预测潜在效应。"
+---
+
+我在了解高斯过程拟合的过程中，在 **brms** 包[@brms2017]的 `gp()` 函数帮助文档中发现 **mgcv** 包[@mgcv2011]的 `gamSim()` 函数，这个函数打包了一些数据模拟的过程，这个具体过程需要看该函数的源代码。
+
+# 模拟一组数据
+
+举个具体的例子，用 **mgcv** 的函数 `gamSim()` 模拟一个响应变量为泊松分布的可加模型。样本量 `n = 400` 标准差 `scale = .2` 响应变量是泊松分布 `dist = "poisson"` 。
+
+```{r collapse=TRUE}
+set.seed(2024) # 随机数种子用以可复现
+dat <- mgcv::gamSim(eg = 1, n = 400, scale = .2, dist = "poisson")
+head(dat)
+```
+
+随机变量 $x_0,x_1,x_2,x_3$ 都是服从区间 $[0,1]$ 的均匀分布。`f` 是 $f_0,f_1,f_2,f_3$ 的和。`gamSim()` 函数所用示例修改自文献 @Gu1991 。
+
+$$
+\begin{aligned}
+f_0 &= 2 \sin(\pi x) \\
+f_1 &= \exp(2x) \\
+f_2 &= 0.2 \times 10^6 x^{11}(1 - x)^6 + 10^4 x^3  (1 - x)^{10} \\
+f_3 &= 0 x
+\end{aligned}
+$$
+
+```{r}
+#| eval: false
+#| echo: false
+
+# 等价于
+set.seed(2024)
+n <- 400 # 样本量
+scale <- .2 # 方差
+# 随机数
+x0 <- runif(n, 0, 1)
+x1 <- runif(n, 0, 1)
+x2 <- runif(n, 0, 1)
+x3 <- runif(n, 0, 1)
+# 可加模型各个成分
+f0 <- function(x) 2 * sin(pi * x)
+f1 <- function(x) exp(2 * x)
+f2 <- function(x) 0.2 * x^11 * (10 * (1 - x))^6 + 10 * (10 * x)^3 * (1 - x)^10
+f3 <- function(x) 0 * x
+f <- f0(x0) + f1(x1) + f2(x2) + f3(x3)
+# 泊松分布的期望
+g <- exp(f * scale)
+f <- log(g) # 相当于 f*scale
+# 泊松分布
+y <- rpois(rep(1, n), g)
+# 整理数据
+dat <- data.frame(
+  y = y, x0 = x0, x1 = x1, x2 = x2, x3 = x3,
+  f = f, f0 = f0(x0), f1 = f1(x1), f2 = f2(x2),
+  f3 = x3 * 0
+)
+head(dat)
+```
+
+$f_0$ 正弦函数，$f_1$ 指数函数，$f_2$ 高阶多项式函数，$f_3$ 常数函数。四个函数 $f_0,f_1,f_2,f_3$ 的图像见下图。
+
+```{r}
+#| label: fig-funs
+#| fig-cap: 四个函数 $f_0,f_1,f_2,f_3$ 的图像
+#| echo: false
+#| fig-width: 6
+#| fig-height: 8
+
+layout(mat = matrix(c(1, 2, 3, 4), 2, 2, byrow = TRUE))
+with(dat, {
+  plot(x0, f0)
+  plot(x1, f1)
+  plot(x2, f2)
+  plot(x3, f3)
+})
+```
+
+# 广义可加模型
+
+**mgcv** 包的函数 `gam()` 专门用来拟合广义可加模型，该 R 包有 20 多年的开发维护历史，已是 R 软件内置的扩展包。
+
+```{r collapse=TRUE}
+library(mgcv)
+# 拟合数据
+fit_gam <- gam(y ~ s(x0, bs = "cr") + s(x1, bs = "cr") + s(x2, bs = "cr") + s(x3, bs = "cr"),
+  family = poisson, data = dat, method = "REML"
+)
+```
+
+```{r eval=FALSE,echo=FALSE}
+# Low Rank GP
+
+fit_gam_gp <- gam(y ~ s(x0, bs = "gp") + s(x1, bs = "gp") + s(x2, bs = "gp", k = 50) + s(x3, bs = "gp"),
+  family = poisson, data = dat, method = "REML"
+)
+```
+
+**mgcv** 包的样条函数 `s()` 设置 `s(bs = "cr")` 表示立方样条。
+
+```{r}
+# 模型输出
+summary(fit_gam)
+```
+
+从调整的 $R^2$ 和模型解释的偏差比例来看，可加模型效果还不错。四个样条成分中 $s(x_0)$、$s(x_1)$、$s(x_2)$ 都是显著的，只有 $s(x_3)$ 不显著，符合预先的设定。s(x2) 样条基数比较大与函数 $f_2$ 比较复杂也一致。
+
+```{r}
+#| label: fig-splines
+#| fig-cap: 各个可加项的样条拟合曲线
+#| fig-width: 6
+#| fig-height: 8
+
+plot(fit_gam, pages = 1)
+```
+
+# 可视化可加模型
+
+下面用 **rgl** 包和 **misc3d** 包绘制交互式三维透视图形。**rgl** 包的 `spheres3d()` 函数绘制散点图，**misc3d** 包的 `contour3d()` 函数绘制等高曲面。
+
+```{r}
+# 设置 Web GL 渲染
+options(rgl.useNULL = TRUE)
+options(rgl.printRglwidget = TRUE)
+# 加载绘图包
+library(rgl)
+library(misc3d)
+# 预测函数
+myfun <- function(x, y, z) {
+  predict(fit_gam, newdata = data.frame(x0 = x, x1 = y, x2 = z, x3 = 0))
+}
+# 将数值向量转化为颜色向量
+colorize_numeric <- function(x) {
+  scales::col_numeric(palette = "Spectral", domain = range(x))(x)
+}
+# 序列越长对应三维网格密度越大
+reso <- 30
+# 外加一点缓冲量 10%
+limExt <- 0.1
+# 各个坐标的范围
+ranx <- range(dat$x0)
+rany <- range(dat$x1)
+ranz <- range(dat$x2)
+# 序列化数值向量
+xs <- seq(ranx[1] - diff(ranx) * limExt, ranx[2] + diff(ranx) * limExt, length.out = reso)
+ys <- seq(rany[1] - diff(rany) * limExt, rany[2] + diff(rany) * limExt, length.out = reso)
+zs <- seq(ranz[1] - diff(ranz) * limExt, ranz[2] + diff(ranz) * limExt, length.out = reso)
+# 设置等高（值）线/曲面数量
+nlevs <- 5
+vran <- range(log(dat$y + 1))
+levs <- seq(vran[1], vran[2], length.out = nlevs + 2)[-c(1, nlevs + 2)]
+# 设置等高（值）线/曲面颜色
+levcols <- colorize_numeric(levs)
+```
+
+下面是绘图部分，依此绘制散点、等高线和外框，颜色值根据线性预测生成，响应变量值要取对数（因响应变量服从泊松分布），红色表示值小，蓝色表示值大，为了处理响应变量为 0 的情况，在原值上加 1。
+
+```{r}
+#| label: fig-vis-gam
+#| fig-cap: 可加模型的三维可视化
+#| fig-width: 8
+#| fig-height: 8
+
+## 绘制散点
+with(dat, spheres3d(
+  x = x0, y = x1, z = x2,
+  col = colorize_numeric(log(y + 1)), 
+  radius = 0.02
+))
+## 绘制等高线
+contour3d(
+  f = myfun,    # 线性预测值
+  level = levs, # 等高面的数量
+  x = xs, y = ys, z = zs, # 坐标
+  color = levcols, # 等高面的颜色
+  engine = "rgl", # 渲染引擎
+  add = TRUE, # 追加
+  alpha = 0.5 # 透明度
+)
+## 添加外框
+box3d()
+```
+
+这个等值曲面的形状是非常复杂的，因为广义可加模型的三个成分比较复杂，特别是 $f_2$ 。
+
+# 运行环境 {#session}
+
+```{r}
+xfun::session_info(packages = c(
+  "mgcv", "rgl", "misc3d"
+), dependencies = FALSE)
+```
+
+# 参考文献 {#refer}
+
+主要参考一篇博客 [Visualizing model predictions in 3d](https://menugget.blogspot.com/2016/02/visualizing-model-predictions-in-3d.html) 。本文所不同者在于去掉了大量的软件依赖，添加了详细的代码注释和模型解释。
+
+::: {#refs}
+:::
