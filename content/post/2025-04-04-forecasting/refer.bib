@@ -1,0 +1,81 @@
+@Book{mgcv2017,
+  title = {Generalized Additive Models: An Introduction with {R}},
+  year = {2017},
+  author = {Simon N. Wood},
+  edition = {2nd},
+  address = {Boca Raton, Florida},
+  doi = {10.1201/9781315370279},
+  publisher = {Chapman and Hall/CRC},
+}
+
+@article{Wood2017,
+  author = {Simon N. Wood, Zheyuan Li, Gavin Shaddick and Nicole H. Augustin},
+  title = {Generalized Additive Models for Gigadata: Modeling the U.K. Black Smoke Network Daily Data},
+  journal = {Journal of the American Statistical Association},
+  volume = {112},
+  number = {519},
+  pages = {1199--1210},
+  year = {2017},
+  publisher = {ASA Website},
+  doi = {10.1080/01621459.2016.1195744},
+  abstract = {We develop scalable methods for fitting penalized regression spline 
+based generalized additive models with of the order of 104 coefficients to up to 108 data. 
+Computational feasibility rests on: (i) a new iteration scheme for estimation of model coefficients and smoothing parameters, avoiding poorly scaling matrix operations; 
+(ii) parallelization of the iteration’s pivoted block Cholesky and basic matrix operations; 
+(iii) the marginal discretization of model covariates to reduce memory footprint, 
+with efficient scalable methods for computing required crossproducts directly from the discrete representation. 
+Marginal discretization enables much finer discretization than joint discretization would permit. 
+We were motivated by the need to model four decades worth of daily particulate data from the U.K. Black Smoke and Sulphur Dioxide Monitoring Network. 
+Although reduced in size recently, over 2000 stations have at some time been part of the network, 
+resulting in some 10 million measurements. Modeling at a daily scale is desirable for accurate trend estimation and mapping, 
+and to provide daily exposure estimates for epidemiological cohort studies. 
+Because of the dataset size, previous work has focused on modeling time or space averaged pollution levels, 
+but this is unsatisfactory from a health perspective, since it is often acute exposure locally and on the time scale of days that is of most importance in driving adverse health outcomes. 
+If computed by conventional means our black smoke model would require a half terabyte of storage just for the model matrix, 
+whereas we are able to compute with it on a desktop workstation. 
+The best previously available reduced memory footprint method would have required three orders of magnitude more computing time than our new method. 
+Supplementary materials for this article are available online. }
+}
+
+@article{Friedman2001,
+  author = {Jerome H. Friedman},
+  title = {Greedy function approximation: A gradient boosting machine.},
+  volume = {29},
+  journal = {The Annals of Statistics},
+  number = {5},
+  publisher = {Institute of Mathematical Statistics},
+  pages = {1189 -- 1232},
+  abstract = {Function estimation/approximation is viewed from the perspective of numerical optimization in function space, rather than parameter space. A connection is made between stagewise additive expansions and steepest-descent minimization. A general gradient descent “boosting” paradigm is developed for additive expansions based on any fitting criterion.Specific algorithms are presented for least-squares, least absolute deviation, and Huber-M loss functions for regression, and multiclass logistic likelihood for classification. Special enhancements are derived for the particular case where the individual additive components are regression trees, and tools for interpreting such “TreeBoost” models are presented. Gradient boosting of regression trees produces competitive, highly robust, interpretable procedures for both regression and classification, especially appropriate for mining less than clean data. Connections between this approach and the boosting methods of Freund and Shapire and Friedman, Hastie and Tibshirani are discussed.},
+  keywords = {boosting, decision trees, Function estimation, robust nonparametric regression},
+  year = {2001},
+  doi = {10.1214/aos/1013203451},
+}
+
+@article{friedman2000,
+	title = {Additive logistic regression: a statistical view of boosting (With discussion and a rejoinder by the authors)},
+	author = {Friedman, Jerome and Hastie, Trevor and Tibshirani, Robert},
+	year = {2000},
+	month = {04},
+	date = {2000-04},
+	journal = {The Annals of Statistics},
+	pages = {337--407},
+	volume = {28},
+	number = {2},
+	doi = {10.1214/aos/1016218223},
+	url = {https://projecteuclid.org/journals/annals-of-statistics/volume-28/issue-2/Additive-logistic-regression--a-statistical-view-of-boosting-With/10.1214/aos/1016218223.full},
+	note = {Publisher: Institute of Mathematical Statistics}
+}
+
+@inproceedings{chen2016,
+	title = {XGBoost: A Scalable Tree Boosting System},
+	author = {Chen, Tianqi and Guestrin, Carlos},
+	year = {2016},
+	month = {08},
+	date = {2016-08-13},
+	publisher = {Association for Computing Machinery},
+	pages = {785{\textendash}794},
+	series = {KDD '16},
+	doi = {10.1145/2939672.2939785},
+	url = {https://dl.acm.org/doi/10.1145/2939672.2939785},
+	address = {New York, NY, USA}
+}
