@@ -1,0 +1,385 @@
+---
+title: "时间序列预测与 mgcv 包"
+author: "黄湘云"
+date: '2025-04-15'
+slug: forecasting
+categories:
+  - 统计应用
+tags:
+  - 时间序列预测
+  - 可加模型
+  - 高斯过程
+  - mgcv
+math: true
+draft: true
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+bibliography: refer.bib
+description: "本文介绍 mgcv 包实现的可加模型用于时间序列预测。"
+---
+
+在数据处理规模和复杂性上，传统的统计方法往往容易受到挑战和质疑，特别是在这种以预测为主要目的的任务上。实际上，统计方法中有一类非/半参数方法（参数量可随样本量而定），比如样条模型。这类半参数模型中的代表是可加模型，而这可加模型是梯度提升类模型（代表是 [xgboost](https://github.com/dmlc/xgboost) [@chen2016]）的统计表示[@friedman2000; @Friedman2001]，可加成分中的样条类型和复杂度可根据数据和优化目标决定。
+
+Python 模块 [NeuralForecast](https://github.com/Nixtla/neuralforecast) 收集了大量基于神经网络的时间序列预测模型，制作了统一的调用接口。官网的示例基于数据集 AirPassengers ，本文也基于这一数据展开可加模型的使用介绍，基于 **mgcv** 包 [@mgcv2017] 的实现。其实，只要找到对的方法，不存在统计方法比机器学习方法差的问题。很多时候，是同一个东西在不同的学科中存在不同的表达。统计方法/软件也可以适用于大规模数据的，**mgcv** 包的 `bam()` 函数可以处理大规模的数据 [@Wood2017]。
+
+不妨借用一段书评来说明 **mgcv** 包的强大。
+
+> A great book got even better. Simon Wood’s focus on splines for fitting GAMs allows for a seamless integration with mixed effects models and gaussian processes, which enlarges the scope of GAMs considerably. This book and the R software are wonderful contributions to applied statistics and data science.
+>
+> \
+> — **Trevor Hastie**, Stanford University
+
+# 数据探索
+
+对时间序列数据的探索是从时序图开始的，然后借用差分算子（看趋势）、延迟算子（看周期）、取对数（看波动）等基础工具。
+
+```{r airpassengers,fig.cap="AirPassengers 数据的时序图",warning=FALSE}
+library(ggplot2)
+library(ggfortify)
+autoplot(AirPassengers)
+```
+
+从乘客数量的时序图中可以观察到几点，其一乘客数量呈现周期性变化，其二乘客数量逐年呈线性增加趋势，其三乘客数量的震荡幅度也在逐年增加。
+
+```{r airpassengers-log,fig.cap="AirPassengers 数据的对数的时序图"}
+autoplot(log(AirPassengers))
+```
+
+可以看到，取对数之后，乘客数量的震荡幅度在每年里基本一致。
+
+```{r airpassengers-diff,fig.cap="AirPassengers 数据的对数的差分图"}
+autoplot(diff(log(AirPassengers)))
+```
+
+可以看到，在取对数之后进一步差分，乘客数量的逐年递增趋势没有了。
+
+```{r airpassengers-lag,fig.cap="AirPassengers 数据的对数的延迟差分图"}
+autoplot(diff(log(AirPassengers), lag = 12))
+```
+
+可以看到，在取对数之后，再延迟 12 期做一阶差分，乘客数量的周期性振荡没有了。AirPassengers 数据的周期为 12，表示一年的 12 个月。
+
+# 可加模型
+
+先加载 mgcv 包，整理一下数据，使之可以被模型使用。
+
+```{r collapse=TRUE}
+# 加载 mgcv 包
+library(mgcv)
+# ts 类型数据整理成 data.frame 类型
+air_passengers <- data.frame(
+  y = as.vector(AirPassengers),
+  month = rep(1:12, 12),
+  year = rep(1949:1960, each = 12)
+)
+# 日期列用作后续 ggplot2 绘图
+air_passengers$date <- as.Date(paste(air_passengers$year, air_passengers$month, "01", sep = "-"))
+```
+
+拟合模型并展示模型输出结果。
+
+```{r}
+# 拟合 GAM 模型
+fit <- gam(log(y) ~ s(month, bs = "gp") + s(year, bs = "gp"), data = air_passengers, family = gaussian(), method = "GCV.Cp")
+# 显示 GAM 模型拟合结果
+summary(fit)
+```
+
+在可加模型中，以高斯过程回归样条（默认参数）分别拟合月度和年度趋势，结果显示，模型对数据的解释程度超过 99% ，拟合效果可以说非常好。
+
+选择高斯过程时，还有几个参数可以手动设定。低秩近似高斯过程的秩的大小（mgcv 包采用低秩近似方法近似高斯过程），相关性的刻画采用何种相关函数（比如指数型、球型和幂指数型等）。函数的参数 K 越大表示秩越大，拟合能力越强，同时也要防止过拟合，可以让模型自动选择。
+
+```{r eval=FALSE}
+# k 取 8 
+fit <- gam(log(y) ~ s(month, bs = "gp", k = 8) + s(year, bs = "gp", k = 8), data = air_passengers)
+```
+
+顺便一提，样条有多种选择，除了高斯过程，还有立方样条、P 样条、B 样条等。
+
+```{r eval=FALSE}
+# 立方回归样条
+fit <- gam(log(y) ~ s(month, bs = "cr") + s(year, bs = "cr"), data = air_passengers)
+```
+
+下面看看样条对月和年度趋势的拟合情况。
+
+```{r airpassengers-spline,fig.width=7,fig.height=5,fig.cap="AirPassengers 数据的可加成分"}
+layout(matrix(1:2, nrow = 1))
+plot(fit, shade = TRUE)
+```
+
+**mgcv** 包还提供函数 `vis.gam()` 可以画出拟合值（线性预测）随自变量的变化情况，参数 `plot.type` 可以指定等高线图或透视图。
+
+```{r airpassengers-contour,fig.width=7,fig.height=6,fig.cap="AirPassengers 数据随月份和年份的等高线图"}
+vis.gam(fit, view = c("month", "year"), plot.type = "contour", color = "cm")
+```
+
+```{r airpassengers-persp,fig.width=7,fig.height=6,fig.cap="AirPassengers 数据随月份和年份的透视图"}
+vis.gam(fit, view = c("month", "year"), plot.type = "persp", color = "cm", phi = 20, theta = -35, expand = .65, ticktype = "detailed")
+```
+
+可以看到样条具有的非线性拟合能力是非常强的，趋势变化和之前探索的情况非常吻合。
+
+```{r}
+# 拟合历史和预测未来 12 期
+air_passengers_pred <- data.frame(
+  y = predict(fit, newdata = data.frame(
+  month = c(air_passengers$month, 1:12),
+  year = c(air_passengers$year, rep(1961, 12))
+  )),
+  month = c(air_passengers$month, 1:12),
+  year = c(air_passengers$year, rep(1961, 12))
+)
+air_passengers_pred$date <- as.Date(paste(air_passengers_pred$year, air_passengers_pred$month, "01", sep = "-"))
+```
+
+最后，将原始数据和可加模型的预测数据放在同一张图里，看看预测效果。
+
+```{r airpassengers-pred,fig.cap="AirPassengers 数据的预测"}
+ggplot() +
+  geom_line(data = air_passengers, aes(x = date, y = y)) +
+  geom_line(data = air_passengers_pred, aes(x = date, y = exp(y)), color = "blue") +
+  labs(x = "", y = "")
+```
+
+可以说拟合和预测的结果非常好。
+
+# 梯度提升
+
+```{r echo=FALSE}
+# 严格使用 xgboost 3.0.0 的语法
+options("xgboost.strict_mode" = TRUE)
+```
+
+时间序列预测问题当作回归问题，在这个问题中，数据是月度数据，协变量只有月份和年份，响应变量随年份和月份变化。
+
+```{r}
+library(xgboost)
+data_size <- nrow(air_passengers)
+# 拆分数据集
+train_size <- floor(data_size * 0.67)
+# 预测问题当作回归任务
+mod_xgb <- xgboost(
+  y = air_passengers[, 1], 
+  x = air_passengers[, -c(1,4)],
+  eval_set = (train_size+1):data_size, # 测试集
+  early_stopping_rounds = 50,
+  verbosity = 0 # 不显示训练过程
+)
+# 拟合历史和预测未来 12 期
+pred_xgb <- predict(mod_xgb, newdata = data.frame(
+    month = c(air_passengers$month, 1:12),
+    year = c(air_passengers$year, rep(1961, 12))
+  ), validate_features = TRUE)
+# 整理数据
+air_passengers_xgb <- data.frame(
+  y = pred_xgb,
+  month = c(air_passengers$month, 1:12),
+  year = c(air_passengers$year, rep(1961, 12))
+)
+air_passengers_xgb$date <- as.Date(paste(air_passengers_xgb$year, air_passengers_xgb$month, "01", sep = "-"))
+```
+
+```{r airpassengers-xgb,fig.cap="AirPassengers 数据的预测 XGBoost"}
+ggplot() +
+  geom_point(data = air_passengers, aes(x = date, y = y), size = 1) +
+  geom_line(data = air_passengers_pred, aes(x = date, y = exp(y)), color = "blue") +
+  geom_line(data = air_passengers_xgb, aes(x = date, y = y), color = "red") +
+  labs(x = "", y = "")
+```
+
+XGBoost 训练的模型会穿过所有历史数据，这明显会过拟合，在预测未来的效果上，不及 **mgcv** 包。
+
+另有一个办法，滑动一个时间窗口，为了预测 12 期的情况，滑动窗口的长度就选为 12 期。一次性输出 12 期的预测值（多步预测），而不是用过去 12 期的情况预测未来 1 期。
+
+```{r eval=FALSE}
+# 滑动 13 期
+air_passengers_embed <- embed(AirPassengers, 12)
+# 133x12
+data_size <- nrow(air_passengers_embed)
+# 拆分数据集
+train_size <- floor(data_size * 0.67)
+# 响应变量 133x1
+# air_passengers_embed[,1]
+# 预测变量 133x11
+# air_passengers_embed[,-1]
+mod_xgb <- xgboost(
+  x = air_passengers_embed[,-1], 
+  y = air_passengers_embed[,1],
+  eval_set = (train_size+1):data_size, # 测试集
+  early_stopping_rounds = 20,
+  verbosity = 0 # 不显示训练过程
+)
+# 拟合历史和预测未来 12 期
+pred_xgb <- predict(
+  mod_xgb, 
+  newdata = air_passengers_embed[(train_size+1):data_size,-1], 
+  validate_features = TRUE
+)
+# 整理数据
+air_passengers_xgb <- data.frame(
+  y = pred_xgb
+)
+air_passengers_xgb$date <- as.Date(paste(air_passengers_xgb$year, air_passengers_xgb$month, "01", sep = "-"))
+
+ggplot() +
+  geom_point(data = air_passengers, aes(x = date, y = y), size = 1) +
+  geom_line(data = air_passengers_pred, aes(x = date, y = exp(y)), color = "blue") +
+  geom_line(data = air_passengers_xgb, aes(x = date, y = y), color = "red") +
+  labs(x = "", y = "")
+```
+
+所以，使用 XGBoost 包构建模型不能像传统的统计模型那样，将所有的观测数据都扔进模型中，对时间序列数据来说，就是要把后三分之一数据留作测试集，用来调整模型。
+
+# Darts
+
+## 指数平滑
+
+导入一些模块，导入数据，整理数据，拆分训练和验证集。
+
+```{python}
+import pandas as pd
+from darts import TimeSeries
+
+# Read a pandas DataFrame
+df = pd.read_csv("data/AirPassengers.csv", delimiter=",")
+
+# Create a TimeSeries, specifying the time and value columns
+series = TimeSeries.from_dataframe(df, "Month", "#Passengers")
+
+# Set aside the last 36 months as a validation series
+train, val = series[:-36], series[-36:]
+```
+
+调用指数平滑模型，在验证集对应的时间区间上进行预测，以便与之对照。
+
+```{python}
+from darts.models import ExponentialSmoothing
+# 指数平滑模型
+model = ExponentialSmoothing()
+model.fit(train)
+prediction = model.predict(len(val), num_samples=1000)
+```
+
+将模型预测结果展示出来，中位数、5% 和 95% 两个分位点。
+
+```{python}
+import matplotlib.pyplot as plt
+plt.style.use('ggplot')
+series.plot()
+prediction.plot(label="forecast", low_quantile=0.05, high_quantile=0.95)
+plt.legend()
+```
+
+## XGBoost
+
+```{python}
+from darts.models import XGBModel
+# 查看数据
+series.plot()
+```
+
+训练模型和预测
+
+```{python}
+# 预测乘客数量
+target = series['#Passengers']
+# 用过去 12 个月的数据预测未来 12 个月的数据
+model = XGBModel(
+    lags=12,
+    output_chunk_length=12,
+)
+# 拟合模型
+model.fit(target)
+# 预测未来 12 期
+pred = model.predict(12)
+# 查看预测值
+pred.values()
+```
+
+展示预测结果
+
+```{python}
+series.plot()
+pred.plot(label="forecast", low_quantile=0.05, high_quantile=0.95)
+plt.legend()
+```
+
+# 深度模型
+
+Python 模块 [NeuralForecast](https://github.com/Nixtla/neuralforecast) 收集了大量基于神经网络的时间序列预测模型，制作了统一的调用接口。NeuralForecast 自带了一些数据集，其中就有 AirPassengers 。下面先加载这个数据集。
+
+```{python}
+from neuralforecast.utils import AirPassengersDF
+Y_df = AirPassengersDF
+Y_df.head()
+```
+
+导入 NeuralForecast 内置的 LSTM （Long Short-Term Memory Recurrent Neural Network）和 NHITS （Neural Hierarchical Interpolation for Time Series，简称 NHITS, 2023 年出）两个神经网络模型。
+
+```{python}
+import logging
+
+from neuralforecast import NeuralForecast
+from neuralforecast.models import LSTM, NHITS, RNN
+```
+
+NeuralForecast 打包的模型是使用 PyTorch 实现的，训练发生错误的时候显示日志。（拟合调用 fit 方法时，发现用到了 tensorflow 很是奇怪）
+
+```{python}
+# logging.getLogger('pytorch_lightning').setLevel(logging.ERROR)
+```
+
+调用模型接口训练数据，时间序列数据 AirPassengers 的长度 144 期，向未来预测 12 期。模型输入序列的长度是 24 期。
+
+```{python}
+horizon = 12
+
+# Try different hyperparmeters to improve accuracy.
+models = [LSTM(random_seed=2025,             # 随机数种子
+               input_size=2 * horizon,
+               h=horizon,                    # Forecast horizon
+               max_steps=500,                # Number of steps to train
+               scaler_type='standard',       # Type of scaler to normalize data
+               encoder_hidden_size=64,       # Defines the size of the hidden state of the LSTM
+               decoder_hidden_size=64,),     # Defines the number of hidden units of each layer of the MLP decoder
+          NHITS(random_seed=2025,
+                h=horizon,                   # Forecast horizon
+                input_size=2 * horizon,      # Length of input sequence
+                max_steps=100,               # Number of steps to train
+                n_freq_downsample=[2, 1, 1]) # Downsampling factors for each stack output
+          ]
+nf = NeuralForecast(models=models, freq='ME')
+nf.fit(df=Y_df, verbose=True)
+```
+
+模型训练好了以后，用来预测数据，再将预测的结果显示出来（部分）。
+
+```{python}
+Y_hat_df = nf.predict()
+Y_hat_df.head()
+```
+
+最后，将原始数据和预测数据在同一张图里显示出来。
+
+```{python}
+from utilsforecast.plotting import plot_series
+fig = plot_series(df=Y_df, forecasts_df=Y_hat_df)
+fig.savefig('img/NHITS.png', bbox_inches='tight')
+```
+
+![神经网络模型的预测结果](img/NHITS.png)
+
+# 运行环境
+
+```{r}
+sessioninfo::session_info()
+```
+
+# 参考文献
+
+::: {#refs}
+:::
