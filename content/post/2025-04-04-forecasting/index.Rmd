@@ -11,6 +11,7 @@ tags:
   - 高斯过程
   - mgcv
 math: true
+draft: true
 output:
   blogdown::html_page:
     toc: true
@@ -153,7 +154,7 @@ ggplot() +
 options("xgboost.strict_mode" = TRUE)
 ```
 
-时间序列预测当作回归问题
+时间序列预测问题当作回归问题，在这个问题中，数据是月度数据，协变量只有月份和年份，响应变量随年份和月份变化。
 
 ```{r}
 library(xgboost)
@@ -190,9 +191,52 @@ ggplot() +
   labs(x = "", y = "")
 ```
 
-XGBoost 训练的模型会穿过所有历史数据，这明显会过拟合，在预测未来的效果上，不及 **mgcv** 包。所以，使用 XGBoost 包构建模型不能像传统的统计模型那样，将所有的观测数据都扔进模型中，对时间序列数据来说，就是要把后三分之一数据留作测试集，用来调整模型。
+XGBoost 训练的模型会穿过所有历史数据，这明显会过拟合，在预测未来的效果上，不及 **mgcv** 包。
 
-# 指数平滑
+另有一个办法，滑动一个时间窗口，为了预测 12 期的情况，滑动窗口的长度就选为 12 期。一次性输出 12 期的预测值（多步预测），而不是用过去 12 期的情况预测未来 1 期。
+
+```{r eval=FALSE}
+# 滑动 13 期
+air_passengers_embed <- embed(AirPassengers, 12)
+# 133x12
+data_size <- nrow(air_passengers_embed)
+# 拆分数据集
+train_size <- floor(data_size * 0.67)
+# 响应变量 133x1
+# air_passengers_embed[,1]
+# 预测变量 133x11
+# air_passengers_embed[,-1]
+mod_xgb <- xgboost(
+  x = air_passengers_embed[,-1], 
+  y = air_passengers_embed[,1],
+  eval_set = (train_size+1):data_size, # 测试集
+  early_stopping_rounds = 20,
+  verbosity = 0 # 不显示训练过程
+)
+# 拟合历史和预测未来 12 期
+pred_xgb <- predict(
+  mod_xgb, 
+  newdata = air_passengers_embed[(train_size+1):data_size,-1], 
+  validate_features = TRUE
+)
+# 整理数据
+air_passengers_xgb <- data.frame(
+  y = pred_xgb
+)
+air_passengers_xgb$date <- as.Date(paste(air_passengers_xgb$year, air_passengers_xgb$month, "01", sep = "-"))
+
+ggplot() +
+  geom_point(data = air_passengers, aes(x = date, y = y), size = 1) +
+  geom_line(data = air_passengers_pred, aes(x = date, y = exp(y)), color = "blue") +
+  geom_line(data = air_passengers_xgb, aes(x = date, y = y), color = "red") +
+  labs(x = "", y = "")
+```
+
+所以，使用 XGBoost 包构建模型不能像传统的统计模型那样，将所有的观测数据都扔进模型中，对时间序列数据来说，就是要把后三分之一数据留作测试集，用来调整模型。
+
+# Darts
+
+## 指数平滑
 
 导入一些模块，导入数据，整理数据，拆分训练和验证集。
 
@@ -227,6 +271,40 @@ import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 series.plot()
 prediction.plot(label="forecast", low_quantile=0.05, high_quantile=0.95)
+plt.legend()
+```
+
+## XGBoost
+
+```{python}
+from darts.models import XGBModel
+# 查看数据
+series.plot()
+```
+
+训练模型和预测
+
+```{python}
+# 预测乘客数量
+target = series['#Passengers']
+# 用过去 12 个月的数据预测未来 12 个月的数据
+model = XGBModel(
+    lags=12,
+    output_chunk_length=12,
+)
+# 拟合模型
+model.fit(target)
+# 预测未来 12 期
+pred = model.predict(12)
+# 查看预测值
+pred.values()
+```
+
+展示预测结果
+
+```{python}
+series.plot()
+pred.plot(label="forecast", low_quantile=0.05, high_quantile=0.95)
 plt.legend()
 ```
 
