@@ -8,8 +8,11 @@ preserveTaxonomyNames = true
 footnotereturnlinkcontents = "↩"
 hasCJKLanguage = true
 enableEmoji = true
-paginate = 9
 rssLimit = 30
+
+[pagination]
+  disableAliases = false
+  pagerSize = 6
 
 [permalinks]
   [permalinks.page]
