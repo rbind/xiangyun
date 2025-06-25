@@ -17,6 +17,30 @@ description: "软件环境配置是个既麻烦又耗时的苦力活，笔者曾
 
 # 设置 MacOS
 
+
+准备 Lantern 梯子
+<https://github.com/getlantern/lantern>
+
+配置 ZSH 终端
+<https://ohmyz.sh>
+
+安装 Homebrew 软件包管理器 
+<https://brew.sh>
+
+安装一些软件包
+
+```
+brew install homebrew/cask/r xquartz
+brew install rstudio
+brew install hugo pandoc
+brew install visual-studio-code 
+brew install python@3.13 gcc
+brew install vlc
+brew install gettext pkg-config libomp
+```
+
+# 其他配置
+
 -   [Mac 截图去阴影等常用设置](https://macos-defaults.com/)
 
 -   [自定义终端的命令行提示符](https://stackoverflow.com/questions/37286971/)
