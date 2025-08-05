@@ -261,7 +261,7 @@ knitr::include_graphics(path = "screenshots/iris-logo.png")
 
 ### gtExtras 包
 
-[**gtExtras**](https://github.com/jthomasmock/gtExtras) 包扩展 **gt** 包的能力，提供一些高级操作需要的函数，比如根据某一列的数值绘制条形图，这可以用一个函数 `gt_plt_bar()` 搞定。略有不足的是它仅支持 HTML 输出。如果需要 PNG 格式，调用函数 `gtsave()` 导出。
+[**gtExtras**](https://github.com/jthomasmock/gtExtras) 包扩展 **gt** 包的能力，提供一些高级操作需要的函数，比如根据某一列的数值绘制条形图，这可以用一个函数 `gt_plt_bar()` 搞定。略有不足的是它仅支持 HTML 输出。如果需要 PNG 格式，调用函数 `gtsave()` 导出。表格中嵌入图形这种的在 gt 包中叫做 nanoplot，函数 `cols_nanoplot()` 可用来绘制一些简单的图形，如折线图、条形图和箱线图。
 
 ```{r}
 #| eval: false
@@ -270,6 +270,15 @@ library(gtExtras)
 iris_dt |>
   gt() |>
   gt_plt_bar(column = Sepal.Length, keep_column = TRUE)
+# 或者 gt 包实现
+iris_dt |>
+  gt() |>
+  cols_nanoplot(columns = Sepal.Length, 
+                new_col_name = "nanoplots",
+                new_col_label = md("**Sepal.Length**"),
+                after = "Species",
+                plot_type = "bar") |> 
+  cols_align(align = "center", columns = nanoplots)
 ```
 
 ```{r}
@@ -321,7 +330,7 @@ iris_lm |> tbl_regression()
 #| tbl-cap: iris 数据集（部分）
 
 library(tinytable)
-tt(iris_dt, theme = "grid") |> 
+tt(iris_dt, theme = "striped") |> 
   style_tt(i = 1:2, j = 1, color = "white", background = "#4B0055") |> 
   style_tt(i = 3:4, j = 1, color = "white", background = "#009B95") |> 
   style_tt(i = 5:6, j = 1, color = "white", background = "#FDE333")
