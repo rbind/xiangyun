@@ -741,3 +741,106 @@ option = {
 
 
 结合肉眼对邵东市的观察，最近几年，商品住宅楼盘如雨后春笋般拔地而起，共计 42 个新建楼盘。[农村自建房的那些琐事](/2025/02/self-built-houses)提及其中大部分重要的楼盘。
+
+
+目前，各城市商品房的供给是大于需求的，房价要想保持坚挺，城市人口得继续增加（一些城市的购房政策与子女数量联系起来，生的越多，可购房数越多）。然而，结合邵东市 2001-2023 年城镇人口与城镇化率的数据来看，自 2020 年以来，城镇人口并不增加，城镇化率也已接近 60%，这在县级市已经很高了。下一步，继续提升城镇化率需要将老年人从乡村迁入城市，一些城市的新建房在老人宜居上开始下功夫。
+
+{{<echarts>}}
+// const colors2 = ['#5070dd', '#b6d634', '#505372'];
+option = {
+  title: {
+    text: '邵东市城镇人口和城镇化率 2001-2023',
+    left: 'center',
+    textStyle: {
+      fontSize: 20
+    },
+    subtextStyle: {
+      color: '#175ce5',
+      fontSize: 15,
+      fontWeight: 'bold'
+    }
+  },
+  color: colors2,
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: {
+      type: 'cross'
+    }
+  },
+  grid: {
+    right: '20%'
+  },
+  toolbox: {
+    feature: {
+      dataView: { show: true, readOnly: false },
+      restore: { show: true },
+      saveAsImage: { show: true }
+    }
+  },
+  legend: {
+    data: ['城镇人口', '城镇化率']
+  },
+  xAxis: [
+    {
+      type: 'category',
+      axisTick: {
+        alignWithLabel: true
+      },
+      // prettier-ignore
+      data: ['2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023']
+    }
+  ],
+  yAxis: [
+    {
+      type: 'value',
+      name: '城镇人口',
+      position: 'left',
+      alignTicks: true,
+      axisLine: {
+        show: true,
+        lineStyle: {
+          color: colors2[0]
+        }
+      },
+      axisLabel: {
+        formatter: '{value} 万人'
+      }
+    },
+    {
+      type: 'value',
+      name: '城镇化率',
+      position: 'right',
+      alignTicks: true,
+      axisLine: {
+        show: true,
+        lineStyle: {
+          color: colors2[1]
+        }
+      },
+      axisLabel: {
+        formatter: '{value} %'
+      }
+    }
+  ],
+  series: [
+    {
+      name: '城镇人口',
+      type: 'bar',
+      yAxisIndex: 0,
+      data: [
+        13.25, 37.07, 37.18, 37.35, 38.50, 40.16, 41.01, 42.08, 42.64, 34.99, 36.29, 38.72, 40.70, 42.99, 45.66, 47.95, 50.28, 50.91, 52.47, 59.09, 58.34, 58.45, 58.53
+      ]
+    },
+    {
+      name: '城镇化率',
+      type: 'line',
+      yAxisIndex: 1,
+      data: [
+       11.26, 31.50, 31.61, 31.62, 32.36, 33.58, 34.12,	34.88, 35.94, 39.03, 40.23, 42.45, 44.43, 46.63, 49.20, 51.31, 53.81, 55.91, 57.81, 56.85, 57.72, 58.33, 59.01
+      ]
+    }
+  ]
+};
+{{</echarts>}}
+
+数据来源：湖南省统计局发布的[湖南统计年鉴](https://tjj.hunan.gov.cn/hntj/tjfx/hntjnj/hntjnjwlb/index.html)。
