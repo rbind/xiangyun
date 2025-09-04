@@ -29,9 +29,7 @@ tags:
 
 
 {{<echarts>}}
-const colors = ['#5070dd', '#b6d634'];
 option = {
-  color: colors,
   tooltip: {
     trigger: 'axis',
     axisPointer: {
@@ -69,12 +67,6 @@ option = {
     name: '国内生产总值',
     position: 'left',
     alignTicks: true,
-    axisLine: {
-      show: true,
-      lineStyle: {
-        color: colors[0]
-      }
-    },
     axisLabel: {
       formatter: '{value} 亿元'
     }
@@ -84,12 +76,6 @@ option = {
     name: '增长速度',
     position: 'right',
     alignTicks: true,
-    axisLine: {
-      show: true,
-      lineStyle: {
-        color: colors[1]
-      }
-    },
     axisLabel: {
       formatter: '{value} %'
     }
@@ -132,9 +118,7 @@ GDP 增长率指标中有几个重大拐点。
 
 
 {{<echarts>}}
-const colors2 = ['#5070dd', '#b6d634', '#505372'];
 option = {
-  color: colors2,
   tooltip: {
     trigger: 'axis',
     axisPointer: {
@@ -171,12 +155,6 @@ option = {
       name: '人均住宅建筑面积',
       position: 'left',
       alignTicks: true,
-      axisLine: {
-        show: true,
-        lineStyle: {
-          color: colors2[0]
-        }
-      },
       axisLabel: {
         formatter: '{value} 平方米'
       }
@@ -186,12 +164,6 @@ option = {
       name: '年末实有住宅建筑面积',
       position: 'right',
       alignTicks: true,
-      axisLine: {
-        show: true,
-        lineStyle: {
-          color: colors2[1]
-        }
-      },
       axisLabel: {
         formatter: '{value} 亿平方米'
       }
@@ -202,12 +174,6 @@ option = {
       position: 'right',
       alignTicks: true,
       offset: 80,
-      axisLine: {
-        show: true,
-        lineStyle: {
-          color: colors2[2]
-        }
-      },
       axisLabel: {
         formatter: '{value} 亿人'
       }
@@ -259,9 +225,7 @@ option = {
 
 
 {{<echarts>}}
-// const colors2 = ['#5070dd', '#b6d634', '#505372'];
 option = {
-  color: colors2,
   tooltip: {
     trigger: 'axis',
     axisPointer: {
@@ -279,7 +243,7 @@ option = {
     }
   },
   legend: {
-    data: ['北京GDP', 'GDP增长率', '城镇登记/调查失业率']
+    data: ['北京GDP', 'GDP增长率', '城镇失业率']
   },
   xAxis: [
     {
@@ -297,12 +261,6 @@ option = {
       name: '北京GDP',
       position: 'left',
       alignTicks: true,
-      axisLine: {
-        show: true,
-        lineStyle: {
-          color: colors2[0]
-        }
-      },
       axisLabel: {
         formatter: '{value} 亿元'
       }
@@ -312,28 +270,16 @@ option = {
       name: 'GDP增长率',
       position: 'right',
       alignTicks: true,
-      axisLine: {
-        show: true,
-        lineStyle: {
-          color: colors2[1]
-        }
-      },
       axisLabel: {
         formatter: '{value} %'
       }
     },
     {
       type: 'value',
-      name: '城镇登记/调查失业率',
+      name: '城镇失业率',
       position: 'right',
       alignTicks: true,
       offset: 80,
-      axisLine: {
-        show: true,
-        lineStyle: {
-          color: colors2[2]
-        }
-      },
       axisLabel: {
         formatter: '{value} %'
       }
@@ -357,7 +303,7 @@ option = {
       ]
     },
     {
-      name: '城镇登记/调查失业率',
+      name: '城镇失业率',
       type: 'line',
       yAxisIndex: 2,
       data: [
@@ -387,9 +333,7 @@ option = {
 
 
 {{<echarts>}}
-// const colors2 = ['#5070dd', '#b6d634', '#505372'];
 option = {
-  color: colors2,
   tooltip: {
     trigger: 'axis',
     axisPointer: {
@@ -425,12 +369,6 @@ option = {
       name: '年末总人口',
       position: 'left',
       alignTicks: true,
-      axisLine: {
-        show: true,
-        lineStyle: {
-          color: colors2[0]
-        }
-      },
       axisLabel: {
         formatter: '{value} 亿人'
       }
@@ -440,12 +378,6 @@ option = {
       name: '老年人口比重',
       position: 'right',
       alignTicks: true,
-      axisLine: {
-        show: true,
-        lineStyle: {
-          color: colors2[1]
-        }
-      },
       axisLabel: {
         formatter: '{value} %'
       }
@@ -456,12 +388,6 @@ option = {
       position: 'right',
       alignTicks: true,
       offset: 80,
-      axisLine: {
-        show: true,
-        lineStyle: {
-          color: colors2[2]
-        }
-      },
       axisLabel: {
         formatter: '{value} %'
       }
@@ -583,9 +509,7 @@ option = {
 北京是中国的首都，经济发展水平相对全国来说都处在第一梯队的前沿，北京是全国房地产行业动向的风向标，所以，北京要拎出来单独看看。投资、消费和外贸是拉动经济增长的三驾马车，对北京，下图展示房地产开发投资额及其增长率，以及占全年固定资产投资（不含农户）的比重。
 
 {{<echarts>}}
-// const colors2 = ['#5070dd', '#b6d634', '#505372'];
 option = {
-  color: colors2,
   tooltip: {
     trigger: 'axis',
     axisPointer: {
@@ -621,12 +545,6 @@ option = {
       name: '房地产开发投资',
       position: 'left',
       alignTicks: true,
-      axisLine: {
-        show: true,
-        lineStyle: {
-          color: colors2[0]
-        }
-      },
       axisLabel: {
         formatter: '{value} 亿元'
       }
@@ -636,12 +554,6 @@ option = {
       name: '投资增长率',
       position: 'right',
       alignTicks: true,
-      axisLine: {
-        show: true,
-        lineStyle: {
-          color: colors2[1]
-        }
-      },
       axisLabel: {
         formatter: '{value} %'
       }
@@ -652,12 +564,6 @@ option = {
       position: 'right',
       alignTicks: true,
       offset: 80,
-      axisLine: {
-        show: true,
-        lineStyle: {
-          color: colors2[2]
-        }
-      },
       axisLabel: {
         formatter: '{value} %'
       }
@@ -864,9 +770,7 @@ option = {
 
 
 {{<echarts>}}
-// const colors2 = ['#5070dd', '#b6d634', '#505372'];
 option = {
-  color: colors2,
   tooltip: {
     trigger: 'axis',
     axisPointer: {
@@ -902,12 +806,6 @@ option = {
       name: '邵东GDP',
       position: 'left',
       alignTicks: true,
-      axisLine: {
-        show: true,
-        lineStyle: {
-          color: colors2[0]
-        }
-      },
       axisLabel: {
         formatter: '{value} 亿元'
       }
@@ -917,12 +815,6 @@ option = {
       name: 'GDP增速',
       position: 'right',
       alignTicks: true,
-      axisLine: {
-        show: true,
-        lineStyle: {
-          color: colors2[1]
-        }
-      },
       axisLabel: {
         formatter: '{value} %'
       }
@@ -933,12 +825,6 @@ option = {
       position: 'right',
       alignTicks: true,
       offset: 80,
-      axisLine: {
-        show: true,
-        lineStyle: {
-          color: colors2[2]
-        }
-      },
       axisLabel: {
         formatter: '{value} %'
       }
@@ -1002,7 +888,6 @@ option = {
 目前，各城市商品房的供给是大于需求的，房价要想保持坚挺，城市人口得继续增加（一些城市的购房政策与子女数量联系起来，生的越多，可购房数越多）。然而，结合邵东市 2001-2023 年城镇人口与城镇化率的数据来看，自 2020 年以来，城镇人口并不增加，城镇化率也已接近 60%，这在县级市已经很高了。下一步，继续提升城镇化率需要将老年人从乡村迁入城市，一些城市的新建房在老人宜居上开始下功夫。
 
 {{<echarts>}}
-// const colors2 = ['#5070dd', '#b6d634', '#505372'];
 option = {
   title: {
     text: '邵东市城镇人口和城镇化率 2001-2023',
@@ -1016,7 +901,6 @@ option = {
       fontWeight: 'bold'
     }
   },
-  color: colors2,
   tooltip: {
     trigger: 'axis',
     axisPointer: {
@@ -1052,12 +936,6 @@ option = {
       name: '城镇人口',
       position: 'left',
       alignTicks: true,
-      axisLine: {
-        show: true,
-        lineStyle: {
-          color: colors2[0]
-        }
-      },
       axisLabel: {
         formatter: '{value} 万人'
       }
@@ -1067,12 +945,6 @@ option = {
       name: '城镇化率',
       position: 'right',
       alignTicks: true,
-      axisLine: {
-        show: true,
-        lineStyle: {
-          color: colors2[1]
-        }
-      },
       axisLabel: {
         formatter: '{value} %'
       }

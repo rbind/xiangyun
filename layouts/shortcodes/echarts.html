@@ -5,9 +5,11 @@
 <!-- 为 ECharts 准备一个定义了宽高的 DOM -->
 <div id="{{ $id }}" style="width: {{ $width }}; height: {{ $height }};"></div>
 
+<script src="{{ relURL "/js/vintage.js" }}"></script>
+
 <script type="text/javascript">
   // 基于准备好的dom，初始化echarts实例
-  var myChart = echarts.init(document.getElementById('{{ $id }}'));
+  var myChart = echarts.init(document.getElementById('{{ $id }}'), 'vintage');
 
   // 指定图表的配置项和数据
   {{ .Inner | safeJS }}
