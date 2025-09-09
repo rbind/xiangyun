@@ -184,9 +184,9 @@ option = {
 
 从营收规模看，京东的是美团的 4 倍，阿里是美团的 3 倍多。从经营利润来看，阿里远大于京东，京东大于美团。2023Q4以来，京东和美团的经营利润差不多了。
 
-# 毛利率
+# 经营利润率
 
-根据京东财报，毛利率（Operating margin）是经营利润 （Income from operations） 与净收入 （Net revenues） 的比值。
+根据京东财报，经营利润率（Operating profit margin）是经营利润 （Income from operations） 与净收入 （Net revenues） 的比值。各公司披露的数据指标略有差异，比如京东的净收入，美团、阿里的收入。
 
 
 {{<echarts>}}
