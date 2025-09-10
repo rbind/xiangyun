@@ -760,6 +760,84 @@ option = {
 
 2016 年最强限购政策出台后，2017 年去化周期增加了 13.2 个月。
 
+### 房地产销售价格指数
+
+
+北京市统计局公布了从2016-2024年北京房地产销售价格月环比指数。这个指数是本月销售价格与上月销售价格的比值，上月为 100，本月为 102 表示价格涨了 2%。那么意味着一套总价 500 万的房产，一个月升值了 10 万。如果一个家庭在北京有几套房，那么啥也不做月收入几十万。有房阶层可以在短短几年内积累大量财产，让那些工薪族和底层人士望尘莫及。可以想见北京楼市在 2016 年及以前多么疯狂。
+
+![北京市 2026-2024 销售价格指数](/img/beijing-house-indicator.png)
+
+由销售价格月环比指数，通过将每年的月环比指数连乘，我们可以得到年同比指数，即当年12月的价格与去年12月的价格之比，数据见下表。
+
+| 年份|   新房| 二手房|
+|----:|------:|------:|
+| 2016| 1.2829| 1.3673|
+| 2017| 0.9960| 0.9855|
+| 2018| 1.0242| 0.9821|
+| 2019| 1.0489| 0.9850|
+| 2020| 1.0232| 1.0668|
+| 2021| 1.0522| 1.0838|
+| 2022| 1.0585| 1.0375|
+| 2023| 1.0191| 0.9798|
+| 2024| 0.9454| 0.9555|
+
+由图可以看到，新房和二手房价格指数相互缠绕，一般地，当供给过剩，二手房的价格下跌幅度应大于新房。如果以 2016 年 12 月的价格作为参考点，2024 年12月的价格指数为 107.1 ，还有 7 个点的增长，即 8 年时间 7 个点的增长，8 年间回报的年平均增长率为 0.86%。与 2025 年农行[500 万的大额存单的利率](https://www.abchina.com/cn/PersonalServices/Deposit/decdcp/202401/t20240102_2379368.htm)比较，比银行大额存单的利率还低了。
+
+{{<echarts>}}
+option = {
+  title: {
+    text: '住宅销售价格指数 2016-2024',
+    left: 'center',
+    textStyle: {
+      fontSize: 20
+    },
+    subtextStyle: {
+      color: '#175ce5',
+      fontSize: 15,
+      fontWeight: 'bold'
+    }
+  },
+  legend: {
+    data: ['新建商品住宅', '二手住宅']
+  },
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: {
+      type: 'cross'
+    }
+  },
+  xAxis: {
+    type: 'category',
+    axisTick: {
+        alignWithLabel: true
+      },
+    data: ['2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024']
+  },
+  yAxis: {
+    type: 'value',
+    alignTicks: true,
+    axisLabel: {
+        formatter: '{value} %'
+      }
+  },
+  series: [
+    {
+      name: '新建商品住宅',
+      data: [128.29,  99.60, 102.42, 104.89, 102.32, 105.22, 105.85, 101.91,  94.54],
+      type: 'line',
+      smooth: true
+    },
+    {
+      name: '二手住宅',
+      data: [136.73,  98.55,  98.21,  98.50, 106.68, 108.38, 103.75,  97.98,  95.55],
+      type: 'line',
+      smooth: true
+    }
+  ]
+};
+{{</echarts>}}
+
+
 ## 邵东市 2007-2024
 
 数据来源：邵东市人民政府[统计信息](https://www.shaodong.gov.cn/shaodong/tjxx/list2.shtml)和[邵阳市统计局](https://tjj.shaoyang.gov.cn)。邵东市是邵阳市代管的县级市。
@@ -1037,3 +1115,43 @@ option = {
 {{</echarts>}}
 
 趋势图显示财政支出与收入之间形成剪刀差，2008 年后，财政赤字加速扩张，财政支出一直维持在财政收入的 4 倍左右。
+
+
+# 附录
+
+北京市住宅销售价格指数相关的计算代码和[数据](/data/北京市新建商品住宅和二手住宅销售价格环比指数.xlsx)。
+
+```r
+housePrice <- readxl::read_xlsx(path = "~/Desktop/北京市新建商品住宅和二手住宅销售价格环比指数.xlsx")
+
+showtext::showtext_auto()
+library(ggplot2)
+p1 <- ggplot(data = housePrice, aes(x = 月份, y = 新建商品住宅, color = factor(年份))) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(breaks = seq(2, 12, by = 2)) +
+  labs(y = "住宅销售价格环比指数", title = "新建商品住宅", color = "年份")
+
+p2 <- ggplot(data = housePrice, aes(x = 月份, y = 二手住宅, color = factor(年份))) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(breaks = seq(2, 12, by = 2)) +
+  labs(y = "住宅销售价格环比指数", title = "二手住宅", color = "年份")
+
+library(patchwork)
+p1 / p2
+
+ggsave(filename = "~/Desktop/beijing-house-indicator.png", dpi = 96)
+
+# 住宅销售价格年末同比变化 YoY
+housePriceIndex <- aggregate(housePrice, cbind(新建商品住宅/100, 二手住宅/100) ~ 年份, FUN = prod )
+
+# 2016-2024 年住宅价格涨跌幅度
+prod(housePriceIndex$V1) - 1 
+prod(housePriceIndex$V2) - 1
+
+myfun = function(x) (1+x)^8 - 1.071
+uniroot(f = myfun, interval = c(0, 0.5))
+# x = 0.008611 
+```
+
