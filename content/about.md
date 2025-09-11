@@ -4,7 +4,7 @@ title: 关于
 
 ## 技术写作与交流
 
-我曾是 <span class="latex">L<span>a</span>T<span>e</span>X</span> 粉丝，后转投 Markdown，用 [blogdown](https://github.com/rstudio/blogdown) 搭建个人博客 ，[bookdown](https://github.com/rstudio/bookdown) 组织[《R 语言技术笔记》](https://github.com/XiangyunHuang/notesdown)和[《现代统计图形》（已出版）](https://github.com/XiangyunHuang/msg)，[pagedown](https://github.com/rstudio/pagedown) 制作[个人简历](/vitae/2022-hxy-cv.pdf)，目前在用 [Quarto](https://quarto.org/) 编写第二本专著[《R 语言数据分析实战》（写作中）](https://github.com/XiangyunHuang/data-analysis-in-action)。长期活跃于[统计之都](https://cosx.org/)，还在主站发布了一些文章，如下：
+我曾是 <span class="latex">L<span>a</span>T<span>e</span>X</span> 粉丝，后转投 Markdown，用 [blogdown](https://github.com/rstudio/blogdown) 搭建个人博客 ，[bookdown](https://github.com/rstudio/bookdown) 组织[《R 语言技术笔记》](https://github.com/XiangyunHuang/notesdown)和[《现代统计图形》（已出版）](https://github.com/XiangyunHuang/msg)，[pagedown](https://github.com/rstudio/pagedown) 制作[个人简历](/vitae/2025-hxy-cv.pdf)，目前在用 [Quarto](https://quarto.org/) 编写第二本专著[《R 语言数据分析实战》（写作中）](https://github.com/XiangyunHuang/data-analysis-in-action)。长期活跃于[统计之都](https://cosx.org/)，还在主站发布了一些文章，如下：
 
 | 年份 | 文章                                                                                   |
 |:---------|:------------------------------------------------------|
