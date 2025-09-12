@@ -568,9 +568,179 @@ option = {
 
 邵东市（县级市）雅阁豪苑一套 150 平米的房子挂牌售价 68.8 万，每平米的房价 4587 元。一套 50 平米的房间，月租金 1000 元。那么，这套 50 平米的房子租金回报率 (12x1000) / (4587x50) = 5.2% 。这是根据安居客App页面上的数据得到的估计（不是实际谈的价），3-4线城市的租金回报率会高于 3% 。
 
-> 2025年第二季度全国新发放商业性个人住房贷款**加权平均利率**为3.09%。
+## 住房贷款利率
+
+### 个人住房公积金贷款利率
+
+- 首套房
+
+{{<echarts>}}
+option = {
+  title: {
+    text: '首套房',
+    left: 'center',
+    textStyle: {
+      fontSize: 20
+    },
+    subtextStyle: {
+      color: '#175ce5',
+      fontSize: 15,
+      fontWeight: 'bold'
+    }
+  },
+  legend: {
+    data: ['5年以下（含5年）', '5年以上']
+  },
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: {
+      type: 'cross'
+    }
+  },
+  xAxis: {
+    type: 'category',
+    axisTick: {
+        alignWithLabel: true
+      },
+    data: ['2024-05-18', '2025-05-08']
+  },
+  yAxis: {
+    type: 'value',
+    alignTicks: true,
+    axisLabel: {
+        formatter: '{value} %'
+      }
+  },
+  series: [
+    {
+      name: '5年以下（含5年）',
+      data: [2.35, 2.1],
+      type: 'line',
+      smooth: true
+    },
+    {
+      name: '5年以上',
+      data: [2.85, 2.6],
+      type: 'line',
+      smooth: true
+    }
+  ]
+};
+{{</echarts>}}
+
+
+- 第二套
+
+{{<echarts>}}
+option = {
+  title: {
+    text: '第二套',
+    left: 'center',
+    textStyle: {
+      fontSize: 20
+    },
+    subtextStyle: {
+      color: '#175ce5',
+      fontSize: 15,
+      fontWeight: 'bold'
+    }
+  },
+  legend: {
+    data: ['5年以下（含5年）', '5年以上']
+  },
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: {
+      type: 'cross'
+    }
+  },
+  xAxis: {
+    type: 'category',
+    axisTick: {
+        alignWithLabel: true
+      },
+    data: ['2024-05-18', '2025-05-08']
+  },
+  yAxis: {
+    type: 'value',
+    alignTicks: true,
+    axisLabel: {
+        formatter: '{value} %'
+      }
+  },
+  series: [
+    {
+      name: '5年以下（含5年）',
+      data: [2.775, 2.525],
+      type: 'line',
+      smooth: true
+    },
+    {
+      name: '5年以上',
+      data: [3.325, 3.075],
+      type: 'line',
+      smooth: true
+    }
+  ]
+};
+{{</echarts>}}
+
+
+
+### 商业性个人住房贷款加权平均利率
+
+> [中国人民银行发布](http://www.pbc.gov.cn/zhengcehuobisi/125207/125213/125440/125838/index.html)，2025年第二季度全国新发放商业性个人住房贷款**加权平均利率**为3.09%。
 
 加权平均利率 = (每笔贷款本金 × 对应利率)之和 ÷ 总本金。例如，一套房子贷款总额为 150 万，其中 100万元贷款按3.11%利率发放，50万元按3.09%发放，则**加权平均利率**为(100×3.11+50×3.09)/150 = 3.10% 。
+
+
+{{<echarts>}}
+option = {
+  title: {
+    text: '商业性个人住房贷款加权平均利率',
+    left: 'center',
+    textStyle: {
+      fontSize: 20
+    },
+    subtextStyle: {
+      color: '#175ce5',
+      fontSize: 15,
+      fontWeight: 'bold'
+    }
+  },
+  legend: {
+    data: ['加权平均利率']
+  },
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: {
+      type: 'cross'
+    }
+  },
+  xAxis: {
+    type: 'category',
+    axisTick: {
+        alignWithLabel: true
+      },
+    data: ['24Q3', '24Q4', '25Q1', '25Q2']
+  },
+  yAxis: {
+    type: 'value',
+    alignTicks: true,
+    axisLabel: {
+        formatter: '{value} %'
+      }
+  },
+  series: [
+    {
+      name: '加权平均利率',
+      data: [3.33, 3.1, 3.09, 3.11],
+      type: 'line',
+      smooth: true
+    }
+  ]
+};
+{{</echarts>}}
 
 
 # 房地产行业
