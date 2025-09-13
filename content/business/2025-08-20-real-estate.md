@@ -435,7 +435,7 @@ option = {
 
 结婚率与离婚率如何与房地产相关呢？曾经流行这样一个说法，没有房子没有谈婚论嫁的资格，现在也是。而在一些大城市，因为限购政策，有钱的人为了多买一套房，先离婚再结婚。总而言之，购房政策与结婚与否、生育与否联系起来了。
 
-数据来源：中华人民共和国民政部 2024年民政事业发展[统计公报](https://www.mca.gov.cn/n156/n2679/index.html)
+数据来源：中华人民共和国民政部 2024年民政事业发展[统计公报](https://www.mca.gov.cn/n156/n2679/index.html)，只有 2022-2024 年的数据，其它数据从国家统计局统计年鉴获取。
 
 
 {{<echarts>}}
@@ -453,7 +453,7 @@ option = {
     }
   },
   legend: {
-    data: ['结婚率', '离婚率']
+    data: ['结婚', '结婚率', '离婚', '离婚率']
   },
   tooltip: {
     trigger: 'axis',
@@ -466,26 +466,65 @@ option = {
     axisTick: {
         alignWithLabel: true
       },
-    data: ['2018', '2019', '2020', '2021', '2022', '2023', '2024']
+    data: ['2012','2013','2014','2015','2016','2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024']
   },
-  yAxis: {
+  yAxis: [
+    {
+      type: 'value',
+      position: 'left',
+      alignTicks: true,
+      axisLabel: {
+        formatter: '{value} 万对'
+      }
+    },  
+  {
     type: 'value',
     alignTicks: true,
     axisLabel: {
         formatter: '{value} ‰'
       }
   },
+    {
+      type: 'value',
+      position: 'left',
+      alignTicks: true,
+      axisLabel: {
+        formatter: '{value} 万对'
+      }
+    },  
+  {
+    type: 'value',
+    alignTicks: true,
+    axisLabel: {
+        formatter: '{value} ‰'
+      }
+  }
+  ],
   series: [
     {
+      name: '结婚',
+      data: [1323.59, 1346.93, 1306.74, 1224.71, 1142.82, 1063.10, 1013.94, 927.33, 814.33, 764.3, 683.5, 768.2, 610.6],
+      type: 'bar',
+      smooth: true
+    },
+    {
       name: '结婚率',
-      data: [7.3, 6.6, 5.8, 5.4, 4.8, 5.4, 4.3],
+      data: [9.8, 9.9, 9.6, 9.0, 8.3, 7.7, 7.3, 6.6, 5.8, 5.4, 4.8, 5.4, 4.3],
       type: 'line',
+      yAxisIndex: 1,
+      smooth: true
+    },
+    {
+      name: '离婚',
+      data: [310.38, 350.01, 363.68, 384.14, 415.82, 437.40, 446.08, 470.06, 433.90, 283.93, 287.9, 360.53, 351.3],
+      type: 'bar',
       smooth: true
     },
     {
       name: '离婚率',
-      data: [3.2, 3.4, 3.1, 2.0, 2.0, 2.6, 2.5],
+      data: [2.29, 2.57, 2.67, 2.79, 3.02, 3.15, 3.20, 3.36, 3.09, 2.01, 2.04, 2.56, 2.5],
       type: 'line',
+      yAxisIndex: 1,
       smooth: true
     }
   ]
@@ -589,12 +628,14 @@ option = {
 
 中国人民银行[宣布](https://www.gov.cn/lianbo/bumen/202505/content_7022720.htm)自2025年5月8日起，下调个人住房公积金贷款利率0.25个百分点。
 
+一年内多次调整的取年内最后一次调整的数据。
+
 - 首套房
 
 {{<echarts>}}
 option = {
   title: {
-    text: '首套房',
+    text: '首套住房公积金贷款利率 2012-2025',
     left: 'center',
     textStyle: {
       fontSize: 20
@@ -619,7 +660,7 @@ option = {
     axisTick: {
         alignWithLabel: true
       },
-    data: ['2024-05-18', '2025-05-08']
+    data: ['2012', '2014' ,'2015', '2022', '2024', '2025']
   },
   yAxis: {
     type: 'value',
@@ -631,13 +672,13 @@ option = {
   series: [
     {
       name: '5年以下（含5年）',
-      data: [2.35, 2.1],
+      data: [4.00, 3.75, 2.75, 2.60, 2.35, 2.1],
       type: 'line',
       smooth: true
     },
     {
       name: '5年以上',
-      data: [2.85, 2.6],
+      data: [4.50, 4.25, 3.25, 3.10, 2.85, 2.6],
       type: 'line',
       smooth: true
     }
@@ -651,7 +692,7 @@ option = {
 {{<echarts>}}
 option = {
   title: {
-    text: '第二套',
+    text: '第二套住房公积金贷款利率 2015-2025',
     left: 'center',
     textStyle: {
       fontSize: 20
@@ -676,7 +717,7 @@ option = {
     axisTick: {
         alignWithLabel: true
       },
-    data: ['2024-05-18', '2025-05-08']
+    data: ['2015', '2022', '2024', '2025']
   },
   yAxis: {
     type: 'value',
@@ -688,13 +729,13 @@ option = {
   series: [
     {
       name: '5年以下（含5年）',
-      data: [2.775, 2.525],
+      data: [3.025, 3.025, 2.775, 2.525],
       type: 'line',
       smooth: true
     },
     {
       name: '5年以上',
-      data: [3.325, 3.075],
+      data: [3.575, 3.575, 3.325, 3.075],
       type: 'line',
       smooth: true
     }
