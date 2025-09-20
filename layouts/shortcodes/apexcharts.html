@@ -1,0 +1,17 @@
+{{ $id := printf "apexcharts-js-%d" .Ordinal }}
+
+<!-- 为 ECharts 准备一个定义了宽高的 DOM -->
+<div id="{{ $id }}"></div>
+
+<script type="text/javascript">
+  // 指定图表的配置项和数据
+  {{ .Inner | safeJS }}
+  
+  // 基于准备好的dom，初始化 ApexCharts 实例
+  var myChart = new ApexCharts(document.getElementById('{{ $id }}'), option);
+
+  // 使用刚指定的配置项和数据显示图表
+  if (typeof option !== 'undefined') {
+    myChart.render();
+  }
+</script>
