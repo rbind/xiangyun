@@ -47,12 +47,17 @@
   <script src="https://cdn.plot.ly/plotly-3.0.0.min.js"></script>
 {{ end }}
 
+{{ if .HasShortcode "apexcharts" }}
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+{{ end }}
+
 {{ with .OutputFormats.Get "RSS" }}
 <link href="{{ .RelPermalink }}" rel="alternate" type="application/rss+xml" title="{{ $.Site.Title }}" />
 {{ end }}
 {{ partial "head_highlightjs" . }}
 <link rel="stylesheet" href="{{ "css/fonts.css" | relURL }}" media="all">
 <link rel="stylesheet" href="{{ "css/main.css" | relURL }}" media="all">
+<link rel="stylesheet" href="{{ "css/gallery.css" | relURL }}" media="all">
 {{ range .Site.Params.customCSS }}
 <link rel="stylesheet" href="{{ . | relURL }}">
 {{ end }}
