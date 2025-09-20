@@ -1,0 +1,191 @@
+---
+title: 中国常住人口分布图（2023 年市级）
+author: 黄湘云
+date: '2025-09-17'
+slug: china-population
+categories:
+  - 统计图形
+tags:
+  - 数据可视化
+  - 空间数据
+  - ggplot2
+  - leaflet
+  - sf
+  - 常住人口
+output:
+  blogdown::html_page:
+    toc: true
+link-citations: true
+description: "既然人口是一切的基础，为了解全国的基本情况，不妨从全国各区县常住人口数开始。"
+---
+
+# 数据说明
+
+从收集整理展示房地产相关的核心数据后，感到人口数据是最本质的一个数据指标，事关全局发展。为了防止过粗，不选省级数据，又防止数据整理规模过大，不选区县级，因此，量力而行，先选一个数据指标---中国各市、州的**年末常住人口数**（有的统计年鉴未有常住人口数指标，以年末总人口替代，重庆市各区县以年末户籍人口替代）。青海省统计年鉴2024没有分各市、州的年末常住人口数，需要去各市州统计局官网查找。截至本文发出，宁夏回族自治区最新的人口数据是 2022 年的。吉林省统计局官网无法打开，获取不到统计年鉴数据，在百度百科上找到[数据](https://baike.baidu.com/item/吉林省/129609#2)。西藏自治区、新疆维吾尔自治区的数据来自[民政部](http://xzqh.mca.gov.cn/defaultQuery?shengji=%D0%C2%BD%AE%CE%AC%CE%E1%B6%FB%D7%D4%D6%CE%C7%F8%A3%A8%D0%C2%A3%A9&diji=-1&xianji=-1)。香港特别行政区最新的人口数据是 2021 年的，澳门特别行政区的情形同香港。~~（大半天的时间在各种格式的统计年鉴中摘数据。）~~
+
+收集整理各省统计局发布的统计年鉴中的各市、州的**年末常住人口数**，以湖南省统计局为例，其在2025 年发布《湖南统计年鉴2024》，该年鉴中最新的常住人口数据是 2023 年的，有一年滞后期（有的省份在2024年发布，有的推迟到2025年发布）。收集整理的工作量是不小的，为了最终呈现方便，我先找了地图数据 --- [阿里云DataV数据可视化平台](https://datav.aliyun.com/portal/school/atlas/area_selector)。下载了全国市级行政地图数据，一个 json 格式的数据文件。
+
+# 数据展示
+
+读取地图数据后，将收集整理的数据与地图数据合并。
+
+```{r}
+china_city_geo <- sf::read_sf("data/中华人民共和国.json")
+china_city_pop <- readxl::read_xlsx(path = "data/全国各市年末常住人口.xlsx", skip = 1)
+china_city_df <- china_city_geo[, c("adcode", "name")]
+china_city_df <- as.data.frame(china_city_df)
+china_city <- merge(china_city_df, china_city_pop, by = "adcode")
+china_city <- sf::st_as_sf(china_city, sf_column_name = "geometry")
+```
+
+```{r}
+#| eval: false
+#| echo: false
+
+china_city$mid <- sf::st_centroid(china_city$geometry)
+# 导出行政编码和名称，再根据各省统计年鉴将人口数据对号入座
+china_city_df<- china_city[, c("adcode", "name")]
+china_city_df<-as.data.frame(china_city_df)
+writexl::write_xlsx(x = china_city_df[,c("adcode", "name")], path = "data/adcode.xlsx")
+```
+
+
+
+## ggplot2
+
+```{r}
+#| label: fig-china-city-pop23
+#| fig-cap: 2023 年中国各市年末常住人口数
+#| fig-showtext: true
+
+library(ggplot2)
+ggplot(data = china_city) +
+  geom_sf(aes(fill = pop23)) +
+  scale_fill_distiller(palette = "Spectral", na.value = "grey80") +
+  theme_light()
+```
+
+要说明一下，四个直辖市和省同级，其下的各区县相当于省下面的市州，故而图中未看到北京、上海、天津和重庆市。地图数据将台湾省当作市一级，台湾并不公布人口情况，我在百度百科上抓到一个数据。
+
+按100万人口为阶梯划分，市级常住人口的分布如下：
+
+```{r}
+#| label: fig-china-city-hist
+#| fig-cap: 2023 年中国年末常住人口数的分布
+#| fig-showtext: true
+
+ggplot(data = china_city_pop, aes(x = pop23)) +
+  geom_histogram(binwidth = 100, na.rm = T, fill = "#FC8D59", color = "white") +
+  labs(x = "常住人口数", y = "城市数") +
+  theme_light()
+```
+
+2023 年中国年末常住人口数大于 500 万的城市
+
+```{r warning=FALSE}
+#| label: fig-china-median-city-pop23
+#| fig-cap: 2023 年中国年末常住人口数大于 500 万的城市
+#| fig-showtext: true
+#| fig-width: 7
+#| fig-height: 6
+
+ggplot(data = china_city) +
+  geom_sf(aes(fill = pop23), color = "white", data = function(x) subset(x, pop23 > 500)) +
+  geom_sf_label(aes(label = name), data = function(x) subset(x, pop23 > 500), size = 3) +
+  scale_fill_distiller(palette = "Spectral") +
+  labs(x = "", y = "") +
+  theme_light()
+```
+
+对我一个没去过其它地方，不了解其它地方的人来说，这图依然有意义。比如四川省首府成都市人口竟那么多。广东有三个市人口过千万，广州、东莞和深圳。
+
+```{r warning=FALSE}
+#| label: fig-china-large-city-pop23
+#| fig-cap: 2023 年中国年末常住人口数大于 1000 万的城市
+#| fig-showtext: true
+
+ggplot(data = china_city) +
+  geom_sf(aes(fill = pop23), data = function(x) subset(x, pop23 > 1000)) +
+  geom_sf_label(aes(label = name), data = function(x) subset(x, pop23 > 1000), size = 3) +
+  scale_fill_distiller(palette = "Spectral") +
+  labs(x = "", y = "") +
+  theme_light()
+```
+
+根据人口规模对城市等级的划分如下表：
+
+| 城市等级   | 常住人口   | 城市等级    | 常住人口  |
+|------------|------------|-------------|-----------|
+| 超大城市   | 1000万以上 | II 型大城市 | 100-300万 |
+| 特大城市   | 500-1000万 | 中等城市    | 50-100万  |
+| I 型大城市 | 300-500万  | 小城市      | 50万以下  |
+
+: 按常住人口划分城市等级
+
+```{r}
+#| label: fig-china-city-pop23-binned
+#| fig-cap: 2023 年中国各市年末常住人口数
+#| fig-showtext: true
+
+# dig.lab 参数控制区间端点的格式，不要科学计数法不易读不美观
+china_city$pop23_d <- cut(china_city$pop23, breaks = c(0, 50, 100, 300, 500, 1000, 2500), dig.lab = 4)
+
+ggplot(data = china_city) +
+  geom_sf(aes(fill = pop23_d), colour = NA) +
+  scale_fill_brewer(palette = "Spectral", na.value = "grey80", direction = -1) + 
+  theme_light() +
+  labs(fill = "常住人口（万）") +
+  theme(legend.justification = c(0, 0), legend.position = c(0.02, 0.02))
+```
+
+相比于图 \@ref(fig:fig-china-city-pop23) ，上图里不同的色彩对应不同的城市等级，让城市规模更加清楚。
+
+
+## leaflet
+
+有时，需要用到交互式图形，添加探索性和更多数据信息，将地图数据映射到高德地图上。
+
+```{r}
+library(leaflet)
+# 连续型调色板
+# pal <- colorNumeric("Spectral", domain = NULL, reverse = TRUE)
+# 分段离散调色板
+pal <- colorBin("Spectral", bins = c(0, 50, 100, 300, 500, 1000, 2500), domain = NULL, reverse = TRUE)
+# 将数据绘制到地图上
+leaflet(china_city) |>
+  addTiles(
+    # 来自 leafletCN::amap()
+    urlTemplate = "http://webrd02.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}",
+    options = tileOptions(tileSize = 256, minZoom = 3, maxZoom = 17),
+    attribution = "&copy; <a href=\"http://amap.com\">amp.com</a >"
+  ) |> 
+  addPolygons(
+    stroke = F, # 不显示各个区县的边界线
+    weight = 1, # 设置边界线宽度
+    fillOpacity = 0.5, # 填充多边形的透明度
+    fillColor = ~ pal(pop23),
+    label = lapply(paste0(
+      "城市：", "<b>", china_city$name, "</b>", "<br/>",
+      "常住人口（万）：", china_city$pop23
+    ), htmltools::HTML)
+  ) |>
+  addLegend(
+    position = "bottomright", title = "常住人口（万）",
+    pal = pal, values = ~pop23, opacity = 1.0
+  ) |>
+  addScaleBar(position = "bottomleft")
+```
+
+高德地图数据与阿里发布的行政区划的边界数据并不完全一致，可以看到有白色的缝隙。
+
+有些地方面积大，人口也多，可是人口密度（即单位平方公里上的人数）却少，如果看人口密度，北上广深这些城市的区县就会突出来。此外，还要考虑人口流入流出的情况，即 2023 年的人口相对于 2020 年是增加还是减少。人口向大城市、沿海城市、各省首府集中的规模和趋势是否与预想一致呢？
+
+# 运行环境
+
+本文的数据整理和展示主要使用的扩展包是 sf 和 leaflet 包，文字和代码的编辑是在 R Markdown 文档（Rmd 格式的源文档）中完成的，借助 blogdown 包，可以将 Rmd 格式文档编译成 HTML 格式，再发布到个人主页上。
+
+```{r}
+xfun::session_info(
+  packages = c('ggplot2', 'leaflet', 'sf', 'rmarkdown', 'blogdown'),
+  dependencies = F)
+```
