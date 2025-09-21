@@ -21,9 +21,10 @@ description: "既然人口是一切的基础，为了解全国的基本情况，
 
 # 数据说明
 
-从收集整理展示房地产相关的核心数据后，感到人口数据是最本质的一个数据指标，事关全局发展。为了防止过粗，不选省级数据，又防止数据整理规模过大，不选区县级，因此，量力而行，先选一个数据指标---中国各市、州的**年末常住人口数**（有的统计年鉴未有常住人口数指标，以年末总人口替代，重庆市各区县以年末户籍人口替代）。青海省统计年鉴2024没有分各市、州的年末常住人口数，需要去各市州统计局官网查找。截至本文发出，宁夏回族自治区最新的人口数据是 2022 年的。吉林省统计局官网无法打开，获取不到统计年鉴数据，在百度百科上找到[数据](https://baike.baidu.com/item/吉林省/129609#2)。西藏自治区、新疆维吾尔自治区的数据来自[民政部](http://xzqh.mca.gov.cn/defaultQuery?shengji=%D0%C2%BD%AE%CE%AC%CE%E1%B6%FB%D7%D4%D6%CE%C7%F8%A3%A8%D0%C2%A3%A9&diji=-1&xianji=-1)。香港特别行政区最新的人口数据是 2021 年的，澳门特别行政区的情形同香港。~~（大半天的时间在各种格式的统计年鉴中摘数据。）~~
+从收集整理展示房地产相关的核心数据后，感到人口数据是最本质的一个数据指标，事关全局发展。为了防止过粗，不选省级数据，又防止数据整理规模过大，不选区县级，因此，量力而行，先选一个数据指标---中国各市、州的**年末常住人口数**（有的统计年鉴未有常住人口数指标，以年末总人口替代，重庆市各区县以年末户籍人口替代）。香港特别行政区最新的人口数据是 2021年的，澳门特别行政区的情形同香港。~~（大半天的时间在各种格式的统计年鉴中摘数据。）~~
 
 收集整理各省统计局发布的统计年鉴中的各市、州的**年末常住人口数**，以湖南省统计局为例，其在2025 年发布《湖南统计年鉴2024》，该年鉴中最新的常住人口数据是 2023 年的，有一年滞后期（有的省份在2024年发布，有的推迟到2025年发布）。收集整理的工作量是不小的，为了最终呈现方便，我先找了地图数据 --- [阿里云DataV数据可视化平台](https://datav.aliyun.com/portal/school/atlas/area_selector)。下载了全国市级行政地图数据，一个 json 格式的数据文件。
+
 
 # 数据展示
 
@@ -189,3 +190,21 @@ xfun::session_info(
   packages = c('ggplot2', 'leaflet', 'sf', 'rmarkdown', 'blogdown'),
   dependencies = F)
 ```
+
+
+# 参考材料
+
+统计人口流动以 2020 年人口普查结果为参照，各省、自治区和直辖市的统计局发布的统计年鉴。数据来源首先是各省统计局发布的统计年鉴，其次是统计公报、红黑人口库和红黑统计公报库，再次是百度百科和[民政部](http://xzqh.mca.gov.cn/map)。
+
+- [红黑人口库](https://www.hongheiku.com/shijirenkou/)
+- [红黑统计公报库](https://tjgb.hongheiku.com/)
+- [北京市](https://tjj.beijing.gov.cn)
+- [天津市](https://stats.tj.gov.cn/tjsj_52032/tjnj/)
+- [河北省](http://tjj.hebei.gov.cn/hbstjj/sj/sjcx/tjnj/)
+- [山西省](https://tjj.shanxi.gov.cn/tjsj/tjnj/)
+- [内蒙古自治区](https://tj.nmg.gov.cn/tjyw/index_1.html)
+- [辽宁省](https://tjj.ln.gov.cn/tjj/tjsj/tjnj/index.shtml)
+- [黑龙江省](https://tjj.hlj.gov.cn/tjj/c106782/common_zfxxgk.shtml)
+- [江苏省](https://tj.jiangsu.gov.cn/col/col89815/index.html)
+- [河南省](https://tjj.henan.gov.cn/tjfw/tjcbw/tjnj/)
+- 待补充
