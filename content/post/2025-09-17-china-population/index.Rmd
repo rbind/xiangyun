@@ -33,6 +33,7 @@ description: "既然人口是一切的基础，为了解全国的基本情况，
 ```{r}
 china_city_geo <- sf::read_sf("data/中华人民共和国.json")
 china_city_pop <- readxl::read_xlsx(path = "data/全国各市年末常住人口.xlsx", skip = 1)
+china_city_pop$pop20 <- as.numeric(china_city_pop$pop20)
 china_city_df <- china_city_geo[, c("adcode", "name")]
 china_city_df <- as.data.frame(china_city_df)
 china_city <- merge(china_city_df, china_city_pop, by = "adcode")
@@ -180,6 +181,68 @@ leaflet(china_city) |>
 高德地图数据与阿里发布的行政区划的边界数据并不完全一致，可以看到有白色的缝隙。
 
 有些地方面积大，人口也多，可是人口密度（即单位平方公里上的人数）却少，如果看人口密度，北上广深这些城市的区县就会突出来。此外，还要考虑人口流入流出的情况，即 2023 年的人口相对于 2020 年是增加还是减少。人口向大城市、沿海城市、各省首府集中的规模和趋势是否与预想一致呢？
+
+
+```{r}
+#| label: fig-china-city-pop-diff
+#| fig-cap: 中国各市人口流动的分布 2023 vs 2020
+#| fig-showtext: true
+
+ggplot(data = china_city_pop, aes(x = pop23-pop20)) +
+  geom_histogram(binwidth = 10, na.rm = T, fill = "#FC8D59", color = "white") +
+  labs(x = "常住人口增减数", y = "城市数") +
+  theme_light()
+```
+
+2020 年是第七次人口普查年，普查数据最权威。2020 年又是疫情以来的转折点，现在最新最权威的统计数据是 2023 年的（所谓后疫情时代），正好看人口流动情况。
+
+```{r}
+#| label: fig-china-city-pop-23vs20
+#| fig-cap: 中国各市人口流动情况 2023 vs 2020
+#| fig-showtext: true
+
+china_city$pop_diff <- china_city$pop23-china_city$pop20
+china_city$pop_d <- cut(china_city$pop_diff, breaks = c(-200, -100, -50, -20 , -10, 0, 10, 20, 50, 100, 200), dig.lab = 4)
+
+ggplot(data = china_city) +
+  geom_sf(aes(fill = pop_d), colour = NA) +
+  scale_fill_brewer(palette = "Spectral", na.value = "grey80", direction = -1) + 
+  theme_light() +
+  labs(fill = "常住人口（万）")
+```
+
+2020-2023 年，全国总的人口没有太大的变化，城市的常住人口的增减看作人口的流入流出。图中蓝色表示人口流出的城市，红色表示人口流入的城市。
+
+```{r}
+# 分段离散调色板
+pal <- colorBin("Spectral", bins = c(-50, -20 , -10, 0, 10, 20, 50, 100, 200), domain = NULL, reverse = TRUE)
+# 将数据绘制到地图上
+leaflet(china_city) |>
+  addTiles(
+    # 来自 leafletCN::amap()
+    urlTemplate = "http://webrd02.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}",
+    options = tileOptions(tileSize = 256, minZoom = 3, maxZoom = 17),
+    attribution = "&copy; <a href=\"http://amap.com\">amp.com</a >"
+  ) |> 
+  addPolygons(
+    stroke = F, # 不显示各个区县的边界线
+    weight = 1, # 设置边界线宽度
+    fillOpacity = 0.5, # 填充多边形的透明度
+    fillColor = ~ pal(pop_diff),
+    label = lapply(paste0(
+      "城市：", "<b>", china_city$name, "</b>", "<br/>",
+      "常住人口（万）：", round(china_city$pop_diff, digits =3) 
+    ), htmltools::HTML)
+  ) |>
+  addLegend(
+    position = "bottomright", title = "常住人口（万）",
+    pal = pal, values = ~pop_diff, opacity = 1.0
+  ) |>
+  addScaleBar(position = "bottomleft")
+```
+
+各省首府对周围地市人口吸引力普遍存在，人口还在往大城市集中，如武汉、杭州、成都等，武汉竟增加了 145 万人。沿海城市中，长三角比珠三角吸引力更大。
+
 
 # 运行环境
 
