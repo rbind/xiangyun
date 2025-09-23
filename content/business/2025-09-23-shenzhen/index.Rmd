@@ -1,0 +1,107 @@
+---
+title: 深圳市的房地产市场
+author: 黄湘云
+date: '2025-09-23'
+slug: shenzhen
+categories:
+  - 商业思维
+tags:
+  - 房地产市场
+  - 深圳市
+output:
+  blogdown::html_page:
+    toc: true
+code_fold: true
+description: "外来人口流动、房地产去化周期、人口密度和空间分布。"
+---
+
+继[房地产相关的核心数据](/2025/08/real-estate)、[中国常住人口分布图（2023 年市级）](/2025/09/china-population)之后，仔细研究某一个城市的房地产市场是一个比较大的补充。
+
+# 人口情况
+
+
+深圳市发布的 2024 年统计年鉴显示，2023 年末常住人口数是 1779.01 万人，相比于 2020 年的 1763.38 万人，增加了 15.6 万人。根据 2024 年发布的[统计公报](https://tjj.sz.gov.cn/zwgk/zfxxgkml/tjsj/tjgb/content/post_12190509.html)，2024 年末常住人口 1798.95 万人，比 2023 年末增加 19.94 万人。
+
+分两个方面来看，其一是本地人和外来人口数的历史趋势（时间维度），其二是各区人口流入流出的情况（空间维度）。
+
+## 历史趋势
+
+深圳市历年年末常住人口见下图，分户籍人口（有深圳市户籍的常住人口），外来人口（没有深圳市户籍的常住人口）。外来人口占深圳市常住人口的大头，2024 年这一比重是 64.9%。自 2020 年以来，深圳市的外来人口数量呈现下降趋势。
+
+```{r}
+city_pop_registered <- readxl::read_xlsx(path = "data/户籍人口.xlsx", skip = 1)
+library(echarts4r)
+city_pop_registered |> 
+  dplyr::mutate(年份 = factor(年份)) |> 
+  e_charts(年份) |> 
+  e_bar(户籍人口, name = "户籍人口", stack = "grp") |> 
+  e_bar(外来人口, name = "外来人口", stack = "grp") |> 
+  e_line(常住人口, name = "常住人口") |> 
+  e_tooltip(trigger = "axis") |> 
+  e_x_axis(name = "年份", nameLocation = "center", nameGap = 30) |> 
+  e_y_axis(name = "人口数（万）", nameLocation = "center", nameGap = 35) |> 
+  e_theme("vintage")
+```
+
+
+## 流动情况
+
+各区的人口流入或流出情况影响房地产行业的需求，房地产行业又非常看重楼盘的位置。不同区的人口在空间上的流动显得非常重要。
+
+```{r}
+city_geo <- sf::read_sf("data/深圳市.json")
+# pop2020 pop2023 年末常住人口（万人）
+# den2023 人口密度（人/平方公里）
+# sold2023   商品房销售面积（万平方米）
+# unsold2023 商品房待售面积（万平方米）
+# avg_price2023 商品住宅二级市场平均交易价格（元/平方米）
+city_pop_permanent <- tibble::tribble(
+  ~name, ~pop2020, ~pop2023, ~den2023, ~sold2023, ~unsold2023, ~avg_price2023,
+  "福田区", 155.41, 152.10, 19336, 37.41, 34.74, 99481,
+  "罗湖区", 114.75, 103.46, 13129, 59.43, 45.30, 66982,
+  "盐田区", 21.43,  21.24,  2832,  24.07, 32.27, 51244, 
+  "南山区", 180.42, 181.86, 9698, 127.91, 208.80, 99796,
+  "宝安区", 449.11, 456.54, 11512, 152.71, 145.40, 56278,
+  "龙岗区", 399.90, 409.81, 10557, 138.64, 117.41, 43149,
+  "龙华区", 254.32, 251.84, 14338, 93.13, 46.62, 66290,
+  "坪山区", 55.43, 61.61, 3705, 31.59, 29.30, 36761,
+  "光明区", 110.35, 115.90, 7459, 88.51, 59.14, 45245,
+  "大鹏新区", 15.69, 16.72, 566, 7.60, 25.95, 31107,
+  "深汕特别合作区", 6.57, 7.93, NA, 22.14, 26.52, 11420
+)
+city_pop_permanent$pop_diff <- round(city_pop_permanent$pop2023 - city_pop_permanent$pop2020, digits = 2)
+city_pop_permanent$de_cycle <- round(city_pop_permanent$unsold2023 / city_pop_permanent$sold2023 * 12, digits = 2)
+city_geo <- merge(city_geo[, c("adcode", "name")], city_pop_permanent, by = "name")
+
+library(leaflet)
+pal <- colorNumeric("Spectral", domain = NULL, reverse = TRUE)
+leaflet(city_geo) |>
+  addTiles(
+    # 来自 leafletCN::amap()
+    urlTemplate = "http://webrd02.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}",
+    options = tileOptions(tileSize = 256, minZoom = 3, maxZoom = 17),
+    attribution = "&copy; <a href=\"http://amap.com\">amp.com</a >"
+  ) |> 
+  addPolygons(
+    stroke = F, # 不显示各个区县的边界线
+    weight = 1, # 设置边界线宽度
+    fillOpacity = 0.5, # 填充多边形的透明度
+    fillColor = ~ pal(pop_diff),
+    label = lapply(paste0(
+      "区：", "<b>", city_geo$name, "</b>", "<br/>",
+      "人口密度（人/平方公里）：", "<b>", city_geo$den2023, "</b>", "<br/>",
+      "房价（元/平米）：", "<b>", city_geo$avg_price2023, "</b>", "<br/>",
+      "去化周期（月）：", "<b>", city_geo$de_cycle, "</b>", "<br/>",
+      "人口增减（万）：", city_geo$pop_diff
+    ), htmltools::HTML)
+  ) |>
+  addLegend(
+    position = "bottomright", title = "人口增减（万）",
+    pal = pal, values = ~pop_diff, opacity = 1.0
+  ) |>
+  addScaleBar(position = "bottomleft")
+```
+
+* 所获取的深圳市地图数据是 2021 年的，图中没有大鹏新区和深汕特别合作区的人口增减数。
+
+福田区和罗湖区都更靠近香港，相比而言，地理位置更加优越，常住人口却在减少。这现象有点类似于北京市的东城和西城，越靠近城市中心位置，常住人口反而在减少。福田和罗湖区人口密度非常大，房价相对较高，生活成本高，在经济下行期，人口流出就不奇怪了。
