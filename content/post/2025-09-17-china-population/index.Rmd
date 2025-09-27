@@ -21,7 +21,7 @@ description: "既然人口是一切的基础，为了解全国的基本情况，
 
 # 数据说明
 
-从收集整理展示房地产相关的核心数据后，感到人口数据是最本质的一个数据指标，事关全局发展。为了防止过粗，不选省级数据，又防止数据整理规模过大，不选区县级，因此，量力而行，先选一个数据指标---中国各市、州的**年末常住人口数**（有的统计年鉴未有常住人口数指标，以年末总人口替代，重庆市各区县以年末户籍人口替代）。香港特别行政区最新的人口数据是 2021年的，澳门特别行政区的情形同香港。~~（大半天的时间在各种格式的统计年鉴中摘数据。）~~
+从收集整理展示房地产相关的核心数据后，感到人口数据是最本质的一个数据指标，事关全局发展。为了防止过粗，不选省级数据，又防止数据整理规模过大，不选区县级，因此，量力而行，先选一个数据指标---中国各市、州的**年末常住人口数**（有的统计年鉴没有常住人口数指标，以年末总人口替代，重庆市各区县以年末户籍人口替代）。香港特别行政区最新的人口数据是 2021年的，澳门特别行政区的情形同香港。~~（大半天的时间在各种格式的统计年鉴中摘数据。）~~
 
 收集整理各省统计局发布的统计年鉴中的各市、州的**年末常住人口数**，以湖南省统计局为例，其在2025 年发布《湖南统计年鉴2024》，该年鉴中最新的常住人口数据是 2023 年的，有一年滞后期（有的省份在2024年发布，有的推迟到2025年发布）。收集整理的工作量是不小的，为了最终呈现方便，我先找了地图数据 --- [阿里云DataV数据可视化平台](https://datav.aliyun.com/portal/school/atlas/area_selector)。下载了全国市级行政地图数据，一个 json 格式的数据文件。
 
@@ -69,7 +69,7 @@ ggplot(data = china_city) +
 
 要说明一下，四个直辖市和省同级，其下的各区县相当于省下面的市州，故而图中未看到北京、上海、天津和重庆市。地图数据将台湾省当作市一级，台湾并不公布人口情况，我在百度百科上抓到一个数据。
 
-按100万人口为阶梯划分，市级常住人口的分布如下：
+按100万人口为阶梯划分，市州级年末常住人口的分布如下：
 
 ```{r}
 #| label: fig-china-city-hist
@@ -82,7 +82,7 @@ ggplot(data = china_city_pop, aes(x = pop23)) +
   theme_light()
 ```
 
-2023 年中国年末常住人口数大于 500 万的城市
+2023 年中国年末常住人口数大于 500 万的城市。
 
 ```{r warning=FALSE}
 #| label: fig-china-median-city-pop23
@@ -190,11 +190,11 @@ leaflet(china_city) |>
 
 ggplot(data = china_city_pop, aes(x = pop23-pop20)) +
   geom_histogram(binwidth = 10, na.rm = T, fill = "#FC8D59", color = "white") +
-  labs(x = "常住人口增减数", y = "城市数") +
+  labs(x = "人口流动（万）", y = "城市数") +
   theme_light()
 ```
 
-2020 年是第七次人口普查年，普查数据最权威。2020 年又是疫情以来的转折点，现在最新最权威的统计数据是 2023 年的（所谓后疫情时代），正好看人口流动情况。
+2020 年是第七次人口普查年，普查数据最权威。2020 年又是疫情以来的转折点，现在最新最权威的统计数据是 2023 年的（所谓后疫情时代），正好看人口流动情况。2023 年的常住人口减去2020 年常住人口，结果数据为正表示人口流入，数据为负表示人口流出。
 
 ```{r}
 #| label: fig-china-city-pop-23vs20
@@ -208,7 +208,7 @@ ggplot(data = china_city) +
   geom_sf(aes(fill = pop_d), colour = NA) +
   scale_fill_brewer(palette = "Spectral", na.value = "grey80", direction = -1) + 
   theme_light() +
-  labs(fill = "常住人口（万）")
+  labs(fill = "人口流动（万）")
 ```
 
 2020-2023 年，全国总的人口没有太大的变化，城市的常住人口的增减看作人口的流入流出。图中蓝色表示人口流出的城市，红色表示人口流入的城市。
@@ -231,11 +231,11 @@ leaflet(china_city) |>
     fillColor = ~ pal(pop_diff),
     label = lapply(paste0(
       "城市：", "<b>", china_city$name, "</b>", "<br/>",
-      "常住人口（万）：", round(china_city$pop_diff, digits =3) 
+      "人口流动（万）：", round(china_city$pop_diff, digits =3) 
     ), htmltools::HTML)
   ) |>
   addLegend(
-    position = "bottomright", title = "常住人口（万）",
+    position = "bottomright", title = "人口流动（万）",
     pal = pal, values = ~pop_diff, opacity = 1.0
   ) |>
   addScaleBar(position = "bottomleft")
