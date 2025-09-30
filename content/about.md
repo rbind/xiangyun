@@ -61,6 +61,10 @@ title: 关于
 -   [太隐](https://wangyurui.com/) 历史、哲学
 -   [张驰原](https://pluskid.org/) 美术、计算机
 
+最后，同样重要的是看到一些带给我力量的文章。
+
+- [博客带给我什么？——博客重建7周年](https://lhcy.org/archives/196.html)
+- [为自己而活](https://cyrusyip.org/zh-cn/posts/2021/02/18/live-for-myself/)
 
 <!--
 近些年，因为统计之都和网上冲浪认识了一些人，也有一些人想去认识。不时去逛逛他（她）们的主页，会发现有意思的地方。（按姓氏拼音排序）
@@ -72,7 +76,6 @@ title: 关于
 -   [Jin Li](https://jinli.link/) Julia
 -   [任坤](https://renkun.me/) R 语言、对冲基金
 -   [苏玮](https://swsoyee.vercel.app/) 前端
--   [宋骁](https://xsong.ltd/) SQL
 -   [吴诗涛](https://shitao.netlify.app/) R 语言
 -   [夏骁凯](https://xiaokai.me/) 心理学、医生
 -   [叶寻](https://cyrusyip.org/en/) Linux
