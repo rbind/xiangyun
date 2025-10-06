@@ -51,6 +51,7 @@ title: 关于
 
 除了友链，我还订阅了一些博主。
 
+-   [黄国政](https://guozheng.rbind.io/) 社会学
 -   [陈丽云](https://www.loyhome.com/) 统计，经济
 -   [范叶亮](https://leovan.me/) 计算机，风控
 -   [高策](https://gaocegege.com/Blog/) 计算机、可视化
