@@ -52,6 +52,7 @@ rssLimit = 30
 [params]
     description = "A website built through Hugo and blogdown."
 
+    Github = "rbind/xiangyun/"
     customCSS = ["css/custom.css"]
     highlightjsVersion = "9.12.0"
     highlightjsCDN = "//cdnjs.cloudflare.com/ajax/libs"
