@@ -1,0 +1,748 @@
+---
+title: "10分钟入门pandas"
+author: "黄湘云"
+date: '2025-10-07'
+slug: pandas
+categories:
+  - 统计软件
+tags:
+  - pandas
+  - numpy
+  - data.frame
+  - array
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+description: "Python 模块 Pandas 是做数据操作的，本文添加等价 R 代码。"
+---
+
+```{css, echo=F}
+.columns {
+  display: flex;
+}
+```
+
+
+这是为 Pandas 新用户准备的[简短的入门介绍](https://pandas.pydata.org/docs/user_guide/10min.html)，我补充了对应的 R 语言实现。对 R 语言用户来说是熟悉 Python 语言的机会，对 Python 用户来说是了解 R 语言的机会 -- 左手用 R 右手用 Python 。
+
+**注：Python 中涉及索引位置是从 0 开始计数的，而 R 是从 1 开始计数的。这显得 R 更加贴近人，Python 更加贴近计算机。**
+
+**Python 的类型表示、检查比 R 语言更加丰富、严格，这是它的优势，带来的不便是使用上没有 R 语言那么灵活。**
+
+首先导入两个 Python 模块：
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+```{python}
+import numpy as np
+import pandas as pd
+```
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+R 内置一套数据操作的工具，不需要加载扩展包，也可以导入 dplyr 或 data.table 包。
+:::
+::::::
+
+## 基本的数据结构
+
+- 序列 Series：带标签的一维数组，R 语言中等价的数据结构是向量 vector。
+- 数据框 DataFrame：二维数据结构，如二维数组、表格，R 语言中等价的数据结构是数据框 data.frame。
+
+## 创建对象
+
+创建序列
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+```{python}
+s = pd.Series([1, 3, 5, np.nan, 6, 8])
+s
+```
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+```{r}
+r <- c(1, 3, 5, NA, 6, 8)
+r
+```
+:::
+::::::
+
+创建数据框
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+```{python}
+dates = pd.date_range("20130101", periods=6)
+dates
+df = pd.DataFrame(np.random.randn(6, 4), index=dates, columns=list("ABCD"))
+df
+```
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+```{r}
+set.seed(20252025)
+dates <- seq(from = as.Date("2013-01-01"), length.out = 6)
+dates
+df <- data.frame(
+  matrix(
+    data = rnorm(24), nrow = 6, ncol = 4,
+    dimnames = list(NULL, c("A", "B", "C", "D"))
+  ),
+  row.names = dates
+)
+df
+```
+:::
+::::::
+
+
+通过指定列名和列值创建数据框，数据框的列有不同的数据类型
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+```{python}
+df2 = pd.DataFrame(
+    {
+        "A": 1.0,
+        "B": pd.Timestamp("20130102"),
+        "C": pd.Series(1, index=list(range(4)), dtype="float32"),
+        "D": np.array([3] * 4, dtype="int32"),
+        "E": pd.Categorical(["test", "train", "test", "train"]),
+        "F": "foo",
+    }
+)
+df2
+df2.dtypes
+```
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+```{r}
+df2 <- data.frame(
+  A = 1,
+  B = as.Date("2013-01-02"),
+  C = rep(1, 4),
+  D = rep(3L, 4),
+  E = c("test", "train", "test", "train"),
+  F = "foo"
+)
+df2
+str(df2)
+```
+:::
+::::::
+
+## 查看数据
+
+查看数据框的前几行、后三行、行名（索引）和列名
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+```{python}
+df.head()
+df.tail(3)
+df.index
+df.columns
+```
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+```{r}
+head(df)
+tail(df, 3)
+rownames(df)
+colnames(df)
+```
+:::
+::::::
+
+转化为数组，这需要原数据框中各列的元素类型都一致，否则，类型转化就可能出乎你的预料。
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+df.to_numpy()
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+```{r}
+as.matrix(df)
+```
+:::
+::::::
+
+数据汇总描述和转置，转置操作适合对数组、矩阵操作，对数据框最好不要，因为列的类型可能不一样。
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+```{python}
+df.describe()
+df.T
+```
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+```{r}
+summary(df)
+t(as.matrix(df))
+```
+:::
+::::::
+
+重新排列各列，按列名重排各列（降序排列）、按某列的值重排各行（升序排列）
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+```{python}
+df.sort_index(axis=1, ascending=False)
+df.sort_values(by="B")
+```
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+```{r}
+df[, sort(colnames(df), decreasing = T)]
+df[order(df$B, decreasing = F),]
+```
+:::
+::::::
+
+## 筛选
+
+### 提取元素
+
+根据列名、行序、索引提取数据框中的数据
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+df["A"]
+df[0:3]
+df["20130102":"20130104"]
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+df[, "A", drop = F]
+df[1:3, ]
+df[rownames(df) %in% c(as.Date("2013-01-02"), as.Date("2013-01-03"), as.Date("2013-01-04")), ]
+```
+
+:::
+::::::
+
+
+### 按列名筛选
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+df.loc[dates[0]]
+df.loc[:, ["A", "B"]]
+df.loc["20130102":"20130104", ["A", "B"]]
+df.loc[dates[0], "A"]
+df.at[dates[0], "A"]
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+df[1, ]
+df[, c("A", "B")]
+df[rownames(df) %in% seq(as.Date("2013-01-02"), as.Date("2013-01-04")), c("A", "B")]
+df[1, "A"]
+df[1, "A"]
+```
+
+:::
+::::::
+
+### 按位置筛选
+
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+```{python}
+df.iloc[3]
+df.iloc[3:5, 0:2]
+df.iloc[[1, 2, 4], [0, 2]]
+
+df.iloc[:, 1:3]
+df.iloc[1, 1]
+df.iat[1, 1]
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+df[4, ]
+df[4:5, 1:2]
+df[c(2, 3, 5), c(1, 3)]
+
+df[, c(2, 3)]
+df[1, 1]
+df[1, 1]
+```
+
+:::
+::::::
+
+
+### 按布尔索引筛选
+
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+df[df["A"] > 0]
+df[df > 0]
+
+df2 = df.copy()
+df2["E"] = ["one", "one", "two", "three", "four", "three"]
+df2
+
+df2[df2["E"].isin(["two", "four"])]
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+df[df$A > 0,]
+df[df>0]
+
+df2 <- df
+df2$E = c("one", "one", "two", "three", "four", "three")
+df2
+
+df2[df2$E %in% c("two", "four"),]
+```
+
+:::
+::::::
+
+### 赋值
+
+在数据框中添加新列时，通过索引自动对齐数据。而在 R 语言中不借助索引，如果要实现与 Python 一样的效果，则需通过 Join （关联）的方式。
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+s1 = pd.Series([1, 2, 3, 4, 5, 6], index=pd.date_range("20130102", periods=6))
+s1
+# df 添加新列 F
+df["F"] = s1
+
+# 在数据框中对给定元素赋值
+df.at[dates[0], "A"] = 0
+df.iat[0, 1] = 0
+df.loc[:, "D"] = np.array([5] * len(df))
+df
+
+df2 = df.copy()
+df2[df2 > 0] = -df2
+df2
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+df[1, "A"] = 0
+df[1, 2] = 0
+df[, "D"] = rep(5, nrow(df))
+
+df2 = df
+df2[df2 > 0] 
+df2
+```
+
+:::
+::::::
+
+
+
+## 缺失数据
+
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+df1 = df.reindex(index=dates[0:4], columns=list(df.columns) + ["E"])
+df1.loc[dates[0] : dates[1], "E"] = 1
+df1
+
+# 去掉含缺失值的行
+df1.dropna(how="any")
+# 将缺失值填充为 5
+df1.fillna(value=5)
+# 是否为缺失值
+pd.isna(df1)
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+airquality 是 R 内置的数据集，含有缺失值。
+
+```{r}
+df1 = head(airquality)
+df1
+# 去掉含缺失值的行
+df1[complete.cases(df1), ] |> head()
+# 填充缺失值
+fillna <- function(x) {x[is.na(x)] = 5; x}
+apply(df1, 2, fillna) |> head()
+# 逐列检查是否含有缺失值
+apply(df1, 2, anyNA) |> head()
+# 逐列检查是否是缺失值
+apply(df1, 2, is.na) |> head()
+# 整行数据是否完整无缺失
+complete.cases(df1) |> head()
+```
+
+:::
+::::::
+
+## 算子
+
+### 统计
+
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+# 求列平均值
+df.mean()
+# 求行平均值
+df.mean(axis=1)
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+colMeans(df)
+rowMeans(df)
+```
+
+:::
+::::::
+
+## 合并
+
+### 拼接
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+df = pd.DataFrame(np.random.randn(10, 4))
+df
+# break it into pieces
+pieces = [df[:3], df[3:7], df[7:]]
+pd.concat(pieces)
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+df <- data.frame(
+  matrix(data = rnorm(40), nrow = 10, ncol = 4)
+  )
+df
+
+rbind(df[1:3, ], df[3:7, ], df[7:10, ])
+```
+
+:::
+::::::
+
+### 关联
+
+按某列合并两张表
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+left = pd.DataFrame({"key": ["foo", "foo"], "lval": [1, 2]})
+right = pd.DataFrame({"key": ["foo", "foo"], "rval": [4, 5]})
+left
+right
+
+pd.merge(left, right, on="key")
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+left <- data.frame(
+  key = c("foo", "foo"),
+  lval = c(1, 2)
+)
+
+right <- data.frame(
+  key = c("foo", "foo"),
+  rval = c(4, 5)
+)
+merge(x = left, y = right, by = "key")
+```
+
+:::
+::::::
+
+
+按主键（唯一性）合并两张表
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+left = pd.DataFrame({"key": ["foo", "bar"], "lval": [1, 2]})
+right = pd.DataFrame({"key": ["foo", "bar"], "rval": [4, 5]})
+left
+right
+
+pd.merge(left, right, on="key")
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+left <- data.frame(
+  key = c("foo", "bar"),
+  lval = c(1, 2)
+)
+
+right <- data.frame(
+  key = c("foo", "bar"),
+  rval = c(4, 5)
+)
+merge(x = left, y = right, by = "key")
+```
+
+:::
+::::::
+
+
+
+
+## 聚合
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+df = pd.DataFrame(
+    {
+        "A": ["foo", "bar", "foo", "bar", "foo", "bar", "foo", "foo"],
+        "B": ["one", "one", "two", "three", "two", "two", "one", "three"],
+        "C": np.random.randn(8),
+        "D": np.random.randn(8),
+    }
+)
+df
+df.groupby("A")[["C", "D"]].sum()
+df.groupby(["A", "B"]).sum()
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+df <- data.frame(
+  A = c("foo", "bar", "foo", "bar", "foo", "bar", "foo", "foo"),
+  B = c("one", "one", "two", "three", "two", "two", "one", "three"),
+  C = rnorm(8),
+  D = rnorm(8)
+)
+df
+aggregate(df, cbind(C, D) ~ A, sum)
+aggregate(df, . ~ A + B, sum)
+```
+
+:::
+::::::
+
+## 重塑
+
+
+
+### `stack` 宽格式变长格式
+
+
+```{python}
+arrays = [
+   ["bar", "bar", "baz", "baz", "foo", "foo", "qux", "qux"],
+   ["one", "two", "one", "two", "one", "two", "one", "two"],
+]
+index = pd.MultiIndex.from_arrays(arrays, names=["first", "second"])
+df = pd.DataFrame(np.random.randn(8, 2), index=index, columns=["A", "B"])
+df2 = df[:4]
+df2
+```
+
+```{python}
+stacked = df2.stack(future_stack=True)
+stacked
+```
+
+
+### `pivot_table` 长格式变宽格式
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+df = pd.DataFrame(
+    {
+        "A": ["one", "one", "two", "three"] * 3,
+        "B": ["A", "B", "C"] * 4,
+        "C": ["foo", "foo", "foo", "bar", "bar", "bar"] * 2,
+        "D": np.random.randn(12),
+        "E": np.random.randn(12),
+    }
+)
+df
+```
+
+```{python}
+pd.pivot_table(df, values=["D", "E"], index=["A", "B"], columns=["C"])
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+df <- data.frame(
+  A = rep(c("one", "one", "two", "three"), 3),
+  B = rep(c("A", "B", "C"), 4),
+  C = rep(c("foo", "foo", "foo", "bar", "bar", "bar"), 2),
+  D = rnorm(12),
+  E = rnorm(12)
+)
+df
+```
+```{r}
+# 长变宽格式
+reshape(data = df, direction = "wide", 
+        idvar = c("A", "B"), timevar = "C", v.names = c("D", "E"))
+```
+
+:::
+::::::
+

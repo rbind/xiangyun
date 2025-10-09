@@ -1,0 +1,1113 @@
+---
+title: "10分钟入门pandas"
+author: "黄湘云"
+date: '2025-10-07'
+slug: pandas
+categories:
+  - 统计软件
+tags:
+  - pandas
+  - numpy
+  - data.frame
+  - array
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+description: "Python 模块 Pandas 是做数据操作的，本文添加等价 R 代码。"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#%E5%9F%BA%E6%9C%AC%E7%9A%84%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84" id="toc-基本的数据结构"><span class="toc-section-number">1</span> 基本的数据结构</a></li>
+<li><a href="#%E5%88%9B%E5%BB%BA%E5%AF%B9%E8%B1%A1" id="toc-创建对象"><span class="toc-section-number">2</span> 创建对象</a></li>
+<li><a href="#%E6%9F%A5%E7%9C%8B%E6%95%B0%E6%8D%AE" id="toc-查看数据"><span class="toc-section-number">3</span> 查看数据</a></li>
+<li><a href="#%E7%AD%9B%E9%80%89" id="toc-筛选"><span class="toc-section-number">4</span> 筛选</a>
+<ul>
+<li><a href="#%E6%8F%90%E5%8F%96%E5%85%83%E7%B4%A0" id="toc-提取元素"><span class="toc-section-number">4.1</span> 提取元素</a></li>
+<li><a href="#%E6%8C%89%E5%88%97%E5%90%8D%E7%AD%9B%E9%80%89" id="toc-按列名筛选"><span class="toc-section-number">4.2</span> 按列名筛选</a></li>
+<li><a href="#%E6%8C%89%E4%BD%8D%E7%BD%AE%E7%AD%9B%E9%80%89" id="toc-按位置筛选"><span class="toc-section-number">4.3</span> 按位置筛选</a></li>
+<li><a href="#%E6%8C%89%E5%B8%83%E5%B0%94%E7%B4%A2%E5%BC%95%E7%AD%9B%E9%80%89" id="toc-按布尔索引筛选"><span class="toc-section-number">4.4</span> 按布尔索引筛选</a></li>
+<li><a href="#%E8%B5%8B%E5%80%BC" id="toc-赋值"><span class="toc-section-number">4.5</span> 赋值</a></li>
+</ul></li>
+<li><a href="#%E7%BC%BA%E5%A4%B1%E6%95%B0%E6%8D%AE" id="toc-缺失数据"><span class="toc-section-number">5</span> 缺失数据</a></li>
+<li><a href="#%E7%AE%97%E5%AD%90" id="toc-算子"><span class="toc-section-number">6</span> 算子</a>
+<ul>
+<li><a href="#%E7%BB%9F%E8%AE%A1" id="toc-统计"><span class="toc-section-number">6.1</span> 统计</a></li>
+</ul></li>
+<li><a href="#%E5%90%88%E5%B9%B6" id="toc-合并"><span class="toc-section-number">7</span> 合并</a>
+<ul>
+<li><a href="#%E6%8B%BC%E6%8E%A5" id="toc-拼接"><span class="toc-section-number">7.1</span> 拼接</a></li>
+<li><a href="#%E5%85%B3%E8%81%94" id="toc-关联"><span class="toc-section-number">7.2</span> 关联</a></li>
+</ul></li>
+<li><a href="#%E8%81%9A%E5%90%88" id="toc-聚合"><span class="toc-section-number">8</span> 聚合</a></li>
+<li><a href="#%E9%87%8D%E5%A1%91" id="toc-重塑"><span class="toc-section-number">9</span> 重塑</a>
+<ul>
+<li><a href="#stack-%E5%AE%BD%E6%A0%BC%E5%BC%8F%E5%8F%98%E9%95%BF%E6%A0%BC%E5%BC%8F" id="toc-stack-宽格式变长格式"><span class="toc-section-number">9.1</span> <code>stack</code> 宽格式变长格式</a></li>
+<li><a href="#pivot_table-%E9%95%BF%E6%A0%BC%E5%BC%8F%E5%8F%98%E5%AE%BD%E6%A0%BC%E5%BC%8F" id="toc-pivot_table-长格式变宽格式"><span class="toc-section-number">9.2</span> <code>pivot_table</code> 长格式变宽格式</a></li>
+</ul></li>
+</ul>
+</div>
+
+<style type="text/css">
+.columns {
+  display: flex;
+}
+</style>
+<p>这是为 Pandas 新用户准备的<a href="https://pandas.pydata.org/docs/user_guide/10min.html">简短的入门介绍</a>，我补充了对应的 R 语言实现。对 R 语言用户来说是熟悉 Python 语言的机会，对 Python 用户来说是了解 R 语言的机会 – 左手用 R 右手用 Python 。</p>
+<p><strong>注：Python 中涉及索引位置是从 0 开始计数的，而 R 是从 1 开始计数的。这显得 R 更加贴近人，Python 更加贴近计算机。</strong></p>
+<p><strong>Python 的类型表示、检查比 R 语言更加丰富、严格，这是它的优势，带来的不便是使用上没有 R 语言那么灵活。</strong></p>
+<p>首先导入两个 Python 模块：</p>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="python"><code>import numpy as np
+import pandas as pd</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<p>R 内置一套数据操作的工具，不需要加载扩展包，也可以导入 dplyr 或 data.table 包。</p>
+</div>
+</div>
+<div id="基本的数据结构" class="section level2" number="1">
+<h2><span class="header-section-number">1</span> 基本的数据结构</h2>
+<ul>
+<li>序列 Series：带标签的一维数组，R 语言中等价的数据结构是向量 vector。</li>
+<li>数据框 DataFrame：二维数据结构，如二维数组、表格，R 语言中等价的数据结构是数据框 data.frame。</li>
+</ul>
+</div>
+<div id="创建对象" class="section level2" number="2">
+<h2><span class="header-section-number">2</span> 创建对象</h2>
+<p>创建序列</p>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="python"><code>s = pd.Series([1, 3, 5, np.nan, 6, 8])
+s</code></pre>
+<pre><code>## 0    1.0
+## 1    3.0
+## 2    5.0
+## 3    NaN
+## 4    6.0
+## 5    8.0
+## dtype: float64</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<pre class="r"><code>r &lt;- c(1, 3, 5, NA, 6, 8)
+r</code></pre>
+<pre><code>## [1]  1  3  5 NA  6  8</code></pre>
+</div>
+</div>
+<p>创建数据框</p>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="python"><code>dates = pd.date_range(&quot;20130101&quot;, periods=6)
+dates</code></pre>
+<pre><code>## DatetimeIndex([&#39;2013-01-01&#39;, &#39;2013-01-02&#39;, &#39;2013-01-03&#39;, &#39;2013-01-04&#39;,
+##                &#39;2013-01-05&#39;, &#39;2013-01-06&#39;],
+##               dtype=&#39;datetime64[ns]&#39;, freq=&#39;D&#39;)</code></pre>
+<pre class="python"><code>df = pd.DataFrame(np.random.randn(6, 4), index=dates, columns=list(&quot;ABCD&quot;))
+df</code></pre>
+<pre><code>##                    A         B         C         D
+## 2013-01-01 -0.542846 -1.551642  1.134287  0.495023
+## 2013-01-02  2.426450  0.066978 -0.643228  1.394903
+## 2013-01-03  0.592155  0.108114  0.271232 -0.860649
+## 2013-01-04 -0.071331 -0.682826  0.627705 -0.052117
+## 2013-01-05 -2.247319  1.595135  0.517725  0.813387
+## 2013-01-06 -1.026931  0.205139 -1.057070 -0.457724</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<pre class="r"><code>set.seed(20252025)
+dates &lt;- seq(from = as.Date(&quot;2013-01-01&quot;), length.out = 6)
+dates</code></pre>
+<pre><code>## [1] &quot;2013-01-01&quot; &quot;2013-01-02&quot; &quot;2013-01-03&quot; &quot;2013-01-04&quot; &quot;2013-01-05&quot;
+## [6] &quot;2013-01-06&quot;</code></pre>
+<pre class="r"><code>df &lt;- data.frame(
+  matrix(
+    data = rnorm(24), nrow = 6, ncol = 4,
+    dimnames = list(NULL, c(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;))
+  ),
+  row.names = dates
+)
+df</code></pre>
+<pre><code>##                  A       B       C        D
+## 2013-01-01  0.9784 -0.6716 -0.7994 -0.09235
+## 2013-01-02 -1.2680 -1.1996  1.8483  1.67844
+## 2013-01-03  0.5727 -0.1781  0.1335 -1.12484
+## 2013-01-04 -0.6239  2.0038  0.4186 -1.03359
+## 2013-01-05  0.8007  0.9745 -0.3079  0.45199
+## 2013-01-06  0.4495  1.3587 -0.1422  0.41400</code></pre>
+</div>
+</div>
+<p>通过指定列名和列值创建数据框，数据框的列有不同的数据类型</p>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="python"><code>df2 = pd.DataFrame(
+    {
+        &quot;A&quot;: 1.0,
+        &quot;B&quot;: pd.Timestamp(&quot;20130102&quot;),
+        &quot;C&quot;: pd.Series(1, index=list(range(4)), dtype=&quot;float32&quot;),
+        &quot;D&quot;: np.array([3] * 4, dtype=&quot;int32&quot;),
+        &quot;E&quot;: pd.Categorical([&quot;test&quot;, &quot;train&quot;, &quot;test&quot;, &quot;train&quot;]),
+        &quot;F&quot;: &quot;foo&quot;,
+    }
+)
+df2</code></pre>
+<pre><code>##      A          B    C  D      E    F
+## 0  1.0 2013-01-02  1.0  3   test  foo
+## 1  1.0 2013-01-02  1.0  3  train  foo
+## 2  1.0 2013-01-02  1.0  3   test  foo
+## 3  1.0 2013-01-02  1.0  3  train  foo</code></pre>
+<pre class="python"><code>df2.dtypes</code></pre>
+<pre><code>## A          float64
+## B    datetime64[s]
+## C          float32
+## D            int32
+## E         category
+## F           object
+## dtype: object</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<pre class="r"><code>df2 &lt;- data.frame(
+  A = 1,
+  B = as.Date(&quot;2013-01-02&quot;),
+  C = rep(1, 4),
+  D = rep(3L, 4),
+  E = c(&quot;test&quot;, &quot;train&quot;, &quot;test&quot;, &quot;train&quot;),
+  F = &quot;foo&quot;
+)
+df2</code></pre>
+<pre><code>##   A          B C D     E   F
+## 1 1 2013-01-02 1 3  test foo
+## 2 1 2013-01-02 1 3 train foo
+## 3 1 2013-01-02 1 3  test foo
+## 4 1 2013-01-02 1 3 train foo</code></pre>
+<pre class="r"><code>str(df2)</code></pre>
+<pre><code>## &#39;data.frame&#39;:	4 obs. of  6 variables:
+##  $ A: num  1 1 1 1
+##  $ B: Date, format: &quot;2013-01-02&quot; &quot;2013-01-02&quot; ...
+##  $ C: num  1 1 1 1
+##  $ D: int  3 3 3 3
+##  $ E: chr  &quot;test&quot; &quot;train&quot; &quot;test&quot; &quot;train&quot;
+##  $ F: chr  &quot;foo&quot; &quot;foo&quot; &quot;foo&quot; &quot;foo&quot;</code></pre>
+</div>
+</div>
+</div>
+<div id="查看数据" class="section level2" number="3">
+<h2><span class="header-section-number">3</span> 查看数据</h2>
+<p>查看数据框的前几行、后三行、行名（索引）和列名</p>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="python"><code>df.head()</code></pre>
+<pre><code>##                    A         B         C         D
+## 2013-01-01 -0.542846 -1.551642  1.134287  0.495023
+## 2013-01-02  2.426450  0.066978 -0.643228  1.394903
+## 2013-01-03  0.592155  0.108114  0.271232 -0.860649
+## 2013-01-04 -0.071331 -0.682826  0.627705 -0.052117
+## 2013-01-05 -2.247319  1.595135  0.517725  0.813387</code></pre>
+<pre class="python"><code>df.tail(3)</code></pre>
+<pre><code>##                    A         B         C         D
+## 2013-01-04 -0.071331 -0.682826  0.627705 -0.052117
+## 2013-01-05 -2.247319  1.595135  0.517725  0.813387
+## 2013-01-06 -1.026931  0.205139 -1.057070 -0.457724</code></pre>
+<pre class="python"><code>df.index</code></pre>
+<pre><code>## DatetimeIndex([&#39;2013-01-01&#39;, &#39;2013-01-02&#39;, &#39;2013-01-03&#39;, &#39;2013-01-04&#39;,
+##                &#39;2013-01-05&#39;, &#39;2013-01-06&#39;],
+##               dtype=&#39;datetime64[ns]&#39;, freq=&#39;D&#39;)</code></pre>
+<pre class="python"><code>df.columns</code></pre>
+<pre><code>## Index([&#39;A&#39;, &#39;B&#39;, &#39;C&#39;, &#39;D&#39;], dtype=&#39;object&#39;)</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<pre class="r"><code>head(df)</code></pre>
+<pre><code>##                  A       B       C        D
+## 2013-01-01  0.9784 -0.6716 -0.7994 -0.09235
+## 2013-01-02 -1.2680 -1.1996  1.8483  1.67844
+## 2013-01-03  0.5727 -0.1781  0.1335 -1.12484
+## 2013-01-04 -0.6239  2.0038  0.4186 -1.03359
+## 2013-01-05  0.8007  0.9745 -0.3079  0.45199
+## 2013-01-06  0.4495  1.3587 -0.1422  0.41400</code></pre>
+<pre class="r"><code>tail(df, 3)</code></pre>
+<pre><code>##                  A      B       C      D
+## 2013-01-04 -0.6239 2.0038  0.4186 -1.034
+## 2013-01-05  0.8007 0.9745 -0.3079  0.452
+## 2013-01-06  0.4495 1.3587 -0.1422  0.414</code></pre>
+<pre class="r"><code>rownames(df)</code></pre>
+<pre><code>## [1] &quot;2013-01-01&quot; &quot;2013-01-02&quot; &quot;2013-01-03&quot; &quot;2013-01-04&quot; &quot;2013-01-05&quot;
+## [6] &quot;2013-01-06&quot;</code></pre>
+<pre class="r"><code>colnames(df)</code></pre>
+<pre><code>## [1] &quot;A&quot; &quot;B&quot; &quot;C&quot; &quot;D&quot;</code></pre>
+</div>
+</div>
+<p>转化为数组，这需要原数据框中各列的元素类型都一致，否则，类型转化就可能出乎你的预料。</p>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="python"><code>df.to_numpy()</code></pre>
+<pre><code>## array([[-0.5428463 , -1.55164217,  1.13428719,  0.49502319],
+##        [ 2.42645044,  0.06697779, -0.64322811,  1.3949035 ],
+##        [ 0.5921552 ,  0.10811436,  0.27123201, -0.86064924],
+##        [-0.07133073, -0.68282644,  0.62770526, -0.05211696],
+##        [-2.24731859,  1.59513481,  0.51772517,  0.81338676],
+##        [-1.02693104,  0.20513924, -1.05707   , -0.45772433]])</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<pre class="r"><code>as.matrix(df)</code></pre>
+<pre><code>##                  A       B       C        D
+## 2013-01-01  0.9784 -0.6716 -0.7994 -0.09235
+## 2013-01-02 -1.2680 -1.1996  1.8483  1.67844
+## 2013-01-03  0.5727 -0.1781  0.1335 -1.12484
+## 2013-01-04 -0.6239  2.0038  0.4186 -1.03359
+## 2013-01-05  0.8007  0.9745 -0.3079  0.45199
+## 2013-01-06  0.4495  1.3587 -0.1422  0.41400</code></pre>
+</div>
+</div>
+<p>数据汇总描述和转置，转置操作适合对数组、矩阵操作，对数据框最好不要，因为列的类型可能不一样。</p>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="python"><code>df.describe()</code></pre>
+<pre><code>##               A         B         C         D
+## count  6.000000  6.000000  6.000000  6.000000
+## mean  -0.144970 -0.043184  0.141775  0.222137
+## std    1.582214  1.045502  0.828585  0.837768
+## min   -2.247319 -1.551642 -1.057070 -0.860649
+## 25%   -0.905910 -0.495375 -0.414613 -0.356322
+## 50%   -0.307089  0.087546  0.394479  0.221453
+## 75%    0.426284  0.180883  0.600210  0.733796
+## max    2.426450  1.595135  1.134287  1.394903</code></pre>
+<pre class="python"><code>df.T</code></pre>
+<pre><code>##    2013-01-01  2013-01-02  2013-01-03  2013-01-04  2013-01-05  2013-01-06
+## A   -0.542846    2.426450    0.592155   -0.071331   -2.247319   -1.026931
+## B   -1.551642    0.066978    0.108114   -0.682826    1.595135    0.205139
+## C    1.134287   -0.643228    0.271232    0.627705    0.517725   -1.057070
+## D    0.495023    1.394903   -0.860649   -0.052117    0.813387   -0.457724</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<pre class="r"><code>summary(df)</code></pre>
+<pre><code>##        A                B                C                  D          
+##  Min.   :-1.268   Min.   :-1.200   Min.   :-0.79941   Min.   :-1.1248  
+##  1st Qu.:-0.356   1st Qu.:-0.548   1st Qu.:-0.26648   1st Qu.:-0.7983  
+##  Median : 0.511   Median : 0.398   Median :-0.00434   Median : 0.1608  
+##  Mean   : 0.152   Mean   : 0.381   Mean   : 0.19182   Mean   : 0.0489  
+##  3rd Qu.: 0.744   3rd Qu.: 1.263   3rd Qu.: 0.34733   3rd Qu.: 0.4425  
+##  Max.   : 0.978   Max.   : 2.004   Max.   : 1.84834   Max.   : 1.6784</code></pre>
+<pre class="r"><code>t(as.matrix(df))</code></pre>
+<pre><code>##   2013-01-01 2013-01-02 2013-01-03 2013-01-04 2013-01-05 2013-01-06
+## A    0.97844     -1.268     0.5727    -0.6239     0.8007     0.4495
+## B   -0.67156     -1.200    -0.1781     2.0038     0.9745     1.3587
+## C   -0.79941      1.848     0.1335     0.4186    -0.3079    -0.1422
+## D   -0.09235      1.678    -1.1248    -1.0336     0.4520     0.4140</code></pre>
+</div>
+</div>
+<p>重新排列各列，按列名重排各列（降序排列）、按某列的值重排各行（升序排列）</p>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="python"><code>df.sort_index(axis=1, ascending=False)</code></pre>
+<pre><code>##                    D         C         B         A
+## 2013-01-01  0.495023  1.134287 -1.551642 -0.542846
+## 2013-01-02  1.394903 -0.643228  0.066978  2.426450
+## 2013-01-03 -0.860649  0.271232  0.108114  0.592155
+## 2013-01-04 -0.052117  0.627705 -0.682826 -0.071331
+## 2013-01-05  0.813387  0.517725  1.595135 -2.247319
+## 2013-01-06 -0.457724 -1.057070  0.205139 -1.026931</code></pre>
+<pre class="python"><code>df.sort_values(by=&quot;B&quot;)</code></pre>
+<pre><code>##                    A         B         C         D
+## 2013-01-01 -0.542846 -1.551642  1.134287  0.495023
+## 2013-01-04 -0.071331 -0.682826  0.627705 -0.052117
+## 2013-01-02  2.426450  0.066978 -0.643228  1.394903
+## 2013-01-03  0.592155  0.108114  0.271232 -0.860649
+## 2013-01-06 -1.026931  0.205139 -1.057070 -0.457724
+## 2013-01-05 -2.247319  1.595135  0.517725  0.813387</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<pre class="r"><code>df[, sort(colnames(df), decreasing = T)]</code></pre>
+<pre><code>##                   D       C       B       A
+## 2013-01-01 -0.09235 -0.7994 -0.6716  0.9784
+## 2013-01-02  1.67844  1.8483 -1.1996 -1.2680
+## 2013-01-03 -1.12484  0.1335 -0.1781  0.5727
+## 2013-01-04 -1.03359  0.4186  2.0038 -0.6239
+## 2013-01-05  0.45199 -0.3079  0.9745  0.8007
+## 2013-01-06  0.41400 -0.1422  1.3587  0.4495</code></pre>
+<pre class="r"><code>df[order(df$B, decreasing = F),]</code></pre>
+<pre><code>##                  A       B       C        D
+## 2013-01-02 -1.2680 -1.1996  1.8483  1.67844
+## 2013-01-01  0.9784 -0.6716 -0.7994 -0.09235
+## 2013-01-03  0.5727 -0.1781  0.1335 -1.12484
+## 2013-01-05  0.8007  0.9745 -0.3079  0.45199
+## 2013-01-06  0.4495  1.3587 -0.1422  0.41400
+## 2013-01-04 -0.6239  2.0038  0.4186 -1.03359</code></pre>
+</div>
+</div>
+</div>
+<div id="筛选" class="section level2" number="4">
+<h2><span class="header-section-number">4</span> 筛选</h2>
+<div id="提取元素" class="section level3" number="4.1">
+<h3><span class="header-section-number">4.1</span> 提取元素</h3>
+<p>根据列名、行序、索引提取数据框中的数据</p>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="python"><code>df[&quot;A&quot;]</code></pre>
+<pre><code>## 2013-01-01   -0.542846
+## 2013-01-02    2.426450
+## 2013-01-03    0.592155
+## 2013-01-04   -0.071331
+## 2013-01-05   -2.247319
+## 2013-01-06   -1.026931
+## Freq: D, Name: A, dtype: float64</code></pre>
+<pre class="python"><code>df[0:3]</code></pre>
+<pre><code>##                    A         B         C         D
+## 2013-01-01 -0.542846 -1.551642  1.134287  0.495023
+## 2013-01-02  2.426450  0.066978 -0.643228  1.394903
+## 2013-01-03  0.592155  0.108114  0.271232 -0.860649</code></pre>
+<pre class="python"><code>df[&quot;20130102&quot;:&quot;20130104&quot;]</code></pre>
+<pre><code>##                    A         B         C         D
+## 2013-01-02  2.426450  0.066978 -0.643228  1.394903
+## 2013-01-03  0.592155  0.108114  0.271232 -0.860649
+## 2013-01-04 -0.071331 -0.682826  0.627705 -0.052117</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<pre class="r"><code>df[, &quot;A&quot;, drop = F]</code></pre>
+<pre><code>##                  A
+## 2013-01-01  0.9784
+## 2013-01-02 -1.2680
+## 2013-01-03  0.5727
+## 2013-01-04 -0.6239
+## 2013-01-05  0.8007
+## 2013-01-06  0.4495</code></pre>
+<pre class="r"><code>df[1:3, ]</code></pre>
+<pre><code>##                  A       B       C        D
+## 2013-01-01  0.9784 -0.6716 -0.7994 -0.09235
+## 2013-01-02 -1.2680 -1.1996  1.8483  1.67844
+## 2013-01-03  0.5727 -0.1781  0.1335 -1.12484</code></pre>
+<pre class="r"><code>df[rownames(df) %in% c(as.Date(&quot;2013-01-02&quot;), as.Date(&quot;2013-01-03&quot;), as.Date(&quot;2013-01-04&quot;)), ]</code></pre>
+<pre><code>##                  A       B      C      D
+## 2013-01-02 -1.2680 -1.1996 1.8483  1.678
+## 2013-01-03  0.5727 -0.1781 0.1335 -1.125
+## 2013-01-04 -0.6239  2.0038 0.4186 -1.034</code></pre>
+</div>
+</div>
+</div>
+<div id="按列名筛选" class="section level3" number="4.2">
+<h3><span class="header-section-number">4.2</span> 按列名筛选</h3>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="python"><code>df.loc[dates[0]]</code></pre>
+<pre><code>## A   -0.542846
+## B   -1.551642
+## C    1.134287
+## D    0.495023
+## Name: 2013-01-01 00:00:00, dtype: float64</code></pre>
+<pre class="python"><code>df.loc[:, [&quot;A&quot;, &quot;B&quot;]]</code></pre>
+<pre><code>##                    A         B
+## 2013-01-01 -0.542846 -1.551642
+## 2013-01-02  2.426450  0.066978
+## 2013-01-03  0.592155  0.108114
+## 2013-01-04 -0.071331 -0.682826
+## 2013-01-05 -2.247319  1.595135
+## 2013-01-06 -1.026931  0.205139</code></pre>
+<pre class="python"><code>df.loc[&quot;20130102&quot;:&quot;20130104&quot;, [&quot;A&quot;, &quot;B&quot;]]</code></pre>
+<pre><code>##                    A         B
+## 2013-01-02  2.426450  0.066978
+## 2013-01-03  0.592155  0.108114
+## 2013-01-04 -0.071331 -0.682826</code></pre>
+<pre class="python"><code>df.loc[dates[0], &quot;A&quot;]</code></pre>
+<pre><code>## np.float64(-0.5428462981141139)</code></pre>
+<pre class="python"><code>df.at[dates[0], &quot;A&quot;]</code></pre>
+<pre><code>## np.float64(-0.5428462981141139)</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<pre class="r"><code>df[1, ]</code></pre>
+<pre><code>##                 A       B       C        D
+## 2013-01-01 0.9784 -0.6716 -0.7994 -0.09235</code></pre>
+<pre class="r"><code>df[, c(&quot;A&quot;, &quot;B&quot;)]</code></pre>
+<pre><code>##                  A       B
+## 2013-01-01  0.9784 -0.6716
+## 2013-01-02 -1.2680 -1.1996
+## 2013-01-03  0.5727 -0.1781
+## 2013-01-04 -0.6239  2.0038
+## 2013-01-05  0.8007  0.9745
+## 2013-01-06  0.4495  1.3587</code></pre>
+<pre class="r"><code>df[rownames(df) %in% seq(as.Date(&quot;2013-01-02&quot;), as.Date(&quot;2013-01-04&quot;)), c(&quot;A&quot;, &quot;B&quot;)]</code></pre>
+<pre><code>##                  A       B
+## 2013-01-02 -1.2680 -1.1996
+## 2013-01-03  0.5727 -0.1781
+## 2013-01-04 -0.6239  2.0038</code></pre>
+<pre class="r"><code>df[1, &quot;A&quot;]</code></pre>
+<pre><code>## [1] 0.9784</code></pre>
+<pre class="r"><code>df[1, &quot;A&quot;]</code></pre>
+<pre><code>## [1] 0.9784</code></pre>
+</div>
+</div>
+</div>
+<div id="按位置筛选" class="section level3" number="4.3">
+<h3><span class="header-section-number">4.3</span> 按位置筛选</h3>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="python"><code>df.iloc[3]</code></pre>
+<pre><code>## A   -0.071331
+## B   -0.682826
+## C    0.627705
+## D   -0.052117
+## Name: 2013-01-04 00:00:00, dtype: float64</code></pre>
+<pre class="python"><code>df.iloc[3:5, 0:2]</code></pre>
+<pre><code>##                    A         B
+## 2013-01-04 -0.071331 -0.682826
+## 2013-01-05 -2.247319  1.595135</code></pre>
+<pre class="python"><code>df.iloc[[1, 2, 4], [0, 2]]</code></pre>
+<pre><code>##                    A         C
+## 2013-01-02  2.426450 -0.643228
+## 2013-01-03  0.592155  0.271232
+## 2013-01-05 -2.247319  0.517725</code></pre>
+<pre class="python"><code>df.iloc[:, 1:3]</code></pre>
+<pre><code>##                    B         C
+## 2013-01-01 -1.551642  1.134287
+## 2013-01-02  0.066978 -0.643228
+## 2013-01-03  0.108114  0.271232
+## 2013-01-04 -0.682826  0.627705
+## 2013-01-05  1.595135  0.517725
+## 2013-01-06  0.205139 -1.057070</code></pre>
+<pre class="python"><code>df.iloc[1, 1]</code></pre>
+<pre><code>## np.float64(0.06697778509268705)</code></pre>
+<pre class="python"><code>df.iat[1, 1]</code></pre>
+<pre><code>## np.float64(0.06697778509268705)</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<pre class="r"><code>df[4, ]</code></pre>
+<pre><code>##                  A     B      C      D
+## 2013-01-04 -0.6239 2.004 0.4186 -1.034</code></pre>
+<pre class="r"><code>df[4:5, 1:2]</code></pre>
+<pre><code>##                  A      B
+## 2013-01-04 -0.6239 2.0038
+## 2013-01-05  0.8007 0.9745</code></pre>
+<pre class="r"><code>df[c(2, 3, 5), c(1, 3)]</code></pre>
+<pre><code>##                  A       C
+## 2013-01-02 -1.2680  1.8483
+## 2013-01-03  0.5727  0.1335
+## 2013-01-05  0.8007 -0.3079</code></pre>
+<pre class="r"><code>df[, c(2, 3)]</code></pre>
+<pre><code>##                  B       C
+## 2013-01-01 -0.6716 -0.7994
+## 2013-01-02 -1.1996  1.8483
+## 2013-01-03 -0.1781  0.1335
+## 2013-01-04  2.0038  0.4186
+## 2013-01-05  0.9745 -0.3079
+## 2013-01-06  1.3587 -0.1422</code></pre>
+<pre class="r"><code>df[1, 1]</code></pre>
+<pre><code>## [1] 0.9784</code></pre>
+<pre class="r"><code>df[1, 1]</code></pre>
+<pre><code>## [1] 0.9784</code></pre>
+</div>
+</div>
+</div>
+<div id="按布尔索引筛选" class="section level3" number="4.4">
+<h3><span class="header-section-number">4.4</span> 按布尔索引筛选</h3>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="python"><code>df[df[&quot;A&quot;] &gt; 0]</code></pre>
+<pre><code>##                    A         B         C         D
+## 2013-01-02  2.426450  0.066978 -0.643228  1.394903
+## 2013-01-03  0.592155  0.108114  0.271232 -0.860649</code></pre>
+<pre class="python"><code>df[df &gt; 0]</code></pre>
+<pre><code>##                    A         B         C         D
+## 2013-01-01       NaN       NaN  1.134287  0.495023
+## 2013-01-02  2.426450  0.066978       NaN  1.394903
+## 2013-01-03  0.592155  0.108114  0.271232       NaN
+## 2013-01-04       NaN       NaN  0.627705       NaN
+## 2013-01-05       NaN  1.595135  0.517725  0.813387
+## 2013-01-06       NaN  0.205139       NaN       NaN</code></pre>
+<pre class="python"><code>df2 = df.copy()
+df2[&quot;E&quot;] = [&quot;one&quot;, &quot;one&quot;, &quot;two&quot;, &quot;three&quot;, &quot;four&quot;, &quot;three&quot;]
+df2</code></pre>
+<pre><code>##                    A         B         C         D      E
+## 2013-01-01 -0.542846 -1.551642  1.134287  0.495023    one
+## 2013-01-02  2.426450  0.066978 -0.643228  1.394903    one
+## 2013-01-03  0.592155  0.108114  0.271232 -0.860649    two
+## 2013-01-04 -0.071331 -0.682826  0.627705 -0.052117  three
+## 2013-01-05 -2.247319  1.595135  0.517725  0.813387   four
+## 2013-01-06 -1.026931  0.205139 -1.057070 -0.457724  three</code></pre>
+<pre class="python"><code>df2[df2[&quot;E&quot;].isin([&quot;two&quot;, &quot;four&quot;])]</code></pre>
+<pre><code>##                    A         B         C         D     E
+## 2013-01-03  0.592155  0.108114  0.271232 -0.860649   two
+## 2013-01-05 -2.247319  1.595135  0.517725  0.813387  four</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<pre class="r"><code>df[df$A &gt; 0,]</code></pre>
+<pre><code>##                 A       B       C        D
+## 2013-01-01 0.9784 -0.6716 -0.7994 -0.09235
+## 2013-01-03 0.5727 -0.1781  0.1335 -1.12484
+## 2013-01-05 0.8007  0.9745 -0.3079  0.45199
+## 2013-01-06 0.4495  1.3587 -0.1422  0.41400</code></pre>
+<pre class="r"><code>df[df&gt;0]</code></pre>
+<pre><code>##  [1] 0.9784 0.5727 0.8007 0.4495 2.0038 0.9745 1.3587 1.8483 0.1335 0.4186
+## [11] 1.6784 0.4520 0.4140</code></pre>
+<pre class="r"><code>df2 &lt;- df
+df2$E = c(&quot;one&quot;, &quot;one&quot;, &quot;two&quot;, &quot;three&quot;, &quot;four&quot;, &quot;three&quot;)
+df2</code></pre>
+<pre><code>##                  A       B       C        D     E
+## 2013-01-01  0.9784 -0.6716 -0.7994 -0.09235   one
+## 2013-01-02 -1.2680 -1.1996  1.8483  1.67844   one
+## 2013-01-03  0.5727 -0.1781  0.1335 -1.12484   two
+## 2013-01-04 -0.6239  2.0038  0.4186 -1.03359 three
+## 2013-01-05  0.8007  0.9745 -0.3079  0.45199  four
+## 2013-01-06  0.4495  1.3587 -0.1422  0.41400 three</code></pre>
+<pre class="r"><code>df2[df2$E %in% c(&quot;two&quot;, &quot;four&quot;),]</code></pre>
+<pre><code>##                 A       B       C      D    E
+## 2013-01-03 0.5727 -0.1781  0.1335 -1.125  two
+## 2013-01-05 0.8007  0.9745 -0.3079  0.452 four</code></pre>
+</div>
+</div>
+</div>
+<div id="赋值" class="section level3" number="4.5">
+<h3><span class="header-section-number">4.5</span> 赋值</h3>
+<p>在数据框中添加新列时，通过索引自动对齐数据。而在 R 语言中不借助索引，如果要实现与 Python 一样的效果，则需通过 Join （关联）的方式。</p>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="python"><code>s1 = pd.Series([1, 2, 3, 4, 5, 6], index=pd.date_range(&quot;20130102&quot;, periods=6))
+s1</code></pre>
+<pre><code>## 2013-01-02    1
+## 2013-01-03    2
+## 2013-01-04    3
+## 2013-01-05    4
+## 2013-01-06    5
+## 2013-01-07    6
+## Freq: D, dtype: int64</code></pre>
+<pre class="python"><code># df 添加新列 F
+df[&quot;F&quot;] = s1
+
+# 在数据框中对给定元素赋值
+df.at[dates[0], &quot;A&quot;] = 0
+df.iat[0, 1] = 0
+df.loc[:, &quot;D&quot;] = np.array([5] * len(df))
+df</code></pre>
+<pre><code>##                    A         B         C    D    F
+## 2013-01-01  0.000000  0.000000  1.134287  5.0  NaN
+## 2013-01-02  2.426450  0.066978 -0.643228  5.0  1.0
+## 2013-01-03  0.592155  0.108114  0.271232  5.0  2.0
+## 2013-01-04 -0.071331 -0.682826  0.627705  5.0  3.0
+## 2013-01-05 -2.247319  1.595135  0.517725  5.0  4.0
+## 2013-01-06 -1.026931  0.205139 -1.057070  5.0  5.0</code></pre>
+<pre class="python"><code>df2 = df.copy()
+df2[df2 &gt; 0] = -df2
+df2</code></pre>
+<pre><code>##                    A         B         C    D    F
+## 2013-01-01  0.000000  0.000000 -1.134287 -5.0  NaN
+## 2013-01-02 -2.426450 -0.066978 -0.643228 -5.0 -1.0
+## 2013-01-03 -0.592155 -0.108114 -0.271232 -5.0 -2.0
+## 2013-01-04 -0.071331 -0.682826 -0.627705 -5.0 -3.0
+## 2013-01-05 -2.247319 -1.595135 -0.517725 -5.0 -4.0
+## 2013-01-06 -1.026931 -0.205139 -1.057070 -5.0 -5.0</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<pre class="r"><code>df[1, &quot;A&quot;] = 0
+df[1, 2] = 0
+df[, &quot;D&quot;] = rep(5, nrow(df))
+
+df2 = df
+df2[df2 &gt; 0] </code></pre>
+<pre><code>##  [1] 0.5727 0.8007 0.4495 2.0038 0.9745 1.3587 1.8483 0.1335 0.4186 5.0000
+## [11] 5.0000 5.0000 5.0000 5.0000 5.0000</code></pre>
+<pre class="r"><code>df2</code></pre>
+<pre><code>##                  A       B       C D
+## 2013-01-01  0.0000  0.0000 -0.7994 5
+## 2013-01-02 -1.2680 -1.1996  1.8483 5
+## 2013-01-03  0.5727 -0.1781  0.1335 5
+## 2013-01-04 -0.6239  2.0038  0.4186 5
+## 2013-01-05  0.8007  0.9745 -0.3079 5
+## 2013-01-06  0.4495  1.3587 -0.1422 5</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div id="缺失数据" class="section level2" number="5">
+<h2><span class="header-section-number">5</span> 缺失数据</h2>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="python"><code>df1 = df.reindex(index=dates[0:4], columns=list(df.columns) + [&quot;E&quot;])
+df1.loc[dates[0] : dates[1], &quot;E&quot;] = 1
+df1</code></pre>
+<pre><code>##                    A         B         C    D    F    E
+## 2013-01-01  0.000000  0.000000  1.134287  5.0  NaN  1.0
+## 2013-01-02  2.426450  0.066978 -0.643228  5.0  1.0  1.0
+## 2013-01-03  0.592155  0.108114  0.271232  5.0  2.0  NaN
+## 2013-01-04 -0.071331 -0.682826  0.627705  5.0  3.0  NaN</code></pre>
+<pre class="python"><code># 去掉含缺失值的行
+df1.dropna(how=&quot;any&quot;)</code></pre>
+<pre><code>##                   A         B         C    D    F    E
+## 2013-01-02  2.42645  0.066978 -0.643228  5.0  1.0  1.0</code></pre>
+<pre class="python"><code># 将缺失值填充为 5
+df1.fillna(value=5)</code></pre>
+<pre><code>##                    A         B         C    D    F    E
+## 2013-01-01  0.000000  0.000000  1.134287  5.0  5.0  1.0
+## 2013-01-02  2.426450  0.066978 -0.643228  5.0  1.0  1.0
+## 2013-01-03  0.592155  0.108114  0.271232  5.0  2.0  5.0
+## 2013-01-04 -0.071331 -0.682826  0.627705  5.0  3.0  5.0</code></pre>
+<pre class="python"><code># 是否为缺失值
+pd.isna(df1)</code></pre>
+<pre><code>##                 A      B      C      D      F      E
+## 2013-01-01  False  False  False  False   True  False
+## 2013-01-02  False  False  False  False  False  False
+## 2013-01-03  False  False  False  False  False   True
+## 2013-01-04  False  False  False  False  False   True</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<p>airquality 是 R 内置的数据集，含有缺失值。</p>
+<pre class="r"><code>df1 = head(airquality)
+df1</code></pre>
+<pre><code>##   Ozone Solar.R Wind Temp Month Day
+## 1    41     190  7.4   67     5   1
+## 2    36     118  8.0   72     5   2
+## 3    12     149 12.6   74     5   3
+## 4    18     313 11.5   62     5   4
+## 5    NA      NA 14.3   56     5   5
+## 6    28      NA 14.9   66     5   6</code></pre>
+<pre class="r"><code># 去掉含缺失值的行
+df1[complete.cases(df1), ] |&gt; head()</code></pre>
+<pre><code>##   Ozone Solar.R Wind Temp Month Day
+## 1    41     190  7.4   67     5   1
+## 2    36     118  8.0   72     5   2
+## 3    12     149 12.6   74     5   3
+## 4    18     313 11.5   62     5   4</code></pre>
+<pre class="r"><code># 填充缺失值
+fillna &lt;- function(x) {x[is.na(x)] = 5; x}
+apply(df1, 2, fillna) |&gt; head()</code></pre>
+<pre><code>##   Ozone Solar.R Wind Temp Month Day
+## 1    41     190  7.4   67     5   1
+## 2    36     118  8.0   72     5   2
+## 3    12     149 12.6   74     5   3
+## 4    18     313 11.5   62     5   4
+## 5     5       5 14.3   56     5   5
+## 6    28       5 14.9   66     5   6</code></pre>
+<pre class="r"><code># 逐列检查是否含有缺失值
+apply(df1, 2, anyNA) |&gt; head()</code></pre>
+<pre><code>##   Ozone Solar.R    Wind    Temp   Month     Day 
+##    TRUE    TRUE   FALSE   FALSE   FALSE   FALSE</code></pre>
+<pre class="r"><code># 逐列检查是否是缺失值
+apply(df1, 2, is.na) |&gt; head()</code></pre>
+<pre><code>##   Ozone Solar.R  Wind  Temp Month   Day
+## 1 FALSE   FALSE FALSE FALSE FALSE FALSE
+## 2 FALSE   FALSE FALSE FALSE FALSE FALSE
+## 3 FALSE   FALSE FALSE FALSE FALSE FALSE
+## 4 FALSE   FALSE FALSE FALSE FALSE FALSE
+## 5  TRUE    TRUE FALSE FALSE FALSE FALSE
+## 6 FALSE    TRUE FALSE FALSE FALSE FALSE</code></pre>
+<pre class="r"><code># 整行数据是否完整无缺失
+complete.cases(df1) |&gt; head()</code></pre>
+<pre><code>## [1]  TRUE  TRUE  TRUE  TRUE FALSE FALSE</code></pre>
+</div>
+</div>
+</div>
+<div id="算子" class="section level2" number="6">
+<h2><span class="header-section-number">6</span> 算子</h2>
+<div id="统计" class="section level3" number="6.1">
+<h3><span class="header-section-number">6.1</span> 统计</h3>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="python"><code># 求列平均值
+df.mean()</code></pre>
+<pre><code>## A   -0.054496
+## B    0.215423
+## C    0.141775
+## D    5.000000
+## F    3.000000
+## dtype: float64</code></pre>
+<pre class="python"><code># 求行平均值
+df.mean(axis=1)</code></pre>
+<pre><code>## 2013-01-01    1.533572
+## 2013-01-02    1.570040
+## 2013-01-03    1.594300
+## 2013-01-04    1.574710
+## 2013-01-05    1.773108
+## 2013-01-06    1.624228
+## Freq: D, dtype: float64</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<pre class="r"><code>colMeans(df)</code></pre>
+<pre><code>##       A       B       C       D 
+## -0.0115  0.4932  0.1918  5.0000</code></pre>
+<pre class="r"><code>rowMeans(df)</code></pre>
+<pre><code>## 2013-01-01 2013-01-02 2013-01-03 2013-01-04 2013-01-05 2013-01-06 
+##      1.050      1.095      1.382      1.700      1.617      1.666</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div id="合并" class="section level2" number="7">
+<h2><span class="header-section-number">7</span> 合并</h2>
+<div id="拼接" class="section level3" number="7.1">
+<h3><span class="header-section-number">7.1</span> 拼接</h3>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="python"><code>df = pd.DataFrame(np.random.randn(10, 4))
+df</code></pre>
+<pre><code>##           0         1         2         3
+## 0  1.230407 -1.268378 -0.789585 -0.387475
+## 1 -1.001668 -0.573205 -0.330400 -0.534907
+## 2  1.456553  1.464092  2.234690 -1.725228
+## 3 -1.231932  1.162669 -1.265748 -0.329205
+## 4 -0.750532 -0.347237  0.862690 -1.828584
+## 5 -0.803690 -1.471544 -0.491834 -0.576663
+## 6  0.692912  0.951068 -1.502720  2.565378
+## 7 -0.962528 -0.488740 -0.203435 -0.711255
+## 8  0.343757 -0.225558 -0.023401 -2.106459
+## 9  0.174665  1.574763 -0.619298  0.761226</code></pre>
+<pre class="python"><code># break it into pieces
+pieces = [df[:3], df[3:7], df[7:]]
+pd.concat(pieces)</code></pre>
+<pre><code>##           0         1         2         3
+## 0  1.230407 -1.268378 -0.789585 -0.387475
+## 1 -1.001668 -0.573205 -0.330400 -0.534907
+## 2  1.456553  1.464092  2.234690 -1.725228
+## 3 -1.231932  1.162669 -1.265748 -0.329205
+## 4 -0.750532 -0.347237  0.862690 -1.828584
+## 5 -0.803690 -1.471544 -0.491834 -0.576663
+## 6  0.692912  0.951068 -1.502720  2.565378
+## 7 -0.962528 -0.488740 -0.203435 -0.711255
+## 8  0.343757 -0.225558 -0.023401 -2.106459
+## 9  0.174665  1.574763 -0.619298  0.761226</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<pre class="r"><code>df &lt;- data.frame(
+  matrix(data = rnorm(40), nrow = 10, ncol = 4)
+  )
+df</code></pre>
+<pre><code>##          X1      X2      X3      X4
+## 1   0.01941 -0.1804  0.2889  1.3787
+## 2  -0.05706  1.0076  0.2686 -0.1908
+## 3   0.07462  0.1104 -2.3951 -0.7010
+## 4   1.57430 -0.4883  0.6992  0.1575
+## 5   1.04954  1.0060  0.4420  0.5075
+## 6   0.79425  1.3962 -1.3361  0.7282
+## 7   0.94989  2.0674  0.2382 -1.2264
+## 8  -0.83755 -0.2801  0.2264 -0.1165
+## 9  -0.47313  1.6676  0.3761 -2.6264
+## 10 -0.43360 -0.2053  0.0847 -1.1447</code></pre>
+<pre class="r"><code>rbind(df[1:3, ], df[3:7, ], df[7:10, ])</code></pre>
+<pre><code>##          X1      X2      X3      X4
+## 1   0.01941 -0.1804  0.2889  1.3787
+## 2  -0.05706  1.0076  0.2686 -0.1908
+## 3   0.07462  0.1104 -2.3951 -0.7010
+## 31  0.07462  0.1104 -2.3951 -0.7010
+## 4   1.57430 -0.4883  0.6992  0.1575
+## 5   1.04954  1.0060  0.4420  0.5075
+## 6   0.79425  1.3962 -1.3361  0.7282
+## 7   0.94989  2.0674  0.2382 -1.2264
+## 71  0.94989  2.0674  0.2382 -1.2264
+## 8  -0.83755 -0.2801  0.2264 -0.1165
+## 9  -0.47313  1.6676  0.3761 -2.6264
+## 10 -0.43360 -0.2053  0.0847 -1.1447</code></pre>
+</div>
+</div>
+</div>
+<div id="关联" class="section level3" number="7.2">
+<h3><span class="header-section-number">7.2</span> 关联</h3>
+<p>按某列合并两张表</p>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="python"><code>left = pd.DataFrame({&quot;key&quot;: [&quot;foo&quot;, &quot;foo&quot;], &quot;lval&quot;: [1, 2]})
+right = pd.DataFrame({&quot;key&quot;: [&quot;foo&quot;, &quot;foo&quot;], &quot;rval&quot;: [4, 5]})
+left</code></pre>
+<pre><code>##    key  lval
+## 0  foo     1
+## 1  foo     2</code></pre>
+<pre class="python"><code>right</code></pre>
+<pre><code>##    key  rval
+## 0  foo     4
+## 1  foo     5</code></pre>
+<pre class="python"><code>pd.merge(left, right, on=&quot;key&quot;)</code></pre>
+<pre><code>##    key  lval  rval
+## 0  foo     1     4
+## 1  foo     1     5
+## 2  foo     2     4
+## 3  foo     2     5</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<pre class="r"><code>left &lt;- data.frame(
+  key = c(&quot;foo&quot;, &quot;foo&quot;),
+  lval = c(1, 2)
+)
+
+right &lt;- data.frame(
+  key = c(&quot;foo&quot;, &quot;foo&quot;),
+  rval = c(4, 5)
+)
+merge(x = left, y = right, by = &quot;key&quot;)</code></pre>
+<pre><code>##   key lval rval
+## 1 foo    1    4
+## 2 foo    1    5
+## 3 foo    2    4
+## 4 foo    2    5</code></pre>
+</div>
+</div>
+<p>按主键（唯一性）合并两张表</p>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="python"><code>left = pd.DataFrame({&quot;key&quot;: [&quot;foo&quot;, &quot;bar&quot;], &quot;lval&quot;: [1, 2]})
+right = pd.DataFrame({&quot;key&quot;: [&quot;foo&quot;, &quot;bar&quot;], &quot;rval&quot;: [4, 5]})
+left</code></pre>
+<pre><code>##    key  lval
+## 0  foo     1
+## 1  bar     2</code></pre>
+<pre class="python"><code>right</code></pre>
+<pre><code>##    key  rval
+## 0  foo     4
+## 1  bar     5</code></pre>
+<pre class="python"><code>pd.merge(left, right, on=&quot;key&quot;)</code></pre>
+<pre><code>##    key  lval  rval
+## 0  foo     1     4
+## 1  bar     2     5</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<pre class="r"><code>left &lt;- data.frame(
+  key = c(&quot;foo&quot;, &quot;bar&quot;),
+  lval = c(1, 2)
+)
+
+right &lt;- data.frame(
+  key = c(&quot;foo&quot;, &quot;bar&quot;),
+  rval = c(4, 5)
+)
+merge(x = left, y = right, by = &quot;key&quot;)</code></pre>
+<pre><code>##   key lval rval
+## 1 bar    2    5
+## 2 foo    1    4</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div id="聚合" class="section level2" number="8">
+<h2><span class="header-section-number">8</span> 聚合</h2>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="python"><code>df = pd.DataFrame(
+    {
+        &quot;A&quot;: [&quot;foo&quot;, &quot;bar&quot;, &quot;foo&quot;, &quot;bar&quot;, &quot;foo&quot;, &quot;bar&quot;, &quot;foo&quot;, &quot;foo&quot;],
+        &quot;B&quot;: [&quot;one&quot;, &quot;one&quot;, &quot;two&quot;, &quot;three&quot;, &quot;two&quot;, &quot;two&quot;, &quot;one&quot;, &quot;three&quot;],
+        &quot;C&quot;: np.random.randn(8),
+        &quot;D&quot;: np.random.randn(8),
+    }
+)
+df</code></pre>
+<pre><code>##      A      B         C         D
+## 0  foo    one  0.275127  1.290274
+## 1  bar    one  0.658550  1.379370
+## 2  foo    two -1.068897 -1.259664
+## 3  bar  three  0.915246  1.208480
+## 4  foo    two  1.587377 -0.425338
+## 5  bar    two -0.665659 -0.814551
+## 6  foo    one  1.385820 -0.631904
+## 7  foo  three -0.026600  0.614469</code></pre>
+<pre class="python"><code>df.groupby(&quot;A&quot;)[[&quot;C&quot;, &quot;D&quot;]].sum()</code></pre>
+<pre><code>##             C         D
+## A                      
+## bar  0.908137  1.773299
+## foo  2.152827 -0.412162</code></pre>
+<pre class="python"><code>df.groupby([&quot;A&quot;, &quot;B&quot;]).sum()</code></pre>
+<pre><code>##                   C         D
+## A   B                        
+## bar one    0.658550  1.379370
+##     three  0.915246  1.208480
+##     two   -0.665659 -0.814551
+## foo one    1.660947  0.658370
+##     three -0.026600  0.614469
+##     two    0.518479 -1.685001</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<pre class="r"><code>df &lt;- data.frame(
+  A = c(&quot;foo&quot;, &quot;bar&quot;, &quot;foo&quot;, &quot;bar&quot;, &quot;foo&quot;, &quot;bar&quot;, &quot;foo&quot;, &quot;foo&quot;),
+  B = c(&quot;one&quot;, &quot;one&quot;, &quot;two&quot;, &quot;three&quot;, &quot;two&quot;, &quot;two&quot;, &quot;one&quot;, &quot;three&quot;),
+  C = rnorm(8),
+  D = rnorm(8)
+)
+df</code></pre>
+<pre><code>##     A     B         C       D
+## 1 foo   one -0.258537  1.3789
+## 2 bar   one -1.517600  0.8628
+## 3 foo   two -1.026278  0.6548
+## 4 bar three  0.002687 -1.7290
+## 5 foo   two -0.049517 -0.2230
+## 6 bar   two -0.652734 -1.1685
+## 7 foo   one  1.534983  2.5455
+## 8 foo three  0.217812 -0.7702</code></pre>
+<pre class="r"><code>aggregate(df, cbind(C, D) ~ A, sum)</code></pre>
+<pre><code>##     A       C      D
+## 1 bar -2.1676 -2.035
+## 2 foo  0.4185  3.586</code></pre>
+<pre class="r"><code>aggregate(df, . ~ A + B, sum)</code></pre>
+<pre><code>##     A     B         C       D
+## 1 bar   one -1.517600  0.8628
+## 2 foo   one  1.276446  3.9244
+## 3 bar three  0.002687 -1.7290
+## 4 foo three  0.217812 -0.7702
+## 5 bar   two -0.652734 -1.1685
+## 6 foo   two -1.075795  0.4319</code></pre>
+</div>
+</div>
+</div>
+<div id="重塑" class="section level2" number="9">
+<h2><span class="header-section-number">9</span> 重塑</h2>
+<div id="stack-宽格式变长格式" class="section level3" number="9.1">
+<h3><span class="header-section-number">9.1</span> <code>stack</code> 宽格式变长格式</h3>
+<pre class="python"><code>arrays = [
+   [&quot;bar&quot;, &quot;bar&quot;, &quot;baz&quot;, &quot;baz&quot;, &quot;foo&quot;, &quot;foo&quot;, &quot;qux&quot;, &quot;qux&quot;],
+   [&quot;one&quot;, &quot;two&quot;, &quot;one&quot;, &quot;two&quot;, &quot;one&quot;, &quot;two&quot;, &quot;one&quot;, &quot;two&quot;],
+]
+index = pd.MultiIndex.from_arrays(arrays, names=[&quot;first&quot;, &quot;second&quot;])
+df = pd.DataFrame(np.random.randn(8, 2), index=index, columns=[&quot;A&quot;, &quot;B&quot;])
+df2 = df[:4]
+df2</code></pre>
+<pre><code>##                      A         B
+## first second                    
+## bar   one    -1.330748  1.464349
+##       two    -0.357819  1.886293
+## baz   one     0.078505  1.613801
+##       two    -0.473406  1.385060</code></pre>
+<pre class="python"><code>stacked = df2.stack(future_stack=True)
+stacked</code></pre>
+<pre><code>## first  second   
+## bar    one     A   -1.330748
+##                B    1.464349
+##        two     A   -0.357819
+##                B    1.886293
+## baz    one     A    0.078505
+##                B    1.613801
+##        two     A   -0.473406
+##                B    1.385060
+## dtype: float64</code></pre>
+</div>
+<div id="pivot_table-长格式变宽格式" class="section level3" number="9.2">
+<h3><span class="header-section-number">9.2</span> <code>pivot_table</code> 长格式变宽格式</h3>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="python"><code>df = pd.DataFrame(
+    {
+        &quot;A&quot;: [&quot;one&quot;, &quot;one&quot;, &quot;two&quot;, &quot;three&quot;] * 3,
+        &quot;B&quot;: [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;] * 4,
+        &quot;C&quot;: [&quot;foo&quot;, &quot;foo&quot;, &quot;foo&quot;, &quot;bar&quot;, &quot;bar&quot;, &quot;bar&quot;] * 2,
+        &quot;D&quot;: np.random.randn(12),
+        &quot;E&quot;: np.random.randn(12),
+    }
+)
+df</code></pre>
+<pre><code>##         A  B    C         D         E
+## 0     one  A  foo -2.119611 -0.290515
+## 1     one  B  foo  1.277883  0.201935
+## 2     two  C  foo -0.364860 -0.780446
+## 3   three  A  bar -0.667161  0.471151
+## 4     one  B  bar -0.045493 -1.684878
+## 5     one  C  bar  1.060607  0.053233
+## 6     two  A  foo -0.660434  0.060553
+## 7   three  B  foo -0.033984 -0.793361
+## 8     one  C  foo  0.533071  0.735222
+## 9     one  A  bar -0.442919 -1.810009
+## 10    two  B  bar  1.220791 -0.705138
+## 11  three  C  bar -0.442783 -1.004603</code></pre>
+<pre class="python"><code>pd.pivot_table(df, values=[&quot;D&quot;, &quot;E&quot;], index=[&quot;A&quot;, &quot;B&quot;], columns=[&quot;C&quot;])</code></pre>
+<pre><code>##                 D                   E          
+## C             bar       foo       bar       foo
+## A     B                                        
+## one   A -0.442919 -2.119611 -1.810009 -0.290515
+##       B -0.045493  1.277883 -1.684878  0.201935
+##       C  1.060607  0.533071  0.053233  0.735222
+## three A -0.667161       NaN  0.471151       NaN
+##       B       NaN -0.033984       NaN -0.793361
+##       C -0.442783       NaN -1.004603       NaN
+## two   A       NaN -0.660434       NaN  0.060553
+##       B  1.220791       NaN -0.705138       NaN
+##       C       NaN -0.364860       NaN -0.780446</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<pre class="r"><code>df &lt;- data.frame(
+  A = rep(c(&quot;one&quot;, &quot;one&quot;, &quot;two&quot;, &quot;three&quot;), 3),
+  B = rep(c(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;), 4),
+  C = rep(c(&quot;foo&quot;, &quot;foo&quot;, &quot;foo&quot;, &quot;bar&quot;, &quot;bar&quot;, &quot;bar&quot;), 2),
+  D = rnorm(12),
+  E = rnorm(12)
+)
+df</code></pre>
+<pre><code>##        A B   C        D        E
+## 1    one A foo -1.88805  0.19452
+## 2    one B foo -0.60136  0.59975
+## 3    two C foo -0.01720  0.48475
+## 4  three A bar -1.40703 -0.63300
+## 5    one B bar -0.33923 -1.79990
+## 6    one C bar  0.23079  0.54017
+## 7    two A foo  0.61020 -1.72101
+## 8  three B foo -2.26313 -1.03960
+## 9    one C foo -0.08435  0.66869
+## 10   one A bar  0.74246 -0.86170
+## 11   two B bar -0.08440 -0.09692
+## 12 three C bar -0.85306  0.64536</code></pre>
+<pre class="r"><code># 长变宽格式
+reshape(data = df, direction = &quot;wide&quot;, 
+        idvar = c(&quot;A&quot;, &quot;B&quot;), timevar = &quot;C&quot;, v.names = c(&quot;D&quot;, &quot;E&quot;))</code></pre>
+<pre><code>##        A B    D.foo   E.foo   D.bar    E.bar
+## 1    one A -1.88805  0.1945  0.7425 -0.86170
+## 2    one B -0.60136  0.5997 -0.3392 -1.79990
+## 3    two C -0.01720  0.4848      NA       NA
+## 4  three A       NA      NA -1.4070 -0.63300
+## 6    one C -0.08435  0.6687  0.2308  0.54017
+## 7    two A  0.61020 -1.7210      NA       NA
+## 8  three B -2.26313 -1.0396      NA       NA
+## 11   two B       NA      NA -0.0844 -0.09692
+## 12 three C       NA      NA -0.8531  0.64536</code></pre>
+</div>
+</div>
+</div>
+</div>
