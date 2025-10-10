@@ -1636,10 +1636,81 @@ option = {
 
 数据来源：邵阳市统计局发布的[邵阳统计年鉴](https://tjj.shaoyang.gov.cn/sytjj/tjsj/rlist.shtml)。
 
-趋势图显示财政支出与收入之间形成剪刀差，2007 年及以后，财政赤字加速扩张，且财政支出一直处于财政收入的 2-3 倍之间。
+趋势图显示财政支出与收入之间形成剪刀差，2007 年及以后，财政赤字加速扩张，且财政支出一直处于财政收入的 2-3 倍之间。2023 年邵东市财政赤字 46.28 亿元。~~全国一共 2844 个县级行政区，粗略计算全国的财政赤字 131620 亿元。~~
 
-2023 年邵东市财政赤字 46.28 亿。国家统计局统计年鉴公布，2023 年中央财政债务余额 30 万亿。
 
+{{<echarts>}}
+option = {
+  title: {
+    text: '年末国债余额'
+  },
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: {
+      type: 'cross',
+      label: {
+        backgroundColor: '#6a7985'
+      }
+    }
+  },
+  legend: {
+    data: ['中央政府', '地方政府']
+  },
+  xAxis: [
+    {
+      type: 'category',
+      boundaryGap: false,
+      data: ['2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024']
+    }
+  ],
+  yAxis: [
+    {
+      type: 'value',
+      position: 'left',
+      alignTicks: true,
+      axisLabel: {
+        formatter: '{value} 亿元'
+      }
+    },
+  {
+    type: 'value',
+    position: 'right',
+    alignTicks: true,
+    axisLabel: {
+      formatter: '{value} %'
+    }
+  }
+  ],
+  series: [
+    {
+      name: '中央政府',
+      type: 'bar',
+      stack: 'Total',
+      areaStyle: {},
+      emphasis: {
+        focus: 'series'
+      },
+      data: [52074.65, 53271.54, 60237.68, 67548.11, 72044.51, 77565.7, 86746.91, 95655.45, 106599.59, 134770.15, 149607.41, 168038.04, 208905.87, 232697.29, 258692.76, 300325.5, 345723.62]
+    },
+    {
+      name: '地方政府',
+      type: 'bar',
+      stack: 'Total',
+      areaStyle: {},
+      emphasis: {
+        focus: 'series'
+      },
+      data: [null, null, null, null, null, null, null, null, null, 164706, 183862, 213072, 256615, 304700, 350652.91, 407370.29, 475401.25]
+    }
+  ]
+};
+{{</echarts>}}
+
+数据来源：[中国财政部](https://www.mof.gov.cn/gkml/caizhengshuju/)、国家统计局。国家统计局只公布中央政府的债务数据，地方政府的债务数据要去财政部找，如[国务院关于2024年中央决算的报告](https://www.mof.gov.cn/zhengwuxinxi/caizhengxinwen/202506/t20250630_3966883.htm)，[2022年12月地方政府债券发行和债务余额情况](https://yss.mof.gov.cn/zhuantilanmu/dfzgl/sjtj/202301/t20230128_3864087.htm)。此外，图中所展示的只是中国政府的显性债务，不包括地方政府的隐性债务（隐性债务的主要来源是地方政府的城市建设投资集团有限公司，简称城投公司）。
+
+从 2017 年到 2024 年，中国政府债务余额增加了 1.7 倍。
+
+~~瑞·达利欧的《债务危机：我的应对原则》书中提到，债务占GDP的比例是衡量国家债务状况的重要指标，当这个比例超过一定界限（债务增加的速度超过收入增加的速度）就会陷入债务危机中。~~
 
 ## SOHO 中国 2004-2024
 
