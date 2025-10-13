@@ -66,6 +66,7 @@ title: 关于
 
 - [博客带给我什么？——博客重建7周年](https://lhcy.org/archives/196.html)
 - [为自己而活](https://cyrusyip.org/zh-cn/posts/2021/02/18/live-for-myself/)
+- [人到三十](https://www.zhukang.tech/2021/12/05/人到三十/)
 
 <!--
 近些年，因为统计之都和网上冲浪认识了一些人，也有一些人想去认识。不时去逛逛他（她）们的主页，会发现有意思的地方。（按姓氏拼音排序）
