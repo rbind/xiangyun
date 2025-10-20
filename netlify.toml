@@ -2,7 +2,7 @@
   command = "hugo"
   publish = "public"
 [build.environment]
-  HUGO_VERSION = "0.151.0"
+  HUGO_VERSION = "0.151.2"
   PYTHON_VERSION = "3.12"
 
 [context.branch-deploy]
