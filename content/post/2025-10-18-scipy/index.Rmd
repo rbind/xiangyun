@@ -1,0 +1,257 @@
+---
+title: "SciPy 做科学计算"
+author: "黄湘云"
+date: '2025-10-18'
+slug: scipy
+categories:
+  - 统计软件
+tags:
+  - numpy
+  - scipy
+  - matrix
+  - array
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+description: "Python 模块 SciPy 是做科学计算的，本文添加等价 R 代码。"
+---
+
+```{css, echo=F}
+.columns {
+  display: flex;
+}
+```
+
+[SciPy](https://scipy.org) 是基于 NumPy 做科学计算的 Python 模块，它的官网没有类似 NumPy 和 Pandas 的快速入门文档，但有一个按功能分类的[用户指南](https://docs.scipy.org/doc/scipy/tutorial/index.html#user-guide)。本文介绍 SciPy 提供的基础算法，涵盖优化、积分、插值、特征值问题、代数方程、微分方程、统计学等功能。
+
+下面蜻蜓点水式地介绍一点 SciPy 做科学计算及等价 R 语言实现。
+
+## 线性代数
+
+在线性代数运算方面，scipy.linalg 包含 [numpy.linalg](https://www.numpy.org/devdocs/reference/routines.linalg.html) 的所有函数，且功能比 numpy.linalg 更多。scipy.linalg  总是添加了 BLAS/LAPACK 支持，而这在 numpy.linalg 是可选的。
+
+推荐使用 NumPy 提供的多维数组类型。
+
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+import numpy as np
+from scipy import linalg
+A = np.array([[1,2],[3,4]])
+A
+linalg.inv(A)
+b = np.array([[5,6]]) #2D array
+b
+b.T
+A*b #not matrix multiplication!
+A.dot(b.T) #matrix multiplication
+b = np.array([5,6]) #1D array
+b
+b.T  #not matrix transpose!
+A.dot(b)  #does not matter for multiplication
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+A = array(data = c(1, 3, 2, 4), dim = c(2, 2))
+A
+solve(A)
+b = array(data = c(5, 6), dim = c(1, 2))
+b
+t(b)
+# A * b 不可以
+A %*% t(b) # 矩阵乘法
+```
+
+:::
+::::::
+
+
+## 积分
+
+这是一个关于贝塞尔函数的积分，贝塞尔函数是内置的特殊函数。
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+import scipy.integrate as integrate
+import scipy.special as special
+result = integrate.quad(lambda x: special.jv(2.5,x), 0, 4.5)
+result
+
+from numpy import sqrt, sin, cos, pi
+I = sqrt(2/pi)*(18.0/27*sqrt(2)*cos(4.5) - 4.0/27*sqrt(2)*sin(4.5) +
+                sqrt(2*pi) * special.fresnel(3/sqrt(pi))[0])
+I
+
+print(abs(result[0]-I))
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+integrate(f = besselJ, nu = 2.5, lower = 0, upper = 4.5)
+```
+
+:::
+::::::
+
+
+## 优化
+
+SciPy 的优化功能也不少，局部优化和全局优化问题，约束优化和无约束优化问题等都有涉及。下面是一个关于 5 维的香蕉函数的求极小值的问题。
+
+笔者曾在书[《R 语言数据分析实战》](https://bookdown.org/xiangyun/data-analysis-in-action/)专门整理了 [R 语言做数值优化](https://bookdown.org/xiangyun/data-analysis-in-action/numerical-optimization.html)的问题，很全面，没啥要补充的，不在此一一对照。
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+import numpy as np
+from scipy.optimize import minimize
+
+def rosen(x):
+    """The Rosenbrock function"""
+    return sum(100.0*(x[1:]-x[:-1]**2.0)**2.0 + (1-x[:-1])**2.0)
+
+x0 = np.array([1.3, 0.7, 0.8, 1.9, 1.2])
+res = minimize(rosen, x0, method='L-BFGS-B')
+               
+print(res.x)               
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+fn <- function(x) {
+  n <- length(x)
+  sum(100*(x[-1] - x[-n]^2  )^2 +  (1 - x[-n])^2 )
+}
+optim(
+  par = c(1.3, 0.7, 0.8, 1.9, 1.2), fn = fn, 
+  method = "L-BFGS-B"
+)
+```
+
+:::
+::::::
+
+## 稀疏数组
+
+稀疏数组应用很广泛，特别是在图关系数据（邻接矩阵）和文本数据分析（词文档矩阵）领域。下面是一个二维稀疏数组（即矩阵）的构造过程。
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+import scipy as sp
+import numpy as np
+dense = np.array([[1, 0, 0, 2], [0, 4, 1, 0], [0, 0, 5, 0]])
+sparse = sp.sparse.coo_array(dense)
+dense
+sparse
+
+sparse.max()
+dense.max()
+sparse.argmax()
+dense.argmax()
+sparse.mean()
+dense.mean()
+
+sparse.nnz
+sparse.mean(axis=1)
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+在 R 语言中，**Matrix** 包主要用于稀疏矩阵操作。
+
+```{r}
+library(Matrix)
+dense = matrix(data = c(1, 0, 0, 2,
+                        0, 4, 1, 0,
+                        0, 0, 5, 0),
+               byrow = T, nrow = 3, ncol = 4)
+sparse = Matrix(dense, sparse=TRUE) 
+dense
+sparse
+
+max(dense)
+max(sparse)
+which.max(dense)
+# which.max(sparse)
+mean(dense)
+mean(sparse)
+
+rowMeans(sparse)
+```
+
+:::
+::::::
+
+
+## 统计
+
+独立两样本方差相等的均值检验，即 t 检验，而在方差不等的情况下，是 Welch’s t-test 。
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+import scipy.stats as stats
+rvs1 = stats.norm.rvs(loc=5, scale=10, size=500)
+rvs2 = stats.norm.rvs(loc=8, scale=10, size=500)
+stats.ttest_ind(rvs1, rvs2, equal_var=True)
+```
+
+函数 `ttest_ind` 的参数说明见[文档](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html#scipy.stats.ttest_ind)。
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+rvs1 = rnorm(n = 500, mean = 5, sd = 10)
+rvs2 = rnorm(n = 500, mean = 8, sd = 10)
+t.test(rvs1, rvs2, var.equal = TRUE)
+```
+
+:::
+::::::
+
+在 Python 和 R 语言中，都是随机生成的两组样本，样本并不相同，检验统计量的值、P 值等自然也不同。
+

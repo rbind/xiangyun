@@ -1,0 +1,932 @@
+---
+title: "NumPy 快速入门"
+author: "黄湘云"
+date: '2025-10-17'
+slug: numpy
+categories:
+  - 统计软件
+tags:
+  - numpy
+  - matrix
+  - array
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+description: "Python 模块 NumPy 是做数组操作的，本文添加等价 R 代码。"
+---
+
+```{css, echo=F}
+.columns {
+  display: flex;
+}
+```
+
+
+本文继[《10分钟入门pandas》](/2025/10/pandas)之后，又一篇快速入门 Python 模块的文章，来自 NumPy 的官网[NumPy quickstart](https://numpy.org/doc/stable/user/quickstart.html)，也是要同步添加 R 代码实现。
+
+1. 介绍 NumPy 中的数组操作，一维数组、二维数组和N维数组的差异。
+1. 使用常见函数操作数组（一些线性代数运算），不使用 for 循环，更 Python 范。
+1. 理解 NumPy 中 N 维数组的两个属性：轴 axis 和形状 shape。
+
+首先导入一个 Python 模块：
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+```{python}
+import numpy as np
+```
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+R 内置一套数组操作的工具，**abind** 包提供额外的一些数组操作函数。
+
+```{r}
+library(abind) # abind / asub
+```
+
+:::
+::::::
+
+
+## 基础
+
+NumPy 中主要的数据对象是多维数组，且数组中的元素类型都是相同的。数组的维数称之为轴 axes 。
+
+比如，三维空间中的一个点的坐标 `[1, 2, 1]` 可以用数组来表示，它有一个轴，轴上有三个元素，它的长度为 3。下面这个数组有两个轴，第一个轴长度为 2，第二个轴长度为 3 。
+
+```python
+[[1., 0., 0.],
+ [0., 1., 2.]]
+```
+
+NumPy 中的数组用 `ndarray` 或 `array` 来表示。注意，`numpy.array` 和标准 Python 库中的类 `array.array` 是不同的，后者仅能处理一维数组的情况，功能更少。一个 `ndarray` 对象有如下一些重要的属性。
+
+1. `ndarray.ndim`
+数组的维数（轴的数目）。
+
+1. `ndarray.shape`
+数组的大小。用一个元组来表示数组中各个轴/维的大小。对一个 n 行 m 列的矩阵来说，它的形状 shape 是 (n,m) 。这个形状元组的长度是轴的数目，维数。
+
+1. `ndarray.size`
+数组中所有元素的总数。它是形状元组中元素的连乘积。
+
+1. `ndarray.dtype`
+数组中元素的数据类型。数组中元素的类型可以用标准 Python 类型来指定，NumPy 也提供它自己的类型，如 `numpy.int32`, `numpy.int16` 和 `numpy.float64`。
+
+1. `ndarray.itemsize`
+数组中每个元素的存储大小（以字节 bytes 计）。如，数组中 float64 类型的元素，它的 itemsize 是 8 (=64/8) 个字节，而 complex32 类型有 4 (=32/8) 个字节。`ndarray.itemsize` 等价于 `ndarray.dtype.itemsize` 。
+
+1. `ndarray.data`
+数组中的实际元素。通常，我们不需要使用这个属性，而是使用索引来连接数组中的元素。
+
+### 一个例子
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+```{python}
+import numpy as np
+a = np.arange(15).reshape(3, 5)
+a
+a.shape
+a.ndim
+a.dtype.name
+a.itemsize
+a.size
+type(a)
+b = np.array([6, 7, 8])
+b
+type(b)
+```
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+在 R 语言中，二维数组和矩阵是等价的。
+
+```{r}
+array(data = 0:14, dim = c(3, 5)) # 默认按列填充
+a = matrix(data = 0L:14L, nrow = 3, ncol = 5, byrow = T)
+a
+dim(a)
+length(dim(a))
+typeof(a)
+length(a)
+class(a)
+mode(a)
+storage.mode(a)
+object.size(a)
+```
+
+:::
+::::::
+
+
+### 创建数组
+
+创建不同元素类型的数组，比如整型数组、浮点型数组。
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+```{python}
+import numpy as np
+a = np.array([2, 3, 4])
+a
+a.dtype
+b = np.array([1.2, 3.5, 5.1])
+b.dtype
+```
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+a = array(data = c(2L, 3L, 4L), dim = c(1, 3))
+a
+typeof(a)
+b = array(data = c(1.2, 3.5, 5.1), dim = c(1, 3))
+typeof(b)
+```
+
+:::
+::::::
+
+
+
+创建一个二维数组，数组的元素类型可以在创建数组时指定。
+
+```{python}
+b = np.array([(1.5, 2, 3), (4, 5, 6)])
+b
+c = np.array([(1, 2), (3, 4)], dtype=complex)
+c
+```
+
+
+当知道数组的大小，但是数组的内容暂定，需要初始化数组时，有三个函数可用，分别是 `zeros` 、`ones` 、`empty` 。
+
+NumPy 的 `arange` 函数可以创建一个数值列（一维数组），返回类型也是数组，类似 Python 内置的函数 `range` 。但是，当传递浮点数参数时，由于有限的浮点数精度，`arange` 函数返回的元素个数难以预测。此时，最好使用函数 `linspace` ，它可以指定元素的个数（一维数组的长度）。
+
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+# 初始化二维、多维数组
+np.zeros((3, 4))
+np.ones((2, 3, 4), dtype=np.int16)
+np.empty((2, 3)) # 数组元素是随机的，不推荐
+
+# 初始化一维数组 指定首尾和间距
+np.arange(10, 30, 5)
+range(10, 30, 5)
+np.arange(0, 2, 0.3)  # it accepts float arguments
+
+# 初始化一维数组 指定首尾和长度
+from numpy import pi
+np.linspace(0, 2, 9)                   # 9 numbers from 0 to 2
+x = np.linspace(0, 2 * pi, 100)        # useful to evaluate function at lots of points
+f = np.sin(x)
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+array(data = 0, dim = c(3, 4))
+array(data = 1, dim = c(3, 4, 2))
+
+# 参数 by 指定间距
+seq(from = 10, to = 30, by = 5)
+seq(from = 0, to = 2, by = 0.3)
+# 参数 length.out 指定长度
+seq(from = 0, to = 2, length.out = 9)
+# pi 是内置的常数
+x = seq(from = 0, to = 2*pi, length.out = 100)
+f = sin(x)
+```
+
+:::
+::::::
+
+
+### 打印数组
+
+在Python 环境中，打印（显示） NumPy 创建的数组，一维数组是向量，二维数组是矩阵，三维数组是矩阵列表。
+
+```{python}
+a = np.arange(6)                    # 1d array
+print(a)
+b = np.arange(12).reshape(4, 3)     # 2d array
+print(b)
+c = np.arange(24).reshape(2, 3, 4)  # 3d array
+print(c)
+```
+
+如果数组规模非常大，NumPy 会自动跳过数组的中间部分，只打印四周角落。
+
+```{python}
+print(np.arange(10000))
+print(np.arange(10000).reshape(100, 100))
+```
+
+### 基本操作
+
+两个数组之间的算术操作是数组中的元素逐对进行的。
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+a = np.array([20, 30, 40, 50])
+b = np.arange(4)
+b
+c = a - b
+c
+b**2
+10 * np.sin(a)
+a < 35
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+a = array(data = c(20, 30, 40, 50), dim = c(1, 4))
+b = array(data = 0:3, dim = c(1, 4))
+b
+c = a -b 
+c
+b**2
+10 * sin(a)
+a < 35
+```
+
+:::
+::::::
+
+二维数组即矩阵，乘积算子 `*` 是对数组中的元素逐对进行的。而真正的矩阵乘法是用 `@` 或者函数 `dot` 。
+
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+A = np.array([[1, 1],
+              [0, 1]])
+B = np.array([[2, 0],
+              [3, 4]])
+A * B     # elementwise product
+A @ B     # matrix product
+A.dot(B)  # another matrix product
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+A <- array(data = c(1, 0, 1, 1), dim = c(2, 2))
+B <- array(data = c(2, 3, 0, 4), dim = c(2, 2))
+A * B
+A %*% B
+crossprod(t(A), B)
+```
+
+:::
+::::::
+
+
+算子 `*=` 和 `+=` 修改现有的数组，而不是创建一个新的数组。
+
+```{python}
+rg = np.random.default_rng(1)  # create instance of default random number generator
+a = np.ones((2, 3), dtype=int)
+b = rg.random((2, 3))
+a *= 3
+a
+b += a
+b
+# a += b  # b is not automatically converted to integer type
+```
+
+当不同类型的数组进行算术操作，会涉及类型转化，通常是向上类型转化，如整型遇到浮点型，整型转化为浮点型。实数遇到复数，先将实数转化为复数。
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+a = np.ones(3, dtype=np.int32)
+b = np.linspace(0, pi, 3)
+b.dtype.name
+c = a + b
+c
+c.dtype.name
+d = np.exp(c * 1j)
+d
+d.dtype.name
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+a = array(data = 1L, dim = c(1, 3))
+b = seq(from = 0, to = pi, length.out = 3)
+typeof(a)
+typeof(b)
+c = a + b
+c
+typeof(c)
+d = exp(c * 1i)
+d
+typeof(d)
+```
+
+:::
+::::::
+
+很多一元算子，如对数组元素求和、求最大值、求最小值，`ndarray` 类型提供内置的计算方法。
+
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+a = rg.random((2, 3))
+a
+a.sum()
+a.min()
+a.max()
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+a = array(data = rnorm(6, 0, 1), dim = c(2, 3))
+a
+sum(a)
+min(a)
+max(a)
+```
+:::
+::::::
+
+还有一些算子是根据数组的轴（行、列）计算的。
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+
+```{python}
+b = np.arange(12).reshape(3, 4)
+b
+b.sum(axis=0)     # sum of each column
+b.min(axis=1)     # min of each row
+b.cumsum(axis=1)  # cumulative sum along each row
+```
+
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+b = matrix(data = 0:11, nrow = 3, ncol = 4, byrow = T)
+b
+colSums(b)
+apply(b, 2, sum)
+apply(b, 1, min)
+t(apply(b, 1, cumsum))
+```
+
+:::
+::::::
+
+
+### 通用函数
+
+NumPy 提供一些常见的数学函数，如 `sin`、 `cos` 和 `exp`
+等，这些函数称之为通用函数 Universal functions 。在 NumPy 中，在数组上应用正弦函数、指数函数、开平方根函数等是对数组的元素逐个运算。
+
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+B = np.arange(3)
+B
+np.exp(B)
+np.sqrt(B)
+C = np.array([2., -1., 4.])
+np.add(B, C)
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+B = array(data = 0:2, dim = c(1, 3))
+B
+exp(B)
+sqrt(B)
+C = array(data = c(2., -1., 4.), dim = c(1, 3))
+B + C
+```
+
+:::
+::::::
+
+
+### 索引、切片和迭代
+
+可以通过索引、切片和迭代的方式访问**一维数组**中的元素。
+
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+
+```{python}
+a = np.arange(10)**3
+a
+a[2]
+a[2:5]
+# equivalent to a[0:6:2] = 1000;
+# from start to position 6, exclusive, set every 2nd element to 1000
+a[:6:2] = 1000
+a
+a[::-1]  # reversed a
+for i in a:
+    print(i**(1 / 3.))
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+a = array(data = 0:9, dim = c(1, 10)) ** 3
+a
+a[3]
+a[3:5]
+a[,c(1, 3, 5)] = 1000
+a
+rev(a)
+for (i in a)
+    print(i**(1 / 3.))
+```
+
+:::
+::::::
+
+
+对于**多维数组**，每个轴可以有一个索引，索引以逗号分隔的元组表示。当提供的索引比轴的数目更少，缺失的索引将看作切片。
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+def f(x, y):
+    return 10 * x + y
+b = np.fromfunction(f, (5, 4), dtype=int)
+b
+b[2, 3]
+b[0:5, 1]  # each row in the second column of b
+b[:, 1]    # equivalent to the previous example
+b[1:3, :]  # each column in the second and third row of b
+b[-1]   # the last row. Equivalent to b[-1, :]
+```
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+
+```{r}
+a = array(data = 1, dim = c(5, 4))
+b = array(data = rep(0:3, each = 5), dim = c(5, 4))
+b = 10 * 0:4 + b
+b
+b[3, 4]
+b[1:5, 2]
+b[, 2]
+b[2:3, ]
+b[-1, ] # 它表示去掉第一行，这与 Python 差别很大
+```
+
+:::
+::::::
+
+
+访问多维数组：切片。下面是一个 2x2x3 的三维数组，访问数组中的切片时，以省略号 `...`
+表示未明写的维度。
+
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+c = np.array([[[  0,  1,  2],  # a 3D array (two stacked 2D arrays)
+               [ 10, 12, 13]],
+              [[100, 101, 102],
+               [110, 112, 113]]])
+c
+c.shape
+c[1, ...]  # same as c[1, :, :] or c[1]
+c[..., 2]  # same as c[:, :, 2]
+```
+
+注意：缺省维度的表示与 R 语言是不一样的。
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+c = array(data = c(0 , 10, 1, 12, 2, 13,
+                   100, 110, 101, 112,
+                   102, 113), dim = c(2, 3, 2))
+c
+dim(c)
+c[, ,2]
+c[, 3,]
+```
+
+:::
+::::::
+
+多维数组的**迭代操作**是基于第一个轴（行）。
+
+```{python}
+for row in c:
+    print(row)
+```
+
+如果是遍历数组中的每一个元素，则需要用 `flat` 将数组转成向量。
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+for element in c.flat:
+    print(element)
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+R 语言中迭代多维数组与 Python 不同。
+
+```{r}
+for (row in c) {
+  print(row)
+}
+```
+
+:::
+::::::
+
+
+## 数组形状操作
+
+### 改变数组的形状
+
+将 3x4 的数组转为 6x2 的数组。数组中的元素是按行填充/排列的，操作数组时，也是按行进行的。
+
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+
+```{python}
+a = np.floor(10 * rg.random((3, 4)))
+a
+a.shape
+
+a.ravel()  # returns the array, flattened
+a.reshape(6, 2)  # returns the array with a modified shape
+a.T  # returns the array, transposed
+a.T.shape
+a.shape
+```
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+R 语言中，对数组的操作默认都是按列进行的。
+
+```{r}
+a = floor(10 * array(data = runif(12), dim = c(3, 4)))
+a
+dim(a)
+as.vector(a)
+array(as.vector(a), dim = c(6, 2))
+aperm(a, perm = c(2, 1))
+dim(aperm(a))
+dim(a)
+```
+
+函数 `aperm()` 的参数 `perm` 接受一个整型向量，向量的长度是维数，向量的元素是 1:N （N 代表维数）之间的数。常见的三维数组中， 1 代表行，2 代表列，3 表示剩下的那个轴（维度）。
+:::
+::::::
+
+NumPy 中的 `resize` 函数可以直接修改原来的数组。如果函数 `reshape` 其中一个参数为 -1 ，它表示该位置根据计算得出。
+
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+a
+a.resize((2, 6))
+a
+a.reshape(3, -1)
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+R 语言中无此强行转化数组形状的操作。我暂时也没有想到应用场景。
+
+:::
+::::::
+
+
+### 堆叠合并数组
+
+垂直 `vstack` 还是水平 `hstack` 方向堆叠数组。
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+a = np.floor(10 * rg.random((2, 2)))
+a
+b = np.floor(10 * rg.random((2, 2)))
+b
+np.vstack((a, b))
+np.hstack((a, b))
+```
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+a = floor(10 * array(data = runif(4), dim = c(2, 2)))
+a
+b = floor(10 * array(data = runif(4), dim = c(2, 2)))
+b
+rbind(a, b)
+cbind(a, b)
+
+library(abind)
+abind(a, b, along = 1) # rbind
+abind(a, b, along = 2) # cbind
+```
+
+:::
+::::::
+
+函数  `column_stack` 可以将两个一维数组堆叠形成一个二维数组。对二维数组的堆叠操作来说，函数  `column_stack` 等价于函数  `hstack` 。
+
+```{python}
+from numpy import newaxis
+np.column_stack((a, b))  # with 2D arrays
+a = np.array([4., 2.])
+b = np.array([3., 8.])
+np.column_stack((a, b))  # returns a 2D array
+np.hstack((a, b))        # the result is different
+a[:, newaxis]  # view `a` as a 2D column vector
+np.column_stack((a[:, newaxis], b[:, newaxis]))
+np.hstack((a[:, newaxis], b[:, newaxis]))  # the result is the same
+```
+
+### 拆分数组
+
+
+函数 `hsplit` 和 `vsplit` 可以分别将数组按照水平方向、垂直方向拆分，还可以指定分割点。
+
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+
+```{python}
+a = np.floor(10 * rg.random((2, 12)))
+a
+# Split `a` into 3
+np.hsplit(a, 3)
+# Split `a` after the third and the fourth column
+np.hsplit(a, (3, 4))
+```
+
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+a = floor(10 * array(data = runif(24), dim = c(2, 12)))
+a
+asplit(a, MARGIN = 1)
+```
+
+`asplit()` 函数只能按某一个边际维度拆分数据，并不支持 3 等分，按指定位置切分这样的操作。
+
+:::
+::::::
+
+
+## 拷贝和视图
+
+### 无拷贝
+
+```{python}
+a = np.array([[ 0,  1,  2,  3],
+              [ 4,  5,  6,  7],
+              [ 8,  9, 10, 11]])
+b = a            # no new object is created
+b is a           # a and b are two names for the same ndarray object
+
+def f(x):
+    print(id(x))
+id(a)  # id is a unique identifier of an object 
+f(a)   
+```
+
+注意： R 语言中都是深拷贝行为，先复制一份原数据，再修改数据，最后，保存在新的数据对象中。
+
+### 视图和浅拷贝
+
+修改原来数组中的元素
+
+```{python}
+c = a.view()
+c is a
+c.base is a            # c is a view of the data owned by a
+c.flags.owndata
+c = c.reshape((2, 6))  # a's shape doesn't change, reassigned c is still a view of a
+a.shape
+c[0, 4] = 1234         # a's data changes
+a
+
+s = a[:, 1:3]
+s[:] = 10  # s[:] is a view of s. Note the difference between s = 10 and s[:] = 10
+a
+```
+
+对数组 c 的修改，同步发生到 a 身上。
+
+### 深拷贝
+
+创建一个新的数组，在新的数组中操作
+
+```{python}
+d = a.copy()  # a new array object with new data is created
+d is a
+d.base is a  # d doesn't share anything with a
+d[0, 0] = 9999
+d
+a
+```
+
+## 高级索引和索引技巧
+
+
+### 用索引数组来索引
+
+一个数组的元素代表另一个数组元素的索引位置。
+
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{python}
+a = np.arange(12)**2  # the first 12 square numbers
+a
+i = np.array([1, 1, 3, 8, 5])  # an array of indices
+a[i]  # the elements of `a` at the positions `i`
+j = np.array([[3, 4], [9, 7]])  # a bidimensional array of indices
+a[j]  # the same shape as `j`
+```
+
+```{python}
+a = np.arange(12).reshape(3, 4)
+a
+i = np.array([[0, 1],  # indices for the first dim of `a`
+              [1, 2]])
+j = np.array([[2, 1],  # indices for the second dim
+              [3, 3]])
+a[i, j]  # i and j must have equal shape
+a[i, 2]
+a[:, j]
+```
+
+
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+
+```{r}
+# 一维数组
+a = array(data = (0:11)^2, dim = c(1, 12)) 
+a
+i = array(data = c(2, 2, 4, 9, 6), dim = c(1, 5))
+a[i]
+j = array(data = c(4, 10, 5, 8), dim = c(2, 2))
+a[as.vector(j)]
+library(abind)
+# 按列索引
+asub(x = a, idx = list(c(4, 10, 5, 8)), dims = 2)
+```
+
+R 语言的索引规则与 Python 很不一样，在 R 语言中，按照边际 MARGIN 来切片或索引。
+:::
+::::::
+
+
