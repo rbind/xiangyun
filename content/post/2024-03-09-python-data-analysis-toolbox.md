@@ -46,6 +46,7 @@ description: "已经成为事实标准的 Python 数据分析工具箱。"
 
 -   深度学习 [tensorflow](https://github.com/tensorflow/tensorflow)
 -   机器学习 [xgboost](https://github.com/dmlc/xgboost)
+-   因果推断 [DoWhy](https://github.com/py-why/dowhy) /  [causalml](https://github.com/uber/causalml)
 
 ## 领域数据
 
