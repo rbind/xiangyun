@@ -1852,6 +1852,20 @@ SOHO 中国 2024 年财报显示：
 > 如今，人工智能将会为世界带来翻天覆地的变化。人工智能的出现，不再局限于为工具赋能，而是为人类自身赋予前所未有的智慧与创造力。**过去的一年里，学习成为公司和每位员工共同进步的重要手段**。2024年，SOHO 中国共组织2,200多场培训，累计参加人次达3.5万。
 
 
+# 参考材料
+
+1. 住房和城乡建设部发布的[统计年鉴](https://www.mohurd.gov.cn/gongkai/fdzdgknr/sjfb/tjxx/jstjnj/index.html)。
+1. 北京市政府发布的[国民经济与社会发展公报](https://www.beijing.gov.cn/gongkai/shuju/tjgb/)。
+1. 国家统计局发布的[统计年鉴](https://www.stats.gov.cn/sj/ndsj/)。
+1. 民政部发布的民政事业发展[统计公报](https://www.mca.gov.cn/n156/n2679/index.html)。
+1. 中国人民银行发布的[贷款市场报价利率](http://www.pbc.gov.cn/zhengcehuobisi/125207/125213/125440/3876551/de24575c/index1.html)。
+1. 中国人民银行发布的[货币政策执行季度报告](http://www.pbc.gov.cn/zhengcehuobisi/125207/125227/125957/index.html)。
+1. 财政部发布的历年[财政数据](https://www.mof.gov.cn/gkml/caizhengshuju/)。
+1. 财政部发布的历年[地方债数据](https://yss.mof.gov.cn/zhuantilanmu/dfzgl/sjtj/)。
+1. 邵阳市统计局发布的[统计年鉴](https://tjj.shaoyang.gov.cn/sytjj/tjsj/rlist.shtml)。
+1. SOHO 中国的历年[财报](https://ir.sohochina.com/FinancialReport.aspx)。
+1. 2020年8月中国人民银行、住房和城乡建设部发布房地产企业的[三道红线](https://baike.baidu.com/item/三道红线/59266996)。
+
 # 附录
 
 北京市住宅销售价格指数相关的计算代码和[数据](/data/北京市新建商品住宅和二手住宅销售价格环比指数.xlsx)。
