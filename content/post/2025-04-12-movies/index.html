@@ -1,0 +1,1049 @@
+---
+title: 那些年看过的影视剧
+author: 黄湘云
+date: '2025-09-24'
+slug: movies
+categories:
+  - 推荐文章
+tags:
+  - 分类问题
+  - 电影
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+description: "收集、整理、分析那些看过电影，我给电影评价打分，总结出我喜好的电影类型。娱乐行业在这些年蓬勃发展，其中大荧幕更是风生水起，提取一批值得二刷的电影。票房和豆瓣评价的关系，电影推荐。各大奖项下获奖电影电视剧的特色。"
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+
+
+<p>如果要看电影，不妨刷刷这些奖项的榜单。在豆瓣或百度百科上可以找到历届获奖的影片，比如
+1992 年第 64 届<a href="https://movie.douban.com/awards/Oscar/64/">奥斯卡</a>、1989
+年第 9 届<a href="https://movie.douban.com/awards/golden-rooster/9/">金鸡奖</a>。</p>
+<table>
+<colgroup>
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>奖项</th>
+<th>华表奖</th>
+<th>百花奖</th>
+<th>金鸡奖</th>
+<th>金像奖</th>
+<th>金马奖</th>
+<th>奥斯卡奖</th>
+<th>金棕榈奖</th>
+<th>金狮奖</th>
+<th>金熊奖</th>
+<th>飞天奖</th>
+<th>白玉兰奖</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>设立年份</td>
+<td>1957</td>
+<td>1962</td>
+<td>1981</td>
+<td>1982</td>
+<td>1962</td>
+<td>1929</td>
+<td>1957</td>
+<td>1949</td>
+<td>1951</td>
+<td>1981</td>
+<td>1988</td>
+</tr>
+<tr class="even">
+<td>影视类别</td>
+<td>电影</td>
+<td>电影</td>
+<td>电影</td>
+<td>电影</td>
+<td>电影</td>
+<td>电影</td>
+<td>电影</td>
+<td>电影</td>
+<td>电影</td>
+<td>电视</td>
+<td>电视</td>
+</tr>
+<tr class="odd">
+<td>国家地区</td>
+<td>中国</td>
+<td>中国</td>
+<td>中国</td>
+<td>中国香港</td>
+<td>中国台湾</td>
+<td>美国</td>
+<td>法国戛纳</td>
+<td>意大利威尼斯</td>
+<td>德国柏林</td>
+<td>中国</td>
+<td>中国</td>
+</tr>
+</tbody>
+</table>
+<p>以前的影视剧看起来就是够有劲，比如 2006 年的《至高利益》，相比于 2017
+年的《人民的名义》 更直接更生猛更深刻，都是周梅森的作品。</p>
+<pre class="r"><code>library(readxl)
+movies &lt;- readxl::read_xlsx(path = &quot;data/观影记录.xlsx&quot;, sheet = &quot;电影&quot;, skip = 1)
+# tinytable 包展示数据
+library(tinytable)
+tt(movies, theme = &quot;striped&quot;)</code></pre>
+<!-- preamble start -->
+
+    <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script>
+
+    <script>
+      // Create table-specific functions using external factory
+      const tableFns_o8dq8u26xlt36psaqjet = TinyTable.createTableFunctions("tinytable_o8dq8u26xlt36psaqjet");
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '1', j: 1 }, { i: '3', j: 1 }, { i: '5', j: 1 }, { i: '7', j: 1 }, { i: '9', j: 1 }, { i: '11', j: 1 }, { i: '13', j: 1 }, { i: '15', j: 1 }, { i: '17', j: 1 }, { i: '19', j: 1 }, { i: '21', j: 1 }, { i: '23', j: 1 }, { i: '25', j: 1 }, { i: '27', j: 1 }, { i: '29', j: 1 }, { i: '31', j: 1 }, { i: '33', j: 1 }, { i: '35', j: 1 }, { i: '37', j: 1 }, { i: '39', j: 1 }, { i: '41', j: 1 }, { i: '43', j: 1 }, { i: '45', j: 1 }, { i: '47', j: 1 }, { i: '49', j: 1 }, { i: '51', j: 1 }, { i: '53', j: 1 }, { i: '55', j: 1 }, { i: '57', j: 1 }, { i: '59', j: 1 }, { i: '61', j: 1 }, { i: '63', j: 1 }, { i: '65', j: 1 }, { i: '67', j: 1 }, { i: '69', j: 1 }, { i: '71', j: 1 }, { i: '73', j: 1 }, { i: '75', j: 1 }, { i: '77', j: 1 }, { i: '79', j: 1 }, { i: '81', j: 1 }, { i: '1', j: 2 }, { i: '3', j: 2 }, { i: '5', j: 2 }, { i: '7', j: 2 }, { i: '9', j: 2 }, { i: '11', j: 2 }, { i: '13', j: 2 }, { i: '15', j: 2 }, { i: '17', j: 2 }, { i: '19', j: 2 }, { i: '21', j: 2 }, { i: '23', j: 2 }, { i: '25', j: 2 }, { i: '27', j: 2 }, { i: '29', j: 2 }, { i: '31', j: 2 }, { i: '33', j: 2 }, { i: '35', j: 2 }, { i: '37', j: 2 }, { i: '39', j: 2 }, { i: '41', j: 2 }, { i: '43', j: 2 }, { i: '45', j: 2 }, { i: '47', j: 2 }, { i: '49', j: 2 }, { i: '51', j: 2 }, { i: '53', j: 2 }, { i: '55', j: 2 }, { i: '57', j: 2 }, { i: '59', j: 2 }, { i: '61', j: 2 }, { i: '63', j: 2 }, { i: '65', j: 2 }, { i: '67', j: 2 }, { i: '69', j: 2 }, { i: '71', j: 2 }, { i: '73', j: 2 }, { i: '75', j: 2 }, { i: '77', j: 2 }, { i: '79', j: 2 }, { i: '81', j: 2 }, { i: '1', j: 3 }, { i: '3', j: 3 }, { i: '5', j: 3 }, { i: '7', j: 3 }, { i: '9', j: 3 }, { i: '11', j: 3 }, { i: '13', j: 3 }, { i: '15', j: 3 }, { i: '17', j: 3 }, { i: '19', j: 3 }, { i: '21', j: 3 }, { i: '23', j: 3 }, { i: '25', j: 3 }, { i: '27', j: 3 }, { i: '29', j: 3 }, { i: '31', j: 3 }, { i: '33', j: 3 }, { i: '35', j: 3 }, { i: '37', j: 3 }, { i: '39', j: 3 }, { i: '41', j: 3 }, { i: '43', j: 3 }, { i: '45', j: 3 }, { i: '47', j: 3 }, { i: '49', j: 3 }, { i: '51', j: 3 }, { i: '53', j: 3 }, { i: '55', j: 3 }, { i: '57', j: 3 }, { i: '59', j: 3 }, { i: '61', j: 3 }, { i: '63', j: 3 }, { i: '65', j: 3 }, { i: '67', j: 3 }, { i: '69', j: 3 }, { i: '71', j: 3 }, { i: '73', j: 3 }, { i: '75', j: 3 }, { i: '77', j: 3 }, { i: '79', j: 3 }, { i: '81', j: 3 }, { i: '1', j: 4 }, { i: '3', j: 4 }, { i: '5', j: 4 }, { i: '7', j: 4 }, { i: '9', j: 4 }, { i: '11', j: 4 }, { i: '13', j: 4 }, { i: '15', j: 4 }, { i: '17', j: 4 }, { i: '19', j: 4 }, { i: '21', j: 4 }, { i: '23', j: 4 }, { i: '25', j: 4 }, { i: '27', j: 4 }, { i: '29', j: 4 }, { i: '31', j: 4 }, { i: '33', j: 4 }, { i: '35', j: 4 }, { i: '37', j: 4 }, { i: '39', j: 4 }, { i: '41', j: 4 }, { i: '43', j: 4 }, { i: '45', j: 4 }, { i: '47', j: 4 }, { i: '49', j: 4 }, { i: '51', j: 4 }, { i: '53', j: 4 }, { i: '55', j: 4 }, { i: '57', j: 4 }, { i: '59', j: 4 }, { i: '61', j: 4 }, { i: '63', j: 4 }, { i: '65', j: 4 }, { i: '67', j: 4 }, { i: '69', j: 4 }, { i: '71', j: 4 }, { i: '73', j: 4 }, { i: '75', j: 4 }, { i: '77', j: 4 }, { i: '79', j: 4 }, { i: '81', j: 4 }, { i: '1', j: 5 }, { i: '3', j: 5 }, { i: '5', j: 5 }, { i: '7', j: 5 }, { i: '9', j: 5 }, { i: '11', j: 5 }, { i: '13', j: 5 }, { i: '15', j: 5 }, { i: '17', j: 5 }, { i: '19', j: 5 }, { i: '21', j: 5 }, { i: '23', j: 5 }, { i: '25', j: 5 }, { i: '27', j: 5 }, { i: '29', j: 5 }, { i: '31', j: 5 }, { i: '33', j: 5 }, { i: '35', j: 5 }, { i: '37', j: 5 }, { i: '39', j: 5 }, { i: '41', j: 5 }, { i: '43', j: 5 }, { i: '45', j: 5 }, { i: '47', j: 5 }, { i: '49', j: 5 }, { i: '51', j: 5 }, { i: '53', j: 5 }, { i: '55', j: 5 }, { i: '57', j: 5 }, { i: '59', j: 5 }, { i: '61', j: 5 }, { i: '63', j: 5 }, { i: '65', j: 5 }, { i: '67', j: 5 }, { i: '69', j: 5 }, { i: '71', j: 5 }, { i: '73', j: 5 }, { i: '75', j: 5 }, { i: '77', j: 5 }, { i: '79', j: 5 }, { i: '81', j: 5 }, { i: '1', j: 6 }, { i: '3', j: 6 }, { i: '5', j: 6 }, { i: '7', j: 6 }, { i: '9', j: 6 }, { i: '11', j: 6 }, { i: '13', j: 6 }, { i: '15', j: 6 }, { i: '17', j: 6 }, { i: '19', j: 6 }, { i: '21', j: 6 }, { i: '23', j: 6 }, { i: '25', j: 6 }, { i: '27', j: 6 }, { i: '29', j: 6 }, { i: '31', j: 6 }, { i: '33', j: 6 }, { i: '35', j: 6 }, { i: '37', j: 6 }, { i: '39', j: 6 }, { i: '41', j: 6 }, { i: '43', j: 6 }, { i: '45', j: 6 }, { i: '47', j: 6 }, { i: '49', j: 6 }, { i: '51', j: 6 }, { i: '53', j: 6 }, { i: '55', j: 6 }, { i: '57', j: 6 }, { i: '59', j: 6 }, { i: '61', j: 6 }, { i: '63', j: 6 }, { i: '65', j: 6 }, { i: '67', j: 6 }, { i: '69', j: 6 }, { i: '71', j: 6 }, { i: '73', j: 6 }, { i: '75', j: 6 }, { i: '77', j: 6 }, { i: '79', j: 6 }, { i: '81', j: 6 }, { i: '1', j: 7 }, { i: '3', j: 7 }, { i: '5', j: 7 }, { i: '7', j: 7 }, { i: '9', j: 7 }, { i: '11', j: 7 }, { i: '13', j: 7 }, { i: '15', j: 7 }, { i: '17', j: 7 }, { i: '19', j: 7 }, { i: '21', j: 7 }, { i: '23', j: 7 }, { i: '25', j: 7 }, { i: '27', j: 7 }, { i: '29', j: 7 }, { i: '31', j: 7 }, { i: '33', j: 7 }, { i: '35', j: 7 }, { i: '37', j: 7 }, { i: '39', j: 7 }, { i: '41', j: 7 }, { i: '43', j: 7 }, { i: '45', j: 7 }, { i: '47', j: 7 }, { i: '49', j: 7 }, { i: '51', j: 7 }, { i: '53', j: 7 }, { i: '55', j: 7 }, { i: '57', j: 7 }, { i: '59', j: 7 }, { i: '61', j: 7 }, { i: '63', j: 7 }, { i: '65', j: 7 }, { i: '67', j: 7 }, { i: '69', j: 7 }, { i: '71', j: 7 }, { i: '73', j: 7 }, { i: '75', j: 7 }, { i: '77', j: 7 }, { i: '79', j: 7 }, { i: '81', j: 7 }, { i: '1', j: 8 }, { i: '3', j: 8 }, { i: '5', j: 8 }, { i: '7', j: 8 }, { i: '9', j: 8 }, { i: '11', j: 8 }, { i: '13', j: 8 }, { i: '15', j: 8 }, { i: '17', j: 8 }, { i: '19', j: 8 }, { i: '21', j: 8 }, { i: '23', j: 8 }, { i: '25', j: 8 }, { i: '27', j: 8 }, { i: '29', j: 8 }, { i: '31', j: 8 }, { i: '33', j: 8 }, { i: '35', j: 8 }, { i: '37', j: 8 }, { i: '39', j: 8 }, { i: '41', j: 8 }, { i: '43', j: 8 }, { i: '45', j: 8 }, { i: '47', j: 8 }, { i: '49', j: 8 }, { i: '51', j: 8 }, { i: '53', j: 8 }, { i: '55', j: 8 }, { i: '57', j: 8 }, { i: '59', j: 8 }, { i: '61', j: 8 }, { i: '63', j: 8 }, { i: '65', j: 8 }, { i: '67', j: 8 }, { i: '69', j: 8 }, { i: '71', j: 8 }, { i: '73', j: 8 }, { i: '75', j: 8 }, { i: '77', j: 8 }, { i: '79', j: 8 }, { i: '81', j: 8 }, { i: '1', j: 9 }, { i: '3', j: 9 }, { i: '5', j: 9 }, { i: '7', j: 9 }, { i: '9', j: 9 }, { i: '11', j: 9 }, { i: '13', j: 9 }, { i: '15', j: 9 }, { i: '17', j: 9 }, { i: '19', j: 9 }, { i: '21', j: 9 }, { i: '23', j: 9 }, { i: '25', j: 9 }, { i: '27', j: 9 }, { i: '29', j: 9 }, { i: '31', j: 9 }, { i: '33', j: 9 }, { i: '35', j: 9 }, { i: '37', j: 9 }, { i: '39', j: 9 }, { i: '41', j: 9 }, { i: '43', j: 9 }, { i: '45', j: 9 }, { i: '47', j: 9 }, { i: '49', j: 9 }, { i: '51', j: 9 }, { i: '53', j: 9 }, { i: '55', j: 9 }, { i: '57', j: 9 }, { i: '59', j: 9 }, { i: '61', j: 9 }, { i: '63', j: 9 }, { i: '65', j: 9 }, { i: '67', j: 9 }, { i: '69', j: 9 }, { i: '71', j: 9 }, { i: '73', j: 9 }, { i: '75', j: 9 }, { i: '77', j: 9 }, { i: '79', j: 9 }, { i: '81', j: 9 } ], css_id: 'tinytable_css_chwppfoc5brkmc1fvhaw',}, 
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  tableFns_o8dq8u26xlt36psaqjet.styleCell(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
+    <style>
+    /* tinytable css entries after */
+    #tinytable_o8dq8u26xlt36psaqjet td.tinytable_css_chwppfoc5brkmc1fvhaw, #tinytable_o8dq8u26xlt36psaqjet th.tinytable_css_chwppfoc5brkmc1fvhaw { background-color: #ededed }
+    </style>
+    <div class="container">
+      <table class="tinytable" id="tinytable_o8dq8u26xlt36psaqjet" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing='true'>
+        
+        <thead>
+              <tr>
+                <th scope="col" data-row="0" data-col="1">观影年份</th>
+                <th scope="col" data-row="0" data-col="2">影片</th>
+                <th scope="col" data-row="0" data-col="3">导演</th>
+                <th scope="col" data-row="0" data-col="4">国家</th>
+                <th scope="col" data-row="0" data-col="5">上映年份</th>
+                <th scope="col" data-row="0" data-col="6">演员</th>
+                <th scope="col" data-row="0" data-col="7">豆瓣ID</th>
+                <th scope="col" data-row="0" data-col="8">备注</th>
+                <th scope="col" data-row="0" data-col="9">评价</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td data-row="1" data-col="1">2025</td>
+                  <td data-row="1" data-col="2">白日焰火</td>
+                  <td data-row="1" data-col="3">刁亦男</td>
+                  <td data-row="1" data-col="4">中国</td>
+                  <td data-row="1" data-col="5">2014</td>
+                  <td data-row="1" data-col="6">廖凡 / 桂纶镁 / 王学兵</td>
+                  <td data-row="1" data-col="7">21941804</td>
+                  <td data-row="1" data-col="8">悬疑犯罪</td>
+                  <td data-row="1" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="2" data-col="1">2025</td>
+                  <td data-row="2" data-col="2">高山上的花环</td>
+                  <td data-row="2" data-col="3">谢晋</td>
+                  <td data-row="2" data-col="4">中国</td>
+                  <td data-row="2" data-col="5">1984</td>
+                  <td data-row="2" data-col="6">唐国强 / 倪大红 / 斯琴高娃</td>
+                  <td data-row="2" data-col="7">1422283</td>
+                  <td data-row="2" data-col="8">改编自同名小说</td>
+                  <td data-row="2" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="3" data-col="1">2025</td>
+                  <td data-row="3" data-col="2">埃贡·席勒：过度</td>
+                  <td data-row="3" data-col="3">赫伯特·维斯利</td>
+                  <td data-row="3" data-col="4">外国</td>
+                  <td data-row="3" data-col="5">1980</td>
+                  <td data-row="3" data-col="6">马蒂厄·卡里埃 / 简·伯金</td>
+                  <td data-row="3" data-col="7">2138173</td>
+                  <td data-row="3" data-col="8">人物传记</td>
+                  <td data-row="3" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="4" data-col="1">2025</td>
+                  <td data-row="4" data-col="2">阿Q正传</td>
+                  <td data-row="4" data-col="3">岑范</td>
+                  <td data-row="4" data-col="4">中国</td>
+                  <td data-row="4" data-col="5">1981</td>
+                  <td data-row="4" data-col="6">严顺开</td>
+                  <td data-row="4" data-col="7">1306506</td>
+                  <td data-row="4" data-col="8">改编自同名小说</td>
+                  <td data-row="4" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="5" data-col="1">2025</td>
+                  <td data-row="5" data-col="2">孔乙己</td>
+                  <td data-row="5" data-col="3">郭小男</td>
+                  <td data-row="5" data-col="4">中国</td>
+                  <td data-row="5" data-col="5">1998</td>
+                  <td data-row="5" data-col="6">茅威涛</td>
+                  <td data-row="5" data-col="7">5401683</td>
+                  <td data-row="5" data-col="8">改编自同名小说，越剧</td>
+                  <td data-row="5" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="6" data-col="1">2025</td>
+                  <td data-row="6" data-col="2">白鲸</td>
+                  <td data-row="6" data-col="3">米勒德·韦布</td>
+                  <td data-row="6" data-col="4">外国</td>
+                  <td data-row="6" data-col="5">1926</td>
+                  <td data-row="6" data-col="6">约翰·巴里摩尔 / 多洛雷斯·卡斯特洛</td>
+                  <td data-row="6" data-col="7">2265987</td>
+                  <td data-row="6" data-col="8">改编自同名小说</td>
+                  <td data-row="6" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="7" data-col="1">2025</td>
+                  <td data-row="7" data-col="2">百鸟朝凤</td>
+                  <td data-row="7" data-col="3">吴天明</td>
+                  <td data-row="7" data-col="4">中国</td>
+                  <td data-row="7" data-col="5">2013</td>
+                  <td data-row="7" data-col="6">陶泽如</td>
+                  <td data-row="7" data-col="7">10831445</td>
+                  <td data-row="7" data-col="8">改编自同名小说</td>
+                  <td data-row="7" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="8" data-col="1">2025</td>
+                  <td data-row="8" data-col="2">大明劫</td>
+                  <td data-row="8" data-col="3">王竞</td>
+                  <td data-row="8" data-col="4">中国</td>
+                  <td data-row="8" data-col="5">2013</td>
+                  <td data-row="8" data-col="6">冯远征</td>
+                  <td data-row="8" data-col="7">11627068</td>
+                  <td data-row="8" data-col="8">明崇祯末年社会矛盾</td>
+                  <td data-row="8" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="9" data-col="1">2025</td>
+                  <td data-row="9" data-col="2">秘密会议</td>
+                  <td data-row="9" data-col="3">爱德华·贝尔格</td>
+                  <td data-row="9" data-col="4">外国</td>
+                  <td data-row="9" data-col="5">2024</td>
+                  <td data-row="9" data-col="6">拉尔夫·费因斯</td>
+                  <td data-row="9" data-col="7">35948807</td>
+                  <td data-row="9" data-col="8">宗教信仰在传统和现代间抉择</td>
+                  <td data-row="9" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="10" data-col="1">2025</td>
+                  <td data-row="10" data-col="2">教宗的承继</td>
+                  <td data-row="10" data-col="3">费尔南多·梅里尔斯</td>
+                  <td data-row="10" data-col="4">外国</td>
+                  <td data-row="10" data-col="5">2019</td>
+                  <td data-row="10" data-col="6">安东尼·霍普金斯</td>
+                  <td data-row="10" data-col="7">27132510</td>
+                  <td data-row="10" data-col="8">宗教信仰</td>
+                  <td data-row="10" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="11" data-col="1">2025</td>
+                  <td data-row="11" data-col="2">天国王朝</td>
+                  <td data-row="11" data-col="3">雷德利·斯科特</td>
+                  <td data-row="11" data-col="4">外国</td>
+                  <td data-row="11" data-col="5">2005</td>
+                  <td data-row="11" data-col="6">奥兰多·布鲁姆</td>
+                  <td data-row="11" data-col="7">1309071</td>
+                  <td data-row="11" data-col="8">宗教信仰</td>
+                  <td data-row="11" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="12" data-col="1">2025</td>
+                  <td data-row="12" data-col="2">反贪风暴：最终章</td>
+                  <td data-row="12" data-col="3">林德禄</td>
+                  <td data-row="12" data-col="4">中国</td>
+                  <td data-row="12" data-col="5">2021</td>
+                  <td data-row="12" data-col="6">古天乐 / 张智霖</td>
+                  <td data-row="12" data-col="7">32579501</td>
+                  <td data-row="12" data-col="8">政治宣传</td>
+                  <td data-row="12" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="13" data-col="1">2025</td>
+                  <td data-row="13" data-col="2">飓风营救</td>
+                  <td data-row="13" data-col="3">皮埃尔·莫瑞尔</td>
+                  <td data-row="13" data-col="4">外国</td>
+                  <td data-row="13" data-col="5">2008</td>
+                  <td data-row="13" data-col="6">连姆·尼森</td>
+                  <td data-row="13" data-col="7">2124586</td>
+                  <td data-row="13" data-col="8">动作片</td>
+                  <td data-row="13" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="14" data-col="1">2025</td>
+                  <td data-row="14" data-col="2">飓风营救2</td>
+                  <td data-row="14" data-col="3">奥利维尔·米加顿</td>
+                  <td data-row="14" data-col="4">外国</td>
+                  <td data-row="14" data-col="5">2012</td>
+                  <td data-row="14" data-col="6">连姆·尼森</td>
+                  <td data-row="14" data-col="7">3606971</td>
+                  <td data-row="14" data-col="8">动作片</td>
+                  <td data-row="14" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="15" data-col="1">2025</td>
+                  <td data-row="15" data-col="2">七宗罪</td>
+                  <td data-row="15" data-col="3">大卫·芬奇</td>
+                  <td data-row="15" data-col="4">外国</td>
+                  <td data-row="15" data-col="5">1995</td>
+                  <td data-row="15" data-col="6">摩根·弗里曼</td>
+                  <td data-row="15" data-col="7">1292223</td>
+                  <td data-row="15" data-col="8">悬疑犯罪</td>
+                  <td data-row="15" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="16" data-col="1">2025</td>
+                  <td data-row="16" data-col="2">鬼子来了</td>
+                  <td data-row="16" data-col="3">姜文</td>
+                  <td data-row="16" data-col="4">中国</td>
+                  <td data-row="16" data-col="5">2000</td>
+                  <td data-row="16" data-col="6">姜文</td>
+                  <td data-row="16" data-col="7">1291858</td>
+                  <td data-row="16" data-col="8">喜剧</td>
+                  <td data-row="16" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="17" data-col="1">2025</td>
+                  <td data-row="17" data-col="2">鬼叫春</td>
+                  <td data-row="17" data-col="3">李翰祥</td>
+                  <td data-row="17" data-col="4">中国</td>
+                  <td data-row="17" data-col="5">1979</td>
+                  <td data-row="17" data-col="6">岳华、胡锦、余莎莉</td>
+                  <td data-row="17" data-col="7">NA</td>
+                  <td data-row="17" data-col="8">惊悚</td>
+                  <td data-row="17" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="18" data-col="1">2025</td>
+                  <td data-row="18" data-col="2">天师斗僵尸</td>
+                  <td data-row="18" data-col="3">王晶</td>
+                  <td data-row="18" data-col="4">中国</td>
+                  <td data-row="18" data-col="5">2014</td>
+                  <td data-row="18" data-col="6">郑中基/元彪</td>
+                  <td data-row="18" data-col="7">25886495</td>
+                  <td data-row="18" data-col="8">喜剧</td>
+                  <td data-row="18" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="19" data-col="1">2025</td>
+                  <td data-row="19" data-col="2">铁血昆仑关</td>
+                  <td data-row="19" data-col="3">杨光远</td>
+                  <td data-row="19" data-col="4">中国</td>
+                  <td data-row="19" data-col="5">2005</td>
+                  <td data-row="19" data-col="6">马绍信</td>
+                  <td data-row="19" data-col="7">1418407</td>
+                  <td data-row="19" data-col="8">战争</td>
+                  <td data-row="19" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="20" data-col="1">2025</td>
+                  <td data-row="20" data-col="2">新仙鹤神针</td>
+                  <td data-row="20" data-col="3">陈木胜</td>
+                  <td data-row="20" data-col="4">中国</td>
+                  <td data-row="20" data-col="5">1993</td>
+                  <td data-row="20" data-col="6">梁朝伟</td>
+                  <td data-row="20" data-col="7">1298761</td>
+                  <td data-row="20" data-col="8">武侠</td>
+                  <td data-row="20" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="21" data-col="1">2025</td>
+                  <td data-row="21" data-col="2">平凡岁月的魅力</td>
+                  <td data-row="21" data-col="3">布兰特·席尔兹</td>
+                  <td data-row="21" data-col="4">外国</td>
+                  <td data-row="21" data-col="5">2005</td>
+                  <td data-row="21" data-col="6">凯丽·拉塞尔</td>
+                  <td data-row="21" data-col="7">2212901</td>
+                  <td data-row="21" data-col="8">爱情是什么</td>
+                  <td data-row="21" data-col="9">非常推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="22" data-col="1">2025</td>
+                  <td data-row="22" data-col="2">欲望的果实</td>
+                  <td data-row="22" data-col="3">詹路易吉·卡尔代罗内</td>
+                  <td data-row="22" data-col="4">外国</td>
+                  <td data-row="22" data-col="5">1974</td>
+                  <td data-row="22" data-col="6">加布里埃尔·费泽蒂 / 奥内拉·穆蒂</td>
+                  <td data-row="22" data-col="7">2158803</td>
+                  <td data-row="22" data-col="8">爱情是什么</td>
+                  <td data-row="22" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="23" data-col="1">2025</td>
+                  <td data-row="23" data-col="2">教室别恋</td>
+                  <td data-row="23" data-col="3">波·维德伯格</td>
+                  <td data-row="23" data-col="4">外国</td>
+                  <td data-row="23" data-col="5">1995</td>
+                  <td data-row="23" data-col="6">约翰·维德伯格</td>
+                  <td data-row="23" data-col="7">1303031</td>
+                  <td data-row="23" data-col="8">爱情是什么</td>
+                  <td data-row="23" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="24" data-col="1">2025</td>
+                  <td data-row="24" data-col="2">信天游</td>
+                  <td data-row="24" data-col="3">冯小宁</td>
+                  <td data-row="24" data-col="4">中国</td>
+                  <td data-row="24" data-col="5">2004</td>
+                  <td data-row="24" data-col="6">郭达</td>
+                  <td data-row="24" data-col="7">1891219</td>
+                  <td data-row="24" data-col="8">政治宣传</td>
+                  <td data-row="24" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="25" data-col="1">2025</td>
+                  <td data-row="25" data-col="2">周恩来</td>
+                  <td data-row="25" data-col="3">丁荫楠</td>
+                  <td data-row="25" data-col="4">中国</td>
+                  <td data-row="25" data-col="5">1992</td>
+                  <td data-row="25" data-col="6">王铁成</td>
+                  <td data-row="25" data-col="7">1448751</td>
+                  <td data-row="25" data-col="8">政治宣传</td>
+                  <td data-row="25" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="26" data-col="1">2025</td>
+                  <td data-row="26" data-col="2">与狼共舞</td>
+                  <td data-row="26" data-col="3">凯文•科斯特纳</td>
+                  <td data-row="26" data-col="4">外国</td>
+                  <td data-row="26" data-col="5">1990</td>
+                  <td data-row="26" data-col="6">凯文•科斯特纳</td>
+                  <td data-row="26" data-col="7">1293764</td>
+                  <td data-row="26" data-col="8">西部</td>
+                  <td data-row="26" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="27" data-col="1">2024</td>
+                  <td data-row="27" data-col="2">小巷名流</td>
+                  <td data-row="27" data-col="3">从连文</td>
+                  <td data-row="27" data-col="4">中国</td>
+                  <td data-row="27" data-col="5">1985</td>
+                  <td data-row="27" data-col="6">葛建军 / 任伟民 / 孙才华</td>
+                  <td data-row="27" data-col="7">2004547</td>
+                  <td data-row="27" data-col="8">文革</td>
+                  <td data-row="27" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="28" data-col="1">2024</td>
+                  <td data-row="28" data-col="2">巴山夜雨</td>
+                  <td data-row="28" data-col="3">吴永刚 / 吴贻弓</td>
+                  <td data-row="28" data-col="4">中国</td>
+                  <td data-row="28" data-col="5">1980</td>
+                  <td data-row="28" data-col="6">李志舆 / 张瑜 / 林彬</td>
+                  <td data-row="28" data-col="7">1433579</td>
+                  <td data-row="28" data-col="8">文革后期</td>
+                  <td data-row="28" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="29" data-col="1">2024</td>
+                  <td data-row="29" data-col="2">天云山传奇</td>
+                  <td data-row="29" data-col="3">谢晋</td>
+                  <td data-row="29" data-col="4">中国</td>
+                  <td data-row="29" data-col="5">1981</td>
+                  <td data-row="29" data-col="6">石维坚 / 施建岚 / 王馥荔</td>
+                  <td data-row="29" data-col="7">1291864</td>
+                  <td data-row="29" data-col="8">伤痕文学</td>
+                  <td data-row="29" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="30" data-col="1">2024</td>
+                  <td data-row="30" data-col="2">西安事变</td>
+                  <td data-row="30" data-col="3">成荫</td>
+                  <td data-row="30" data-col="4">中国</td>
+                  <td data-row="30" data-col="5">1981</td>
+                  <td data-row="30" data-col="6">金安歌 / 辛静 / 孙飞虎</td>
+                  <td data-row="30" data-col="7">1667008</td>
+                  <td data-row="30" data-col="8">历史</td>
+                  <td data-row="30" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="31" data-col="1">2024</td>
+                  <td data-row="31" data-col="2">血战台儿庄</td>
+                  <td data-row="31" data-col="3">杨光远 / 翟俊杰</td>
+                  <td data-row="31" data-col="4">中国</td>
+                  <td data-row="31" data-col="5">1986</td>
+                  <td data-row="31" data-col="6">邵宏来 / 初国良 / 江化霖</td>
+                  <td data-row="31" data-col="7">1307201</td>
+                  <td data-row="31" data-col="8">政治宣传片</td>
+                  <td data-row="31" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="32" data-col="1">2024</td>
+                  <td data-row="32" data-col="2">悬崖之上</td>
+                  <td data-row="32" data-col="3">张艺谋</td>
+                  <td data-row="32" data-col="4">中国</td>
+                  <td data-row="32" data-col="5">2021</td>
+                  <td data-row="32" data-col="6">张译 / 于和伟 / 秦海璐</td>
+                  <td data-row="32" data-col="7">32493124</td>
+                  <td data-row="32" data-col="8">历史</td>
+                  <td data-row="32" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="33" data-col="1">2024</td>
+                  <td data-row="33" data-col="2">无双</td>
+                  <td data-row="33" data-col="3">庄文强</td>
+                  <td data-row="33" data-col="4">中国</td>
+                  <td data-row="33" data-col="5">2018</td>
+                  <td data-row="33" data-col="6">周润发 / 郭富城 / 张静初</td>
+                  <td data-row="33" data-col="7">26425063</td>
+                  <td data-row="33" data-col="8">动作片</td>
+                  <td data-row="33" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="34" data-col="1">2024</td>
+                  <td data-row="34" data-col="2">埃及艳后</td>
+                  <td data-row="34" data-col="3">约瑟夫·L·曼凯维奇</td>
+                  <td data-row="34" data-col="4">外国</td>
+                  <td data-row="34" data-col="5">1963</td>
+                  <td data-row="34" data-col="6">伊丽莎白·泰勒 / 理查德·伯顿 / 雷克斯·哈里森</td>
+                  <td data-row="34" data-col="7">1292550</td>
+                  <td data-row="34" data-col="8">历史传记</td>
+                  <td data-row="34" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="35" data-col="1">2024</td>
+                  <td data-row="35" data-col="2">除暴</td>
+                  <td data-row="35" data-col="3">刘浩良</td>
+                  <td data-row="35" data-col="4">中国</td>
+                  <td data-row="35" data-col="5">2020</td>
+                  <td data-row="35" data-col="6">王千源 / 吴彦祖</td>
+                  <td data-row="35" data-col="7">30373723</td>
+                  <td data-row="35" data-col="8">动作片</td>
+                  <td data-row="35" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="36" data-col="1">2024</td>
+                  <td data-row="36" data-col="2">白虎</td>
+                  <td data-row="36" data-col="3">卡连·沙赫纳扎罗夫</td>
+                  <td data-row="36" data-col="4">外国</td>
+                  <td data-row="36" data-col="5">2012</td>
+                  <td data-row="36" data-col="6">阿列克谢·沃特考夫 / 维塔利·基什琴科</td>
+                  <td data-row="36" data-col="7">10747855</td>
+                  <td data-row="36" data-col="8">战争片</td>
+                  <td data-row="36" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="37" data-col="1">2024</td>
+                  <td data-row="37" data-col="2">柏林之翼</td>
+                  <td data-row="37" data-col="3">康斯坦丁·布罗斯洛夫</td>
+                  <td data-row="37" data-col="4">外国</td>
+                  <td data-row="37" data-col="5">2022</td>
+                  <td data-row="37" data-col="6">叶夫根尼· 安德罗波夫</td>
+                  <td data-row="37" data-col="7">35730932</td>
+                  <td data-row="37" data-col="8">战争片</td>
+                  <td data-row="37" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="38" data-col="1">2024</td>
+                  <td data-row="38" data-col="2">窃听风云</td>
+                  <td data-row="38" data-col="3">麦兆辉 / 庄文强</td>
+                  <td data-row="38" data-col="4">中国</td>
+                  <td data-row="38" data-col="5">2009</td>
+                  <td data-row="38" data-col="6">刘青云 / 古天乐 / 吴彦祖</td>
+                  <td data-row="38" data-col="7">3412882</td>
+                  <td data-row="38" data-col="8">动作片</td>
+                  <td data-row="38" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="39" data-col="1">2024</td>
+                  <td data-row="39" data-col="2">新报仇</td>
+                  <td data-row="39" data-col="3">庄胤建</td>
+                  <td data-row="39" data-col="4">中国</td>
+                  <td data-row="39" data-col="5">1994</td>
+                  <td data-row="39" data-col="6">刘锡明 / 张丰毅</td>
+                  <td data-row="39" data-col="7">4862570</td>
+                  <td data-row="39" data-col="8">动作片</td>
+                  <td data-row="39" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="40" data-col="1">2024</td>
+                  <td data-row="40" data-col="2">苦月亮</td>
+                  <td data-row="40" data-col="3">罗曼·波兰斯基</td>
+                  <td data-row="40" data-col="4">外国</td>
+                  <td data-row="40" data-col="5">1992</td>
+                  <td data-row="40" data-col="6">彼德·考约特 / 艾玛纽尔·塞尼耶</td>
+                  <td data-row="40" data-col="7">1301582</td>
+                  <td data-row="40" data-col="8">爱情片</td>
+                  <td data-row="40" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="41" data-col="1">2024</td>
+                  <td data-row="41" data-col="2">一树梨花压海棠</td>
+                  <td data-row="41" data-col="3">阿德里安·莱恩</td>
+                  <td data-row="41" data-col="4">外国</td>
+                  <td data-row="41" data-col="5">1997</td>
+                  <td data-row="41" data-col="6">杰瑞米·艾恩斯 / 多米尼克·斯万</td>
+                  <td data-row="41" data-col="7">1296778</td>
+                  <td data-row="41" data-col="8">纳博科夫的小说</td>
+                  <td data-row="41" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="42" data-col="1">2024</td>
+                  <td data-row="42" data-col="2">带珍珠耳环的少女</td>
+                  <td data-row="42" data-col="3">彼得·韦柏</td>
+                  <td data-row="42" data-col="4">外国</td>
+                  <td data-row="42" data-col="5">2003</td>
+                  <td data-row="42" data-col="6">科林·费尔斯 / 斯嘉丽·约翰逊</td>
+                  <td data-row="42" data-col="7">1291836</td>
+                  <td data-row="42" data-col="8">维米尔传记</td>
+                  <td data-row="42" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="43" data-col="1">2024</td>
+                  <td data-row="43" data-col="2">潜行</td>
+                  <td data-row="43" data-col="3">关智耀</td>
+                  <td data-row="43" data-col="4">中国</td>
+                  <td data-row="43" data-col="5">2023</td>
+                  <td data-row="43" data-col="6">刘德华 / 林家栋 / 彭于晏</td>
+                  <td data-row="43" data-col="7">35927496</td>
+                  <td data-row="43" data-col="8">警匪片</td>
+                  <td data-row="43" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="44" data-col="1">2024</td>
+                  <td data-row="44" data-col="2">《The Good, The Bad and The Ugly》（黄金三镖客）</td>
+                  <td data-row="44" data-col="3">赛尔乔·莱昂内</td>
+                  <td data-row="44" data-col="4">外国</td>
+                  <td data-row="44" data-col="5">1966</td>
+                  <td data-row="44" data-col="6">克林特·伊斯特伍德 / 伊莱·瓦拉赫 / 李·范·克里夫</td>
+                  <td data-row="44" data-col="7">1401118</td>
+                  <td data-row="44" data-col="8">西部片</td>
+                  <td data-row="44" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="45" data-col="1">2024</td>
+                  <td data-row="45" data-col="2">周处除三害</td>
+                  <td data-row="45" data-col="3">黄精甫</td>
+                  <td data-row="45" data-col="4">中国</td>
+                  <td data-row="45" data-col="5">2023</td>
+                  <td data-row="45" data-col="6">阮经天</td>
+                  <td data-row="45" data-col="7">36151692</td>
+                  <td data-row="45" data-col="8">反邪教</td>
+                  <td data-row="45" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="46" data-col="1">2024</td>
+                  <td data-row="46" data-col="2">裂战</td>
+                  <td data-row="46" data-col="3">关越</td>
+                  <td data-row="46" data-col="4">中国</td>
+                  <td data-row="46" data-col="5">2024</td>
+                  <td data-row="46" data-col="6">安志杰 / 释彦能 / 李梦</td>
+                  <td data-row="46" data-col="7">36800970</td>
+                  <td data-row="46" data-col="8">动作片</td>
+                  <td data-row="46" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="47" data-col="1">2024</td>
+                  <td data-row="47" data-col="2">木乃伊归来</td>
+                  <td data-row="47" data-col="3">斯蒂芬·索莫斯</td>
+                  <td data-row="47" data-col="4">外国</td>
+                  <td data-row="47" data-col="5">2001</td>
+                  <td data-row="47" data-col="6">布兰登·费舍 / 蕾切尔·薇兹 / 约翰·汉纳</td>
+                  <td data-row="47" data-col="7">1298586</td>
+                  <td data-row="47" data-col="8">奇幻动作片</td>
+                  <td data-row="47" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="48" data-col="1">2024</td>
+                  <td data-row="48" data-col="2">三大队</td>
+                  <td data-row="48" data-col="3">戴墨</td>
+                  <td data-row="48" data-col="4">中国</td>
+                  <td data-row="48" data-col="5">2023</td>
+                  <td data-row="48" data-col="6">张译 / 李晨 / 魏晨</td>
+                  <td data-row="48" data-col="7">35208463</td>
+                  <td data-row="48" data-col="8">警匪片</td>
+                  <td data-row="48" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="49" data-col="1">2024</td>
+                  <td data-row="49" data-col="2">伏击</td>
+                  <td data-row="49" data-col="3">Mark Burman</td>
+                  <td data-row="49" data-col="4">外国</td>
+                  <td data-row="49" data-col="5">2023</td>
+                  <td data-row="49" data-col="6">乔纳森·莱斯·梅耶斯 / 艾伦·艾克哈特</td>
+                  <td data-row="49" data-col="7">34894016</td>
+                  <td data-row="49" data-col="8">战争片</td>
+                  <td data-row="49" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="50" data-col="1">2024</td>
+                  <td data-row="50" data-col="2">新威龙杀阵</td>
+                  <td data-row="50" data-col="3">道格·里曼</td>
+                  <td data-row="50" data-col="4">外国</td>
+                  <td data-row="50" data-col="5">2024</td>
+                  <td data-row="50" data-col="6">杰克·吉伦哈尔 / 康纳·麦格雷戈</td>
+                  <td data-row="50" data-col="7">26608246</td>
+                  <td data-row="50" data-col="8">动作片</td>
+                  <td data-row="50" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="51" data-col="1">2024</td>
+                  <td data-row="51" data-col="2">金瓶风月</td>
+                  <td data-row="51" data-col="3">李翰祥</td>
+                  <td data-row="51" data-col="4">中国</td>
+                  <td data-row="51" data-col="5">1991</td>
+                  <td data-row="51" data-col="6">单立文、方玉婷</td>
+                  <td data-row="51" data-col="7">NA</td>
+                  <td data-row="51" data-col="8">爱情片</td>
+                  <td data-row="51" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="52" data-col="1">2024</td>
+                  <td data-row="52" data-col="2">风月奇谭</td>
+                  <td data-row="52" data-col="3">李翰祥</td>
+                  <td data-row="52" data-col="4">中国</td>
+                  <td data-row="52" data-col="5">1972</td>
+                  <td data-row="52" data-col="6">王琛 / 刘午琪 / 贝蒂</td>
+                  <td data-row="52" data-col="7">1302036</td>
+                  <td data-row="52" data-col="8">爱情片</td>
+                  <td data-row="52" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="53" data-col="1">2024</td>
+                  <td data-row="53" data-col="2">爱奴</td>
+                  <td data-row="53" data-col="3">楚原</td>
+                  <td data-row="53" data-col="4">中国</td>
+                  <td data-row="53" data-col="5">1972</td>
+                  <td data-row="53" data-col="6">何莉莉 / 岳华 / 贝蒂</td>
+                  <td data-row="53" data-col="7">1307770</td>
+                  <td data-row="53" data-col="8">爱情片</td>
+                  <td data-row="53" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="54" data-col="1">2024</td>
+                  <td data-row="54" data-col="2">为奴十二年</td>
+                  <td data-row="54" data-col="3">史蒂夫·麦奎因</td>
+                  <td data-row="54" data-col="4">外国</td>
+                  <td data-row="54" data-col="5">2013</td>
+                  <td data-row="54" data-col="6">切瓦特·埃加福 / 迈克尔·法斯宾德</td>
+                  <td data-row="54" data-col="7">6879185</td>
+                  <td data-row="54" data-col="8">传记历史</td>
+                  <td data-row="54" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="55" data-col="1">2024</td>
+                  <td data-row="55" data-col="2">肖申克的救赎</td>
+                  <td data-row="55" data-col="3">弗兰克·德拉邦特</td>
+                  <td data-row="55" data-col="4">外国</td>
+                  <td data-row="55" data-col="5">1994</td>
+                  <td data-row="55" data-col="6">蒂姆·罗宾斯 / 摩根·弗里曼</td>
+                  <td data-row="55" data-col="7">1292052</td>
+                  <td data-row="55" data-col="8">文艺片</td>
+                  <td data-row="55" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="56" data-col="1">2024</td>
+                  <td data-row="56" data-col="2">罗马假日</td>
+                  <td data-row="56" data-col="3">威廉·惠勒</td>
+                  <td data-row="56" data-col="4">外国</td>
+                  <td data-row="56" data-col="5">1953</td>
+                  <td data-row="56" data-col="6">奥黛丽·赫本 / 格利高里·派克</td>
+                  <td data-row="56" data-col="7">1293839</td>
+                  <td data-row="56" data-col="8">爱情片</td>
+                  <td data-row="56" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="57" data-col="1">2024</td>
+                  <td data-row="57" data-col="2">午夜巴黎</td>
+                  <td data-row="57" data-col="3">伍迪·艾伦</td>
+                  <td data-row="57" data-col="4">外国</td>
+                  <td data-row="57" data-col="5">2011</td>
+                  <td data-row="57" data-col="6">欧文·威尔逊 / 玛丽昂·歌迪亚 / 瑞秋·麦克亚当斯</td>
+                  <td data-row="57" data-col="7">4319218</td>
+                  <td data-row="57" data-col="8">法国艺术</td>
+                  <td data-row="57" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="58" data-col="1">2024</td>
+                  <td data-row="58" data-col="2">午夜巴塞罗那</td>
+                  <td data-row="58" data-col="3">伍迪·艾伦</td>
+                  <td data-row="58" data-col="4">外国</td>
+                  <td data-row="58" data-col="5">2008</td>
+                  <td data-row="58" data-col="6">丽贝卡·豪尔 / 斯嘉丽·约翰逊 / 哈维尔·巴登</td>
+                  <td data-row="58" data-col="7">1981242</td>
+                  <td data-row="58" data-col="8">西班牙艺术</td>
+                  <td data-row="58" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="59" data-col="1">2024</td>
+                  <td data-row="59" data-col="2">逃学威龙</td>
+                  <td data-row="59" data-col="3">陈嘉上</td>
+                  <td data-row="59" data-col="4">中国</td>
+                  <td data-row="59" data-col="5">1991</td>
+                  <td data-row="59" data-col="6">周星驰 / 张敏 / 吴孟达</td>
+                  <td data-row="59" data-col="7">1302090</td>
+                  <td data-row="59" data-col="8">喜剧</td>
+                  <td data-row="59" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="60" data-col="1">2024</td>
+                  <td data-row="60" data-col="2">功夫熊猫4</td>
+                  <td data-row="60" data-col="3">迈克·米切尔 / 斯蒂芬妮·斯汀</td>
+                  <td data-row="60" data-col="4">外国</td>
+                  <td data-row="60" data-col="5">2024</td>
+                  <td data-row="60" data-col="6">杰克·布莱克 / 奥卡菲娜</td>
+                  <td data-row="60" data-col="7">26715496</td>
+                  <td data-row="60" data-col="8">动作片</td>
+                  <td data-row="60" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="61" data-col="1">2024</td>
+                  <td data-row="61" data-col="2">天注定</td>
+                  <td data-row="61" data-col="3">贾樟柯</td>
+                  <td data-row="61" data-col="4">中国</td>
+                  <td data-row="61" data-col="5">2013</td>
+                  <td data-row="61" data-col="6">姜武、王宝强</td>
+                  <td data-row="61" data-col="7">NA</td>
+                  <td data-row="61" data-col="8">犯罪片</td>
+                  <td data-row="61" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="62" data-col="1">2024</td>
+                  <td data-row="62" data-col="2">黑白迷宫</td>
+                  <td data-row="62" data-col="3">阚家伟</td>
+                  <td data-row="62" data-col="4">中国</td>
+                  <td data-row="62" data-col="5">2017</td>
+                  <td data-row="62" data-col="6">任达华 / 陈小春</td>
+                  <td data-row="62" data-col="7">26752106</td>
+                  <td data-row="62" data-col="8">犯罪片</td>
+                  <td data-row="62" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="63" data-col="1">2024</td>
+                  <td data-row="63" data-col="2">哥斯拉大战金刚2</td>
+                  <td data-row="63" data-col="3">亚当·温加德</td>
+                  <td data-row="63" data-col="4">外国</td>
+                  <td data-row="63" data-col="5">2024</td>
+                  <td data-row="63" data-col="6">丽贝卡·豪尔 / 布莱恩·泰里·亨利</td>
+                  <td data-row="63" data-col="7">35453251</td>
+                  <td data-row="63" data-col="8">动作片</td>
+                  <td data-row="63" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="64" data-col="1">2024</td>
+                  <td data-row="64" data-col="2">猩球崛起 4</td>
+                  <td data-row="64" data-col="3">韦斯·鲍尔</td>
+                  <td data-row="64" data-col="4">外国</td>
+                  <td data-row="64" data-col="5">2024</td>
+                  <td data-row="64" data-col="6">欧文·提格 / 弗蕾娅·艾伦</td>
+                  <td data-row="64" data-col="7">36069854</td>
+                  <td data-row="64" data-col="8">动作片</td>
+                  <td data-row="64" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="65" data-col="1">2024</td>
+                  <td data-row="65" data-col="2">圣母 Benedetta</td>
+                  <td data-row="65" data-col="3">保罗·范霍文</td>
+                  <td data-row="65" data-col="4">外国</td>
+                  <td data-row="65" data-col="5">2021</td>
+                  <td data-row="65" data-col="6">维尔日妮·埃菲拉</td>
+                  <td data-row="65" data-col="7">26933588</td>
+                  <td data-row="65" data-col="8">历史传记</td>
+                  <td data-row="65" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="66" data-col="1">2024</td>
+                  <td data-row="66" data-col="2">枪火</td>
+                  <td data-row="66" data-col="3">杜琪峰</td>
+                  <td data-row="66" data-col="4">中国</td>
+                  <td data-row="66" data-col="5">1999</td>
+                  <td data-row="66" data-col="6">吴镇宇 / 任达华 / 黄秋生</td>
+                  <td data-row="66" data-col="7">1300741</td>
+                  <td data-row="66" data-col="8">动作片</td>
+                  <td data-row="66" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="67" data-col="1">2024</td>
+                  <td data-row="67" data-col="2">放逐</td>
+                  <td data-row="67" data-col="3">杜琪峰</td>
+                  <td data-row="67" data-col="4">中国</td>
+                  <td data-row="67" data-col="5">2006</td>
+                  <td data-row="67" data-col="6">黄秋生 / 吴镇宇 / 张家辉</td>
+                  <td data-row="67" data-col="7">1790577</td>
+                  <td data-row="67" data-col="8">动作片</td>
+                  <td data-row="67" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="68" data-col="1">2024</td>
+                  <td data-row="68" data-col="2">黑社会</td>
+                  <td data-row="68" data-col="3">杜琪峰</td>
+                  <td data-row="68" data-col="4">中国</td>
+                  <td data-row="68" data-col="5">2005</td>
+                  <td data-row="68" data-col="6">任达华 / 梁家辉 / 古天乐</td>
+                  <td data-row="68" data-col="7">1309220</td>
+                  <td data-row="68" data-col="8">动作片</td>
+                  <td data-row="68" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="69" data-col="1">2024</td>
+                  <td data-row="69" data-col="2">黑社会2：以和为贵</td>
+                  <td data-row="69" data-col="3">杜琪峰</td>
+                  <td data-row="69" data-col="4">中国</td>
+                  <td data-row="69" data-col="5">2006</td>
+                  <td data-row="69" data-col="6">古天乐 / 任达华 / 张家辉 / 林家栋</td>
+                  <td data-row="69" data-col="7">1484760</td>
+                  <td data-row="69" data-col="8">警匪片</td>
+                  <td data-row="69" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="70" data-col="1">2024</td>
+                  <td data-row="70" data-col="2">黑金</td>
+                  <td data-row="70" data-col="3">麦当杰</td>
+                  <td data-row="70" data-col="4">中国</td>
+                  <td data-row="70" data-col="5">1997</td>
+                  <td data-row="70" data-col="6">刘德华 / 梁家辉</td>
+                  <td data-row="70" data-col="7">1292962</td>
+                  <td data-row="70" data-col="8">警匪片</td>
+                  <td data-row="70" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="71" data-col="1">2024</td>
+                  <td data-row="71" data-col="2">前哨</td>
+                  <td data-row="71" data-col="3">罗德·拉里</td>
+                  <td data-row="71" data-col="4">外国</td>
+                  <td data-row="71" data-col="5">2019</td>
+                  <td data-row="71" data-col="6">斯科特·伊斯特伍德 / 奥兰多·布鲁姆</td>
+                  <td data-row="71" data-col="7">30212622</td>
+                  <td data-row="71" data-col="8">战争片</td>
+                  <td data-row="71" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="72" data-col="1">2024</td>
+                  <td data-row="72" data-col="2">血战摩苏尔</td>
+                  <td data-row="72" data-col="3">马修·迈克尔·卡纳汉</td>
+                  <td data-row="72" data-col="4">外国</td>
+                  <td data-row="72" data-col="5">2019</td>
+                  <td data-row="72" data-col="6">瓦利德·埃尔加迪</td>
+                  <td data-row="72" data-col="7">34679696</td>
+                  <td data-row="72" data-col="8">战争片</td>
+                  <td data-row="72" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="73" data-col="1">2024</td>
+                  <td data-row="73" data-col="2">生化危机</td>
+                  <td data-row="73" data-col="3">保罗·安德森</td>
+                  <td data-row="73" data-col="4">外国</td>
+                  <td data-row="73" data-col="5">2002</td>
+                  <td data-row="73" data-col="6">米拉·乔沃维奇 / 米歇尔·罗德里格兹</td>
+                  <td data-row="73" data-col="7">1306809</td>
+                  <td data-row="73" data-col="8">动作片</td>
+                  <td data-row="73" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="74" data-col="1">2024</td>
+                  <td data-row="74" data-col="2">扫黑·决不放弃</td>
+                  <td data-row="74" data-col="3">五百</td>
+                  <td data-row="74" data-col="4">中国</td>
+                  <td data-row="74" data-col="5">2024</td>
+                  <td data-row="74" data-col="6">肖央 / 余皑磊 / 范丞丞</td>
+                  <td data-row="74" data-col="7">35280899</td>
+                  <td data-row="74" data-col="8">警匪片</td>
+                  <td data-row="74" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="75" data-col="1">2024</td>
+                  <td data-row="75" data-col="2">金手指</td>
+                  <td data-row="75" data-col="3">庄文强</td>
+                  <td data-row="75" data-col="4">中国</td>
+                  <td data-row="75" data-col="5">2023</td>
+                  <td data-row="75" data-col="6">梁朝伟 / 刘德华 / 蔡卓妍 / 任达华</td>
+                  <td data-row="75" data-col="7">35074609</td>
+                  <td data-row="75" data-col="8">警匪片</td>
+                  <td data-row="75" data-col="9">一般</td>
+                </tr>
+                <tr>
+                  <td data-row="76" data-col="1">2024</td>
+                  <td data-row="76" data-col="2">艺术的逃难</td>
+                  <td data-row="76" data-col="3">NA</td>
+                  <td data-row="76" data-col="4">中国</td>
+                  <td data-row="76" data-col="5">NA</td>
+                  <td data-row="76" data-col="6">NA</td>
+                  <td data-row="76" data-col="7">NA</td>
+                  <td data-row="76" data-col="8">丰子恺的逃难记录</td>
+                  <td data-row="76" data-col="9">NA</td>
+                </tr>
+                <tr>
+                  <td data-row="77" data-col="1">2024</td>
+                  <td data-row="77" data-col="2">隐者山河</td>
+                  <td data-row="77" data-col="3">郭旭锋</td>
+                  <td data-row="77" data-col="4">中国</td>
+                  <td data-row="77" data-col="5">2024</td>
+                  <td data-row="77" data-col="6">陈其钢</td>
+                  <td data-row="77" data-col="7">37000403</td>
+                  <td data-row="77" data-col="8">陈其钢的隐逸记录</td>
+                  <td data-row="77" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="78" data-col="1">2024</td>
+                  <td data-row="78" data-col="2">一句顶一万句</td>
+                  <td data-row="78" data-col="3">刘雨霖</td>
+                  <td data-row="78" data-col="4">中国</td>
+                  <td data-row="78" data-col="5">2016</td>
+                  <td data-row="78" data-col="6">毛孩 / 李倩 / 刘蓓 / 范伟</td>
+                  <td data-row="78" data-col="7">26389466</td>
+                  <td data-row="78" data-col="8">改编自刘震云同名小说</td>
+                  <td data-row="78" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="79" data-col="1">2024</td>
+                  <td data-row="79" data-col="2">变脸</td>
+                  <td data-row="79" data-col="3">吴天明</td>
+                  <td data-row="79" data-col="4">中国</td>
+                  <td data-row="79" data-col="5">1995</td>
+                  <td data-row="79" data-col="6">朱旭 / 周任莹 / 赵志刚</td>
+                  <td data-row="79" data-col="7">1293237</td>
+                  <td data-row="79" data-col="8">艺术片</td>
+                  <td data-row="79" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="80" data-col="1">2024</td>
+                  <td data-row="80" data-col="2">绝地追击</td>
+                  <td data-row="80" data-col="3">邱礼涛</td>
+                  <td data-row="80" data-col="4">中国</td>
+                  <td data-row="80" data-col="5">2023</td>
+                  <td data-row="80" data-col="6">欧豪 / 谷嘉诚 / 俞灏明</td>
+                  <td data-row="80" data-col="7">35192609</td>
+                  <td data-row="80" data-col="8">警匪片</td>
+                  <td data-row="80" data-col="9">推荐</td>
+                </tr>
+                <tr>
+                  <td data-row="81" data-col="1">2024</td>
+                  <td data-row="81" data-col="2">坚如磐石</td>
+                  <td data-row="81" data-col="3">张艺谋</td>
+                  <td data-row="81" data-col="4">中国</td>
+                  <td data-row="81" data-col="5">2023</td>
+                  <td data-row="81" data-col="6">雷佳音 / 张国立 / 于和伟 / 周冬雨</td>
+                  <td data-row="81" data-col="7">33447633</td>
+                  <td data-row="81" data-col="8">警匪片</td>
+                  <td data-row="81" data-col="9">推荐</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->

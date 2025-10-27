@@ -1,0 +1,75 @@
+---
+title: "可视化局部多项式回归结果"
+author: "黄湘云"
+date: '2025-10-07'
+slug: vis-loess
+categories:
+  - 统计应用
+tags:
+  - 局部多项式回归
+  - 三维可视化
+  - ISLR
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+description: "局部多项式回归。"
+---
+
+
+复现 ISLR (《Introduction to Statistical Learning with
+Applications in R》) 书中图 2.3 --- 收入关于受教育年限、工作资历的关系。
+
+```{r}
+library(readr)
+# https://github.com/rghan/ISLR/blob/master/Income2.csv
+Income <- read_csv("data/Income2.csv", col_types = cols(x1 = col_skip()))
+```
+
+拟合数据 Local Polynomial Regression Fitting
+
+```{r}
+model <- loess(Income ~ Education + Seniority, data = Income)
+```
+
+生成预测值
+
+```{r}
+x_Education <- seq(min(Income$Education), max(Income$Education), length = 30)
+x_Seniority <- seq(min(Income$Seniority), max(Income$Seniority), length = 30)
+
+pred_function <- function(x1, x2) {
+  predict(model, newdata = cbind(x1, x2))
+}
+
+y_Income <- outer(x_Education, x_Seniority, pred_function)
+```
+
+三维透视图可视化局部多项式回归的结果
+
+```{r}
+#| label: fig-vis-loess
+#| fig-cap: 局部多项式回归结果的三维可视化
+#| fig-width: 8
+#| fig-height: 6
+#| fig-showtext: true
+
+point_pmat <- persp(
+  x = x_Education, y = x_Seniority, z = y_Income,
+  theta = 35, phi = 35, ltheta = -135, lphi = 0, expand = 1, 
+  col = "dodgerblue3",
+  xlab = "Years of Education", ylab = "Seniority", zlab = "Income"
+)
+
+points(trans3d(
+  x = Income$Education, y = Income$Seniority,
+  z = Income$Income, pmat = point_pmat
+), col = "red", pch = 16)
+
+for (i in 1:dim(Income)[1]) {
+  z <- seq(Income$Income[i], pred_function(Income$Education[i], Income$Seniority[i]), length = 10)
+  lines(trans3d(x = Income$Education[i], y = Income$Seniority[i], z = z, pmat = point_pmat))
+}
+```
+

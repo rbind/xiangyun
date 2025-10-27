@@ -1,0 +1,159 @@
+---
+date: "2024-10-25"
+slug: google-boom
+author: 黄湘云
+title: 谷歌的 Boom 预测框架
+categories:
+  - 统计软件
+tags:
+  - Boom
+  - 贝叶斯可加模型
+  - 时间序列预测
+  - 概率推理框架
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+draft: true
+bibliography: 
+  - refer.bib
+description: "Boom = Bayesian Object Oriented Modeling 采用贝叶斯可加时间序列模型拟合数据并预测，适合带年、周季节性的日粒度的数据，支持非线性趋势拟合，可以在模型中添加节假日情况。"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#%E7%9B%B8%E5%85%B3%E8%83%8C%E6%99%AF" id="toc-相关背景"><span class="toc-section-number">1</span> 相关背景</a></li>
+<li><a href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C" id="toc-准备工作"><span class="toc-section-number">2</span> 准备工作</a></li>
+<li><a href="#%E6%A8%A1%E5%9E%8B%E6%8B%9F%E5%90%88" id="toc-模型拟合"><span class="toc-section-number">3</span> 模型拟合</a></li>
+<li><a href="#sec-bayesian-summary" id="toc-sec-bayesian-summary"><span class="toc-section-number">4</span> 本文总结</a></li>
+<li><a href="#sec-references" id="toc-sec-references"><span class="toc-section-number">5</span> 参考文献</a></li>
+</ul>
+</div>
+
+<div id="相关背景" class="section level2" number="1">
+<h2><span class="header-section-number">1</span> 相关背景</h2>
+<p><a href="https://sites.google.com/view/stevethebayesian/">Steven L. Scott</a> 将贝叶斯结构时间序列模型 (Bayesian structural time series，也叫贝叶斯状态空间模型 Bayesian State Space Models)应用在<a href="https://trends.google.com/">谷歌搜索热度</a>和<a href="https://support.google.com/analytics/answer/9517187">谷歌分析 Google Analytics</a>中的趋势预测组件中，该模型也被用于推断因果效应<span class="citation">(<a href="#ref-Scott2015">Brodersen et al. 2015</a>)</span>，用以评估广告效果。模型的算法理论见<a href="https://people.ischool.berkeley.edu/~hal/Papers/2013/pred-present-with-bsts.pdf">论文</a>，本文介绍如何使用他为此开发的 <a href="https://github.com/steve-the-bayesian/BOOM">Boom</a> 框架。<del>这个框架很低调，也就他一人在维护，我是在了解 Google Analytics 的预测和异常检测时发现的。</del></p>
+<p><a href="https://github.com/steve-the-bayesian/BOOM">Boom</a> 的扩展包 <a href="https://cran.r-project.org/package=BoomSpikeSlab">BoomSpikeSlab</a> 和 <a href="https://cran.r-project.org/package=bsts">bsts</a> 一起实现贝叶斯结构时间序列回归模型（带协变量的），在回归系数上设置 spike-and-slab 先验信息，引入稀疏性，收缩（正则）回归系数，实现变量选择，极大降低回归问题的规模。<del>另有一个类似功能的 R包值得一提，<a href="https://github.com/helske/bssm">bssm</a> 包也是基于贝叶斯方法拟合状态空间模型，使用的 MCMC 采样算法是自适应随机游走 Metropolis 算法和 particle filters 算法。</del></p>
+</div>
+<div id="准备工作" class="section level2" number="2">
+<h2><span class="header-section-number">2</span> 准备工作</h2>
+<p>先加载几个 R 包</p>
+<pre class="r"><code>library(Boom)
+library(BoomSpikeSlab)
+library(bsts)</code></pre>
+<p>复用之前一篇文章<a href="/2024/05/forecasting-at-scale">《大规模时序预测 Prophet》</a>的示例数据—佩顿·曼宁的维基百科页面的访问量（的对数）。</p>
+<pre class="r"><code># 加载数据
+df &lt;- read.csv(&#39;../2024-05-01-forecasting-at-scale/data/peyton_manning.csv&#39;, colClasses = c(&quot;Date&quot;, &quot;numeric&quot;))
+str(df)</code></pre>
+<pre><code>## &#39;data.frame&#39;:	2905 obs. of  2 variables:
+##  $ ds: Date, format: &quot;2007-12-10&quot; &quot;2007-12-11&quot; ...
+##  $ y : num  9.59 8.52 8.18 8.07 7.89 ...</code></pre>
+<p>数据整理，时间序列预测要先观察一下数据中的历史规律，就是关于时间的变化规律，从日期一列扩展出年、周等列，以便后续探索。</p>
+<pre class="r"><code>df$weekday &lt;- format(df$ds, format = &quot;%a&quot;)
+df$weekday &lt;- factor(df$weekday, levels = c(&quot;Sun&quot;, &quot;Mon&quot;, &quot;Tue&quot;, &quot;Wed&quot;, &quot;Thu&quot;, &quot;Fri&quot;, &quot;Sat&quot;))
+df$year &lt;- format(df$ds, format = &quot;%Y&quot;)
+df$day_of_year &lt;- as.integer(format(df$ds, &quot;%j&quot;))</code></pre>
+<p>数据探索，先看每年的变化趋势，再看每周的变化趋势。</p>
+<pre class="r"><code>library(ggplot2)
+ggplot(data = df, aes(x = day_of_year, y = y, color = year)) +
+  geom_point()</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>从每年访问量的波动变化来看，有很强的季节性（周期性），波动变化是非线性的。考虑到每年波动情况的季节性，提取一部分数据观察周访问量。</p>
+<pre class="r"><code>ggplot(data = df[df$year &gt;= 2015,], aes(x = ds, y = y)) +
+  geom_point(aes(color = weekday))</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p>从每周访问量的波动变化来看，也有很强的季节性（周期性），且波动变化也是非线性的。</p>
+</div>
+<div id="模型拟合" class="section level2" number="3">
+<h2><span class="header-section-number">3</span> 模型拟合</h2>
+<p>通过上述探索和分析，可以发现数据存在很强的季节性和非线性趋势。</p>
+<pre class="r"><code>library(bsts)
+y = df[df$year&gt;=2013,&quot;y&quot;]
+# 局部线性趋势
+ss1 &lt;- AddLocalLinearTrend(list(), y)
+# 一周 7 天
+ss1 &lt;- AddSeasonal(ss1, y, nseasons = 7)
+# 拟合模型
+model1 &lt;- bsts(y, state.specification = ss1, niter = 500, seed = 2024)</code></pre>
+<pre><code>## =-=-=-=-= Iteration 0 Wed Mar 12 15:44:58 2025 =-=-=-=-=
+## =-=-=-=-= Iteration 50 Wed Mar 12 15:44:59 2025 =-=-=-=-=
+## =-=-=-=-= Iteration 100 Wed Mar 12 15:45:00 2025 =-=-=-=-=
+## =-=-=-=-= Iteration 150 Wed Mar 12 15:45:01 2025 =-=-=-=-=
+## =-=-=-=-= Iteration 200 Wed Mar 12 15:45:02 2025 =-=-=-=-=
+## =-=-=-=-= Iteration 250 Wed Mar 12 15:45:03 2025 =-=-=-=-=
+## =-=-=-=-= Iteration 300 Wed Mar 12 15:45:04 2025 =-=-=-=-=
+## =-=-=-=-= Iteration 350 Wed Mar 12 15:45:05 2025 =-=-=-=-=
+## =-=-=-=-= Iteration 400 Wed Mar 12 15:45:06 2025 =-=-=-=-=
+## =-=-=-=-= Iteration 450 Wed Mar 12 15:45:07 2025 =-=-=-=-=</code></pre>
+<pre class="r"><code># 可视化拟合
+plot(model1)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>图中蓝色的散点是真实的数据值</p>
+<pre class="r"><code># 分别展示趋势和季节性成分
+plot(model1, &quot;components&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>趋势拟合</p>
+<pre class="r"><code># 预测 14 天
+pred1 &lt;- predict(model1, horizon = 14, burn = 100)
+# 可视化预测
+plot(pred1)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>试试半局部线性趋势</p>
+<pre class="r"><code>ss2 &lt;- AddSemilocalLinearTrend(list(), y)
+ss2 &lt;- AddSeasonal(ss2, y, nseasons = 7)
+model2 &lt;- bsts(y, state.specification = ss2, niter = 500, seed = 2024)</code></pre>
+<pre><code>## =-=-=-=-= Iteration 0 Wed Mar 12 15:45:11 2025 =-=-=-=-=
+## =-=-=-=-= Iteration 50 Wed Mar 12 15:45:12 2025 =-=-=-=-=
+## =-=-=-=-= Iteration 100 Wed Mar 12 15:45:13 2025 =-=-=-=-=
+## =-=-=-=-= Iteration 150 Wed Mar 12 15:45:14 2025 =-=-=-=-=
+## =-=-=-=-= Iteration 200 Wed Mar 12 15:45:14 2025 =-=-=-=-=
+## =-=-=-=-= Iteration 250 Wed Mar 12 15:45:15 2025 =-=-=-=-=
+## =-=-=-=-= Iteration 300 Wed Mar 12 15:45:16 2025 =-=-=-=-=
+## =-=-=-=-= Iteration 350 Wed Mar 12 15:45:17 2025 =-=-=-=-=
+## =-=-=-=-= Iteration 400 Wed Mar 12 15:45:18 2025 =-=-=-=-=
+## =-=-=-=-= Iteration 450 Wed Mar 12 15:45:19 2025 =-=-=-=-=</code></pre>
+<pre class="r"><code># 可视化拟合
+plot(model2)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<pre class="r"><code># 分别展示趋势和季节性成分
+plot(model2, &quot;components&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-9-2.png" width="672" /></p>
+<pre class="r"><code># 预测 14 天
+pred2 &lt;- predict(model2, horizon = 14, burn = 100)
+# 可视化预测
+plot(pred2)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-9-3.png" width="672" /></p>
+<p>比较预测区间的宽度</p>
+<pre class="r"><code>range(pred1)</code></pre>
+<pre><code>## [1]  5.508 13.968</code></pre>
+<pre class="r"><code>range(pred2)</code></pre>
+<pre><code>## [1]  5.519 14.264</code></pre>
+<p>选取离预测时间最近的 90 天观测值</p>
+<pre class="r"><code># 预测区间较窄更好
+plot(pred1, plot.original = 90, ylim = range(pred2))</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<pre class="r"><code># 预测区间比较宽
+plot(pred2, plot.original = 90, ylim = range(pred2))</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-11-2.png" width="672" /></p>
+<p>从图上来看，两个模型差别不大。</p>
+</div>
+<div id="sec-bayesian-summary" class="section level2" number="4">
+<h2><span class="header-section-number">4</span> 本文总结</h2>
+<p><strong>mgcv</strong> 包的 <code>bam()</code> 函数可以处理大规模的数据 <span class="citation">(<a href="#ref-Wood2017">Simon N. Wood and Augustin 2017</a>)</span></p>
+<p>Boom、Prophet <span class="citation">(<a href="#ref-Taylor2018">Taylor and Letham 2018</a>)</span> 和 INLA 都是贝叶斯模型，Prophet 在工业界比较知名，而 INLA 在学术界比较知名。Prophet 局限于时间序列预测，而 INLA 属于大一统的模型框架。Prophet 基于概率编程语言 Stan ，多采用全贝叶斯精确推断，而 INLA 采用集成嵌套拉普拉斯近似计算。Prophet 需要编译、抽样等过程，速度慢，而 INLA 类似普通 R 包，可以近实时地计算。</p>
+</div>
+<div id="sec-references" class="section level2" number="5">
+<h2><span class="header-section-number">5</span> 参考文献</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="ref-Scott2015" class="csl-entry">
+Brodersen, Kay H., Fabian Gallusser, Jim Koehler, Nicolas Remy, and Steven L. Scott. 2015. <span>“Inferring Causal Impact Using Bayesian Structural Time-Series Models.”</span> <em>Annals of Applied Statistics</em> 9: 247–74. <a href="https://research.google/pubs/pub41854/">https://research.google/pubs/pub41854/</a>.
+</div>
+<div id="ref-Wood2017" class="csl-entry">
+Simon N. Wood, Gavin Shaddick, Zheyuan Li, and Nicole H. Augustin. 2017. <span>“Generalized Additive Models for Gigadata: Modeling the u.k. Black Smoke Network Daily Data.”</span> <em>Journal of the American Statistical Association</em> 112 (519): 1199–1210. <a href="https://doi.org/10.1080/01621459.2016.1195744">https://doi.org/10.1080/01621459.2016.1195744</a>.
+</div>
+<div id="ref-Taylor2018" class="csl-entry">
+Taylor, Sean J., and Benjamin Letham. 2018. <span>“Forecasting at Scale.”</span> <em>The American Statistician</em> 72 (1): 37–45. <a href="https://doi.org/10.1080/00031305.2017.1380080">https://doi.org/10.1080/00031305.2017.1380080</a>.
+</div>
+</div>
+</div>

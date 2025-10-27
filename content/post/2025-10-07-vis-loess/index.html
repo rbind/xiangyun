@@ -1,0 +1,60 @@
+---
+title: "可视化局部多项式回归结果"
+author: "黄湘云"
+date: '2025-10-07'
+slug: vis-loess
+categories:
+  - 统计应用
+tags:
+  - 局部多项式回归
+  - 三维可视化
+  - ISLR
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+description: "局部多项式回归。"
+---
+
+
+
+<p>复现 ISLR (《Introduction to Statistical Learning with
+Applications in R》) 书中图 2.3 — 收入关于受教育年限、工作资历的关系。</p>
+<pre class="r"><code>library(readr)
+# https://github.com/rghan/ISLR/blob/master/Income2.csv
+Income &lt;- read_csv(&quot;data/Income2.csv&quot;, col_types = cols(x1 = col_skip()))</code></pre>
+<p>拟合数据 Local Polynomial Regression Fitting</p>
+<pre class="r"><code>model &lt;- loess(Income ~ Education + Seniority, data = Income)</code></pre>
+<p>生成预测值</p>
+<pre class="r"><code>x_Education &lt;- seq(min(Income$Education), max(Income$Education), length = 30)
+x_Seniority &lt;- seq(min(Income$Seniority), max(Income$Seniority), length = 30)
+
+pred_function &lt;- function(x1, x2) {
+  predict(model, newdata = cbind(x1, x2))
+}
+
+y_Income &lt;- outer(x_Education, x_Seniority, pred_function)</code></pre>
+<p>三维透视图可视化局部多项式回归的结果</p>
+<pre class="r"><code>point_pmat &lt;- persp(
+  x = x_Education, y = x_Seniority, z = y_Income,
+  theta = 35, phi = 35, ltheta = -135, lphi = 0, expand = 1, 
+  col = &quot;dodgerblue3&quot;,
+  xlab = &quot;Years of Education&quot;, ylab = &quot;Seniority&quot;, zlab = &quot;Income&quot;
+)
+
+points(trans3d(
+  x = Income$Education, y = Income$Seniority,
+  z = Income$Income, pmat = point_pmat
+), col = &quot;red&quot;, pch = 16)
+
+for (i in 1:dim(Income)[1]) {
+  z &lt;- seq(Income$Income[i], pred_function(Income$Education[i], Income$Seniority[i]), length = 10)
+  lines(trans3d(x = Income$Education[i], y = Income$Seniority[i], z = z, pmat = point_pmat))
+}</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-vis-loess"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-vis-loess-1.png" alt="局部多项式回归结果的三维可视化" width="768" />
+<p class="caption">
+图 1: 局部多项式回归结果的三维可视化
+</p>
+</div>
