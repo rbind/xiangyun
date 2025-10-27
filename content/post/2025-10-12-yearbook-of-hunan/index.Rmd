@@ -1,0 +1,193 @@
+---
+title: "湖南省统计年鉴（区县级）"
+author: "黄湘云"
+date: '2025-10-07'
+slug: yearbook-of-hunan
+categories:
+  - 统计软件
+tags:
+  - pandas
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+code_fold: true
+link-citations: true
+description: "湖南省各区县的人口流动。"
+---
+
+
+加载湖南省区县级行政区划边界地图数据
+
+```{r}
+hunan_geo <- sf::read_sf("data/湖南省.json")
+hunan_geo
+```
+
+```{r echo=FALSE, eval=FALSE}
+x = sf::st_drop_geometry(hunan_geo[, c("adcode", "name")]) 
+writexl::write_xlsx(x = x, path = "data/湖南省各区县.xlsx")
+
+hunan_center = data.frame(matrix(
+  data = unlist(hunan_geo$center), ncol = 2, byrow = T,
+  dimnames = list(NULL, c("lon", "lat"))
+))
+head(hunan_center)
+```
+
+加载 2023 年湖南省各区县的数据（数据来自湖南省统计局发布的统计年鉴 2024）
+
+```{r}
+hunan_book <- readxl::read_xlsx(path = "data/湖南省各区县统计数据.xlsx", sheet = "2023") 
+hunan_book
+```
+
+- 年末常住人口（单位：万人）
+- 年末常住人口2020（单位：万人）
+- 常住人口变化：2023 年减去2020年的（单位：万人）
+- 城镇化率（单位：%）
+- 地区生产总值（单位：万元）
+- 人均GDP（单位：元）
+- 房地产开发投资（单位：万元）
+- 固定资产投资增速（单位：%）
+- 社会消费品零售总额（单位：亿元）
+- 社会消费品零售总额增速（单位：%）
+
+```{r}
+hunan_data <- merge(hunan_geo[, c("name", "adcode")], hunan_book, by.x = "adcode", by.y = "行政编码", all.x = T, sort = F) 
+hunan_data
+```
+
+社会消费品零售总额、房地产开发投资、人均GDP的关系。房地产开发投资越多，经济发展的拉动效果越强。越多人买房支出越多，意味着另一部分人收入越多，收入越多越有能力去消费，带动社会消费品零售总额增加，进而带动地区生产总值增长，人均GDP增加。
+
+```{r}
+# custom function
+my_scale <- function(x) scales::rescale(x, to = c(5, 20))
+library(echarts4r)
+hunan_book |> 
+  dplyr::mutate(市县 = paste(市州, 区县, sep = '·')) |> 
+  dplyr::group_by(市州) |> 
+  e_charts(x = 房地产开发投资) |> 
+  e_scatter(serie = 社会消费品零售总额, size = 人均GDP, bind = 市县, scale = my_scale) |> 
+  e_tooltip(formatter = htmlwidgets::JS("
+          function(params) {
+              return (
+                  '<strong>' + params.name + '</strong>' +
+                  '<br />房地产开发投资: ' + params.value[0] +
+                  '<br />社会消费品零售总额: ' + params.value[1].toFixed(2) +
+                  '<br />人均GDP: ' + params.value[2] + '元'
+              )
+          }
+          ")) |> 
+  e_x_axis(name = "房地产开发投资（万元）", nameLocation = "center", nameGap = 30) |> 
+  e_y_axis(name = "社会消费品零售总额（亿元）", nameLocation = "center", nameGap = 35) |> 
+  e_theme("vintage")
+```
+
+长沙是湖南的省会城市，辖下各区的房地产开发投资和社会消费品零售总额相比于其他市都是独树一帜的存在，这是很明显的区域发展不平衡。这种城市化带来的不平衡应该说是预期中的，如果对比日本、美国这样的发达国家的城市来看的话。
+
+除去长沙，岳阳是凸出来的第二个城市，它辖下的岳阳楼区的社会消费品零售总额很高，这应该是旅游业带来的贡献。
+
+```{r consumption-investment, fig.height=7, fig.showtext=TRUE, fig.cap="消费与投资的关系"}
+library(ggplot2)
+library(patchwork)
+p1 <- ggplot(data = hunan_book, aes(x = 固定资产投资增速, y = 社会消费品零售总额增速)) +
+  geom_point(aes(size = 人均GDP), alpha = 0.5) +
+  geom_smooth(se = FALSE, method = lm) +
+  coord_equal(ratio = 1) +
+  theme_light()
+
+p2 <- ggplot(data = hunan_book, aes(x = 常住人口变化, y = 房地产开发投资/10000)) +
+  geom_point(aes(size = 人均GDP), alpha = 0.5, show.legend = F) +
+  geom_smooth(se = FALSE, method = lm) +
+  theme_light()
+
+p3 <- ggplot(data = hunan_book, aes(x = 社会消费品零售总额, y = 地区生产总值/10000)) +
+  geom_point(aes(size = 人均GDP), alpha = 0.5, show.legend = F) +
+  geom_smooth(se = FALSE, method = lm) +
+  theme_light()
+
+p1 / (p2 | p3)
+```
+
+```{r correlation, fig.showtext=TRUE, fig.cap="变量之间的相关性",message=FALSE}
+library(corrplot)
+x = hunan_book[, -c(1:3)]
+M = cor(x)
+set.seed(0)
+corrplot(M)
+```
+
+房地产开发投资、社会消费品零售总额、地区生产总值、人均GDP相关性非常高。
+
+年末常住人口越多，社会消费品零售总额越高，这自不必说。
+常住人口变化也影响社会消费品零售总额，同理。
+不过，常住人口变化对房地产开发投资的影响更大。
+
+城镇化率越高意味着城市发展水平高，社会消费品零售总额越高，第三产业服务业占比越高。
+
+
+```{r}
+library(leaflet)
+# 连续型调色板
+# pal <- colorNumeric("Spectral", domain = NULL, reverse = TRUE)
+# 分段离散调色板
+pal <- colorBin("Spectral", bins = c(0, 10, 30, 50, 70, 100, 200), domain = NULL, reverse = TRUE)
+# 将数据绘制到地图上
+leaflet(hunan_data) |>
+  addTiles(
+    # 来自 leafletCN::amap()
+    urlTemplate = "http://webrd02.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}",
+    options = tileOptions(tileSize = 256, minZoom = 3, maxZoom = 17),
+    attribution = "&copy; <a href=\"http://amap.com\">amp.com</a >"
+  ) |> 
+  addPolygons(
+    stroke = F, # 不显示各个区县的边界线
+    weight = 1, # 设置边界线宽度
+    fillOpacity = 0.5, # 填充多边形的透明度
+    fillColor = ~ pal(年末常住人口),
+    label = lapply(paste0(
+      "区县：", "<b>", hunan_data$name, "</b>", "<br/>",
+      "常住人口（万）：", hunan_data$年末常住人口
+    ), htmltools::HTML)
+  ) |>
+  addLegend(
+    position = "bottomright", title = "常住人口（万）",
+    pal = pal, values = ~年末常住人口, opacity = 1.0
+  ) |>
+  addScaleBar(position = "bottomleft")
+```
+
+
+
+```{r}
+# 分段离散调色板
+pal <- colorBin("Spectral", bins = c(-5, -2, 0, 2, 5, 10, 15), domain = NULL, reverse = TRUE)
+# 将数据绘制到地图上
+leaflet(hunan_data) |>
+  addTiles(
+    # 来自 leafletCN::amap()
+    urlTemplate = "http://webrd02.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}",
+    options = tileOptions(tileSize = 256, minZoom = 3, maxZoom = 17),
+    attribution = "&copy; <a href=\"http://amap.com\">amp.com</a >"
+  ) |> 
+  addPolygons(
+    stroke = F, # 不显示各个区县的边界线
+    weight = 1, # 设置边界线宽度
+    fillOpacity = 0.5, # 填充多边形的透明度
+    fillColor = ~ pal(常住人口变化),
+    label = lapply(paste0(
+      "区县：", "<b>", hunan_data$name, "</b>", "<br/>",
+      "常住人口（万）：", hunan_data$年末常住人口, "<br/>",
+      "人口变化（万）：", hunan_data$常住人口变化
+    ), htmltools::HTML)
+  ) |>
+  addLegend(
+    position = "bottomright", title = "人口变化（万）",
+    pal = pal, values = ~常住人口变化, opacity = 1.0
+  ) |>
+  addScaleBar(position = "bottomleft")
+```
+
+
+
