@@ -14,7 +14,7 @@ output:
     toc: true
     number_sections: true
 link-citations: true
-description: "局部多项式回归。"
+description: "可视化局部多项式回归结果，复现 ISLR 书中图 2.3。"
 ---
 
 
@@ -36,10 +36,13 @@ pred_function &lt;- function(x1, x2) {
 
 y_Income &lt;- outer(x_Education, x_Seniority, pred_function)</code></pre>
 <p>三维透视图可视化局部多项式回归的结果</p>
-<pre class="r"><code>point_pmat &lt;- persp(
+<pre class="r"><code>op &lt;- par(mar = rep(0, 4))
+point_pmat &lt;- persp(
   x = x_Education, y = x_Seniority, z = y_Income,
-  theta = 35, phi = 35, ltheta = -135, lphi = 0, expand = 1, 
-  col = &quot;dodgerblue3&quot;,
+  theta = 25, # 绕 z 轴旋转
+  phi = 30,  # 绕 x 轴旋转
+  expand = 1, 
+  col = &quot;dodgerblue3&quot;, r = 10, 
   xlab = &quot;Years of Education&quot;, ylab = &quot;Seniority&quot;, zlab = &quot;Income&quot;
 )
 
@@ -58,3 +61,4 @@ for (i in 1:dim(Income)[1]) {
 图 1: 局部多项式回归结果的三维可视化
 </p>
 </div>
+<pre class="r"><code>on.exit(par(op))</code></pre>

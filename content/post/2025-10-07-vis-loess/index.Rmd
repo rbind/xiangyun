@@ -14,7 +14,7 @@ output:
     toc: true
     number_sections: true
 link-citations: true
-description: "局部多项式回归。"
+description: "可视化局部多项式回归结果，复现 ISLR 书中图 2.3。"
 ---
 
 
@@ -55,10 +55,13 @@ y_Income <- outer(x_Education, x_Seniority, pred_function)
 #| fig-height: 6
 #| fig-showtext: true
 
+op <- par(mar = rep(0, 4))
 point_pmat <- persp(
   x = x_Education, y = x_Seniority, z = y_Income,
-  theta = 35, phi = 35, ltheta = -135, lphi = 0, expand = 1, 
-  col = "dodgerblue3",
+  theta = 25, # 绕 z 轴旋转
+  phi = 30,  # 绕 x 轴旋转
+  expand = 1, 
+  col = "dodgerblue3", r = 10, 
   xlab = "Years of Education", ylab = "Seniority", zlab = "Income"
 )
 
@@ -71,5 +74,6 @@ for (i in 1:dim(Income)[1]) {
   z <- seq(Income$Income[i], pred_function(Income$Education[i], Income$Seniority[i]), length = 10)
   lines(trans3d(x = Income$Education[i], y = Income$Seniority[i], z = z, pmat = point_pmat))
 }
+on.exit(par(op))
 ```
 
