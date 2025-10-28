@@ -23,6 +23,7 @@ editor_options:
 <p>如果要看电影，不妨刷刷这些奖项的榜单。在豆瓣或百度百科上可以找到历届获奖的影片，比如
 1992 年第 64 届<a href="https://movie.douban.com/awards/Oscar/64/">奥斯卡</a>、1989
 年第 9 届<a href="https://movie.douban.com/awards/golden-rooster/9/">金鸡奖</a>。</p>
+<div class="full-width">
 <table>
 <colgroup>
 <col width="8%" />
@@ -99,31 +100,30 @@ editor_options:
 </tr>
 </tbody>
 </table>
+</div>
 <p>以前的影视剧看起来就是够有劲，比如 2006 年的《至高利益》，相比于 2017
 年的《人民的名义》 更直接更生猛更深刻，都是周梅森的作品。</p>
-<pre class="r"><code>library(readxl)
-movies &lt;- readxl::read_xlsx(path = &quot;data/观影记录.xlsx&quot;, sheet = &quot;电影&quot;, skip = 1)
-# tinytable 包展示数据
-library(tinytable)
-tt(movies, theme = &quot;striped&quot;)</code></pre>
 <!-- preamble start -->
 
     <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script>
 
     <script>
       // Create table-specific functions using external factory
-      const tableFns_o8dq8u26xlt36psaqjet = TinyTable.createTableFunctions("tinytable_o8dq8u26xlt36psaqjet");
+      const tableFns_bdpe7u0dxbb2ibmw1e8x = TinyTable.createTableFunctions("tinytable_bdpe7u0dxbb2ibmw1e8x");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '1', j: 1 }, { i: '3', j: 1 }, { i: '5', j: 1 }, { i: '7', j: 1 }, { i: '9', j: 1 }, { i: '11', j: 1 }, { i: '13', j: 1 }, { i: '15', j: 1 }, { i: '17', j: 1 }, { i: '19', j: 1 }, { i: '21', j: 1 }, { i: '23', j: 1 }, { i: '25', j: 1 }, { i: '27', j: 1 }, { i: '29', j: 1 }, { i: '31', j: 1 }, { i: '33', j: 1 }, { i: '35', j: 1 }, { i: '37', j: 1 }, { i: '39', j: 1 }, { i: '41', j: 1 }, { i: '43', j: 1 }, { i: '45', j: 1 }, { i: '47', j: 1 }, { i: '49', j: 1 }, { i: '51', j: 1 }, { i: '53', j: 1 }, { i: '55', j: 1 }, { i: '57', j: 1 }, { i: '59', j: 1 }, { i: '61', j: 1 }, { i: '63', j: 1 }, { i: '65', j: 1 }, { i: '67', j: 1 }, { i: '69', j: 1 }, { i: '71', j: 1 }, { i: '73', j: 1 }, { i: '75', j: 1 }, { i: '77', j: 1 }, { i: '79', j: 1 }, { i: '81', j: 1 }, { i: '1', j: 2 }, { i: '3', j: 2 }, { i: '5', j: 2 }, { i: '7', j: 2 }, { i: '9', j: 2 }, { i: '11', j: 2 }, { i: '13', j: 2 }, { i: '15', j: 2 }, { i: '17', j: 2 }, { i: '19', j: 2 }, { i: '21', j: 2 }, { i: '23', j: 2 }, { i: '25', j: 2 }, { i: '27', j: 2 }, { i: '29', j: 2 }, { i: '31', j: 2 }, { i: '33', j: 2 }, { i: '35', j: 2 }, { i: '37', j: 2 }, { i: '39', j: 2 }, { i: '41', j: 2 }, { i: '43', j: 2 }, { i: '45', j: 2 }, { i: '47', j: 2 }, { i: '49', j: 2 }, { i: '51', j: 2 }, { i: '53', j: 2 }, { i: '55', j: 2 }, { i: '57', j: 2 }, { i: '59', j: 2 }, { i: '61', j: 2 }, { i: '63', j: 2 }, { i: '65', j: 2 }, { i: '67', j: 2 }, { i: '69', j: 2 }, { i: '71', j: 2 }, { i: '73', j: 2 }, { i: '75', j: 2 }, { i: '77', j: 2 }, { i: '79', j: 2 }, { i: '81', j: 2 }, { i: '1', j: 3 }, { i: '3', j: 3 }, { i: '5', j: 3 }, { i: '7', j: 3 }, { i: '9', j: 3 }, { i: '11', j: 3 }, { i: '13', j: 3 }, { i: '15', j: 3 }, { i: '17', j: 3 }, { i: '19', j: 3 }, { i: '21', j: 3 }, { i: '23', j: 3 }, { i: '25', j: 3 }, { i: '27', j: 3 }, { i: '29', j: 3 }, { i: '31', j: 3 }, { i: '33', j: 3 }, { i: '35', j: 3 }, { i: '37', j: 3 }, { i: '39', j: 3 }, { i: '41', j: 3 }, { i: '43', j: 3 }, { i: '45', j: 3 }, { i: '47', j: 3 }, { i: '49', j: 3 }, { i: '51', j: 3 }, { i: '53', j: 3 }, { i: '55', j: 3 }, { i: '57', j: 3 }, { i: '59', j: 3 }, { i: '61', j: 3 }, { i: '63', j: 3 }, { i: '65', j: 3 }, { i: '67', j: 3 }, { i: '69', j: 3 }, { i: '71', j: 3 }, { i: '73', j: 3 }, { i: '75', j: 3 }, { i: '77', j: 3 }, { i: '79', j: 3 }, { i: '81', j: 3 }, { i: '1', j: 4 }, { i: '3', j: 4 }, { i: '5', j: 4 }, { i: '7', j: 4 }, { i: '9', j: 4 }, { i: '11', j: 4 }, { i: '13', j: 4 }, { i: '15', j: 4 }, { i: '17', j: 4 }, { i: '19', j: 4 }, { i: '21', j: 4 }, { i: '23', j: 4 }, { i: '25', j: 4 }, { i: '27', j: 4 }, { i: '29', j: 4 }, { i: '31', j: 4 }, { i: '33', j: 4 }, { i: '35', j: 4 }, { i: '37', j: 4 }, { i: '39', j: 4 }, { i: '41', j: 4 }, { i: '43', j: 4 }, { i: '45', j: 4 }, { i: '47', j: 4 }, { i: '49', j: 4 }, { i: '51', j: 4 }, { i: '53', j: 4 }, { i: '55', j: 4 }, { i: '57', j: 4 }, { i: '59', j: 4 }, { i: '61', j: 4 }, { i: '63', j: 4 }, { i: '65', j: 4 }, { i: '67', j: 4 }, { i: '69', j: 4 }, { i: '71', j: 4 }, { i: '73', j: 4 }, { i: '75', j: 4 }, { i: '77', j: 4 }, { i: '79', j: 4 }, { i: '81', j: 4 }, { i: '1', j: 5 }, { i: '3', j: 5 }, { i: '5', j: 5 }, { i: '7', j: 5 }, { i: '9', j: 5 }, { i: '11', j: 5 }, { i: '13', j: 5 }, { i: '15', j: 5 }, { i: '17', j: 5 }, { i: '19', j: 5 }, { i: '21', j: 5 }, { i: '23', j: 5 }, { i: '25', j: 5 }, { i: '27', j: 5 }, { i: '29', j: 5 }, { i: '31', j: 5 }, { i: '33', j: 5 }, { i: '35', j: 5 }, { i: '37', j: 5 }, { i: '39', j: 5 }, { i: '41', j: 5 }, { i: '43', j: 5 }, { i: '45', j: 5 }, { i: '47', j: 5 }, { i: '49', j: 5 }, { i: '51', j: 5 }, { i: '53', j: 5 }, { i: '55', j: 5 }, { i: '57', j: 5 }, { i: '59', j: 5 }, { i: '61', j: 5 }, { i: '63', j: 5 }, { i: '65', j: 5 }, { i: '67', j: 5 }, { i: '69', j: 5 }, { i: '71', j: 5 }, { i: '73', j: 5 }, { i: '75', j: 5 }, { i: '77', j: 5 }, { i: '79', j: 5 }, { i: '81', j: 5 }, { i: '1', j: 6 }, { i: '3', j: 6 }, { i: '5', j: 6 }, { i: '7', j: 6 }, { i: '9', j: 6 }, { i: '11', j: 6 }, { i: '13', j: 6 }, { i: '15', j: 6 }, { i: '17', j: 6 }, { i: '19', j: 6 }, { i: '21', j: 6 }, { i: '23', j: 6 }, { i: '25', j: 6 }, { i: '27', j: 6 }, { i: '29', j: 6 }, { i: '31', j: 6 }, { i: '33', j: 6 }, { i: '35', j: 6 }, { i: '37', j: 6 }, { i: '39', j: 6 }, { i: '41', j: 6 }, { i: '43', j: 6 }, { i: '45', j: 6 }, { i: '47', j: 6 }, { i: '49', j: 6 }, { i: '51', j: 6 }, { i: '53', j: 6 }, { i: '55', j: 6 }, { i: '57', j: 6 }, { i: '59', j: 6 }, { i: '61', j: 6 }, { i: '63', j: 6 }, { i: '65', j: 6 }, { i: '67', j: 6 }, { i: '69', j: 6 }, { i: '71', j: 6 }, { i: '73', j: 6 }, { i: '75', j: 6 }, { i: '77', j: 6 }, { i: '79', j: 6 }, { i: '81', j: 6 }, { i: '1', j: 7 }, { i: '3', j: 7 }, { i: '5', j: 7 }, { i: '7', j: 7 }, { i: '9', j: 7 }, { i: '11', j: 7 }, { i: '13', j: 7 }, { i: '15', j: 7 }, { i: '17', j: 7 }, { i: '19', j: 7 }, { i: '21', j: 7 }, { i: '23', j: 7 }, { i: '25', j: 7 }, { i: '27', j: 7 }, { i: '29', j: 7 }, { i: '31', j: 7 }, { i: '33', j: 7 }, { i: '35', j: 7 }, { i: '37', j: 7 }, { i: '39', j: 7 }, { i: '41', j: 7 }, { i: '43', j: 7 }, { i: '45', j: 7 }, { i: '47', j: 7 }, { i: '49', j: 7 }, { i: '51', j: 7 }, { i: '53', j: 7 }, { i: '55', j: 7 }, { i: '57', j: 7 }, { i: '59', j: 7 }, { i: '61', j: 7 }, { i: '63', j: 7 }, { i: '65', j: 7 }, { i: '67', j: 7 }, { i: '69', j: 7 }, { i: '71', j: 7 }, { i: '73', j: 7 }, { i: '75', j: 7 }, { i: '77', j: 7 }, { i: '79', j: 7 }, { i: '81', j: 7 }, { i: '1', j: 8 }, { i: '3', j: 8 }, { i: '5', j: 8 }, { i: '7', j: 8 }, { i: '9', j: 8 }, { i: '11', j: 8 }, { i: '13', j: 8 }, { i: '15', j: 8 }, { i: '17', j: 8 }, { i: '19', j: 8 }, { i: '21', j: 8 }, { i: '23', j: 8 }, { i: '25', j: 8 }, { i: '27', j: 8 }, { i: '29', j: 8 }, { i: '31', j: 8 }, { i: '33', j: 8 }, { i: '35', j: 8 }, { i: '37', j: 8 }, { i: '39', j: 8 }, { i: '41', j: 8 }, { i: '43', j: 8 }, { i: '45', j: 8 }, { i: '47', j: 8 }, { i: '49', j: 8 }, { i: '51', j: 8 }, { i: '53', j: 8 }, { i: '55', j: 8 }, { i: '57', j: 8 }, { i: '59', j: 8 }, { i: '61', j: 8 }, { i: '63', j: 8 }, { i: '65', j: 8 }, { i: '67', j: 8 }, { i: '69', j: 8 }, { i: '71', j: 8 }, { i: '73', j: 8 }, { i: '75', j: 8 }, { i: '77', j: 8 }, { i: '79', j: 8 }, { i: '81', j: 8 }, { i: '1', j: 9 }, { i: '3', j: 9 }, { i: '5', j: 9 }, { i: '7', j: 9 }, { i: '9', j: 9 }, { i: '11', j: 9 }, { i: '13', j: 9 }, { i: '15', j: 9 }, { i: '17', j: 9 }, { i: '19', j: 9 }, { i: '21', j: 9 }, { i: '23', j: 9 }, { i: '25', j: 9 }, { i: '27', j: 9 }, { i: '29', j: 9 }, { i: '31', j: 9 }, { i: '33', j: 9 }, { i: '35', j: 9 }, { i: '37', j: 9 }, { i: '39', j: 9 }, { i: '41', j: 9 }, { i: '43', j: 9 }, { i: '45', j: 9 }, { i: '47', j: 9 }, { i: '49', j: 9 }, { i: '51', j: 9 }, { i: '53', j: 9 }, { i: '55', j: 9 }, { i: '57', j: 9 }, { i: '59', j: 9 }, { i: '61', j: 9 }, { i: '63', j: 9 }, { i: '65', j: 9 }, { i: '67', j: 9 }, { i: '69', j: 9 }, { i: '71', j: 9 }, { i: '73', j: 9 }, { i: '75', j: 9 }, { i: '77', j: 9 }, { i: '79', j: 9 }, { i: '81', j: 9 } ], css_id: 'tinytable_css_chwppfoc5brkmc1fvhaw',}, 
+          { positions: [ { i: '1', j: 2 }, { i: '3', j: 2 }, { i: '5', j: 2 }, { i: '7', j: 2 }, { i: '9', j: 2 }, { i: '11', j: 2 }, { i: '13', j: 2 }, { i: '15', j: 2 }, { i: '17', j: 2 }, { i: '19', j: 2 }, { i: '21', j: 2 }, { i: '23', j: 2 }, { i: '25', j: 2 }, { i: '27', j: 2 }, { i: '29', j: 2 }, { i: '31', j: 2 }, { i: '33', j: 2 }, { i: '35', j: 2 }, { i: '37', j: 2 }, { i: '39', j: 2 }, { i: '41', j: 2 }, { i: '43', j: 2 }, { i: '45', j: 2 }, { i: '47', j: 2 }, { i: '49', j: 2 }, { i: '51', j: 2 }, { i: '53', j: 2 }, { i: '55', j: 2 }, { i: '57', j: 2 }, { i: '59', j: 2 }, { i: '61', j: 2 }, { i: '63', j: 2 }, { i: '65', j: 2 }, { i: '67', j: 2 }, { i: '69', j: 2 }, { i: '71', j: 2 }, { i: '73', j: 2 }, { i: '75', j: 2 }, { i: '77', j: 2 }, { i: '79', j: 2 }, { i: '81', j: 2 }, { i: '1', j: 3 }, { i: '3', j: 3 }, { i: '5', j: 3 }, { i: '7', j: 3 }, { i: '9', j: 3 }, { i: '11', j: 3 }, { i: '13', j: 3 }, { i: '15', j: 3 }, { i: '17', j: 3 }, { i: '19', j: 3 }, { i: '21', j: 3 }, { i: '23', j: 3 }, { i: '25', j: 3 }, { i: '27', j: 3 }, { i: '29', j: 3 }, { i: '31', j: 3 }, { i: '33', j: 3 }, { i: '35', j: 3 }, { i: '37', j: 3 }, { i: '39', j: 3 }, { i: '41', j: 3 }, { i: '43', j: 3 }, { i: '45', j: 3 }, { i: '47', j: 3 }, { i: '49', j: 3 }, { i: '51', j: 3 }, { i: '53', j: 3 }, { i: '55', j: 3 }, { i: '57', j: 3 }, { i: '59', j: 3 }, { i: '61', j: 3 }, { i: '63', j: 3 }, { i: '65', j: 3 }, { i: '67', j: 3 }, { i: '69', j: 3 }, { i: '71', j: 3 }, { i: '73', j: 3 }, { i: '75', j: 3 }, { i: '77', j: 3 }, { i: '79', j: 3 }, { i: '81', j: 3 }, { i: '1', j: 4 }, { i: '3', j: 4 }, { i: '5', j: 4 }, { i: '7', j: 4 }, { i: '9', j: 4 }, { i: '11', j: 4 }, { i: '13', j: 4 }, { i: '15', j: 4 }, { i: '17', j: 4 }, { i: '19', j: 4 }, { i: '21', j: 4 }, { i: '23', j: 4 }, { i: '25', j: 4 }, { i: '27', j: 4 }, { i: '29', j: 4 }, { i: '31', j: 4 }, { i: '33', j: 4 }, { i: '35', j: 4 }, { i: '37', j: 4 }, { i: '39', j: 4 }, { i: '41', j: 4 }, { i: '43', j: 4 }, { i: '45', j: 4 }, { i: '47', j: 4 }, { i: '49', j: 4 }, { i: '51', j: 4 }, { i: '53', j: 4 }, { i: '55', j: 4 }, { i: '57', j: 4 }, { i: '59', j: 4 }, { i: '61', j: 4 }, { i: '63', j: 4 }, { i: '65', j: 4 }, { i: '67', j: 4 }, { i: '69', j: 4 }, { i: '71', j: 4 }, { i: '73', j: 4 }, { i: '75', j: 4 }, { i: '77', j: 4 }, { i: '79', j: 4 }, { i: '81', j: 4 }, { i: '1', j: 5 }, { i: '3', j: 5 }, { i: '5', j: 5 }, { i: '7', j: 5 }, { i: '9', j: 5 }, { i: '11', j: 5 }, { i: '13', j: 5 }, { i: '15', j: 5 }, { i: '17', j: 5 }, { i: '19', j: 5 }, { i: '21', j: 5 }, { i: '23', j: 5 }, { i: '25', j: 5 }, { i: '27', j: 5 }, { i: '29', j: 5 }, { i: '31', j: 5 }, { i: '33', j: 5 }, { i: '35', j: 5 }, { i: '37', j: 5 }, { i: '39', j: 5 }, { i: '41', j: 5 }, { i: '43', j: 5 }, { i: '45', j: 5 }, { i: '47', j: 5 }, { i: '49', j: 5 }, { i: '51', j: 5 }, { i: '53', j: 5 }, { i: '55', j: 5 }, { i: '57', j: 5 }, { i: '59', j: 5 }, { i: '61', j: 5 }, { i: '63', j: 5 }, { i: '65', j: 5 }, { i: '67', j: 5 }, { i: '69', j: 5 }, { i: '71', j: 5 }, { i: '73', j: 5 }, { i: '75', j: 5 }, { i: '77', j: 5 }, { i: '79', j: 5 }, { i: '81', j: 5 }, { i: '1', j: 6 }, { i: '3', j: 6 }, { i: '5', j: 6 }, { i: '7', j: 6 }, { i: '9', j: 6 }, { i: '11', j: 6 }, { i: '13', j: 6 }, { i: '15', j: 6 }, { i: '17', j: 6 }, { i: '19', j: 6 }, { i: '21', j: 6 }, { i: '23', j: 6 }, { i: '25', j: 6 }, { i: '27', j: 6 }, { i: '29', j: 6 }, { i: '31', j: 6 }, { i: '33', j: 6 }, { i: '35', j: 6 }, { i: '37', j: 6 }, { i: '39', j: 6 }, { i: '41', j: 6 }, { i: '43', j: 6 }, { i: '45', j: 6 }, { i: '47', j: 6 }, { i: '49', j: 6 }, { i: '51', j: 6 }, { i: '53', j: 6 }, { i: '55', j: 6 }, { i: '57', j: 6 }, { i: '59', j: 6 }, { i: '61', j: 6 }, { i: '63', j: 6 }, { i: '65', j: 6 }, { i: '67', j: 6 }, { i: '69', j: 6 }, { i: '71', j: 6 }, { i: '73', j: 6 }, { i: '75', j: 6 }, { i: '77', j: 6 }, { i: '79', j: 6 }, { i: '81', j: 6 }, { i: '1', j: 7 }, { i: '3', j: 7 }, { i: '5', j: 7 }, { i: '7', j: 7 }, { i: '9', j: 7 }, { i: '11', j: 7 }, { i: '13', j: 7 }, { i: '15', j: 7 }, { i: '17', j: 7 }, { i: '19', j: 7 }, { i: '21', j: 7 }, { i: '23', j: 7 }, { i: '25', j: 7 }, { i: '27', j: 7 }, { i: '29', j: 7 }, { i: '31', j: 7 }, { i: '33', j: 7 }, { i: '35', j: 7 }, { i: '37', j: 7 }, { i: '39', j: 7 }, { i: '41', j: 7 }, { i: '43', j: 7 }, { i: '45', j: 7 }, { i: '47', j: 7 }, { i: '49', j: 7 }, { i: '51', j: 7 }, { i: '53', j: 7 }, { i: '55', j: 7 }, { i: '57', j: 7 }, { i: '59', j: 7 }, { i: '61', j: 7 }, { i: '63', j: 7 }, { i: '65', j: 7 }, { i: '67', j: 7 }, { i: '69', j: 7 }, { i: '71', j: 7 }, { i: '73', j: 7 }, { i: '75', j: 7 }, { i: '77', j: 7 }, { i: '79', j: 7 }, { i: '81', j: 7 }, { i: '1', j: 8 }, { i: '3', j: 8 }, { i: '5', j: 8 }, { i: '7', j: 8 }, { i: '9', j: 8 }, { i: '11', j: 8 }, { i: '13', j: 8 }, { i: '15', j: 8 }, { i: '17', j: 8 }, { i: '19', j: 8 }, { i: '21', j: 8 }, { i: '23', j: 8 }, { i: '25', j: 8 }, { i: '27', j: 8 }, { i: '29', j: 8 }, { i: '31', j: 8 }, { i: '33', j: 8 }, { i: '35', j: 8 }, { i: '37', j: 8 }, { i: '39', j: 8 }, { i: '41', j: 8 }, { i: '43', j: 8 }, { i: '45', j: 8 }, { i: '47', j: 8 }, { i: '49', j: 8 }, { i: '51', j: 8 }, { i: '53', j: 8 }, { i: '55', j: 8 }, { i: '57', j: 8 }, { i: '59', j: 8 }, { i: '61', j: 8 }, { i: '63', j: 8 }, { i: '65', j: 8 }, { i: '67', j: 8 }, { i: '69', j: 8 }, { i: '71', j: 8 }, { i: '73', j: 8 }, { i: '75', j: 8 }, { i: '77', j: 8 }, { i: '79', j: 8 }, { i: '81', j: 8 }, { i: '1', j: 9 }, { i: '3', j: 9 }, { i: '5', j: 9 }, { i: '7', j: 9 }, { i: '9', j: 9 }, { i: '11', j: 9 }, { i: '13', j: 9 }, { i: '15', j: 9 }, { i: '17', j: 9 }, { i: '19', j: 9 }, { i: '21', j: 9 }, { i: '23', j: 9 }, { i: '25', j: 9 }, { i: '27', j: 9 }, { i: '29', j: 9 }, { i: '31', j: 9 }, { i: '33', j: 9 }, { i: '35', j: 9 }, { i: '37', j: 9 }, { i: '39', j: 9 }, { i: '41', j: 9 }, { i: '43', j: 9 }, { i: '45', j: 9 }, { i: '47', j: 9 }, { i: '49', j: 9 }, { i: '51', j: 9 }, { i: '53', j: 9 }, { i: '55', j: 9 }, { i: '57', j: 9 }, { i: '59', j: 9 }, { i: '61', j: 9 }, { i: '63', j: 9 }, { i: '65', j: 9 }, { i: '67', j: 9 }, { i: '69', j: 9 }, { i: '71', j: 9 }, { i: '73', j: 9 }, { i: '75', j: 9 }, { i: '77', j: 9 }, { i: '79', j: 9 }, { i: '81', j: 9 } ], css_id: 'tinytable_css_wa07yfbb5lnoqnwetn4m',}, 
+          { positions: [ { i: '0', j: 2 }, { i: '2', j: 2 }, { i: '4', j: 2 }, { i: '6', j: 2 }, { i: '8', j: 2 }, { i: '10', j: 2 }, { i: '12', j: 2 }, { i: '14', j: 2 }, { i: '16', j: 2 }, { i: '18', j: 2 }, { i: '20', j: 2 }, { i: '22', j: 2 }, { i: '24', j: 2 }, { i: '26', j: 2 }, { i: '28', j: 2 }, { i: '30', j: 2 }, { i: '32', j: 2 }, { i: '34', j: 2 }, { i: '36', j: 2 }, { i: '38', j: 2 }, { i: '40', j: 2 }, { i: '42', j: 2 }, { i: '44', j: 2 }, { i: '46', j: 2 }, { i: '48', j: 2 }, { i: '50', j: 2 }, { i: '52', j: 2 }, { i: '54', j: 2 }, { i: '56', j: 2 }, { i: '58', j: 2 }, { i: '60', j: 2 }, { i: '62', j: 2 }, { i: '64', j: 2 }, { i: '66', j: 2 }, { i: '68', j: 2 }, { i: '70', j: 2 }, { i: '72', j: 2 }, { i: '74', j: 2 }, { i: '76', j: 2 }, { i: '78', j: 2 }, { i: '80', j: 2 }, { i: '0', j: 3 }, { i: '2', j: 3 }, { i: '4', j: 3 }, { i: '6', j: 3 }, { i: '8', j: 3 }, { i: '10', j: 3 }, { i: '12', j: 3 }, { i: '14', j: 3 }, { i: '16', j: 3 }, { i: '18', j: 3 }, { i: '20', j: 3 }, { i: '22', j: 3 }, { i: '24', j: 3 }, { i: '26', j: 3 }, { i: '28', j: 3 }, { i: '30', j: 3 }, { i: '32', j: 3 }, { i: '34', j: 3 }, { i: '36', j: 3 }, { i: '38', j: 3 }, { i: '40', j: 3 }, { i: '42', j: 3 }, { i: '44', j: 3 }, { i: '46', j: 3 }, { i: '48', j: 3 }, { i: '50', j: 3 }, { i: '52', j: 3 }, { i: '54', j: 3 }, { i: '56', j: 3 }, { i: '58', j: 3 }, { i: '60', j: 3 }, { i: '62', j: 3 }, { i: '64', j: 3 }, { i: '66', j: 3 }, { i: '68', j: 3 }, { i: '70', j: 3 }, { i: '72', j: 3 }, { i: '74', j: 3 }, { i: '76', j: 3 }, { i: '78', j: 3 }, { i: '80', j: 3 }, { i: '0', j: 4 }, { i: '2', j: 4 }, { i: '4', j: 4 }, { i: '6', j: 4 }, { i: '8', j: 4 }, { i: '10', j: 4 }, { i: '12', j: 4 }, { i: '14', j: 4 }, { i: '16', j: 4 }, { i: '18', j: 4 }, { i: '20', j: 4 }, { i: '22', j: 4 }, { i: '24', j: 4 }, { i: '26', j: 4 }, { i: '28', j: 4 }, { i: '30', j: 4 }, { i: '32', j: 4 }, { i: '34', j: 4 }, { i: '36', j: 4 }, { i: '38', j: 4 }, { i: '40', j: 4 }, { i: '42', j: 4 }, { i: '44', j: 4 }, { i: '46', j: 4 }, { i: '48', j: 4 }, { i: '50', j: 4 }, { i: '52', j: 4 }, { i: '54', j: 4 }, { i: '56', j: 4 }, { i: '58', j: 4 }, { i: '60', j: 4 }, { i: '62', j: 4 }, { i: '64', j: 4 }, { i: '66', j: 4 }, { i: '68', j: 4 }, { i: '70', j: 4 }, { i: '72', j: 4 }, { i: '74', j: 4 }, { i: '76', j: 4 }, { i: '78', j: 4 }, { i: '80', j: 4 }, { i: '0', j: 5 }, { i: '2', j: 5 }, { i: '4', j: 5 }, { i: '6', j: 5 }, { i: '8', j: 5 }, { i: '10', j: 5 }, { i: '12', j: 5 }, { i: '14', j: 5 }, { i: '16', j: 5 }, { i: '18', j: 5 }, { i: '20', j: 5 }, { i: '22', j: 5 }, { i: '24', j: 5 }, { i: '26', j: 5 }, { i: '28', j: 5 }, { i: '30', j: 5 }, { i: '32', j: 5 }, { i: '34', j: 5 }, { i: '36', j: 5 }, { i: '38', j: 5 }, { i: '40', j: 5 }, { i: '42', j: 5 }, { i: '44', j: 5 }, { i: '46', j: 5 }, { i: '48', j: 5 }, { i: '50', j: 5 }, { i: '52', j: 5 }, { i: '54', j: 5 }, { i: '56', j: 5 }, { i: '58', j: 5 }, { i: '60', j: 5 }, { i: '62', j: 5 }, { i: '64', j: 5 }, { i: '66', j: 5 }, { i: '68', j: 5 }, { i: '70', j: 5 }, { i: '72', j: 5 }, { i: '74', j: 5 }, { i: '76', j: 5 }, { i: '78', j: 5 }, { i: '80', j: 5 }, { i: '0', j: 6 }, { i: '2', j: 6 }, { i: '4', j: 6 }, { i: '6', j: 6 }, { i: '8', j: 6 }, { i: '10', j: 6 }, { i: '12', j: 6 }, { i: '14', j: 6 }, { i: '16', j: 6 }, { i: '18', j: 6 }, { i: '20', j: 6 }, { i: '22', j: 6 }, { i: '24', j: 6 }, { i: '26', j: 6 }, { i: '28', j: 6 }, { i: '30', j: 6 }, { i: '32', j: 6 }, { i: '34', j: 6 }, { i: '36', j: 6 }, { i: '38', j: 6 }, { i: '40', j: 6 }, { i: '42', j: 6 }, { i: '44', j: 6 }, { i: '46', j: 6 }, { i: '48', j: 6 }, { i: '50', j: 6 }, { i: '52', j: 6 }, { i: '54', j: 6 }, { i: '56', j: 6 }, { i: '58', j: 6 }, { i: '60', j: 6 }, { i: '62', j: 6 }, { i: '64', j: 6 }, { i: '66', j: 6 }, { i: '68', j: 6 }, { i: '70', j: 6 }, { i: '72', j: 6 }, { i: '74', j: 6 }, { i: '76', j: 6 }, { i: '78', j: 6 }, { i: '80', j: 6 }, { i: '0', j: 7 }, { i: '2', j: 7 }, { i: '4', j: 7 }, { i: '6', j: 7 }, { i: '8', j: 7 }, { i: '10', j: 7 }, { i: '12', j: 7 }, { i: '14', j: 7 }, { i: '16', j: 7 }, { i: '18', j: 7 }, { i: '20', j: 7 }, { i: '22', j: 7 }, { i: '24', j: 7 }, { i: '26', j: 7 }, { i: '28', j: 7 }, { i: '30', j: 7 }, { i: '32', j: 7 }, { i: '34', j: 7 }, { i: '36', j: 7 }, { i: '38', j: 7 }, { i: '40', j: 7 }, { i: '42', j: 7 }, { i: '44', j: 7 }, { i: '46', j: 7 }, { i: '48', j: 7 }, { i: '50', j: 7 }, { i: '52', j: 7 }, { i: '54', j: 7 }, { i: '56', j: 7 }, { i: '58', j: 7 }, { i: '60', j: 7 }, { i: '62', j: 7 }, { i: '64', j: 7 }, { i: '66', j: 7 }, { i: '68', j: 7 }, { i: '70', j: 7 }, { i: '72', j: 7 }, { i: '74', j: 7 }, { i: '76', j: 7 }, { i: '78', j: 7 }, { i: '80', j: 7 }, { i: '0', j: 8 }, { i: '2', j: 8 }, { i: '4', j: 8 }, { i: '6', j: 8 }, { i: '8', j: 8 }, { i: '10', j: 8 }, { i: '12', j: 8 }, { i: '14', j: 8 }, { i: '16', j: 8 }, { i: '18', j: 8 }, { i: '20', j: 8 }, { i: '22', j: 8 }, { i: '24', j: 8 }, { i: '26', j: 8 }, { i: '28', j: 8 }, { i: '30', j: 8 }, { i: '32', j: 8 }, { i: '34', j: 8 }, { i: '36', j: 8 }, { i: '38', j: 8 }, { i: '40', j: 8 }, { i: '42', j: 8 }, { i: '44', j: 8 }, { i: '46', j: 8 }, { i: '48', j: 8 }, { i: '50', j: 8 }, { i: '52', j: 8 }, { i: '54', j: 8 }, { i: '56', j: 8 }, { i: '58', j: 8 }, { i: '60', j: 8 }, { i: '62', j: 8 }, { i: '64', j: 8 }, { i: '66', j: 8 }, { i: '68', j: 8 }, { i: '70', j: 8 }, { i: '72', j: 8 }, { i: '74', j: 8 }, { i: '76', j: 8 }, { i: '78', j: 8 }, { i: '80', j: 8 }, { i: '0', j: 9 }, { i: '2', j: 9 }, { i: '4', j: 9 }, { i: '6', j: 9 }, { i: '8', j: 9 }, { i: '10', j: 9 }, { i: '12', j: 9 }, { i: '14', j: 9 }, { i: '16', j: 9 }, { i: '18', j: 9 }, { i: '20', j: 9 }, { i: '22', j: 9 }, { i: '24', j: 9 }, { i: '26', j: 9 }, { i: '28', j: 9 }, { i: '30', j: 9 }, { i: '32', j: 9 }, { i: '34', j: 9 }, { i: '36', j: 9 }, { i: '38', j: 9 }, { i: '40', j: 9 }, { i: '42', j: 9 }, { i: '44', j: 9 }, { i: '46', j: 9 }, { i: '48', j: 9 }, { i: '50', j: 9 }, { i: '52', j: 9 }, { i: '54', j: 9 }, { i: '56', j: 9 }, { i: '58', j: 9 }, { i: '60', j: 9 }, { i: '62', j: 9 }, { i: '64', j: 9 }, { i: '66', j: 9 }, { i: '68', j: 9 }, { i: '70', j: 9 }, { i: '72', j: 9 }, { i: '74', j: 9 }, { i: '76', j: 9 }, { i: '78', j: 9 }, { i: '80', j: 9 } ], css_id: 'tinytable_css_mx1yrxaljjousm405tek',}, 
+          { positions: [ { i: '1', j: 1 }, { i: '3', j: 1 }, { i: '5', j: 1 }, { i: '7', j: 1 }, { i: '9', j: 1 }, { i: '11', j: 1 }, { i: '13', j: 1 }, { i: '15', j: 1 }, { i: '17', j: 1 }, { i: '19', j: 1 }, { i: '21', j: 1 }, { i: '23', j: 1 }, { i: '25', j: 1 }, { i: '27', j: 1 }, { i: '29', j: 1 }, { i: '31', j: 1 }, { i: '33', j: 1 }, { i: '35', j: 1 }, { i: '37', j: 1 }, { i: '39', j: 1 }, { i: '41', j: 1 }, { i: '43', j: 1 }, { i: '45', j: 1 }, { i: '47', j: 1 }, { i: '49', j: 1 }, { i: '51', j: 1 }, { i: '53', j: 1 }, { i: '55', j: 1 }, { i: '57', j: 1 }, { i: '59', j: 1 }, { i: '61', j: 1 }, { i: '63', j: 1 }, { i: '65', j: 1 }, { i: '67', j: 1 }, { i: '69', j: 1 }, { i: '71', j: 1 }, { i: '73', j: 1 }, { i: '75', j: 1 }, { i: '77', j: 1 }, { i: '79', j: 1 }, { i: '81', j: 1 } ], css_id: 'tinytable_css_mr18r80lf6eotrag27k3',}, 
+          { positions: [ { i: '0', j: 1 }, { i: '2', j: 1 }, { i: '4', j: 1 }, { i: '6', j: 1 }, { i: '8', j: 1 }, { i: '10', j: 1 }, { i: '12', j: 1 }, { i: '14', j: 1 }, { i: '16', j: 1 }, { i: '18', j: 1 }, { i: '20', j: 1 }, { i: '22', j: 1 }, { i: '24', j: 1 }, { i: '26', j: 1 }, { i: '28', j: 1 }, { i: '30', j: 1 }, { i: '32', j: 1 }, { i: '34', j: 1 }, { i: '36', j: 1 }, { i: '38', j: 1 }, { i: '40', j: 1 }, { i: '42', j: 1 }, { i: '44', j: 1 }, { i: '46', j: 1 }, { i: '48', j: 1 }, { i: '50', j: 1 }, { i: '52', j: 1 }, { i: '54', j: 1 }, { i: '56', j: 1 }, { i: '58', j: 1 }, { i: '60', j: 1 }, { i: '62', j: 1 }, { i: '64', j: 1 }, { i: '66', j: 1 }, { i: '68', j: 1 }, { i: '70', j: 1 }, { i: '72', j: 1 }, { i: '74', j: 1 }, { i: '76', j: 1 }, { i: '78', j: 1 }, { i: '80', j: 1 } ], css_id: 'tinytable_css_7eadpg342y592v1cq9p1',}, 
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_o8dq8u26xlt36psaqjet.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_bdpe7u0dxbb2ibmw1e8x.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
@@ -132,18 +132,21 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
     <style>
     /* tinytable css entries after */
-    #tinytable_o8dq8u26xlt36psaqjet td.tinytable_css_chwppfoc5brkmc1fvhaw, #tinytable_o8dq8u26xlt36psaqjet th.tinytable_css_chwppfoc5brkmc1fvhaw { background-color: #ededed }
+    #tinytable_bdpe7u0dxbb2ibmw1e8x td.tinytable_css_wa07yfbb5lnoqnwetn4m, #tinytable_bdpe7u0dxbb2ibmw1e8x th.tinytable_css_wa07yfbb5lnoqnwetn4m { background-color: #ededed; width: 11%; }
+    #tinytable_bdpe7u0dxbb2ibmw1e8x td.tinytable_css_mx1yrxaljjousm405tek, #tinytable_bdpe7u0dxbb2ibmw1e8x th.tinytable_css_mx1yrxaljjousm405tek { width: 11%; }
+    #tinytable_bdpe7u0dxbb2ibmw1e8x td.tinytable_css_mr18r80lf6eotrag27k3, #tinytable_bdpe7u0dxbb2ibmw1e8x th.tinytable_css_mr18r80lf6eotrag27k3 { background-color: #ededed; width: 12%; }
+    #tinytable_bdpe7u0dxbb2ibmw1e8x td.tinytable_css_7eadpg342y592v1cq9p1, #tinytable_bdpe7u0dxbb2ibmw1e8x th.tinytable_css_7eadpg342y592v1cq9p1 { width: 12%; }
     </style>
     <div class="container">
-      <table class="tinytable" id="tinytable_o8dq8u26xlt36psaqjet" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing='true'>
+      <table class="tinytable" id="tinytable_bdpe7u0dxbb2ibmw1e8x" style="table-layout: fixed; width: 100%; margin-left: auto; margin-right: auto;" data-quarto-disable-processing='true'>
         
         <thead>
               <tr>
-                <th scope="col" data-row="0" data-col="1">观影年份</th>
+                <th scope="col" data-row="0" data-col="1">观影</th>
                 <th scope="col" data-row="0" data-col="2">影片</th>
                 <th scope="col" data-row="0" data-col="3">导演</th>
                 <th scope="col" data-row="0" data-col="4">国家</th>
-                <th scope="col" data-row="0" data-col="5">上映年份</th>
+                <th scope="col" data-row="0" data-col="5">上映</th>
                 <th scope="col" data-row="0" data-col="6">演员</th>
                 <th scope="col" data-row="0" data-col="7">豆瓣ID</th>
                 <th scope="col" data-row="0" data-col="8">备注</th>
@@ -159,7 +162,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="1" data-col="4">中国</td>
                   <td data-row="1" data-col="5">2014</td>
                   <td data-row="1" data-col="6">廖凡 / 桂纶镁 / 王学兵</td>
-                  <td data-row="1" data-col="7">21941804</td>
+                  <td data-row="1" data-col="7"><a href="https://movie.douban.com/subject/21941804/">21941804</a></td>
                   <td data-row="1" data-col="8">悬疑犯罪</td>
                   <td data-row="1" data-col="9">推荐</td>
                 </tr>
@@ -170,7 +173,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="2" data-col="4">中国</td>
                   <td data-row="2" data-col="5">1984</td>
                   <td data-row="2" data-col="6">唐国强 / 倪大红 / 斯琴高娃</td>
-                  <td data-row="2" data-col="7">1422283</td>
+                  <td data-row="2" data-col="7"><a href="https://movie.douban.com/subject/1422283/">1422283</a></td>
                   <td data-row="2" data-col="8">改编自同名小说</td>
                   <td data-row="2" data-col="9">推荐</td>
                 </tr>
@@ -181,7 +184,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="3" data-col="4">外国</td>
                   <td data-row="3" data-col="5">1980</td>
                   <td data-row="3" data-col="6">马蒂厄·卡里埃 / 简·伯金</td>
-                  <td data-row="3" data-col="7">2138173</td>
+                  <td data-row="3" data-col="7"><a href="https://movie.douban.com/subject/2138173/">2138173</a></td>
                   <td data-row="3" data-col="8">人物传记</td>
                   <td data-row="3" data-col="9">推荐</td>
                 </tr>
@@ -192,7 +195,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="4" data-col="4">中国</td>
                   <td data-row="4" data-col="5">1981</td>
                   <td data-row="4" data-col="6">严顺开</td>
-                  <td data-row="4" data-col="7">1306506</td>
+                  <td data-row="4" data-col="7"><a href="https://movie.douban.com/subject/1306506/">1306506</a></td>
                   <td data-row="4" data-col="8">改编自同名小说</td>
                   <td data-row="4" data-col="9">推荐</td>
                 </tr>
@@ -203,7 +206,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="5" data-col="4">中国</td>
                   <td data-row="5" data-col="5">1998</td>
                   <td data-row="5" data-col="6">茅威涛</td>
-                  <td data-row="5" data-col="7">5401683</td>
+                  <td data-row="5" data-col="7"><a href="https://movie.douban.com/subject/5401683/">5401683</a></td>
                   <td data-row="5" data-col="8">改编自同名小说，越剧</td>
                   <td data-row="5" data-col="9">一般</td>
                 </tr>
@@ -214,7 +217,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="6" data-col="4">外国</td>
                   <td data-row="6" data-col="5">1926</td>
                   <td data-row="6" data-col="6">约翰·巴里摩尔 / 多洛雷斯·卡斯特洛</td>
-                  <td data-row="6" data-col="7">2265987</td>
+                  <td data-row="6" data-col="7"><a href="https://movie.douban.com/subject/2265987/">2265987</a></td>
                   <td data-row="6" data-col="8">改编自同名小说</td>
                   <td data-row="6" data-col="9">推荐</td>
                 </tr>
@@ -225,7 +228,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="7" data-col="4">中国</td>
                   <td data-row="7" data-col="5">2013</td>
                   <td data-row="7" data-col="6">陶泽如</td>
-                  <td data-row="7" data-col="7">10831445</td>
+                  <td data-row="7" data-col="7"><a href="https://movie.douban.com/subject/10831445/">10831445</a></td>
                   <td data-row="7" data-col="8">改编自同名小说</td>
                   <td data-row="7" data-col="9">推荐</td>
                 </tr>
@@ -236,7 +239,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="8" data-col="4">中国</td>
                   <td data-row="8" data-col="5">2013</td>
                   <td data-row="8" data-col="6">冯远征</td>
-                  <td data-row="8" data-col="7">11627068</td>
+                  <td data-row="8" data-col="7"><a href="https://movie.douban.com/subject/11627068/">11627068</a></td>
                   <td data-row="8" data-col="8">明崇祯末年社会矛盾</td>
                   <td data-row="8" data-col="9">推荐</td>
                 </tr>
@@ -247,7 +250,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="9" data-col="4">外国</td>
                   <td data-row="9" data-col="5">2024</td>
                   <td data-row="9" data-col="6">拉尔夫·费因斯</td>
-                  <td data-row="9" data-col="7">35948807</td>
+                  <td data-row="9" data-col="7"><a href="https://movie.douban.com/subject/35948807/">35948807</a></td>
                   <td data-row="9" data-col="8">宗教信仰在传统和现代间抉择</td>
                   <td data-row="9" data-col="9">推荐</td>
                 </tr>
@@ -258,7 +261,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="10" data-col="4">外国</td>
                   <td data-row="10" data-col="5">2019</td>
                   <td data-row="10" data-col="6">安东尼·霍普金斯</td>
-                  <td data-row="10" data-col="7">27132510</td>
+                  <td data-row="10" data-col="7"><a href="https://movie.douban.com/subject/27132510/">27132510</a></td>
                   <td data-row="10" data-col="8">宗教信仰</td>
                   <td data-row="10" data-col="9">推荐</td>
                 </tr>
@@ -269,7 +272,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="11" data-col="4">外国</td>
                   <td data-row="11" data-col="5">2005</td>
                   <td data-row="11" data-col="6">奥兰多·布鲁姆</td>
-                  <td data-row="11" data-col="7">1309071</td>
+                  <td data-row="11" data-col="7"><a href="https://movie.douban.com/subject/1309071/">1309071</a></td>
                   <td data-row="11" data-col="8">宗教信仰</td>
                   <td data-row="11" data-col="9">推荐</td>
                 </tr>
@@ -280,7 +283,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="12" data-col="4">中国</td>
                   <td data-row="12" data-col="5">2021</td>
                   <td data-row="12" data-col="6">古天乐 / 张智霖</td>
-                  <td data-row="12" data-col="7">32579501</td>
+                  <td data-row="12" data-col="7"><a href="https://movie.douban.com/subject/32579501/">32579501</a></td>
                   <td data-row="12" data-col="8">政治宣传</td>
                   <td data-row="12" data-col="9">一般</td>
                 </tr>
@@ -291,7 +294,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="13" data-col="4">外国</td>
                   <td data-row="13" data-col="5">2008</td>
                   <td data-row="13" data-col="6">连姆·尼森</td>
-                  <td data-row="13" data-col="7">2124586</td>
+                  <td data-row="13" data-col="7"><a href="https://movie.douban.com/subject/2124586/">2124586</a></td>
                   <td data-row="13" data-col="8">动作片</td>
                   <td data-row="13" data-col="9">一般</td>
                 </tr>
@@ -302,7 +305,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="14" data-col="4">外国</td>
                   <td data-row="14" data-col="5">2012</td>
                   <td data-row="14" data-col="6">连姆·尼森</td>
-                  <td data-row="14" data-col="7">3606971</td>
+                  <td data-row="14" data-col="7"><a href="https://movie.douban.com/subject/3606971/">3606971</a></td>
                   <td data-row="14" data-col="8">动作片</td>
                   <td data-row="14" data-col="9">一般</td>
                 </tr>
@@ -313,7 +316,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="15" data-col="4">外国</td>
                   <td data-row="15" data-col="5">1995</td>
                   <td data-row="15" data-col="6">摩根·弗里曼</td>
-                  <td data-row="15" data-col="7">1292223</td>
+                  <td data-row="15" data-col="7"><a href="https://movie.douban.com/subject/1292223/">1292223</a></td>
                   <td data-row="15" data-col="8">悬疑犯罪</td>
                   <td data-row="15" data-col="9">推荐</td>
                 </tr>
@@ -324,7 +327,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="16" data-col="4">中国</td>
                   <td data-row="16" data-col="5">2000</td>
                   <td data-row="16" data-col="6">姜文</td>
-                  <td data-row="16" data-col="7">1291858</td>
+                  <td data-row="16" data-col="7"><a href="https://movie.douban.com/subject/1291858/">1291858</a></td>
                   <td data-row="16" data-col="8">喜剧</td>
                   <td data-row="16" data-col="9">推荐</td>
                 </tr>
@@ -335,7 +338,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="17" data-col="4">中国</td>
                   <td data-row="17" data-col="5">1979</td>
                   <td data-row="17" data-col="6">岳华、胡锦、余莎莉</td>
-                  <td data-row="17" data-col="7">NA</td>
+                  <td data-row="17" data-col="7"><a href="https://movie.douban.com/subject/NA/">NA</a></td>
                   <td data-row="17" data-col="8">惊悚</td>
                   <td data-row="17" data-col="9">一般</td>
                 </tr>
@@ -346,7 +349,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="18" data-col="4">中国</td>
                   <td data-row="18" data-col="5">2014</td>
                   <td data-row="18" data-col="6">郑中基/元彪</td>
-                  <td data-row="18" data-col="7">25886495</td>
+                  <td data-row="18" data-col="7"><a href="https://movie.douban.com/subject/25886495/">25886495</a></td>
                   <td data-row="18" data-col="8">喜剧</td>
                   <td data-row="18" data-col="9">一般</td>
                 </tr>
@@ -357,7 +360,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="19" data-col="4">中国</td>
                   <td data-row="19" data-col="5">2005</td>
                   <td data-row="19" data-col="6">马绍信</td>
-                  <td data-row="19" data-col="7">1418407</td>
+                  <td data-row="19" data-col="7"><a href="https://movie.douban.com/subject/1418407/">1418407</a></td>
                   <td data-row="19" data-col="8">战争</td>
                   <td data-row="19" data-col="9">推荐</td>
                 </tr>
@@ -368,7 +371,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="20" data-col="4">中国</td>
                   <td data-row="20" data-col="5">1993</td>
                   <td data-row="20" data-col="6">梁朝伟</td>
-                  <td data-row="20" data-col="7">1298761</td>
+                  <td data-row="20" data-col="7"><a href="https://movie.douban.com/subject/1298761/">1298761</a></td>
                   <td data-row="20" data-col="8">武侠</td>
                   <td data-row="20" data-col="9">推荐</td>
                 </tr>
@@ -379,7 +382,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="21" data-col="4">外国</td>
                   <td data-row="21" data-col="5">2005</td>
                   <td data-row="21" data-col="6">凯丽·拉塞尔</td>
-                  <td data-row="21" data-col="7">2212901</td>
+                  <td data-row="21" data-col="7"><a href="https://movie.douban.com/subject/2212901/">2212901</a></td>
                   <td data-row="21" data-col="8">爱情是什么</td>
                   <td data-row="21" data-col="9">非常推荐</td>
                 </tr>
@@ -390,7 +393,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="22" data-col="4">外国</td>
                   <td data-row="22" data-col="5">1974</td>
                   <td data-row="22" data-col="6">加布里埃尔·费泽蒂 / 奥内拉·穆蒂</td>
-                  <td data-row="22" data-col="7">2158803</td>
+                  <td data-row="22" data-col="7"><a href="https://movie.douban.com/subject/2158803/">2158803</a></td>
                   <td data-row="22" data-col="8">爱情是什么</td>
                   <td data-row="22" data-col="9">一般</td>
                 </tr>
@@ -401,7 +404,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="23" data-col="4">外国</td>
                   <td data-row="23" data-col="5">1995</td>
                   <td data-row="23" data-col="6">约翰·维德伯格</td>
-                  <td data-row="23" data-col="7">1303031</td>
+                  <td data-row="23" data-col="7"><a href="https://movie.douban.com/subject/1303031/">1303031</a></td>
                   <td data-row="23" data-col="8">爱情是什么</td>
                   <td data-row="23" data-col="9">推荐</td>
                 </tr>
@@ -412,7 +415,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="24" data-col="4">中国</td>
                   <td data-row="24" data-col="5">2004</td>
                   <td data-row="24" data-col="6">郭达</td>
-                  <td data-row="24" data-col="7">1891219</td>
+                  <td data-row="24" data-col="7"><a href="https://movie.douban.com/subject/1891219/">1891219</a></td>
                   <td data-row="24" data-col="8">政治宣传</td>
                   <td data-row="24" data-col="9">一般</td>
                 </tr>
@@ -423,7 +426,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="25" data-col="4">中国</td>
                   <td data-row="25" data-col="5">1992</td>
                   <td data-row="25" data-col="6">王铁成</td>
-                  <td data-row="25" data-col="7">1448751</td>
+                  <td data-row="25" data-col="7"><a href="https://movie.douban.com/subject/1448751/">1448751</a></td>
                   <td data-row="25" data-col="8">政治宣传</td>
                   <td data-row="25" data-col="9">推荐</td>
                 </tr>
@@ -434,7 +437,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="26" data-col="4">外国</td>
                   <td data-row="26" data-col="5">1990</td>
                   <td data-row="26" data-col="6">凯文•科斯特纳</td>
-                  <td data-row="26" data-col="7">1293764</td>
+                  <td data-row="26" data-col="7"><a href="https://movie.douban.com/subject/1293764/">1293764</a></td>
                   <td data-row="26" data-col="8">西部</td>
                   <td data-row="26" data-col="9">推荐</td>
                 </tr>
@@ -445,7 +448,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="27" data-col="4">中国</td>
                   <td data-row="27" data-col="5">1985</td>
                   <td data-row="27" data-col="6">葛建军 / 任伟民 / 孙才华</td>
-                  <td data-row="27" data-col="7">2004547</td>
+                  <td data-row="27" data-col="7"><a href="https://movie.douban.com/subject/2004547/">2004547</a></td>
                   <td data-row="27" data-col="8">文革</td>
                   <td data-row="27" data-col="9">推荐</td>
                 </tr>
@@ -456,7 +459,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="28" data-col="4">中国</td>
                   <td data-row="28" data-col="5">1980</td>
                   <td data-row="28" data-col="6">李志舆 / 张瑜 / 林彬</td>
-                  <td data-row="28" data-col="7">1433579</td>
+                  <td data-row="28" data-col="7"><a href="https://movie.douban.com/subject/1433579/">1433579</a></td>
                   <td data-row="28" data-col="8">文革后期</td>
                   <td data-row="28" data-col="9">推荐</td>
                 </tr>
@@ -467,7 +470,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="29" data-col="4">中国</td>
                   <td data-row="29" data-col="5">1981</td>
                   <td data-row="29" data-col="6">石维坚 / 施建岚 / 王馥荔</td>
-                  <td data-row="29" data-col="7">1291864</td>
+                  <td data-row="29" data-col="7"><a href="https://movie.douban.com/subject/1291864/">1291864</a></td>
                   <td data-row="29" data-col="8">伤痕文学</td>
                   <td data-row="29" data-col="9">推荐</td>
                 </tr>
@@ -478,7 +481,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="30" data-col="4">中国</td>
                   <td data-row="30" data-col="5">1981</td>
                   <td data-row="30" data-col="6">金安歌 / 辛静 / 孙飞虎</td>
-                  <td data-row="30" data-col="7">1667008</td>
+                  <td data-row="30" data-col="7"><a href="https://movie.douban.com/subject/1667008/">1667008</a></td>
                   <td data-row="30" data-col="8">历史</td>
                   <td data-row="30" data-col="9">推荐</td>
                 </tr>
@@ -489,7 +492,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="31" data-col="4">中国</td>
                   <td data-row="31" data-col="5">1986</td>
                   <td data-row="31" data-col="6">邵宏来 / 初国良 / 江化霖</td>
-                  <td data-row="31" data-col="7">1307201</td>
+                  <td data-row="31" data-col="7"><a href="https://movie.douban.com/subject/1307201/">1307201</a></td>
                   <td data-row="31" data-col="8">政治宣传片</td>
                   <td data-row="31" data-col="9">推荐</td>
                 </tr>
@@ -500,7 +503,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="32" data-col="4">中国</td>
                   <td data-row="32" data-col="5">2021</td>
                   <td data-row="32" data-col="6">张译 / 于和伟 / 秦海璐</td>
-                  <td data-row="32" data-col="7">32493124</td>
+                  <td data-row="32" data-col="7"><a href="https://movie.douban.com/subject/32493124/">32493124</a></td>
                   <td data-row="32" data-col="8">历史</td>
                   <td data-row="32" data-col="9">推荐</td>
                 </tr>
@@ -511,7 +514,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="33" data-col="4">中国</td>
                   <td data-row="33" data-col="5">2018</td>
                   <td data-row="33" data-col="6">周润发 / 郭富城 / 张静初</td>
-                  <td data-row="33" data-col="7">26425063</td>
+                  <td data-row="33" data-col="7"><a href="https://movie.douban.com/subject/26425063/">26425063</a></td>
                   <td data-row="33" data-col="8">动作片</td>
                   <td data-row="33" data-col="9">推荐</td>
                 </tr>
@@ -522,7 +525,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="34" data-col="4">外国</td>
                   <td data-row="34" data-col="5">1963</td>
                   <td data-row="34" data-col="6">伊丽莎白·泰勒 / 理查德·伯顿 / 雷克斯·哈里森</td>
-                  <td data-row="34" data-col="7">1292550</td>
+                  <td data-row="34" data-col="7"><a href="https://movie.douban.com/subject/1292550/">1292550</a></td>
                   <td data-row="34" data-col="8">历史传记</td>
                   <td data-row="34" data-col="9">推荐</td>
                 </tr>
@@ -533,7 +536,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="35" data-col="4">中国</td>
                   <td data-row="35" data-col="5">2020</td>
                   <td data-row="35" data-col="6">王千源 / 吴彦祖</td>
-                  <td data-row="35" data-col="7">30373723</td>
+                  <td data-row="35" data-col="7"><a href="https://movie.douban.com/subject/30373723/">30373723</a></td>
                   <td data-row="35" data-col="8">动作片</td>
                   <td data-row="35" data-col="9">推荐</td>
                 </tr>
@@ -544,7 +547,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="36" data-col="4">外国</td>
                   <td data-row="36" data-col="5">2012</td>
                   <td data-row="36" data-col="6">阿列克谢·沃特考夫 / 维塔利·基什琴科</td>
-                  <td data-row="36" data-col="7">10747855</td>
+                  <td data-row="36" data-col="7"><a href="https://movie.douban.com/subject/10747855/">10747855</a></td>
                   <td data-row="36" data-col="8">战争片</td>
                   <td data-row="36" data-col="9">一般</td>
                 </tr>
@@ -555,7 +558,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="37" data-col="4">外国</td>
                   <td data-row="37" data-col="5">2022</td>
                   <td data-row="37" data-col="6">叶夫根尼· 安德罗波夫</td>
-                  <td data-row="37" data-col="7">35730932</td>
+                  <td data-row="37" data-col="7"><a href="https://movie.douban.com/subject/35730932/">35730932</a></td>
                   <td data-row="37" data-col="8">战争片</td>
                   <td data-row="37" data-col="9">一般</td>
                 </tr>
@@ -566,7 +569,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="38" data-col="4">中国</td>
                   <td data-row="38" data-col="5">2009</td>
                   <td data-row="38" data-col="6">刘青云 / 古天乐 / 吴彦祖</td>
-                  <td data-row="38" data-col="7">3412882</td>
+                  <td data-row="38" data-col="7"><a href="https://movie.douban.com/subject/3412882/">3412882</a></td>
                   <td data-row="38" data-col="8">动作片</td>
                   <td data-row="38" data-col="9">推荐</td>
                 </tr>
@@ -577,7 +580,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="39" data-col="4">中国</td>
                   <td data-row="39" data-col="5">1994</td>
                   <td data-row="39" data-col="6">刘锡明 / 张丰毅</td>
-                  <td data-row="39" data-col="7">4862570</td>
+                  <td data-row="39" data-col="7"><a href="https://movie.douban.com/subject/4862570/">4862570</a></td>
                   <td data-row="39" data-col="8">动作片</td>
                   <td data-row="39" data-col="9">一般</td>
                 </tr>
@@ -588,7 +591,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="40" data-col="4">外国</td>
                   <td data-row="40" data-col="5">1992</td>
                   <td data-row="40" data-col="6">彼德·考约特 / 艾玛纽尔·塞尼耶</td>
-                  <td data-row="40" data-col="7">1301582</td>
+                  <td data-row="40" data-col="7"><a href="https://movie.douban.com/subject/1301582/">1301582</a></td>
                   <td data-row="40" data-col="8">爱情片</td>
                   <td data-row="40" data-col="9">一般</td>
                 </tr>
@@ -599,7 +602,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="41" data-col="4">外国</td>
                   <td data-row="41" data-col="5">1997</td>
                   <td data-row="41" data-col="6">杰瑞米·艾恩斯 / 多米尼克·斯万</td>
-                  <td data-row="41" data-col="7">1296778</td>
+                  <td data-row="41" data-col="7"><a href="https://movie.douban.com/subject/1296778/">1296778</a></td>
                   <td data-row="41" data-col="8">纳博科夫的小说</td>
                   <td data-row="41" data-col="9">推荐</td>
                 </tr>
@@ -610,7 +613,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="42" data-col="4">外国</td>
                   <td data-row="42" data-col="5">2003</td>
                   <td data-row="42" data-col="6">科林·费尔斯 / 斯嘉丽·约翰逊</td>
-                  <td data-row="42" data-col="7">1291836</td>
+                  <td data-row="42" data-col="7"><a href="https://movie.douban.com/subject/1291836/">1291836</a></td>
                   <td data-row="42" data-col="8">维米尔传记</td>
                   <td data-row="42" data-col="9">推荐</td>
                 </tr>
@@ -621,18 +624,18 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="43" data-col="4">中国</td>
                   <td data-row="43" data-col="5">2023</td>
                   <td data-row="43" data-col="6">刘德华 / 林家栋 / 彭于晏</td>
-                  <td data-row="43" data-col="7">35927496</td>
+                  <td data-row="43" data-col="7"><a href="https://movie.douban.com/subject/35927496/">35927496</a></td>
                   <td data-row="43" data-col="8">警匪片</td>
                   <td data-row="43" data-col="9">一般</td>
                 </tr>
                 <tr>
                   <td data-row="44" data-col="1">2024</td>
-                  <td data-row="44" data-col="2">《The Good, The Bad and The Ugly》（黄金三镖客）</td>
+                  <td data-row="44" data-col="2">黄金三镖客</td>
                   <td data-row="44" data-col="3">赛尔乔·莱昂内</td>
                   <td data-row="44" data-col="4">外国</td>
                   <td data-row="44" data-col="5">1966</td>
                   <td data-row="44" data-col="6">克林特·伊斯特伍德 / 伊莱·瓦拉赫 / 李·范·克里夫</td>
-                  <td data-row="44" data-col="7">1401118</td>
+                  <td data-row="44" data-col="7"><a href="https://movie.douban.com/subject/1401118/">1401118</a></td>
                   <td data-row="44" data-col="8">西部片</td>
                   <td data-row="44" data-col="9">推荐</td>
                 </tr>
@@ -643,7 +646,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="45" data-col="4">中国</td>
                   <td data-row="45" data-col="5">2023</td>
                   <td data-row="45" data-col="6">阮经天</td>
-                  <td data-row="45" data-col="7">36151692</td>
+                  <td data-row="45" data-col="7"><a href="https://movie.douban.com/subject/36151692/">36151692</a></td>
                   <td data-row="45" data-col="8">反邪教</td>
                   <td data-row="45" data-col="9">推荐</td>
                 </tr>
@@ -654,7 +657,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="46" data-col="4">中国</td>
                   <td data-row="46" data-col="5">2024</td>
                   <td data-row="46" data-col="6">安志杰 / 释彦能 / 李梦</td>
-                  <td data-row="46" data-col="7">36800970</td>
+                  <td data-row="46" data-col="7"><a href="https://movie.douban.com/subject/36800970/">36800970</a></td>
                   <td data-row="46" data-col="8">动作片</td>
                   <td data-row="46" data-col="9">一般</td>
                 </tr>
@@ -665,7 +668,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="47" data-col="4">外国</td>
                   <td data-row="47" data-col="5">2001</td>
                   <td data-row="47" data-col="6">布兰登·费舍 / 蕾切尔·薇兹 / 约翰·汉纳</td>
-                  <td data-row="47" data-col="7">1298586</td>
+                  <td data-row="47" data-col="7"><a href="https://movie.douban.com/subject/1298586/">1298586</a></td>
                   <td data-row="47" data-col="8">奇幻动作片</td>
                   <td data-row="47" data-col="9">推荐</td>
                 </tr>
@@ -676,7 +679,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="48" data-col="4">中国</td>
                   <td data-row="48" data-col="5">2023</td>
                   <td data-row="48" data-col="6">张译 / 李晨 / 魏晨</td>
-                  <td data-row="48" data-col="7">35208463</td>
+                  <td data-row="48" data-col="7"><a href="https://movie.douban.com/subject/35208463/">35208463</a></td>
                   <td data-row="48" data-col="8">警匪片</td>
                   <td data-row="48" data-col="9">一般</td>
                 </tr>
@@ -687,7 +690,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="49" data-col="4">外国</td>
                   <td data-row="49" data-col="5">2023</td>
                   <td data-row="49" data-col="6">乔纳森·莱斯·梅耶斯 / 艾伦·艾克哈特</td>
-                  <td data-row="49" data-col="7">34894016</td>
+                  <td data-row="49" data-col="7"><a href="https://movie.douban.com/subject/34894016/">34894016</a></td>
                   <td data-row="49" data-col="8">战争片</td>
                   <td data-row="49" data-col="9">一般</td>
                 </tr>
@@ -698,7 +701,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="50" data-col="4">外国</td>
                   <td data-row="50" data-col="5">2024</td>
                   <td data-row="50" data-col="6">杰克·吉伦哈尔 / 康纳·麦格雷戈</td>
-                  <td data-row="50" data-col="7">26608246</td>
+                  <td data-row="50" data-col="7"><a href="https://movie.douban.com/subject/26608246/">26608246</a></td>
                   <td data-row="50" data-col="8">动作片</td>
                   <td data-row="50" data-col="9">一般</td>
                 </tr>
@@ -709,7 +712,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="51" data-col="4">中国</td>
                   <td data-row="51" data-col="5">1991</td>
                   <td data-row="51" data-col="6">单立文、方玉婷</td>
-                  <td data-row="51" data-col="7">NA</td>
+                  <td data-row="51" data-col="7"><a href="https://movie.douban.com/subject/NA/">NA</a></td>
                   <td data-row="51" data-col="8">爱情片</td>
                   <td data-row="51" data-col="9">一般</td>
                 </tr>
@@ -720,7 +723,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="52" data-col="4">中国</td>
                   <td data-row="52" data-col="5">1972</td>
                   <td data-row="52" data-col="6">王琛 / 刘午琪 / 贝蒂</td>
-                  <td data-row="52" data-col="7">1302036</td>
+                  <td data-row="52" data-col="7"><a href="https://movie.douban.com/subject/1302036/">1302036</a></td>
                   <td data-row="52" data-col="8">爱情片</td>
                   <td data-row="52" data-col="9">一般</td>
                 </tr>
@@ -731,7 +734,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="53" data-col="4">中国</td>
                   <td data-row="53" data-col="5">1972</td>
                   <td data-row="53" data-col="6">何莉莉 / 岳华 / 贝蒂</td>
-                  <td data-row="53" data-col="7">1307770</td>
+                  <td data-row="53" data-col="7"><a href="https://movie.douban.com/subject/1307770/">1307770</a></td>
                   <td data-row="53" data-col="8">爱情片</td>
                   <td data-row="53" data-col="9">一般</td>
                 </tr>
@@ -742,7 +745,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="54" data-col="4">外国</td>
                   <td data-row="54" data-col="5">2013</td>
                   <td data-row="54" data-col="6">切瓦特·埃加福 / 迈克尔·法斯宾德</td>
-                  <td data-row="54" data-col="7">6879185</td>
+                  <td data-row="54" data-col="7"><a href="https://movie.douban.com/subject/6879185/">6879185</a></td>
                   <td data-row="54" data-col="8">传记历史</td>
                   <td data-row="54" data-col="9">推荐</td>
                 </tr>
@@ -753,7 +756,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="55" data-col="4">外国</td>
                   <td data-row="55" data-col="5">1994</td>
                   <td data-row="55" data-col="6">蒂姆·罗宾斯 / 摩根·弗里曼</td>
-                  <td data-row="55" data-col="7">1292052</td>
+                  <td data-row="55" data-col="7"><a href="https://movie.douban.com/subject/1292052/">1292052</a></td>
                   <td data-row="55" data-col="8">文艺片</td>
                   <td data-row="55" data-col="9">推荐</td>
                 </tr>
@@ -764,7 +767,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="56" data-col="4">外国</td>
                   <td data-row="56" data-col="5">1953</td>
                   <td data-row="56" data-col="6">奥黛丽·赫本 / 格利高里·派克</td>
-                  <td data-row="56" data-col="7">1293839</td>
+                  <td data-row="56" data-col="7"><a href="https://movie.douban.com/subject/1293839/">1293839</a></td>
                   <td data-row="56" data-col="8">爱情片</td>
                   <td data-row="56" data-col="9">推荐</td>
                 </tr>
@@ -775,7 +778,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="57" data-col="4">外国</td>
                   <td data-row="57" data-col="5">2011</td>
                   <td data-row="57" data-col="6">欧文·威尔逊 / 玛丽昂·歌迪亚 / 瑞秋·麦克亚当斯</td>
-                  <td data-row="57" data-col="7">4319218</td>
+                  <td data-row="57" data-col="7"><a href="https://movie.douban.com/subject/4319218/">4319218</a></td>
                   <td data-row="57" data-col="8">法国艺术</td>
                   <td data-row="57" data-col="9">推荐</td>
                 </tr>
@@ -786,7 +789,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="58" data-col="4">外国</td>
                   <td data-row="58" data-col="5">2008</td>
                   <td data-row="58" data-col="6">丽贝卡·豪尔 / 斯嘉丽·约翰逊 / 哈维尔·巴登</td>
-                  <td data-row="58" data-col="7">1981242</td>
+                  <td data-row="58" data-col="7"><a href="https://movie.douban.com/subject/1981242/">1981242</a></td>
                   <td data-row="58" data-col="8">西班牙艺术</td>
                   <td data-row="58" data-col="9">推荐</td>
                 </tr>
@@ -797,7 +800,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="59" data-col="4">中国</td>
                   <td data-row="59" data-col="5">1991</td>
                   <td data-row="59" data-col="6">周星驰 / 张敏 / 吴孟达</td>
-                  <td data-row="59" data-col="7">1302090</td>
+                  <td data-row="59" data-col="7"><a href="https://movie.douban.com/subject/1302090/">1302090</a></td>
                   <td data-row="59" data-col="8">喜剧</td>
                   <td data-row="59" data-col="9">一般</td>
                 </tr>
@@ -808,7 +811,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="60" data-col="4">外国</td>
                   <td data-row="60" data-col="5">2024</td>
                   <td data-row="60" data-col="6">杰克·布莱克 / 奥卡菲娜</td>
-                  <td data-row="60" data-col="7">26715496</td>
+                  <td data-row="60" data-col="7"><a href="https://movie.douban.com/subject/26715496/">26715496</a></td>
                   <td data-row="60" data-col="8">动作片</td>
                   <td data-row="60" data-col="9">一般</td>
                 </tr>
@@ -819,7 +822,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="61" data-col="4">中国</td>
                   <td data-row="61" data-col="5">2013</td>
                   <td data-row="61" data-col="6">姜武、王宝强</td>
-                  <td data-row="61" data-col="7">NA</td>
+                  <td data-row="61" data-col="7"><a href="https://movie.douban.com/subject/27000013/">27000013</a></td>
                   <td data-row="61" data-col="8">犯罪片</td>
                   <td data-row="61" data-col="9">推荐</td>
                 </tr>
@@ -830,7 +833,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="62" data-col="4">中国</td>
                   <td data-row="62" data-col="5">2017</td>
                   <td data-row="62" data-col="6">任达华 / 陈小春</td>
-                  <td data-row="62" data-col="7">26752106</td>
+                  <td data-row="62" data-col="7"><a href="https://movie.douban.com/subject/26752106/">26752106</a></td>
                   <td data-row="62" data-col="8">犯罪片</td>
                   <td data-row="62" data-col="9">一般</td>
                 </tr>
@@ -841,7 +844,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="63" data-col="4">外国</td>
                   <td data-row="63" data-col="5">2024</td>
                   <td data-row="63" data-col="6">丽贝卡·豪尔 / 布莱恩·泰里·亨利</td>
-                  <td data-row="63" data-col="7">35453251</td>
+                  <td data-row="63" data-col="7"><a href="https://movie.douban.com/subject/35453251/">35453251</a></td>
                   <td data-row="63" data-col="8">动作片</td>
                   <td data-row="63" data-col="9">一般</td>
                 </tr>
@@ -852,7 +855,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="64" data-col="4">外国</td>
                   <td data-row="64" data-col="5">2024</td>
                   <td data-row="64" data-col="6">欧文·提格 / 弗蕾娅·艾伦</td>
-                  <td data-row="64" data-col="7">36069854</td>
+                  <td data-row="64" data-col="7"><a href="https://movie.douban.com/subject/36069854/">36069854</a></td>
                   <td data-row="64" data-col="8">动作片</td>
                   <td data-row="64" data-col="9">一般</td>
                 </tr>
@@ -863,7 +866,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="65" data-col="4">外国</td>
                   <td data-row="65" data-col="5">2021</td>
                   <td data-row="65" data-col="6">维尔日妮·埃菲拉</td>
-                  <td data-row="65" data-col="7">26933588</td>
+                  <td data-row="65" data-col="7"><a href="https://movie.douban.com/subject/26933588/">26933588</a></td>
                   <td data-row="65" data-col="8">历史传记</td>
                   <td data-row="65" data-col="9">推荐</td>
                 </tr>
@@ -874,7 +877,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="66" data-col="4">中国</td>
                   <td data-row="66" data-col="5">1999</td>
                   <td data-row="66" data-col="6">吴镇宇 / 任达华 / 黄秋生</td>
-                  <td data-row="66" data-col="7">1300741</td>
+                  <td data-row="66" data-col="7"><a href="https://movie.douban.com/subject/1300741/">1300741</a></td>
                   <td data-row="66" data-col="8">动作片</td>
                   <td data-row="66" data-col="9">推荐</td>
                 </tr>
@@ -885,7 +888,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="67" data-col="4">中国</td>
                   <td data-row="67" data-col="5">2006</td>
                   <td data-row="67" data-col="6">黄秋生 / 吴镇宇 / 张家辉</td>
-                  <td data-row="67" data-col="7">1790577</td>
+                  <td data-row="67" data-col="7"><a href="https://movie.douban.com/subject/1790577/">1790577</a></td>
                   <td data-row="67" data-col="8">动作片</td>
                   <td data-row="67" data-col="9">推荐</td>
                 </tr>
@@ -896,7 +899,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="68" data-col="4">中国</td>
                   <td data-row="68" data-col="5">2005</td>
                   <td data-row="68" data-col="6">任达华 / 梁家辉 / 古天乐</td>
-                  <td data-row="68" data-col="7">1309220</td>
+                  <td data-row="68" data-col="7"><a href="https://movie.douban.com/subject/1309220/">1309220</a></td>
                   <td data-row="68" data-col="8">动作片</td>
                   <td data-row="68" data-col="9">推荐</td>
                 </tr>
@@ -907,7 +910,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="69" data-col="4">中国</td>
                   <td data-row="69" data-col="5">2006</td>
                   <td data-row="69" data-col="6">古天乐 / 任达华 / 张家辉 / 林家栋</td>
-                  <td data-row="69" data-col="7">1484760</td>
+                  <td data-row="69" data-col="7"><a href="https://movie.douban.com/subject/1484760/">1484760</a></td>
                   <td data-row="69" data-col="8">警匪片</td>
                   <td data-row="69" data-col="9">推荐</td>
                 </tr>
@@ -918,7 +921,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="70" data-col="4">中国</td>
                   <td data-row="70" data-col="5">1997</td>
                   <td data-row="70" data-col="6">刘德华 / 梁家辉</td>
-                  <td data-row="70" data-col="7">1292962</td>
+                  <td data-row="70" data-col="7"><a href="https://movie.douban.com/subject/1292962/">1292962</a></td>
                   <td data-row="70" data-col="8">警匪片</td>
                   <td data-row="70" data-col="9">推荐</td>
                 </tr>
@@ -929,7 +932,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="71" data-col="4">外国</td>
                   <td data-row="71" data-col="5">2019</td>
                   <td data-row="71" data-col="6">斯科特·伊斯特伍德 / 奥兰多·布鲁姆</td>
-                  <td data-row="71" data-col="7">30212622</td>
+                  <td data-row="71" data-col="7"><a href="https://movie.douban.com/subject/30212622/">30212622</a></td>
                   <td data-row="71" data-col="8">战争片</td>
                   <td data-row="71" data-col="9">推荐</td>
                 </tr>
@@ -940,7 +943,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="72" data-col="4">外国</td>
                   <td data-row="72" data-col="5">2019</td>
                   <td data-row="72" data-col="6">瓦利德·埃尔加迪</td>
-                  <td data-row="72" data-col="7">34679696</td>
+                  <td data-row="72" data-col="7"><a href="https://movie.douban.com/subject/34679696/">34679696</a></td>
                   <td data-row="72" data-col="8">战争片</td>
                   <td data-row="72" data-col="9">一般</td>
                 </tr>
@@ -951,7 +954,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="73" data-col="4">外国</td>
                   <td data-row="73" data-col="5">2002</td>
                   <td data-row="73" data-col="6">米拉·乔沃维奇 / 米歇尔·罗德里格兹</td>
-                  <td data-row="73" data-col="7">1306809</td>
+                  <td data-row="73" data-col="7"><a href="https://movie.douban.com/subject/1306809/">1306809</a></td>
                   <td data-row="73" data-col="8">动作片</td>
                   <td data-row="73" data-col="9">推荐</td>
                 </tr>
@@ -962,7 +965,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="74" data-col="4">中国</td>
                   <td data-row="74" data-col="5">2024</td>
                   <td data-row="74" data-col="6">肖央 / 余皑磊 / 范丞丞</td>
-                  <td data-row="74" data-col="7">35280899</td>
+                  <td data-row="74" data-col="7"><a href="https://movie.douban.com/subject/35280899/">35280899</a></td>
                   <td data-row="74" data-col="8">警匪片</td>
                   <td data-row="74" data-col="9">推荐</td>
                 </tr>
@@ -973,7 +976,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="75" data-col="4">中国</td>
                   <td data-row="75" data-col="5">2023</td>
                   <td data-row="75" data-col="6">梁朝伟 / 刘德华 / 蔡卓妍 / 任达华</td>
-                  <td data-row="75" data-col="7">35074609</td>
+                  <td data-row="75" data-col="7"><a href="https://movie.douban.com/subject/35074609/">35074609</a></td>
                   <td data-row="75" data-col="8">警匪片</td>
                   <td data-row="75" data-col="9">一般</td>
                 </tr>
@@ -984,7 +987,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="76" data-col="4">中国</td>
                   <td data-row="76" data-col="5">NA</td>
                   <td data-row="76" data-col="6">NA</td>
-                  <td data-row="76" data-col="7">NA</td>
+                  <td data-row="76" data-col="7"><a href="https://movie.douban.com/subject/NA/">NA</a></td>
                   <td data-row="76" data-col="8">丰子恺的逃难记录</td>
                   <td data-row="76" data-col="9">NA</td>
                 </tr>
@@ -995,7 +998,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="77" data-col="4">中国</td>
                   <td data-row="77" data-col="5">2024</td>
                   <td data-row="77" data-col="6">陈其钢</td>
-                  <td data-row="77" data-col="7">37000403</td>
+                  <td data-row="77" data-col="7"><a href="https://movie.douban.com/subject/37000403/">37000403</a></td>
                   <td data-row="77" data-col="8">陈其钢的隐逸记录</td>
                   <td data-row="77" data-col="9">推荐</td>
                 </tr>
@@ -1006,7 +1009,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="78" data-col="4">中国</td>
                   <td data-row="78" data-col="5">2016</td>
                   <td data-row="78" data-col="6">毛孩 / 李倩 / 刘蓓 / 范伟</td>
-                  <td data-row="78" data-col="7">26389466</td>
+                  <td data-row="78" data-col="7"><a href="https://movie.douban.com/subject/26389466/">26389466</a></td>
                   <td data-row="78" data-col="8">改编自刘震云同名小说</td>
                   <td data-row="78" data-col="9">推荐</td>
                 </tr>
@@ -1017,7 +1020,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="79" data-col="4">中国</td>
                   <td data-row="79" data-col="5">1995</td>
                   <td data-row="79" data-col="6">朱旭 / 周任莹 / 赵志刚</td>
-                  <td data-row="79" data-col="7">1293237</td>
+                  <td data-row="79" data-col="7"><a href="https://movie.douban.com/subject/1293237/">1293237</a></td>
                   <td data-row="79" data-col="8">艺术片</td>
                   <td data-row="79" data-col="9">推荐</td>
                 </tr>
@@ -1028,7 +1031,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="80" data-col="4">中国</td>
                   <td data-row="80" data-col="5">2023</td>
                   <td data-row="80" data-col="6">欧豪 / 谷嘉诚 / 俞灏明</td>
-                  <td data-row="80" data-col="7">35192609</td>
+                  <td data-row="80" data-col="7"><a href="https://movie.douban.com/subject/35192609/">35192609</a></td>
                   <td data-row="80" data-col="8">警匪片</td>
                   <td data-row="80" data-col="9">推荐</td>
                 </tr>
@@ -1039,7 +1042,7 @@ tt(movies, theme = &quot;striped&quot;)</code></pre>
                   <td data-row="81" data-col="4">中国</td>
                   <td data-row="81" data-col="5">2023</td>
                   <td data-row="81" data-col="6">雷佳音 / 张国立 / 于和伟 / 周冬雨</td>
-                  <td data-row="81" data-col="7">33447633</td>
+                  <td data-row="81" data-col="7"><a href="https://movie.douban.com/subject/33447633/">33447633</a></td>
                   <td data-row="81" data-col="8">警匪片</td>
                   <td data-row="81" data-col="9">推荐</td>
                 </tr>

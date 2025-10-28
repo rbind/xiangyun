@@ -22,19 +22,22 @@ editor_options:
 1992 年第 64 届[奥斯卡](https://movie.douban.com/awards/Oscar/64/)、1989
 年第 9 届[金鸡奖](https://movie.douban.com/awards/golden-rooster/9/)。
 
+::: full-width
 | 奖项 | 华表奖 | 百花奖 | 金鸡奖 | 金像奖 | 金马奖 | 奥斯卡奖 | 金棕榈奖 | 金狮奖 | 金熊奖 | 飞天奖 | 白玉兰奖 |
 |------|------|------|------|------|------|------|------|------|------|------|------|
 | 设立年份 | 1957 | 1962 | 1981 | 1982 | 1962 | 1929 | 1957 | 1949 | 1951 | 1981 | 1988 |
 | 影视类别 | 电影 | 电影 | 电影 | 电影 | 电影 | 电影 | 电影 | 电影 | 电影 | 电视 | 电视 |
 | 国家地区 | 中国 | 中国 | 中国 | 中国香港 | 中国台湾 | 美国 | 法国戛纳 | 意大利威尼斯 | 德国柏林 | 中国 | 中国 |
+:::
 
 以前的影视剧看起来就是够有劲，比如 2006 年的《至高利益》，相比于 2017
 年的《人民的名义》 更直接更生猛更深刻，都是周梅森的作品。
 
-```{r}
+```{r echo=FALSE}
 library(readxl)
 movies <- readxl::read_xlsx(path = "data/观影记录.xlsx", sheet = "电影", skip = 1)
-# tinytable 包展示数据
 library(tinytable)
-tt(movies, theme = "striped")
+movies$豆瓣ID <- as.character(movies$豆瓣ID)
+movies$豆瓣ID <- sprintf("[%s](https://movie.douban.com/subject/%s/)", movies$豆瓣ID, movies$豆瓣ID)
+tt(movies, theme = "striped", width = rep(0.2, 9)) |> format_tt(j = 7, markdown = TRUE)
 ```
