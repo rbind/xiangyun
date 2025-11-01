@@ -1,0 +1,237 @@
+---
+title: Tensorflow 的张量（多维数组）操作
+date: "2025-10-31"
+author: "黄湘云"
+slug: tensorflow
+categories:
+  - 统计软件
+tags:
+  - 深度学习框架
+  - tensorflow
+  - NumPy
+  - 多维数组
+  - 数值优化
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+description: "本文介绍 Tensorflow 的张量（多维数组）操作。"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#%E5%87%86%E5%A4%87" id="toc-准备"><span class="toc-section-number">1</span> 准备</a></li>
+<li><a href="#%E5%BC%A0%E9%87%8F%E6%93%8D%E4%BD%9C" id="toc-张量操作"><span class="toc-section-number">2</span> 张量操作</a>
+<ul>
+<li><a href="#%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C" id="toc-基础操作"><span class="toc-section-number">2.1</span> 基础操作</a></li>
+<li><a href="#%E7%BA%BF%E6%80%A7%E4%BB%A3%E6%95%B0" id="toc-线性代数"><span class="toc-section-number">2.2</span> 线性代数</a>
+<ul>
+<li><a href="#svd-%E5%88%86%E8%A7%A3" id="toc-svd-分解"><span class="toc-section-number">2.2.1</span> SVD 分解</a></li>
+<li><a href="#qr-%E5%88%86%E8%A7%A3" id="toc-qr-分解"><span class="toc-section-number">2.2.2</span> QR 分解</a></li>
+</ul></li>
+<li><a href="#%E6%95%B0%E5%80%BC%E4%BC%98%E5%8C%96" id="toc-数值优化"><span class="toc-section-number">2.3</span> 数值优化</a></li>
+</ul></li>
+</ul>
+</div>
+
+<div id="准备" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> 准备</h1>
+<p>创建数组</p>
+<pre class="python"><code>import tensorflow as tf
+A = tf.constant([[1.0, -1.0], [1.0, 1.0]])
+A</code></pre>
+<pre><code>## &lt;tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+## array([[ 1., -1.],
+##        [ 1.,  1.]], dtype=float32)&gt;</code></pre>
+<pre class="python"><code>import numpy as np
+a = np.array([[1., -1.], [1., 1.]])
+a</code></pre>
+<pre><code>## array([[ 1., -1.],
+##        [ 1.,  1.]])</code></pre>
+</div>
+<div id="张量操作" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> 张量操作</h1>
+<div id="基础操作" class="section level2" number="2.1">
+<h2><span class="header-section-number">2.1</span> 基础操作</h2>
+<p>均值和矩阵乘法</p>
+<pre class="python"><code># 整个矩阵求平均值
+tf.reduce_mean(A)</code></pre>
+<pre><code>## &lt;tf.Tensor: shape=(), dtype=float32, numpy=0.5&gt;</code></pre>
+<pre class="python"><code># 按列求平均值
+tf.reduce_mean(A, axis = 0)</code></pre>
+<pre><code>## &lt;tf.Tensor: shape=(2,), dtype=float32, numpy=array([1., 0.], dtype=float32)&gt;</code></pre>
+<pre class="python"><code># 按行求平均值
+tf.reduce_mean(A, axis = 1)</code></pre>
+<pre><code>## &lt;tf.Tensor: shape=(2,), dtype=float32, numpy=array([0., 1.], dtype=float32)&gt;</code></pre>
+<pre class="python"><code>w = tf.Variable([[1.], [2.]]) # 2x1
+x = tf.constant([[3., 4.]])   # 1x2
+tf.matmul(w, x) # 矩阵乘法</code></pre>
+<pre><code>## &lt;tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+## array([[3., 4.],
+##        [6., 8.]], dtype=float32)&gt;</code></pre>
+</div>
+<div id="线性代数" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span> 线性代数</h2>
+<div id="svd-分解" class="section level3" number="2.2.1">
+<h3><span class="header-section-number">2.2.1</span> SVD 分解</h3>
+<p>注意 NumPy 和 Tensorflow 分解矩阵的结果在表示上的差别。</p>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="python"><code>s, u, v = np.linalg.svd(a)
+s</code></pre>
+<pre><code>## array([[-0.70710678, -0.70710678],
+##        [-0.70710678,  0.70710678]])</code></pre>
+<pre class="python"><code>u</code></pre>
+<pre><code>## array([1.41421356, 1.41421356])</code></pre>
+<pre class="python"><code>v</code></pre>
+<pre><code>## array([[-1., -0.],
+##        [ 0.,  1.]])</code></pre>
+<pre class="python"><code>np.dot(s * u, v)</code></pre>
+<pre><code>## array([[ 1., -1.],
+##        [ 1.,  1.]])</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<pre class="python"><code>S, U, V = tf.linalg.svd(A)
+S</code></pre>
+<pre><code>## &lt;tf.Tensor: shape=(2,), dtype=float32, numpy=array([1.4142135, 1.4142135], dtype=float32)&gt;</code></pre>
+<pre class="python"><code>U</code></pre>
+<pre><code>## &lt;tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+## array([[ 0.70710677, -0.70710677],
+##        [ 0.70710677,  0.70710677]], dtype=float32)&gt;</code></pre>
+<pre class="python"><code>V</code></pre>
+<pre><code>## &lt;tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+## array([[1., 0.],
+##        [0., 1.]], dtype=float32)&gt;</code></pre>
+<pre class="python"><code>tf.matmul(U, tf.matmul(tf.linalg.diag(S), V, adjoint_b=True))</code></pre>
+<pre><code>## &lt;tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+## array([[ 0.99999994, -0.99999994],
+##        [ 0.99999994,  0.99999994]], dtype=float32)&gt;</code></pre>
+</div>
+</div>
+</div>
+<div id="qr-分解" class="section level3" number="2.2.2">
+<h3><span class="header-section-number">2.2.2</span> QR 分解</h3>
+<ul>
+<li>a is a tensor.</li>
+<li>q is a tensor of orthonormal matrices.</li>
+<li>r is a tensor of upper triangular matrices.</li>
+</ul>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="python"><code>q, r = np.linalg.qr(a)
+q</code></pre>
+<pre><code>## array([[-0.70710678, -0.70710678],
+##        [-0.70710678,  0.70710678]])</code></pre>
+<pre class="python"><code>r</code></pre>
+<pre><code>## array([[-1.41421356e+00, -3.31822250e-16],
+##        [ 0.00000000e+00,  1.41421356e+00]])</code></pre>
+<pre class="python"><code>q @ r</code></pre>
+<pre><code>## array([[ 1., -1.],
+##        [ 1.,  1.]])</code></pre>
+<pre class="python"><code>q @ q.T</code></pre>
+<pre><code>## array([[ 1.00000000e+00, -2.22044605e-16],
+##        [-2.22044605e-16,  1.00000000e+00]])</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<pre class="python"><code>Q, R = tf.linalg.qr(A)
+Q</code></pre>
+<pre><code>## &lt;tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+## array([[-0.7071068 , -0.70710677],
+##        [-0.70710677,  0.7071068 ]], dtype=float32)&gt;</code></pre>
+<pre class="python"><code>R</code></pre>
+<pre><code>## &lt;tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+## array([[-1.4142135e+00,  1.1920929e-07],
+##        [ 0.0000000e+00,  1.4142135e+00]], dtype=float32)&gt;</code></pre>
+<pre class="python"><code>Q @ R # 等价于 tf.matmul(Q, R)</code></pre>
+<pre><code>## &lt;tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+## array([[ 1.        , -1.        ],
+##        [ 0.99999994,  0.99999994]], dtype=float32)&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div id="数值优化" class="section level2" number="2.3">
+<h2><span class="header-section-number">2.3</span> 数值优化</h2>
+<p>2017 年有篇介绍 tensorflow 的文章，挺有意思，拟合混合正态分布的参数，请看
+<a href="https://cosx.org/2017/08/tensorflow-for-statisticians/">为什么统计学家也应该学学 TensorFlow</a>。我这里简单点，直接拉来一个目标函数，复用 <a href="/2025/10/scipy/">SciPy 做科学计算</a> 中的无约束非线性优化示例。</p>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<pre class="python"><code>import numpy as np
+from scipy.optimize import minimize
+
+def rosen(x):
+    &quot;&quot;&quot;The Rosenbrock function&quot;&quot;&quot;
+    return sum(100.0*(x[1:]-x[:-1]**2.0)**2.0 + (1-x[:-1])**2.0)
+# 初始值
+x0 = np.array([1.3, 0.7, 0.8, 1.9, 1.2])
+# 调用优化器
+res = minimize(rosen, x0, method=&#39;L-BFGS-B&#39;)
+# 最终结果：最优解
+print(res.x) </code></pre>
+<pre><code>## [0.99999957 0.99999915 0.99999834 0.99999667 0.99999336]</code></pre>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<pre class="python"><code># 定义 Rosenbrock 函数（TensorFlow 版本）
+# tf.reduce_sum tf.square 类似 tf.reduce_mean 是基础操作函数
+def rosen_tf(x):
+    return tf.reduce_sum(
+        100.0 * tf.square(x[1:] - tf.square(x[:-1])) + tf.square(1.0 - x[:-1])
+    )
+
+# 初始化变量（与原始 SciPy 代码相同的初始点）
+x0 = np.array([1.3, 0.7, 0.8, 1.9, 1.2], dtype=np.float32)
+# x 是可训练的变量
+x = tf.Variable(x0, trainable=True, dtype=tf.float32)
+
+# 创建优化器（使用 Adam 优化器，学习率可根据需要调整）
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
+
+# 优化过程：自动微分、梯度优化
+# 迭代 100 次
+for _ in range(10):
+    with tf.GradientTape() as tape:
+        # 损失函数
+        loss = rosen_tf(x)
+    # 自动微分
+    gradients = tape.gradient(loss, [x])
+    # 梯度优化
+    optimizer.apply_gradients(zip(gradients, [x]))</code></pre>
+<pre><code>## &lt;Variable path=adam/iteration, shape=(), dtype=int64, value=1&gt;
+## &lt;Variable path=adam/iteration, shape=(), dtype=int64, value=2&gt;
+## &lt;Variable path=adam/iteration, shape=(), dtype=int64, value=3&gt;
+## &lt;Variable path=adam/iteration, shape=(), dtype=int64, value=4&gt;
+## &lt;Variable path=adam/iteration, shape=(), dtype=int64, value=5&gt;
+## &lt;Variable path=adam/iteration, shape=(), dtype=int64, value=6&gt;
+## &lt;Variable path=adam/iteration, shape=(), dtype=int64, value=7&gt;
+## &lt;Variable path=adam/iteration, shape=(), dtype=int64, value=8&gt;
+## &lt;Variable path=adam/iteration, shape=(), dtype=int64, value=9&gt;
+## &lt;Variable path=adam/iteration, shape=(), dtype=int64, value=10&gt;</code></pre>
+<pre class="python"><code># 最优解
+x.numpy()</code></pre>
+<pre><code>## array([1.201897 , 0.798988 , 0.899658 , 1.8009351, 1.2992563],
+##       dtype=float32)</code></pre>
+<pre class="python"><code># 目标函数值
+loss.numpy()</code></pre>
+<pre><code>## np.float32(553.37646)</code></pre>
+<pre class="python"><code>loss</code></pre>
+<pre><code>## &lt;tf.Tensor: shape=(), dtype=float32, numpy=553.37646484375&gt;</code></pre>
+<pre class="python"><code># 目标函数的梯度
+gradients</code></pre>
+<pre><code>## [&lt;tf.Tensor: shape=(5,), dtype=float32, numpy=
+## array([ 329.04385, -220.2965 , -309.52826, 1646.1017 , -397.82605],
+##       dtype=float32)&gt;]</code></pre>
+</div>
+</div>
+</div>
+</div>
