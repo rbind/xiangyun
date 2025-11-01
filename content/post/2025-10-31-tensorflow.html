@@ -31,8 +31,8 @@ description: "本文介绍 Tensorflow 的张量（多维数组）操作。"
 <li><a href="#svd-%E5%88%86%E8%A7%A3" id="toc-svd-分解"><span class="toc-section-number">2.2.1</span> SVD 分解</a></li>
 <li><a href="#qr-%E5%88%86%E8%A7%A3" id="toc-qr-分解"><span class="toc-section-number">2.2.2</span> QR 分解</a></li>
 </ul></li>
-<li><a href="#%E6%95%B0%E5%80%BC%E4%BC%98%E5%8C%96" id="toc-数值优化"><span class="toc-section-number">2.3</span> 数值优化</a></li>
 </ul></li>
+<li><a href="#%E6%95%B0%E5%80%BC%E4%BC%98%E5%8C%96" id="toc-数值优化"><span class="toc-section-number">3</span> 数值优化</a></li>
 </ul>
 </div>
 
@@ -158,8 +158,9 @@ Q</code></pre>
 </div>
 </div>
 </div>
-<div id="数值优化" class="section level2" number="2.3">
-<h2><span class="header-section-number">2.3</span> 数值优化</h2>
+</div>
+<div id="数值优化" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> 数值优化</h1>
 <p>2017 年有篇介绍 tensorflow 的文章，挺有意思，拟合混合正态分布的参数，请看
 <a href="https://cosx.org/2017/08/tensorflow-for-statisticians/">为什么统计学家也应该学学 TensorFlow</a>。我这里简单点，直接拉来一个目标函数，复用 <a href="/2025/10/scipy/">SciPy 做科学计算</a> 中的无约束非线性优化示例。</p>
 <div class="columns">
@@ -198,7 +199,7 @@ x = tf.Variable(x0, trainable=True, dtype=tf.float32)
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
 
 # 优化过程：自动微分、梯度优化
-# 迭代 100 次
+# 迭代 1000 次会更加接近最优解
 for _ in range(10):
     with tf.GradientTape() as tape:
         # 损失函数
@@ -233,5 +234,37 @@ gradients</code></pre>
 ##       dtype=float32)&gt;]</code></pre>
 </div>
 </div>
-</div>
+<p>类似 SciPy 的优化求解器来自 TensorFlow Probability，如下代码调整自 API 文档<a href="https://tensorflow.google.cn/probability/api_docs/python/tfp/optimizer/lbfgs_minimize">tfp.optimizer.lbfgs_minimize</a>。</p>
+<pre class="bash"><code>pip install tensorflow_probability tf-keras</code></pre>
+<pre class="python"><code>import tensorflow_probability as tfp
+
+# 目标函数及梯度
+def rosen_loss_and_gradient(x):
+    return tfp.math.value_and_gradient(rosen_tf, x)
+# L-BFGS 优化器
+optim_results = tfp.optimizer.lbfgs_minimize(
+    value_and_gradients_function=rosen_loss_and_gradient,
+    initial_position=x0,
+    num_correction_pairs=10,
+    tolerance=1e-8
+  )
+
+# 迭代次数
+optim_results.num_iterations.numpy()</code></pre>
+<pre><code>## np.int32(18)</code></pre>
+<pre class="python"><code># 结果显示收敛
+optim_results.converged.numpy()</code></pre>
+<pre><code>## np.True_</code></pre>
+<pre class="python"><code># 最优解
+optim_results.position</code></pre>
+<pre><code>## &lt;tf.Tensor: shape=(5,), dtype=float32, numpy=array([1., 1., 1., 1., 1.], dtype=float32)&gt;</code></pre>
+<pre class="python"><code>optim_results.position.numpy()</code></pre>
+<pre><code>## array([1., 1., 1., 1., 1.], dtype=float32)</code></pre>
+<pre class="python"><code># 目标函数值
+optim_results.objective_value.numpy()</code></pre>
+<pre><code>## np.float32(0.0)</code></pre>
+<pre class="python"><code># 目标函数计算次数
+optim_results.num_objective_evaluations.numpy()</code></pre>
+<pre><code>## np.int32(52)</code></pre>
+<p>走马观花地翻了下 Tensorflow 的 API 目录，产生 Tensorflow 在手，天下我有的感觉。</p>
 </div>

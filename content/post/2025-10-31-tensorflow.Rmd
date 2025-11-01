@@ -19,6 +19,8 @@ link-citations: true
 description: "本文介绍 Tensorflow 的张量（多维数组）操作。"
 ---
 
+
+
 # 准备
 
 创建数组
@@ -128,7 +130,7 @@ Q @ R # 等价于 tf.matmul(Q, R)
 ::::::
 
 
-## 数值优化
+# 数值优化
 
 2017 年有篇介绍 tensorflow 的文章，挺有意思，拟合混合正态分布的参数，请看
 [为什么统计学家也应该学学 TensorFlow](https://cosx.org/2017/08/tensorflow-for-statisticians/)。我这里简单点，直接拉来一个目标函数，复用 [SciPy 做科学计算](/2025/10/scipy/) 中的无约束非线性优化示例。
@@ -176,7 +178,7 @@ x = tf.Variable(x0, trainable=True, dtype=tf.float32)
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
 
 # 优化过程：自动微分、梯度优化
-# 迭代 100 次
+# 迭代 1000 次会更加接近最优解
 for _ in range(10):
     with tf.GradientTape() as tape:
         # 损失函数
@@ -196,3 +198,40 @@ gradients
 
 :::
 ::::::
+
+类似 SciPy 的优化求解器来自 TensorFlow Probability，如下代码调整自 API 文档[tfp.optimizer.lbfgs_minimize](https://tensorflow.google.cn/probability/api_docs/python/tfp/optimizer/lbfgs_minimize)。
+
+```bash
+pip install tensorflow_probability tf-keras
+```
+
+```{python}
+import tensorflow_probability as tfp
+
+# 目标函数及梯度
+def rosen_loss_and_gradient(x):
+    return tfp.math.value_and_gradient(rosen_tf, x)
+# L-BFGS 优化器
+optim_results = tfp.optimizer.lbfgs_minimize(
+    value_and_gradients_function=rosen_loss_and_gradient,
+    initial_position=x0,
+    num_correction_pairs=10,
+    tolerance=1e-8
+  )
+
+# 迭代次数
+optim_results.num_iterations.numpy()
+# 结果显示收敛
+optim_results.converged.numpy()
+# 最优解
+optim_results.position
+optim_results.position.numpy()
+# 目标函数值
+optim_results.objective_value.numpy()
+# 目标函数计算次数
+optim_results.num_objective_evaluations.numpy()
+```
+
+
+走马观花地翻了下 Tensorflow 的 API 目录，产生 Tensorflow 在手，天下我有的感觉。
+
