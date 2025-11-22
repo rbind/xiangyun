@@ -48,6 +48,8 @@ Thumbs.db
 /resources/
 *.zip
 
+.quarto/
+
 # Spark
 logs/
 derby.log
