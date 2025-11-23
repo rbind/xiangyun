@@ -87,8 +87,8 @@ tags:
 
 ```r
 # image resize
-files <- list.files(path = "path/to/img/", full.names = T)
-for (file_path in files) {
+file_paths <- list.files(path = "path/to/img/dir/", full.names = T)
+for (file_path in file_paths) {
   magick::image_read(path = file_path) |> 
     magick::image_resize("800x800") |> 
     magick::image_write(path = file_path)
