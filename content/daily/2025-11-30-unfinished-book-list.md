@@ -10,7 +10,7 @@ tags:
   - 杂七杂八
 ---
 
-历年年未完成的书单见[2025年](/2025/07/unfinished-book-list/)、[2024年](/2024/12/unfinished-book-list/)、[2023年](/2023/12/unfinished-book-list/)、[2022年](/2022/12/unfinished-book-list/)。
+历年未完成的书单见[2025年](/2025/07/unfinished-book-list/)、[2024年](/2024/12/unfinished-book-list/)、[2023年](/2023/12/unfinished-book-list/)、[2022年及以前](/2022/12/unfinished-book-list/)。
 
 计算机
 

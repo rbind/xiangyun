@@ -20,4 +20,4 @@ options(
   blogdown.serve_site.startup = FALSE
 )
 
-options(blogdown.hugo.version = "0.154.3")
+options(blogdown.hugo.version = "0.154.5")
