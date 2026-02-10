@@ -3,7 +3,6 @@ title: 我读书、买书和藏书的故事
 author: 黄湘云
 date: '2026-01-28'
 slug: history-of-books
-draft: true
 categories:
   - 推荐文章
 tags:
