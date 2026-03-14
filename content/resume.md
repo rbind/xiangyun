@@ -1,6 +1,7 @@
 ---
 title: 简历
 author: 黄湘云
+draft: true
 ---
 
 
