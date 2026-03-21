@@ -1,0 +1,179 @@
+---
+title: A/B 实验之统计指标的计算
+date: "2026-03-19"
+author: "黄湘云"
+slug: ab-testing
+categories:
+  - 统计软件
+tags:
+  - 数据科学
+  - A/B 实验
+  - 增长优化
+  - 伯努利分布
+  - 比例检验
+math: true
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+description: "本文介绍 A/B 实验实施过程中，在实验数据分析环节上对目标指标的统计分析与计算。"
+---
+
+去年 12 月份中旬，面试淘宝闪购的一个数据科学家职位，考察内容主要分三块 SQL、Python 和 A/B 实验。发现自己对胸有成竹的东西的忽视，以至于在小问题上翻船了。有必要回顾一下 A/B 实验的相关内容，本文介绍 A/B 实验场景中，遇到复杂指标的时候，如何做统计分析。其核心是如何**估计**一个随机变量的函数的分布，真实的分布是无法获得的，只能根据现有的数据去近似，Delta 方法和 Bootstrap 方法。
+
+实验指标有两类，一类是比率型指标，要计算绝对提升，另一类是连续型指标，要计算绝对提升和相对提升。比率型指标，比如点击率 CTR（点击 UV / 曝光 UV）、转化率 CVR（支付 UV / 访问 UV） 等。连续型指标，比如订单量、GTV （总交易金额，淘宝、美团、抖音等**非自营**电商平台比较看重这个指标，因为平台从商户交易额中抽取佣金，事关企业收入）等。
+
+先考虑这样一个简单情况，假设样本观察值 $x_1,x_2,\ldots,x_n$ 都是独立抽取自总体 $\mathtt{Bernoulli}(p)$ 的，这个总体是一个伯努利分布。 $x_i$ 取值为 1 的概率是 $p$ ，取值为 0 的概率是 $1-p$。随机变量 $X$ 服从伯努利分布 $\mathtt{Bernoulli}(p)$ ，它的分布列如下：
+
+$$
+P(X=x) = \left\{
+  \begin{array}{l}
+    p, \quad \mathrm{如果} ~ x=1 \\
+    1-p, \quad \mathrm{如果} ~  x=0
+  \end{array} \right.
+$$
+
+对这个伯努利分布的参数 $p$ （也叫成功概率）的估计 $\hat{p}$ ，根据矩估计方法，我们有 $\hat{p} = \sum_{i=1}^{n}x_i/n$ 。这个样本统计量 $\hat{p}$ 的极限分布是正态分布。
+
+$$
+\hat{p} \sim \mathsf{N}\big(p,\frac{p(1-p)}{n}\big)
+$$
+
+$\hat{p}$ 的方差 $\mathsf{Var}(\hat{p}) = \frac{p(1-p)}{n}$ ，将样本观察值代入计算 $\hat{p}$，以 $\hat{p}$ 替换 $p$ 即可得样本统计量 $\mathsf{Var}(\hat{p})$ 的观察值。
+
+# Delta 方法 {#delta}
+
+如果要估计的参数是对数几率 $g(p) = \log(\frac{p}{1-p})$ 而不是 $p$ ，该怎么办？Delta 方法告诉我们，
+
+$$
+g(\hat{p}) \sim \mathsf{N}(g(p), \mathsf{Var}(\hat{p}) * [g'(p)]^2)
+$$
+
+关于未知参数 $p$ 的函数 $g(p)$ 的估计 $\widehat{g(p)}$ 如下：
+
+$$
+\widehat{g(p)} = \log(\frac{p}{1-p})
+$$
+
+其方差 $\mathsf{Var}(\widehat{g(p)})$ 的估计如下：
+
+$$
+\mathsf{Var}(\widehat{g(p)}) =\mathsf{Var}(\hat{p}) * [g'(p)]^2 = \frac{p(1-p)}{n} * (\frac{1}{p} + \frac{1}{1-p})^2 = \frac{1}{np(1-p)}
+$$
+
+同理，根据样本观察值，可以计算 $\hat{p}$ ，再将 $\hat{p}$ 替换 $p$ ， 从而可以计算出来 $\widehat{g(p)}$ 和 $\mathsf{Var}(\widehat{g(p)})$ 。
+
+```{r collapse=TRUE}
+# 模拟一个从伯努利分布抽取的样本
+set.seed(20262026)
+x <- rbinom(n = 20, size = 1, prob = 0.6)
+# 样本观察值
+x
+# p 的均值的估计
+mean(x)
+# p 的方差的估计
+mean(x) * (1 - mean(x)) / length(x)
+```
+
+```{r collapse=TRUE}
+# g(p) 的均值的估计
+log(mean(x) / (1 - mean(x)))
+# g(p) 的方差的估计
+1 / (length(x) * mean(x) * (1 - mean(x)))
+```
+
+# Bootstrap 方法 {#bootstrap}
+
+我们不知道样本观察值 $x_1,x_2,\ldots,x_n$ 服从何种分布，也就无法知道 $g(p)$ 的分布，那么，如何通过随机模拟的方法得到 $g(p)$ 的分布呢？Bootstrap 方法使用经验累积分布作为总体分布的估计。
+
+根据样本观察值 $x_1,x_2,\ldots,x_n$ 可以获得一个经验累积分布函数（ECDF） $F(x)$ ，再从经验累积分布函数 $F(x)$ 中重复抽样 $m$ 次，每次抽取一个样本量为 $n$ 的样本。这样，每一次抽样可以获得一个 $g_i(p), i = 1,2,\ldots,m$ ，根据这 $m$ 个值 $g_i(p)$ ，这可以看作是未知的 $g(p)$ 分布一个样本，从而可以计算出 $g(p)$ 的分布的期望 $\widehat{g(p)}$ 和方差 $\mathsf{Var}(\widehat{g(p)})$ 。
+
+```{r collapse=TRUE}
+set.seed(2026)
+n <- length(x)
+samp <- replicate(
+  1000,
+  {
+    ind <- sample.int(n, replace = TRUE)
+    log(mean(x[ind]) / (1 - mean(x[ind])))
+  }
+)
+# g(p) 的均值的估计
+mean(samp)
+sd(samp)
+# g(p) 的方差的估计
+var(samp)
+```
+
+下面考虑调用 boot 包实现 Bootstrap 抽样计算的过程。
+
+```{r}
+library(boot)
+stat <- function(x, ind) {
+  m <- mean(x[ind])
+  log(m / (1 - m))
+}
+set.seed(2026)
+boot(data = x, statistic = stat, R = 1000)
+```
+
+bootstrap 估计与 Delta 估计的结果是很接近的。
+
+# 两样本的均值检验 {#two-sample}
+
+在 A/B 实验中，两样本的均值检验使用最多，除了计算绝对提升用到 Welch t 检验外，还有计算相对提升的问题。下面用 Bootstrap 方法来计算相对提升及其方差。
+
+先看一个单样本的情形，Bootstrap 方法估计中位数 $X_{\mathrm{med}}$ 及其置信区间。这时候，很难推导出中位数的分布，特别是对样本的总体的分布未知时。
+
+```{r collapse=TRUE}
+x <- c(1.8, 2.2, 2.7, 5.7, 6.9, 7.4, 8.1, 8.7, 9, 9.5)
+median(x)
+# Bootstrap 方法计算中位数估计及标准误差
+stat <- function(x, ind) {
+  median(x[ind])
+}
+set.seed(1)
+b <- boot(data = x, statistic = stat, R = 1000)
+b
+```
+
+函数 `boot()` 的输出结果中包含中位数的估计值，及其偏差 Bias 和标准误差 $\sqrt{\mathsf{Var}(X_{\mathrm{med}})}$ 。函数 `boot.ci()` 还可以计算其 Bootstrap 置信区间。
+
+```{r}
+boot.ci(b, conf = 0.95, type = c("norm", "basic", "perc", "bca"))
+```
+
+再看一个两样本的情况，数据集 sleep 来自 R 语言软件，对同一批人，服用两种不同的安眠药后的睡眠质量的差异，以比较安眠药的效果。
+
+```{r collapse=TRUE}
+# 参数检验
+t.test(extra ~ group, data = sleep)
+# 非参数检验
+kruskal.test(extra ~ group, data = sleep)
+```
+
+在实际业务场景中，有时候所能收集的样本量是有限的、少量的，这就可能会导致统计上的不显著。使用 bootstrap 计算相对提升及其置信区间。
+
+```{r}
+sleep2 <- reshape(sleep,
+  direction = "wide",
+  idvar = "ID", timevar = "group"
+)
+# 第一种安眠药相对于第二种安眠药的提升
+ratio <- function(d, ind) mean(d$extra.1[ind]) / mean(d$extra.2[ind]) - 1
+b2 <- boot(sleep2, ratio, R = 999)
+b2
+```
+
+药物 1 相对于药物 2，效果降低了 67.8% 。
+
+```{r}
+boot.ci(b2, conf = 0.95, type = c("norm", "basic", "perc", "bca"))
+```
+
+# 参考文献 {#bib}
+
+1.  《统计计算》李东风. [Bootstrap方法](https://www.math.pku.edu.cn/teachers/lidf/docs/statcomp/html/_statcompbook/sim-bootstrap.html)
+2.  美团因果技术实践[可信实验白皮书](https://s3plus.meituan.net/ddfile/2025可信实验白皮书2025.8.20.pdf)
+3.  ST551 Statistical Methods I. [Delta Method and the Bootstrap](https://st551.cwick.co.nz/lecture/lecture_27/).
