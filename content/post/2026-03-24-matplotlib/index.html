@@ -1,0 +1,216 @@
+---
+title: matplotlib 绘制分组折线图
+date: "2026-03-24"
+author: "黄湘云"
+slug: matplotlib
+categories:
+  - 统计软件
+tags:
+  - matplotlib
+  - 数据可视化
+  - pandas
+  - great_tables
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+description: "本文介绍 matplotlib 绘图。"
+---
+
+
+
+<p>本文用 matplotlib 绘制一幅分组折线图，所用数据源：国家统计局统计年鉴 <a href="https://www.stats.gov.cn/sj/ndsj/2025/indexch.htm" class="uri">https://www.stats.gov.cn/sj/ndsj/2025/indexch.htm</a> 。想要按私营单位与非私营单位分组展示2010-2024年房价与税前人均年收入的比值的变化趋势，即一般地，一个人需要多少年不吃不喝才能攒够一笔城里买房的钱。</p>
+<p>三个数据分别是：城镇私营和非私营单位就业人员平均工资（元） （数据在统计年鉴 2025 中的位置为 4-13，这是人均年收入且为税前收入）；新建商品房（住宅）平均销售价格（元/平米）（数据在统计年鉴2025中的位置为 19-1，这是房地产开发企业主要指标之一）。商品房平均销售价格由报告期内新建商品房销售额除以销售面积计算而成。不同时期的商品房平均销售价格可能会受商品房区域、房屋类型等各种因素的影响。</p>
+<pre class="python"><code>import pandas as pd
+df = pd.DataFrame(
+    {
+        &quot;年份&quot;: [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+        &quot;私营单位&quot;: [20759, 24556, 28752,32706,36390,39589,42833,45761, 49575,53604,57727, 62884, 65237, 68340, 69476],
+        &quot;非私营单位&quot;: [36539, 41799, 46769, 51483, 56360, 62029, 67569, 74318, 82413, 90501, 97379, 106837, 114029, 120698, 124110],
+        &quot;住宅销售价格&quot;: [4725, 4993, 5430, 5850, 5933, 6473, 7203, 7614, 8553, 9287, 9980, 10825, 10608, 10864, 10419],
+    }
+)</code></pre>
+<pre class="python"><code>from great_tables import GT
+(GT(df))</code></pre>
+<div id="gtcsbfojew" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>
+#gtcsbfojew table {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+
+#gtcsbfojew thead, tbody, tfoot, tr, td, th { border-style: none; }
+ tr { background-color: transparent; }
+#gtcsbfojew p { margin: 0; padding: 0; }
+ #gtcsbfojew .gt_table { display: table; border-collapse: collapse; line-height: normal; margin-left: auto; margin-right: auto; color: #333333; font-size: 16px; font-weight: normal; font-style: normal; background-color: #FFFFFF; width: auto; border-top-style: solid; border-top-width: 2px; border-top-color: #A8A8A8; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #A8A8A8; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; }
+ #gtcsbfojew .gt_caption { padding-top: 4px; padding-bottom: 4px; }
+ #gtcsbfojew .gt_title { color: #333333; font-size: 125%; font-weight: initial; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; border-bottom-color: #FFFFFF; border-bottom-width: 0; }
+ #gtcsbfojew .gt_subtitle { color: #333333; font-size: 85%; font-weight: initial; padding-top: 3px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; border-top-color: #FFFFFF; border-top-width: 0; }
+ #gtcsbfojew .gt_heading { background-color: #FFFFFF; text-align: center; border-bottom-color: #FFFFFF; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
+ #gtcsbfojew .gt_bottom_border { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
+ #gtcsbfojew .gt_col_headings { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
+ #gtcsbfojew .gt_col_heading { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: normal; text-transform: inherit; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; overflow-x: hidden; }
+ #gtcsbfojew .gt_column_spanner_outer { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: normal; text-transform: inherit; padding-top: 0; padding-bottom: 0; padding-left: 4px; padding-right: 4px; }
+ #gtcsbfojew .gt_column_spanner_outer:first-child { padding-left: 0; }
+ #gtcsbfojew .gt_column_spanner_outer:last-child { padding-right: 0; }
+ #gtcsbfojew .gt_column_spanner { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; overflow-x: hidden; display: inline-block; width: 100%; }
+ #gtcsbfojew .gt_spanner_row { border-bottom-style: hidden; }
+ #gtcsbfojew .gt_group_heading { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; text-align: left; }
+ #gtcsbfojew .gt_empty_group_heading { padding: 0.5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: middle; }
+ #gtcsbfojew .gt_from_md> :first-child { margin-top: 0; }
+ #gtcsbfojew .gt_from_md> :last-child { margin-bottom: 0; }
+ #gtcsbfojew .gt_row { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; margin: 10px; border-top-style: solid; border-top-width: 1px; border-top-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; overflow-x: hidden; }
+ #gtcsbfojew .gt_stub { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; }
+ #gtcsbfojew .gt_stub_row_group { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; vertical-align: top; }
+ #gtcsbfojew .gt_row_group_first td { border-top-width: 2px; }
+ #gtcsbfojew .gt_row_group_first th { border-top-width: 2px; }
+ #gtcsbfojew .gt_striped { color: #333333; background-color: #F4F4F4; }
+ #gtcsbfojew .gt_table_body { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
+ #gtcsbfojew .gt_grand_summary_row { color: #333333; background-color: #FFFFFF; text-transform: inherit; padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; }
+ #gtcsbfojew .gt_first_grand_summary_row_bottom { border-top-style: double; border-top-width: 6px; border-top-color: #D3D3D3; }
+ #gtcsbfojew .gt_last_grand_summary_row_top { border-bottom-style: double; border-bottom-width: 6px; border-bottom-color: #D3D3D3; }
+ #gtcsbfojew .gt_sourcenotes { color: #333333; background-color: #FFFFFF; border-bottom-style: none; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; }
+ #gtcsbfojew .gt_sourcenote { font-size: 90%; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; text-align: left; }
+ #gtcsbfojew .gt_left { text-align: left; }
+ #gtcsbfojew .gt_center { text-align: center; }
+ #gtcsbfojew .gt_right { text-align: right; font-variant-numeric: tabular-nums; }
+ #gtcsbfojew .gt_font_normal { font-weight: normal; }
+ #gtcsbfojew .gt_font_bold { font-weight: bold; }
+ #gtcsbfojew .gt_font_italic { font-style: italic; }
+ #gtcsbfojew .gt_super { font-size: 65%; }
+ #gtcsbfojew .gt_footnote_marks { font-size: 75%; vertical-align: 0.4em; position: initial; }
+ #gtcsbfojew .gt_asterisk { font-size: 100%; vertical-align: 0; }
+ 
+</style>
+<table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<thead>
+
+<tr class="gt_col_headings">
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="年份">年份</th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="私营单位">私营单位</th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="非私营单位">非私营单位</th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="住宅销售价格">住宅销售价格</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+  <tr>
+    <td class="gt_row gt_right">2010</td>
+    <td class="gt_row gt_right">20759</td>
+    <td class="gt_row gt_right">36539</td>
+    <td class="gt_row gt_right">4725</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_right">2011</td>
+    <td class="gt_row gt_right">24556</td>
+    <td class="gt_row gt_right">41799</td>
+    <td class="gt_row gt_right">4993</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_right">2012</td>
+    <td class="gt_row gt_right">28752</td>
+    <td class="gt_row gt_right">46769</td>
+    <td class="gt_row gt_right">5430</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_right">2013</td>
+    <td class="gt_row gt_right">32706</td>
+    <td class="gt_row gt_right">51483</td>
+    <td class="gt_row gt_right">5850</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_right">2014</td>
+    <td class="gt_row gt_right">36390</td>
+    <td class="gt_row gt_right">56360</td>
+    <td class="gt_row gt_right">5933</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_right">2015</td>
+    <td class="gt_row gt_right">39589</td>
+    <td class="gt_row gt_right">62029</td>
+    <td class="gt_row gt_right">6473</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_right">2016</td>
+    <td class="gt_row gt_right">42833</td>
+    <td class="gt_row gt_right">67569</td>
+    <td class="gt_row gt_right">7203</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_right">2017</td>
+    <td class="gt_row gt_right">45761</td>
+    <td class="gt_row gt_right">74318</td>
+    <td class="gt_row gt_right">7614</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_right">2018</td>
+    <td class="gt_row gt_right">49575</td>
+    <td class="gt_row gt_right">82413</td>
+    <td class="gt_row gt_right">8553</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_right">2019</td>
+    <td class="gt_row gt_right">53604</td>
+    <td class="gt_row gt_right">90501</td>
+    <td class="gt_row gt_right">9287</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_right">2020</td>
+    <td class="gt_row gt_right">57727</td>
+    <td class="gt_row gt_right">97379</td>
+    <td class="gt_row gt_right">9980</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_right">2021</td>
+    <td class="gt_row gt_right">62884</td>
+    <td class="gt_row gt_right">106837</td>
+    <td class="gt_row gt_right">10825</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_right">2022</td>
+    <td class="gt_row gt_right">65237</td>
+    <td class="gt_row gt_right">114029</td>
+    <td class="gt_row gt_right">10608</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_right">2023</td>
+    <td class="gt_row gt_right">68340</td>
+    <td class="gt_row gt_right">120698</td>
+    <td class="gt_row gt_right">10864</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_right">2024</td>
+    <td class="gt_row gt_right">69476</td>
+    <td class="gt_row gt_right">124110</td>
+    <td class="gt_row gt_right">10419</td>
+  </tr>
+</tbody>
+
+
+</table>
+
+</div>
+        
+<pre class="python"><code>import matplotlib.pyplot as plt
+# 设置中文字体
+import matplotlib.font_manager as fm
+fontP = fm.FontProperties()
+fontP.set_family(&#39;Noto Serif CJK SC&#39;)
+fontP.set_size(14)
+
+plt.figure(figsize=(8, 5))
+plt.plot(df[&quot;年份&quot;], 90*df[&quot;住宅销售价格&quot;]/df[&quot;私营单位&quot;], color=&#39;blue&#39;, label=&quot;私营单位&quot;)
+plt.plot(df[&quot;年份&quot;], 90*df[&quot;住宅销售价格&quot;]/df[&quot;非私营单位&quot;], color=&#39;red&#39;, label=&quot;非私营单位&quot;)
+plt.title(&#39;房价与税前年收入的比值关系&#39;, fontproperties=fontP)
+plt.xlabel(&#39;年份&#39;, fontproperties=fontP)
+plt.ylabel(&#39;奋斗时间（年）&#39;, fontproperties=fontP)
+# 添加图例并设置中文字体
+plt.legend(prop=fontP)
+# 背景网格线
+plt.grid(linestyle=&quot;--&quot;)
+plt.show()</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-3-1.png" alt="" width="768" /></p>
+<p>一个三口之家，按人均 30 平米的基本住房需求算，需要一套 90 平米的房子。购买这样一套房子需要多少钱，又需要多少年不吃不喝才能攒够？从图中来看，国家一直在遏制房价（2016年房价飞涨，这个比值不降反升。），希望民众能够尽快买得起房。
+从最新的 2024 年的数据来看，在私营单位工作的人，需要 13.5 年，而在非私营单位工作的人只需要 7.56 年。假设这个个人年收入，扣除各类基本支出，还能攒下一半用于购房，夫妻两个都如此。一个家庭奋斗出一套房，夫妻在私营单位工作的需要 14 年，而在非私营单位工作的需要 8 年。</p>
+<p>若要让民众在城里奋斗有获得感、安全感、归属感乃至幸福感，这个奋斗时间还要缩短一半才好。结合行业来看，IT 和金融业收入远高于其它行业，若一对夫妻能在这样的行业，连续奋斗 5 年，差不多可以买下一套房。若在非私营单位工作，这个年限还能缩短。但是，这样的行业收入马太效应很强，一般的普通员工的收入被极大地拉高了。</p>
