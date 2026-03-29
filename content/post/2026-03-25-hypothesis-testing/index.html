@@ -1,0 +1,682 @@
+---
+title: A/B 实验之假设检验的理论
+date: "2026-03-28"
+author: "黄湘云"
+slug: hypothesis-testing
+categories:
+  - 统计理论
+tags:
+  - 假设检验
+  - A/B 实验
+  - P 值
+  - 功效水平
+  - 显著性水平
+  - 置信水平
+  - 置信区间
+  - 小概率原理
+  - 覆盖概率
+  - 零假设
+  - 原假设
+  - 备择假设
+  - 检验统计量
+  - 抽样分布
+  - 极限分布
+  - 拒绝零假设
+  - 拒绝域
+  - 第一类错误
+  - 假阳性
+  - 拒真错误
+  - 第二类错误
+  - 假阴性
+  - 纳伪错误
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+math: true
+description: "本文以一个例子串联起来介绍假设检验中的基本概念，这是在企业做 A/B 实验需要了解的统计理论知识。"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#%E5%9F%BA%E7%A1%80%E7%AF%87" id="toc-基础篇"><span class="toc-section-number">1</span> 基础篇</a>
+<ul>
+<li><a href="#%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF" id="toc-问题背景"><span class="toc-section-number">1.1</span> 问题背景</a></li>
+<li><a href="#%E6%8F%90%E5%87%BA%E5%81%87%E8%AE%BE" id="toc-提出假设"><span class="toc-section-number">1.2</span> 提出假设</a></li>
+<li><a href="#%E6%9E%84%E9%80%A0%E6%A3%80%E9%AA%8C%E7%BB%9F%E8%AE%A1%E9%87%8F" id="toc-构造检验统计量"><span class="toc-section-number">1.3</span> 构造检验统计量</a></li>
+<li><a href="#%E8%AE%A1%E7%AE%97%E6%A3%80%E9%AA%8C%E7%BB%9F%E8%AE%A1%E9%87%8F%E7%9A%84%E5%80%BC%E5%92%8C-p-%E5%80%BC" id="toc-计算检验统计量的值和-p-值"><span class="toc-section-number">1.4</span> 计算检验统计量的值和 P 值</a></li>
+</ul></li>
+<li><a href="#%E8%BF%9B%E9%98%B6%E7%AF%87" id="toc-进阶篇"><span class="toc-section-number">2</span> 进阶篇</a>
+<ul>
+<li><a href="#%E7%BD%AE%E4%BF%A1%E5%8C%BA%E9%97%B4" id="toc-置信区间"><span class="toc-section-number">2.1</span> 置信区间</a></li>
+<li><a href="#%E5%8A%9F%E6%95%88%E6%B0%B4%E5%B9%B3" id="toc-功效水平"><span class="toc-section-number">2.2</span> 功效水平</a>
+<ul>
+<li><a href="#python-%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0" id="toc-python-语言实现"><span class="toc-section-number">2.2.1</span> Python 语言实现</a></li>
+<li><a href="#r-%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0" id="toc-r-语言实现"><span class="toc-section-number">2.2.2</span> R 语言实现</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#%E6%80%9D%E8%80%83%E9%A2%98" id="toc-思考题"><span class="toc-section-number">3</span> 思考题</a></li>
+<li><a href="#%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83" id="toc-运行环境"><span class="toc-section-number">4</span> 运行环境</a></li>
+</ul>
+</div>
+
+<div id="基础篇" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> 基础篇</h1>
+<p>设 <span class="math inline">\(X_1,X_2,\ldots,X_n\)</span> 是相互独立且同为正态分布 <span class="math inline">\(N(\mu,\sigma^2)\)</span> 的一组随机变量，<span class="math inline">\(x_1,x_2,\ldots,x_n\)</span> 是抽取自该正态分布的一组样本观察值。</p>
+<div id="问题背景" class="section level2" number="1.1">
+<h2><span class="header-section-number">1.1</span> 问题背景</h2>
+<p>数据来源于 2021 年邵阳市统计年鉴发布的常住人口（修订版），2010-2020年邵阳市常住人口数（单位：万人）、城市化率（单位：%）。</p>
+<table>
+<caption>邵阳市常住人口数和城市化率</caption>
+<colgroup>
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>年份</th>
+<th>2010</th>
+<th>2011</th>
+<th>2012</th>
+<th>2013</th>
+<th>2014</th>
+<th>2015</th>
+<th>2016</th>
+<th>2017</th>
+<th>2018</th>
+<th>2019</th>
+<th>2020</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>常住人口</td>
+<td>707.17</td>
+<td>704.01</td>
+<td>702.91</td>
+<td>698.78</td>
+<td>693.63</td>
+<td>690.33</td>
+<td>688.84</td>
+<td>687.21</td>
+<td>679.04</td>
+<td>665.39</td>
+<td>656.15</td>
+</tr>
+<tr class="even">
+<td>城市化率</td>
+<td>32.84</td>
+<td>34.16</td>
+<td>35.77</td>
+<td>37.94</td>
+<td>39.97</td>
+<td>42.44</td>
+<td>44.71</td>
+<td>46.76</td>
+<td>48.46</td>
+<td>49.74</td>
+<td>52.16</td>
+</tr>
+</tbody>
+</table>
+<p>一座城市的常住人口数受复杂的政治、经济因素影响，具有不确定性，可以看作一个随机变量，在相对稳定的内外部环境下，不考虑时间趋势性，每年的常住人口数近似服从正态分布。简单起见，将以上这组常住人口数据视为来自某正态总体的一组样本观察值。</p>
+<pre class="python"><code>import pandas as pd
+shaoyang = pd.DataFrame(
+    {
+        &quot;年份&quot;: [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020],
+        &quot;常住人口&quot;: [707.17, 704.01, 702.91, 698.78, 693.63, 690.33, 688.84, 687.21, 679.04, 665.39, 656.15],
+        &quot;城市化率&quot;: [32.84, 34.16, 35.77, 37.94, 39.97, 42.44, 44.71, 46.76, 48.46, 49.74, 52.16]
+    }
+)</code></pre>
+</div>
+<div id="提出假设" class="section level2" number="1.2">
+<h2><span class="header-section-number">1.2</span> 提出假设</h2>
+<p>在方差 <span class="math inline">\(\sigma^2\)</span> 未知的情况下，检验正态分布的均值 <span class="math inline">\(\mu\)</span> 的情况。</p>
+<p><span class="math display">\[
+\begin{aligned}
+\quad H_0: \mu \geq \mu_0  \quad vs. \quad H_1: \mu &lt; \mu_0
+\end{aligned}
+\]</span></p>
+<p>上式中 <span class="math inline">\(H_0\)</span> 称为零假设（或称原假设），<span class="math inline">\(H_1\)</span> 称为备择假设。不妨设 <span class="math inline">\(\mu_0 = 700\)</span> 。</p>
+</div>
+<div id="构造检验统计量" class="section level2" number="1.3">
+<h2><span class="header-section-number">1.3</span> 构造检验统计量</h2>
+<p>在样本量充足的情况下，根据中心极限定理，可以推导出如下结果，此处推导过程复杂，略。</p>
+<p><span class="math display">\[
+\begin{aligned}
+&amp; \frac{\bar{x} - \mu}{\sigma / \sqrt{n}} \sim \mathcal{N}(0,1) \quad
+\frac{(n-1)s^2}{\sigma^2} \sim \chi^2(n-1) \\
+&amp; \mathsf{E}\{s^2\} = \sigma^2 \quad \mathsf{Var}\{s^2\} = \frac{2\sigma^4}{n-1}
+\end{aligned}
+\]</span></p>
+<p>其中，样本均值 <span class="math inline">\(\bar{x}=\frac{1}{n}\sum_{i=1}^{n}x_i\)</span> ，样本方差 <span class="math inline">\(s^2 = \frac{1}{n-1}\sum_{i=1}^{n}(x_i-\bar{x})^2\)</span> 。</p>
+<p>为了检验上面提出的问题，在总体的方差<span class="math inline">\(\sigma^2\)</span>未知的情况下，用样本方差来替换，构造检验统计量</p>
+<p><span class="math display">\[
+T=\frac{\bar{x} - \mu_0}{s / \sqrt{n}}
+\]</span></p>
+<p>该检验统计量服从自由度为 <span class="math inline">\(n-1\)</span> 的 <span class="math inline">\(t\)</span> 分布，此处推导过程复杂，略。</p>
+<p>对于上述检验问题，拒绝域的形式是根据备择假设来定的。</p>
+<p><span class="math display">\[
+\{T &lt; t_{\alpha}(n-1)\}
+\]</span></p>
+<p>其中，<span class="math inline">\(\alpha\)</span> 称为检验的显著性水平，一般取 0.05。控制犯第一类错误（拒真错误）的概率，即原假设成立的情况下，样本观察值落入拒绝域的概率，这个概率要控制在0.05 以内。只有这样，检验的结果才有说服力。说服力来源于小概率原理，即小概率事件不可能在一次实验中发生。若发生了，就不是小概率事件。有点反证法的味道！其中这个小概率的量化，一般取 0.05，事件发生的概率小于或等于 0.05，即认为此事件为小概率事件。</p>
+</div>
+<div id="计算检验统计量的值和-p-值" class="section level2" number="1.4">
+<h2><span class="header-section-number">1.4</span> 计算检验统计量的值和 P 值</h2>
+<p>t 分布的数学公式是非常复杂的，常见的统计软件中内置了有关的计算函数。t 分布的概率密度函数如下：</p>
+<p><span class="math display">\[
+f(x; n) = \frac{\Gamma\left(\frac{n+1}{2}\right)}{\sqrt{n\pi} \Gamma\left(\frac{n}{2}\right)} \left(1 + \frac{x^2}{n}\right)^{-\frac{n+1}{2}}
+\]</span></p>
+<p>其中，<span class="math inline">\(n\)</span> 是自由度。t 分布的累积分布函数如下：</p>
+<p><span class="math display">\[
+F(x; n) = \int_{-\infty}^{x} f(w; n)  dw
+\]</span></p>
+<pre class="python"><code># 样本均值
+shaoyang[&quot;常住人口&quot;].mean()</code></pre>
+<pre><code>## np.float64(688.4963636363636)</code></pre>
+<pre class="python"><code># 样本标准差
+shaoyang[&quot;常住人口&quot;].std()</code></pre>
+<pre><code>## np.float64(16.13687409179812)</code></pre>
+<pre class="python"><code># 检验统计量
+T = (shaoyang[&quot;常住人口&quot;].mean() - 700) / (shaoyang[&quot;常住人口&quot;].std()/len(shaoyang) ** 0.5)
+T</code></pre>
+<pre><code>## np.float64(-2.3643516907814464)</code></pre>
+<pre class="python"><code># 临界值
+import scipy.stats as stats
+# 计算 alpha 处的分位数
+ppf = stats.t.ppf(0.05, df=len(shaoyang)-1)  # 5% 分位数
+ppf</code></pre>
+<pre><code>## np.float64(-1.8124611228116767)</code></pre>
+<p>注意到检验统计量 T 的值确实小于临界值，样本观察值落在拒绝域中。说明，要拒绝原假设，即原正态总体的均值是小于 700 的。</p>
+<pre class="python"><code># 计算 P 值
+stats.t.cdf(T, df=len(shaoyang)-1)</code></pre>
+<pre><code>## np.float64(0.019828842503383064)</code></pre>
+<p>其实，scipy 模块的统计部分有一些假设检验的函数。下面直接调用单样本 T 检验函数<a href="https://docs.scipy.org/doc/scipy/reference/stats.html#hypothesis-tests-and-related-functions">stats.ttest_1samp</a>来计算 T 值和 P 值。</p>
+<pre class="python"><code>t_stat, p_value = stats.ttest_1samp(a=shaoyang[&quot;常住人口&quot;], popmean=700, alternative=&#39;less&#39;)
+# T 检验统计量
+print(t_stat)</code></pre>
+<pre><code>## -2.364351690781446</code></pre>
+<pre class="python"><code># P 值
+print(p_value)</code></pre>
+<pre><code>## 0.019828842503383095</code></pre>
+<p>计算结果和前面手搓的一样。邵阳市常住人口数总体上大于 700 万吗？根据现有的数据，这个问题的答案是否定的。</p>
+</div>
+</div>
+<div id="进阶篇" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> 进阶篇</h1>
+<p>还是前面这个数据集，邵阳市常住人口数还是服从参数未知的正态分布 <span class="math inline">\(N(\mu,\sigma^2)\)</span> 。现在考察的问题是邵阳市常住人口数在置信水平为 <span class="math inline">\(1-\alpha\)</span> 下的置信区间，<span class="math inline">\(\alpha\)</span> 通常取 0.05，那么置信水平就是 0.95。</p>
+<div id="置信区间" class="section level2" number="2.1">
+<h2><span class="header-section-number">2.1</span> 置信区间</h2>
+<p>现在的问题是根据这组样本观察值，构造一个区间，使得正态总体的均值/真值落入该区间的可能性/概率为 95% 。换句话说，我们要找一个区间，这个区间覆盖总体的真值的可能性/概率不低于 95% 。置信区间覆盖总体的真值的概率即覆盖概率，这个覆盖概率要大于 95% ，或者接近置信水平。</p>
+<pre class="python"><code>res = stats.ttest_1samp(a=shaoyang[&quot;常住人口&quot;], popmean=700, alternative=&#39;less&#39;)
+# 置信区间
+res.confidence_interval(confidence_level=0.95)</code></pre>
+<pre><code>## ConfidenceInterval(low=np.float64(-inf), high=np.float64(697.3148037023432))</code></pre>
+<p>补充在 R 软件中的代码实现，如下：</p>
+<pre class="r"><code>x &lt;- c(
+  707.17, 704.01, 702.91, 698.78, 693.63,
+  690.33, 688.84, 687.21, 679.04, 665.39, 656.15
+)
+sd(x)</code></pre>
+<pre><code>## [1] 16.14</code></pre>
+<pre class="r"><code>t.test(x, mu = 700, alternative = &quot;less&quot;)</code></pre>
+<pre><code>## 
+## 	One Sample t-test
+## 
+## data:  x
+## t = -2.4, df = 10, p-value = 0.02
+## alternative hypothesis: true mean is less than 700
+## 95 percent confidence interval:
+##   -Inf 697.3
+## sample estimates:
+## mean of x 
+##     688.5</code></pre>
+<p>计算结果与前面完全一致。做假设检验的同时，可以获得参数真值的置信区间。</p>
+</div>
+<div id="功效水平" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span> 功效水平</h2>
+<p>一个检验的功效函数（Power function）是样本观察值落在拒绝域的概率。功效是用来衡量检验统计量的检验效果的，功效越大，表示检验统计量越灵敏，实际表现是用更少的样本量就可以对原假设问题作出结论。在业务中，减少样本量意味着减少时间和实验成本。在 Python 模块 scipy 的统计部分中有功效计算函数 <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.power.html#scipy.stats.power">stats.power</a>，归在重抽样和蒙特卡罗方法栏目下。</p>
+<p>在这个单样本的 t 检验问题下，检验的对象是正态分布的均值参数 <span class="math inline">\(\mu\)</span>，功效函数记为 <span class="math inline">\(g(\mu)\)</span> ，它与显著性水平 <span class="math inline">\(\alpha\)</span> （也是犯第一类错误的概率）和犯第二类错误的概率 <span class="math inline">\(\beta\)</span> 的关系。</p>
+<p><span class="math display">\[
+\begin{aligned}
+g(\mu) = \left\{
+  \begin{array}{l}
+    \alpha(\mu)  &amp; H_0 ~\mathrm{成立} \\
+    1-\beta(\mu) &amp; H_1 ~\mathrm{成立}
+  \end{array} \right.
+\end{aligned}
+\]</span></p>
+<p><span class="math display">\[
+\begin{aligned}
+g(\mu) &amp;= P_{\mu}\{\bar{x} &lt; \mu_0\} \\
+&amp;= P_{\mu}\{\frac{\bar{x}-\mu}{s/\sqrt{n}} &lt; \frac{ \mu_0-\mu}{s/\sqrt{n}}\} \\
+&amp;= P_{\mu}\{t &lt; \frac{ \mu_0-\mu}{s/\sqrt{n}} \} \\
+&amp;= \int_{-\infty}^{\frac{ \mu_0-\mu}{s/\sqrt{n}}} f(x;n-1)dx
+\end{aligned}
+\]</span> 其中，将 <span class="math inline">\(\frac{\bar{x}-\mu}{s/\sqrt{n}}\)</span> 看作自由度为 <span class="math inline">\(n-1\)</span> 的 <span class="math inline">\(t\)</span> 分布的随机变量，而 <span class="math inline">\(f(x)\)</span> 是相应的 <span class="math inline">\(t\)</span> 分布的概率密度函数。当将样本均值 <span class="math inline">\(\bar{x}\)</span> 代入 <span class="math inline">\(\mu\)</span> 时，Power 值就是前面计算的 P 值。</p>
+<div id="python-语言实现" class="section level3" number="2.2.1">
+<h3><span class="header-section-number">2.2.1</span> Python 语言实现</h3>
+<p>首先接着用 scipy 内的 <code>stats.power()</code> 函数来计算功效，在这里，Power 的计算是通过抽样，结果存在随机性，设置随机数种子，以便可复现。</p>
+<pre class="python"><code>import numpy as np
+rng = np.random.default_rng(seed=20262026)
+# 总体（常住人口）的分布是正态分布
+# 样本均值和样本标准差来替代总体均值和总体标准差
+# 将从这个分布中生成随机数
+rvs = lambda size: rng.normal(loc=shaoyang[&quot;常住人口&quot;].mean(), scale=shaoyang[&quot;常住人口&quot;].std(), size=size)
+# 单样本 t 检验
+test = stats.ttest_1samp
+# 样本量
+n_obs = len(shaoyang[&quot;常住人口&quot;])
+# 默认样本量是 n_resamples=10000
+res = stats.power(test=test, rvs=rvs, n_observations=n_obs, significance=0.05, kwargs={&#39;popmean&#39;: 700, &#39;alternative&#39;: &#39;less&#39;})
+# 输出结果
+res</code></pre>
+<pre><code>## PowerResult(power=np.float64(0.7109), pvalues=array([0.01801163, 0.08560967, 0.00089626, ..., 0.03789451, 0.02300109,
+##        0.00028921], shape=(10000,)))</code></pre>
+<pre class="python"><code># 打印 power 值
+res.power</code></pre>
+<pre><code>## np.float64(0.7109)</code></pre>
+<pre class="python"><code># P 值小于 0.05 的比例表示功效
+np.mean(res.pvalues &lt; 0.05)</code></pre>
+<pre><code>## np.float64(0.7109)</code></pre>
+<p>Python 里的 statsmodels 模块也有计算功效的方法。</p>
+<pre class="python"><code>from statsmodels.stats.power import TTestPower
+# Cohen&#39;s d，即均值差除以标准差
+effect_size = (shaoyang[&quot;常住人口&quot;].mean()-700)/shaoyang[&quot;常住人口&quot;].std()
+effect_size</code></pre>
+<pre><code>## np.float64(-0.7128788573422227)</code></pre>
+<pre class="python"><code># 显著性水平
+alpha=0.05
+res = TTestPower().power(
+  effect_size=effect_size,
+  nobs=n_obs,
+  alpha=alpha,
+  alternative=&#39;smaller&#39; # 注意与 effect_size、备择假设的符号保持一致
+)
+print(res)</code></pre>
+<pre><code>## 0.710660157004632</code></pre>
+</div>
+<div id="r-语言实现" class="section level3" number="2.2.2">
+<h3><span class="header-section-number">2.2.2</span> R 语言实现</h3>
+<p>给定各参数值的情况下，计算功效的大小。在 R 软件中，有类似的函数 <code>power.t.test()</code> 。</p>
+<pre class="r"><code>power.t.test(
+  n = length(x), delta = abs(mean(x) - 700),
+  sd = sd(x), sig.level = 0.05,
+  type = &quot;one.sample&quot;,
+  alternative = &quot;one.sided&quot; # 这里没有方向可选，delta 必须为正，计算结果才对
+)</code></pre>
+<pre><code>## 
+##      One-sample t test power calculation 
+## 
+##               n = 11
+##           delta = 11.5
+##              sd = 16.14
+##       sig.level = 0.05
+##           power = 0.7107
+##     alternative = one.sided</code></pre>
+<pre class="r"><code># 前面 t 检验等价的功效计算
+library(pwr)
+pwr.t.test(
+  d = (mean(x)-700)/sd(x), # Cohen&#39;s d
+  n = length(x),
+  sig.level = 0.05,
+  type = &quot;one.sample&quot;,
+  alternative = &quot;less&quot; # 注意与备择假设、参数 d 的方向保持一致
+)</code></pre>
+<pre><code>## 
+##      One-sample t test power calculation 
+## 
+##               n = 11
+##               d = -0.7129
+##       sig.level = 0.05
+##           power = 0.7107
+##     alternative = less</code></pre>
+<pre class="r"><code>pwr.t.test(
+  d = (700-mean(x))/sd(x), # Cohen&#39;s d
+  n = length(x),
+  sig.level = 0.05,
+  type = &quot;one.sample&quot;,
+  alternative = &quot;greater&quot; # 同上
+)</code></pre>
+<pre><code>## 
+##      One-sample t test power calculation 
+## 
+##               n = 11
+##               d = 0.7129
+##       sig.level = 0.05
+##           power = 0.7107
+##     alternative = greater</code></pre>
+<p>综上，在 Python 环境中，推荐使用 statsmodels 模块来计算功效，而在 R 环境中，推荐使用 pwr 包来计算功效。</p>
+</div>
+</div>
+</div>
+<div id="思考题" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> 思考题</h1>
+<p>根据邵阳市统计局发布的统计年鉴显示，2023 年邵阳市年末常住人口 635.88 万人，其中，城镇人口 345.46 万人，农村人口 290.42 万人，城市化率 54.33% 。邵阳市的城市化率大于 50% 吗？根据这个问题，提出一个原假设（也叫零假设）和备择假设。</p>
+<p>历年邵阳市的城市化水平数据如下：</p>
+<pre class="python"><code>import pandas as pd
+shaoyang = pd.DataFrame(
+    {
+        &quot;年份&quot;: [2017, 2018, 2019, 2020, 2021, 2022, 2023],
+        &quot;常住人口&quot;: [737.54, 737.05, 730.24, 656.15, 646.83, 641.78, 635.88],
+        &quot;城镇人口&quot;: [338.46, 350.02, 356.2,  342.22, 343.05, 344.29, 345.46],
+        &quot;农村人口&quot;: [399.08, 387.03, 374.04, 313.93, 303.78, 297.49, 290.42],
+        &quot;城市化率&quot;: [45.89, 47.49, 48.78, 52.16, 53.04, 53.65, 54.33]
+    }
+)
+from great_tables import GT
+(GT(shaoyang))</code></pre>
+<div id="ssvyazybih" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>
+#ssvyazybih table {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+
+#ssvyazybih thead, tbody, tfoot, tr, td, th { border-style: none; }
+ tr { background-color: transparent; }
+#ssvyazybih p { margin: 0; padding: 0; }
+ #ssvyazybih .gt_table { display: table; border-collapse: collapse; line-height: normal; margin-left: auto; margin-right: auto; color: #333333; font-size: 16px; font-weight: normal; font-style: normal; background-color: #FFFFFF; width: auto; border-top-style: solid; border-top-width: 2px; border-top-color: #A8A8A8; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #A8A8A8; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; }
+ #ssvyazybih .gt_caption { padding-top: 4px; padding-bottom: 4px; }
+ #ssvyazybih .gt_title { color: #333333; font-size: 125%; font-weight: initial; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; border-bottom-color: #FFFFFF; border-bottom-width: 0; }
+ #ssvyazybih .gt_subtitle { color: #333333; font-size: 85%; font-weight: initial; padding-top: 3px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; border-top-color: #FFFFFF; border-top-width: 0; }
+ #ssvyazybih .gt_heading { background-color: #FFFFFF; text-align: center; border-bottom-color: #FFFFFF; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
+ #ssvyazybih .gt_bottom_border { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
+ #ssvyazybih .gt_col_headings { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
+ #ssvyazybih .gt_col_heading { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: normal; text-transform: inherit; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; overflow-x: hidden; }
+ #ssvyazybih .gt_column_spanner_outer { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: normal; text-transform: inherit; padding-top: 0; padding-bottom: 0; padding-left: 4px; padding-right: 4px; }
+ #ssvyazybih .gt_column_spanner_outer:first-child { padding-left: 0; }
+ #ssvyazybih .gt_column_spanner_outer:last-child { padding-right: 0; }
+ #ssvyazybih .gt_column_spanner { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; overflow-x: hidden; display: inline-block; width: 100%; }
+ #ssvyazybih .gt_spanner_row { border-bottom-style: hidden; }
+ #ssvyazybih .gt_group_heading { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; text-align: left; }
+ #ssvyazybih .gt_empty_group_heading { padding: 0.5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: middle; }
+ #ssvyazybih .gt_from_md> :first-child { margin-top: 0; }
+ #ssvyazybih .gt_from_md> :last-child { margin-bottom: 0; }
+ #ssvyazybih .gt_row { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; margin: 10px; border-top-style: solid; border-top-width: 1px; border-top-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; overflow-x: hidden; }
+ #ssvyazybih .gt_stub { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; }
+ #ssvyazybih .gt_stub_row_group { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; vertical-align: top; }
+ #ssvyazybih .gt_row_group_first td { border-top-width: 2px; }
+ #ssvyazybih .gt_row_group_first th { border-top-width: 2px; }
+ #ssvyazybih .gt_striped { color: #333333; background-color: #F4F4F4; }
+ #ssvyazybih .gt_table_body { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
+ #ssvyazybih .gt_grand_summary_row { color: #333333; background-color: #FFFFFF; text-transform: inherit; padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; }
+ #ssvyazybih .gt_first_grand_summary_row_bottom { border-top-style: double; border-top-width: 6px; border-top-color: #D3D3D3; }
+ #ssvyazybih .gt_last_grand_summary_row_top { border-bottom-style: double; border-bottom-width: 6px; border-bottom-color: #D3D3D3; }
+ #ssvyazybih .gt_sourcenotes { color: #333333; background-color: #FFFFFF; border-bottom-style: none; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; }
+ #ssvyazybih .gt_sourcenote { font-size: 90%; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; text-align: left; }
+ #ssvyazybih .gt_left { text-align: left; }
+ #ssvyazybih .gt_center { text-align: center; }
+ #ssvyazybih .gt_right { text-align: right; font-variant-numeric: tabular-nums; }
+ #ssvyazybih .gt_font_normal { font-weight: normal; }
+ #ssvyazybih .gt_font_bold { font-weight: bold; }
+ #ssvyazybih .gt_font_italic { font-style: italic; }
+ #ssvyazybih .gt_super { font-size: 65%; }
+ #ssvyazybih .gt_footnote_marks { font-size: 75%; vertical-align: 0.4em; position: initial; }
+ #ssvyazybih .gt_asterisk { font-size: 100%; vertical-align: 0; }
+ 
+</style>
+<table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<thead>
+
+<tr class="gt_col_headings">
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="年份">年份</th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="常住人口">常住人口</th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="城镇人口">城镇人口</th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="农村人口">农村人口</th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="城市化率">城市化率</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+  <tr>
+    <td class="gt_row gt_right">2017</td>
+    <td class="gt_row gt_right">737.54</td>
+    <td class="gt_row gt_right">338.46</td>
+    <td class="gt_row gt_right">399.08</td>
+    <td class="gt_row gt_right">45.89</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_right">2018</td>
+    <td class="gt_row gt_right">737.05</td>
+    <td class="gt_row gt_right">350.02</td>
+    <td class="gt_row gt_right">387.03</td>
+    <td class="gt_row gt_right">47.49</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_right">2019</td>
+    <td class="gt_row gt_right">730.24</td>
+    <td class="gt_row gt_right">356.2</td>
+    <td class="gt_row gt_right">374.04</td>
+    <td class="gt_row gt_right">48.78</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_right">2020</td>
+    <td class="gt_row gt_right">656.15</td>
+    <td class="gt_row gt_right">342.22</td>
+    <td class="gt_row gt_right">313.93</td>
+    <td class="gt_row gt_right">52.16</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_right">2021</td>
+    <td class="gt_row gt_right">646.83</td>
+    <td class="gt_row gt_right">343.05</td>
+    <td class="gt_row gt_right">303.78</td>
+    <td class="gt_row gt_right">53.04</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_right">2022</td>
+    <td class="gt_row gt_right">641.78</td>
+    <td class="gt_row gt_right">344.29</td>
+    <td class="gt_row gt_right">297.49</td>
+    <td class="gt_row gt_right">53.65</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_right">2023</td>
+    <td class="gt_row gt_right">635.88</td>
+    <td class="gt_row gt_right">345.46</td>
+    <td class="gt_row gt_right">290.42</td>
+    <td class="gt_row gt_right">54.33</td>
+  </tr>
+</tbody>
+
+
+</table>
+
+</div>
+        
+<p>注意：2021 年发布的统计年鉴对 2019 年及以前的人口数据做了一次修订，上表中保留了修订之前的数据。</p>
+<p>邵阳市下辖一共 12 个市区县，其中，双清区，大祥区和北塔区是邵阳市直管的城区，武冈市和邵东市是邵阳市代管的县级市。</p>
+<pre class="python"><code>import pandas as pd
+shaoyang = pd.DataFrame(
+    {
+        &quot;市县名称&quot;: [&quot;双清区&quot;, &quot;大祥区&quot;, &quot;北塔区&quot;, &quot;新邵县&quot;, &quot;邵阳县&quot;, &quot;隆回县&quot;, &quot;洞口县&quot;, &quot;绥宁县&quot;, &quot;新宁县&quot;, &quot;城步县&quot;, &quot;武冈市&quot;, &quot;邵东市&quot;],
+        &quot;常住人口&quot;: [32.01, 36.32, 12.37, 58.59, 71.45, 98.02, 65.71, 28.32, 49.78, 22.11, 62.01, 99.19],
+        &quot;城镇人口&quot;: [28.83, 32.02, 9.94, 27.36, 34.03, 44.04, 33.01, 12.12, 23.76, 9.85, 31.97, 58.53],
+        &quot;农村人口&quot;: [3.18, 4.3, 2.43, 31.23, 37.42, 53.98, 32.7, 16.2, 26.02, 12.26, 30.04, 40.66],
+        &quot;城市化率&quot;: [90.07, 88.16, 80.36, 46.7, 47.63, 44.93, 50.24, 42.8, 47.73, 44.55, 51.56, 59.01]
+    }
+)
+from great_tables import GT
+(GT(shaoyang))</code></pre>
+<div id="zkclobkuls" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>
+#zkclobkuls table {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+
+#zkclobkuls thead, tbody, tfoot, tr, td, th { border-style: none; }
+ tr { background-color: transparent; }
+#zkclobkuls p { margin: 0; padding: 0; }
+ #zkclobkuls .gt_table { display: table; border-collapse: collapse; line-height: normal; margin-left: auto; margin-right: auto; color: #333333; font-size: 16px; font-weight: normal; font-style: normal; background-color: #FFFFFF; width: auto; border-top-style: solid; border-top-width: 2px; border-top-color: #A8A8A8; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #A8A8A8; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; }
+ #zkclobkuls .gt_caption { padding-top: 4px; padding-bottom: 4px; }
+ #zkclobkuls .gt_title { color: #333333; font-size: 125%; font-weight: initial; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; border-bottom-color: #FFFFFF; border-bottom-width: 0; }
+ #zkclobkuls .gt_subtitle { color: #333333; font-size: 85%; font-weight: initial; padding-top: 3px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; border-top-color: #FFFFFF; border-top-width: 0; }
+ #zkclobkuls .gt_heading { background-color: #FFFFFF; text-align: center; border-bottom-color: #FFFFFF; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
+ #zkclobkuls .gt_bottom_border { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
+ #zkclobkuls .gt_col_headings { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; }
+ #zkclobkuls .gt_col_heading { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: normal; text-transform: inherit; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; padding-left: 5px; padding-right: 5px; overflow-x: hidden; }
+ #zkclobkuls .gt_column_spanner_outer { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: normal; text-transform: inherit; padding-top: 0; padding-bottom: 0; padding-left: 4px; padding-right: 4px; }
+ #zkclobkuls .gt_column_spanner_outer:first-child { padding-left: 0; }
+ #zkclobkuls .gt_column_spanner_outer:last-child { padding-right: 0; }
+ #zkclobkuls .gt_column_spanner { border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: bottom; padding-top: 5px; padding-bottom: 5px; overflow-x: hidden; display: inline-block; width: 100%; }
+ #zkclobkuls .gt_spanner_row { border-bottom-style: hidden; }
+ #zkclobkuls .gt_group_heading { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; text-align: left; }
+ #zkclobkuls .gt_empty_group_heading { padding: 0.5px; color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; vertical-align: middle; }
+ #zkclobkuls .gt_from_md> :first-child { margin-top: 0; }
+ #zkclobkuls .gt_from_md> :last-child { margin-bottom: 0; }
+ #zkclobkuls .gt_row { padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; margin: 10px; border-top-style: solid; border-top-width: 1px; border-top-color: #D3D3D3; border-left-style: none; border-left-width: 1px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 1px; border-right-color: #D3D3D3; vertical-align: middle; overflow-x: hidden; }
+ #zkclobkuls .gt_stub { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; }
+ #zkclobkuls .gt_stub_row_group { color: #333333; background-color: #FFFFFF; font-size: 100%; font-weight: initial; text-transform: inherit; border-right-style: solid; border-right-width: 2px; border-right-color: #D3D3D3; padding-left: 5px; padding-right: 5px; vertical-align: top; }
+ #zkclobkuls .gt_row_group_first td { border-top-width: 2px; }
+ #zkclobkuls .gt_row_group_first th { border-top-width: 2px; }
+ #zkclobkuls .gt_striped { color: #333333; background-color: #F4F4F4; }
+ #zkclobkuls .gt_table_body { border-top-style: solid; border-top-width: 2px; border-top-color: #D3D3D3; border-bottom-style: solid; border-bottom-width: 2px; border-bottom-color: #D3D3D3; }
+ #zkclobkuls .gt_grand_summary_row { color: #333333; background-color: #FFFFFF; text-transform: inherit; padding-top: 8px; padding-bottom: 8px; padding-left: 5px; padding-right: 5px; }
+ #zkclobkuls .gt_first_grand_summary_row_bottom { border-top-style: double; border-top-width: 6px; border-top-color: #D3D3D3; }
+ #zkclobkuls .gt_last_grand_summary_row_top { border-bottom-style: double; border-bottom-width: 6px; border-bottom-color: #D3D3D3; }
+ #zkclobkuls .gt_sourcenotes { color: #333333; background-color: #FFFFFF; border-bottom-style: none; border-bottom-width: 2px; border-bottom-color: #D3D3D3; border-left-style: none; border-left-width: 2px; border-left-color: #D3D3D3; border-right-style: none; border-right-width: 2px; border-right-color: #D3D3D3; }
+ #zkclobkuls .gt_sourcenote { font-size: 90%; padding-top: 4px; padding-bottom: 4px; padding-left: 5px; padding-right: 5px; text-align: left; }
+ #zkclobkuls .gt_left { text-align: left; }
+ #zkclobkuls .gt_center { text-align: center; }
+ #zkclobkuls .gt_right { text-align: right; font-variant-numeric: tabular-nums; }
+ #zkclobkuls .gt_font_normal { font-weight: normal; }
+ #zkclobkuls .gt_font_bold { font-weight: bold; }
+ #zkclobkuls .gt_font_italic { font-style: italic; }
+ #zkclobkuls .gt_super { font-size: 65%; }
+ #zkclobkuls .gt_footnote_marks { font-size: 75%; vertical-align: 0.4em; position: initial; }
+ #zkclobkuls .gt_asterisk { font-size: 100%; vertical-align: 0; }
+ 
+</style>
+<table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<thead>
+
+<tr class="gt_col_headings">
+  <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="市县名称">市县名称</th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="常住人口">常住人口</th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="城镇人口">城镇人口</th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="农村人口">农村人口</th>
+  <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="城市化率">城市化率</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+  <tr>
+    <td class="gt_row gt_left">双清区</td>
+    <td class="gt_row gt_right">32.01</td>
+    <td class="gt_row gt_right">28.83</td>
+    <td class="gt_row gt_right">3.18</td>
+    <td class="gt_row gt_right">90.07</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_left">大祥区</td>
+    <td class="gt_row gt_right">36.32</td>
+    <td class="gt_row gt_right">32.02</td>
+    <td class="gt_row gt_right">4.3</td>
+    <td class="gt_row gt_right">88.16</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_left">北塔区</td>
+    <td class="gt_row gt_right">12.37</td>
+    <td class="gt_row gt_right">9.94</td>
+    <td class="gt_row gt_right">2.43</td>
+    <td class="gt_row gt_right">80.36</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_left">新邵县</td>
+    <td class="gt_row gt_right">58.59</td>
+    <td class="gt_row gt_right">27.36</td>
+    <td class="gt_row gt_right">31.23</td>
+    <td class="gt_row gt_right">46.7</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_left">邵阳县</td>
+    <td class="gt_row gt_right">71.45</td>
+    <td class="gt_row gt_right">34.03</td>
+    <td class="gt_row gt_right">37.42</td>
+    <td class="gt_row gt_right">47.63</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_left">隆回县</td>
+    <td class="gt_row gt_right">98.02</td>
+    <td class="gt_row gt_right">44.04</td>
+    <td class="gt_row gt_right">53.98</td>
+    <td class="gt_row gt_right">44.93</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_left">洞口县</td>
+    <td class="gt_row gt_right">65.71</td>
+    <td class="gt_row gt_right">33.01</td>
+    <td class="gt_row gt_right">32.7</td>
+    <td class="gt_row gt_right">50.24</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_left">绥宁县</td>
+    <td class="gt_row gt_right">28.32</td>
+    <td class="gt_row gt_right">12.12</td>
+    <td class="gt_row gt_right">16.2</td>
+    <td class="gt_row gt_right">42.8</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_left">新宁县</td>
+    <td class="gt_row gt_right">49.78</td>
+    <td class="gt_row gt_right">23.76</td>
+    <td class="gt_row gt_right">26.02</td>
+    <td class="gt_row gt_right">47.73</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_left">城步县</td>
+    <td class="gt_row gt_right">22.11</td>
+    <td class="gt_row gt_right">9.85</td>
+    <td class="gt_row gt_right">12.26</td>
+    <td class="gt_row gt_right">44.55</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_left">武冈市</td>
+    <td class="gt_row gt_right">62.01</td>
+    <td class="gt_row gt_right">31.97</td>
+    <td class="gt_row gt_right">30.04</td>
+    <td class="gt_row gt_right">51.56</td>
+  </tr>
+  <tr>
+    <td class="gt_row gt_left">邵东市</td>
+    <td class="gt_row gt_right">99.19</td>
+    <td class="gt_row gt_right">58.53</td>
+    <td class="gt_row gt_right">40.66</td>
+    <td class="gt_row gt_right">59.01</td>
+  </tr>
+</tbody>
+
+
+</table>
+
+</div>
+        
+<p>以上两份城市化率数据，应该使用哪份数据来做检验？<del>应该使用第一份数据，检验方法见<a href="/2026/03/ab-testing">A/B 实验之统计指标的计算</a>。</del></p>
+</div>
+<div id="运行环境" class="section level1" number="4">
+<h1><span class="header-section-number">4</span> 运行环境</h1>
+<pre class="r"><code>reticulate::py_config()</code></pre>
+<pre><code>## python:         /opt/.virtualenvs/r-tensorflow/bin/python
+## libpython:      /opt/homebrew/opt/python@3.13/Frameworks/Python.framework/Versions/3.13/lib/python3.13/config-3.13-darwin/libpython3.13.dylib
+## pythonhome:     /opt/.virtualenvs/r-tensorflow:/opt/.virtualenvs/r-tensorflow
+## virtualenv:     /opt/.virtualenvs/r-tensorflow/bin/activate_this.py
+## version:        3.13.11 (main, Dec  5 2025, 16:06:33) [Clang 17.0.0 (clang-1700.4.4.1)]
+## numpy:          /opt/.virtualenvs/r-tensorflow/lib/python3.13/site-packages/numpy
+## numpy_version:  2.3.4
+## 
+## NOTE: Python version was forced by RETICULATE_PYTHON_ENV</code></pre>
+</div>

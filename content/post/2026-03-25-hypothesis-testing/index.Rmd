@@ -1,0 +1,332 @@
+---
+title: A/B 实验之假设检验的理论
+date: "2026-03-28"
+author: "黄湘云"
+slug: hypothesis-testing
+categories:
+  - 统计理论
+tags:
+  - 假设检验
+  - A/B 实验
+  - P 值
+  - 功效水平
+  - 显著性水平
+  - 置信水平
+  - 置信区间
+  - 小概率原理
+  - 覆盖概率
+  - 零假设
+  - 原假设
+  - 备择假设
+  - 检验统计量
+  - 抽样分布
+  - 极限分布
+  - 拒绝零假设
+  - 拒绝域
+  - 第一类错误
+  - 假阳性
+  - 拒真错误
+  - 第二类错误
+  - 假阴性
+  - 纳伪错误
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+math: true
+description: "本文以一个例子串联起来介绍假设检验中的基本概念，这是在企业做 A/B 实验需要了解的统计理论知识。"
+---
+
+# 基础篇
+
+设 $X_1,X_2,\ldots,X_n$ 是相互独立且同为正态分布 $N(\mu,\sigma^2)$ 的一组随机变量，$x_1,x_2,\ldots,x_n$ 是抽取自该正态分布的一组样本观察值。
+
+## 问题背景
+
+数据来源于 2021 年邵阳市统计年鉴发布的常住人口（修订版），2010-2020年邵阳市常住人口数（单位：万人）、城市化率（单位：%）。
+
+| 年份 | 2010 | 2011 | 2012 | 2013 | 2014 | 2015 | 2016 | 2017 | 2018 | 2019 | 2020 |
+|----|----|----|----|----|----|----|----|----|----|----|----|
+| 常住人口 | 707.17 | 704.01 | 702.91 | 698.78 | 693.63 | 690.33 | 688.84 | 687.21 | 679.04 | 665.39 | 656.15 |
+| 城市化率 | 32.84 | 34.16 | 35.77 | 37.94 | 39.97 | 42.44 | 44.71 | 46.76 | 48.46 | 49.74 | 52.16 |
+
+: 邵阳市常住人口数和城市化率
+
+一座城市的常住人口数受复杂的政治、经济因素影响，具有不确定性，可以看作一个随机变量，在相对稳定的内外部环境下，不考虑时间趋势性，每年的常住人口数近似服从正态分布。简单起见，将以上这组常住人口数据视为来自某正态总体的一组样本观察值。
+
+```{python}
+import pandas as pd
+shaoyang = pd.DataFrame(
+    {
+        "年份": [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020],
+        "常住人口": [707.17, 704.01, 702.91, 698.78, 693.63, 690.33, 688.84, 687.21, 679.04, 665.39, 656.15],
+        "城市化率": [32.84, 34.16, 35.77, 37.94, 39.97, 42.44, 44.71, 46.76, 48.46, 49.74, 52.16]
+    }
+)
+```
+
+## 提出假设
+
+在方差 $\sigma^2$ 未知的情况下，检验正态分布的均值 $\mu$ 的情况。
+
+$$
+\begin{aligned}
+\quad H_0: \mu \geq \mu_0  \quad vs. \quad H_1: \mu < \mu_0 
+\end{aligned}
+$$
+
+上式中 $H_0$ 称为零假设（或称原假设），$H_1$ 称为备择假设。不妨设 $\mu_0 = 700$ 。
+
+## 构造检验统计量
+
+在样本量充足的情况下，根据中心极限定理，可以推导出如下结果，此处推导过程复杂，略。
+
+$$
+\begin{aligned}
+& \frac{\bar{x} - \mu}{\sigma / \sqrt{n}} \sim \mathcal{N}(0,1) \quad
+\frac{(n-1)s^2}{\sigma^2} \sim \chi^2(n-1) \\
+& \mathsf{E}\{s^2\} = \sigma^2 \quad \mathsf{Var}\{s^2\} = \frac{2\sigma^4}{n-1}
+\end{aligned}
+$$
+
+其中，样本均值 $\bar{x}=\frac{1}{n}\sum_{i=1}^{n}x_i$ ，样本方差 $s^2 = \frac{1}{n-1}\sum_{i=1}^{n}(x_i-\bar{x})^2$ 。
+
+为了检验上面提出的问题，在总体的方差$\sigma^2$未知的情况下，用样本方差来替换，构造检验统计量
+
+$$
+T=\frac{\bar{x} - \mu_0}{s / \sqrt{n}}
+$$
+
+该检验统计量服从自由度为 $n-1$ 的 $t$ 分布，此处推导过程复杂，略。
+
+对于上述检验问题，拒绝域的形式是根据备择假设来定的。
+
+$$
+\{T < t_{\alpha}(n-1)\}
+$$
+
+其中，$\alpha$ 称为检验的显著性水平，一般取 0.05。控制犯第一类错误（拒真错误）的概率，即原假设成立的情况下，样本观察值落入拒绝域的概率，这个概率要控制在0.05 以内。只有这样，检验的结果才有说服力。说服力来源于小概率原理，即小概率事件不可能在一次实验中发生。若发生了，就不是小概率事件。有点反证法的味道！其中这个小概率的量化，一般取 0.05，事件发生的概率小于或等于 0.05，即认为此事件为小概率事件。
+
+## 计算检验统计量的值和 P 值
+
+t 分布的数学公式是非常复杂的，常见的统计软件中内置了有关的计算函数。t 分布的概率密度函数如下：
+
+$$
+f(x; n) = \frac{\Gamma\left(\frac{n+1}{2}\right)}{\sqrt{n\pi} \Gamma\left(\frac{n}{2}\right)} \left(1 + \frac{x^2}{n}\right)^{-\frac{n+1}{2}}
+$$
+
+其中，$n$ 是自由度。t 分布的累积分布函数如下：
+
+$$
+F(x; n) = \int_{-\infty}^{x} f(w; n)  dw
+$$
+
+```{python}
+# 样本均值
+shaoyang["常住人口"].mean()
+# 样本标准差
+shaoyang["常住人口"].std()
+# 检验统计量
+T = (shaoyang["常住人口"].mean() - 700) / (shaoyang["常住人口"].std()/len(shaoyang) ** 0.5)
+T
+# 临界值
+import scipy.stats as stats
+# 计算 alpha 处的分位数
+ppf = stats.t.ppf(0.05, df=len(shaoyang)-1)  # 5% 分位数
+ppf
+```
+
+注意到检验统计量 T 的值确实小于临界值，样本观察值落在拒绝域中。说明，要拒绝原假设，即原正态总体的均值是小于 700 的。
+
+```{python}
+# 计算 P 值
+stats.t.cdf(T, df=len(shaoyang)-1)
+```
+
+其实，scipy 模块的统计部分有一些假设检验的函数。下面直接调用单样本 T 检验函数[stats.ttest_1samp](https://docs.scipy.org/doc/scipy/reference/stats.html#hypothesis-tests-and-related-functions)来计算 T 值和 P 值。
+
+```{python}
+t_stat, p_value = stats.ttest_1samp(a=shaoyang["常住人口"], popmean=700, alternative='less')
+# T 检验统计量
+print(t_stat)
+# P 值
+print(p_value)
+```
+
+计算结果和前面手搓的一样。邵阳市常住人口数总体上大于 700 万吗？根据现有的数据，这个问题的答案是否定的。
+
+# 进阶篇
+
+还是前面这个数据集，邵阳市常住人口数还是服从参数未知的正态分布 $N(\mu,\sigma^2)$ 。现在考察的问题是邵阳市常住人口数在置信水平为 $1-\alpha$ 下的置信区间，$\alpha$ 通常取 0.05，那么置信水平就是 0.95。
+
+## 置信区间
+
+现在的问题是根据这组样本观察值，构造一个区间，使得正态总体的均值/真值落入该区间的可能性/概率为 95% 。换句话说，我们要找一个区间，这个区间覆盖总体的真值的可能性/概率不低于 95% 。置信区间覆盖总体的真值的概率即覆盖概率，这个覆盖概率要大于 95% ，或者接近置信水平。
+
+```{python}
+res = stats.ttest_1samp(a=shaoyang["常住人口"], popmean=700, alternative='less')
+# 置信区间
+res.confidence_interval(confidence_level=0.95)
+```
+
+补充在 R 软件中的代码实现，如下：
+
+```{r}
+x <- c(
+  707.17, 704.01, 702.91, 698.78, 693.63,
+  690.33, 688.84, 687.21, 679.04, 665.39, 656.15
+)
+sd(x)
+t.test(x, mu = 700, alternative = "less")
+```
+
+计算结果与前面完全一致。做假设检验的同时，可以获得参数真值的置信区间。
+
+## 功效水平
+
+一个检验的功效函数（Power function）是样本观察值落在拒绝域的概率。功效是用来衡量检验统计量的检验效果的，功效越大，表示检验统计量越灵敏，实际表现是用更少的样本量就可以对原假设问题作出结论。在业务中，减少样本量意味着减少时间和实验成本。在 Python 模块 scipy 的统计部分中有功效计算函数 [stats.power](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.power.html#scipy.stats.power)，归在重抽样和蒙特卡罗方法栏目下。
+
+在这个单样本的 t 检验问题下，检验的对象是正态分布的均值参数 $\mu$，功效函数记为 $g(\mu)$ ，它与显著性水平 $\alpha$ （也是犯第一类错误的概率）和犯第二类错误的概率 $\beta$ 的关系。
+
+$$
+\begin{aligned}
+g(\mu) = \left\{
+  \begin{array}{l}
+    \alpha(\mu)  & H_0 ~\mathrm{成立} \\
+    1-\beta(\mu) & H_1 ~\mathrm{成立}
+  \end{array} \right.
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+g(\mu) &= P_{\mu}\{\bar{x} < \mu_0\} \\
+&= P_{\mu}\{\frac{\bar{x}-\mu}{s/\sqrt{n}} < \frac{ \mu_0-\mu}{s/\sqrt{n}}\} \\
+&= P_{\mu}\{t < \frac{ \mu_0-\mu}{s/\sqrt{n}} \} \\
+&= \int_{-\infty}^{\frac{ \mu_0-\mu}{s/\sqrt{n}}} f(x;n-1)dx
+\end{aligned}
+$$ 其中，将 $\frac{\bar{x}-\mu}{s/\sqrt{n}}$ 看作自由度为 $n-1$ 的 $t$ 分布的随机变量，而 $f(x)$ 是相应的 $t$ 分布的概率密度函数。当将样本均值 $\bar{x}$ 代入 $\mu$ 时，Power 值就是前面计算的 P 值。
+
+### Python 语言实现
+
+首先接着用 scipy 内的 `stats.power()` 函数来计算功效，在这里，Power 的计算是通过抽样，结果存在随机性，设置随机数种子，以便可复现。
+
+```{python}
+import numpy as np
+rng = np.random.default_rng(seed=20262026)
+# 总体（常住人口）的分布是正态分布
+# 样本均值和样本标准差来替代总体均值和总体标准差
+# 将从这个分布中生成随机数
+rvs = lambda size: rng.normal(loc=shaoyang["常住人口"].mean(), scale=shaoyang["常住人口"].std(), size=size)
+# 单样本 t 检验
+test = stats.ttest_1samp
+# 样本量
+n_obs = len(shaoyang["常住人口"])
+# 默认样本量是 n_resamples=10000
+res = stats.power(test=test, rvs=rvs, n_observations=n_obs, significance=0.05, kwargs={'popmean': 700, 'alternative': 'less'})
+# 输出结果
+res
+# 打印 power 值
+res.power
+# P 值小于 0.05 的比例表示功效
+np.mean(res.pvalues < 0.05)
+```
+
+Python 里的 statsmodels 模块也有计算功效的方法。
+
+```{python}
+from statsmodels.stats.power import TTestPower
+# Cohen's d，即均值差除以标准差
+effect_size = (shaoyang["常住人口"].mean()-700)/shaoyang["常住人口"].std()
+effect_size
+# 显著性水平
+alpha=0.05
+res = TTestPower().power(
+  effect_size=effect_size,
+  nobs=n_obs,
+  alpha=alpha,
+  alternative='smaller' # 注意与 effect_size、备择假设的符号保持一致
+)
+print(res)
+```
+
+### R 语言实现
+
+给定各参数值的情况下，计算功效的大小。在 R 软件中，有类似的函数 `power.t.test()` 。
+
+```{r}
+power.t.test(
+  n = length(x), delta = abs(mean(x) - 700),
+  sd = sd(x), sig.level = 0.05,
+  type = "one.sample",
+  alternative = "one.sided" # 这里没有方向可选，delta 必须为正，计算结果才对
+)
+# 前面 t 检验等价的功效计算
+library(pwr)
+pwr.t.test(
+  d = (mean(x)-700)/sd(x), # Cohen's d
+  n = length(x),
+  sig.level = 0.05,
+  type = "one.sample",
+  alternative = "less" # 注意与备择假设、参数 d 的方向保持一致
+)
+
+pwr.t.test(
+  d = (700-mean(x))/sd(x), # Cohen's d
+  n = length(x),
+  sig.level = 0.05,
+  type = "one.sample",
+  alternative = "greater" # 同上
+)
+```
+
+综上，在 Python 环境中，推荐使用 statsmodels 模块来计算功效，而在 R 环境中，推荐使用 pwr 包来计算功效。
+
+# 思考题
+
+根据邵阳市统计局发布的统计年鉴显示，2023 年邵阳市年末常住人口 635.88 万人，其中，城镇人口 345.46 万人，农村人口 290.42 万人，城市化率 54.33% 。邵阳市的城市化率大于 50% 吗？根据这个问题，提出一个原假设（也叫零假设）和备择假设。
+
+历年邵阳市的城市化水平数据如下：
+
+```{python}
+import pandas as pd
+shaoyang = pd.DataFrame(
+    {
+        "年份": [2017, 2018, 2019, 2020, 2021, 2022, 2023],
+        "常住人口": [737.54, 737.05, 730.24, 656.15, 646.83, 641.78, 635.88],
+        "城镇人口": [338.46, 350.02, 356.2,  342.22, 343.05, 344.29, 345.46],
+        "农村人口": [399.08, 387.03, 374.04, 313.93, 303.78, 297.49, 290.42],
+        "城市化率": [45.89, 47.49, 48.78, 52.16, 53.04, 53.65, 54.33]
+    }
+)
+from great_tables import GT
+(GT(shaoyang))
+```
+
+注意：2021 年发布的统计年鉴对 2019 年及以前的人口数据做了一次修订，上表中保留了修订之前的数据。
+
+邵阳市下辖一共 12 个市区县，其中，双清区，大祥区和北塔区是邵阳市直管的城区，武冈市和邵东市是邵阳市代管的县级市。
+
+```{python}
+import pandas as pd
+shaoyang = pd.DataFrame(
+    {
+        "市县名称": ["双清区", "大祥区", "北塔区", "新邵县", "邵阳县", "隆回县", "洞口县", "绥宁县", "新宁县", "城步县", "武冈市", "邵东市"],
+        "常住人口": [32.01, 36.32, 12.37, 58.59, 71.45, 98.02, 65.71, 28.32, 49.78, 22.11, 62.01, 99.19],
+        "城镇人口": [28.83, 32.02, 9.94, 27.36, 34.03, 44.04, 33.01, 12.12, 23.76, 9.85, 31.97, 58.53],
+        "农村人口": [3.18, 4.3, 2.43, 31.23, 37.42, 53.98, 32.7, 16.2, 26.02, 12.26, 30.04, 40.66],
+        "城市化率": [90.07, 88.16, 80.36, 46.7, 47.63, 44.93, 50.24, 42.8, 47.73, 44.55, 51.56, 59.01]
+    }
+)
+from great_tables import GT
+(GT(shaoyang))
+```
+
+以上两份城市化率数据，应该使用哪份数据来做检验？~~应该使用第一份数据，检验方法见[A/B 实验之统计指标的计算](/2026/03/ab-testing)。~~
+
+# 运行环境
+
+```{r}
+reticulate::py_config()
+```

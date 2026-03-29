@@ -1,0 +1,141 @@
+---
+title: 用 geopandas 绘制邵阳市各区县的人口分布图
+author: 黄湘云
+date: '2026-03-27'
+slug: geopandas
+categories:
+  - 统计软件
+tags:
+  - Pandas
+  - GeoPandas
+  - shapely
+  - matplotlib
+thumbnail: https://geopandas.org/en/stable/_static/geopandas_logo_web.svg
+description: "我以前写过好几篇用 R 语言绘制地图和空间数据可视化的博客。"
+---
+
+我以前写过 10 篇用 R 语言绘制地图和空间数据可视化相关的博客。
+
+1. 【热门文章】[R 语言画中国地图](/2022/02/draw-china-maps/) 找各种地图数据、检查数据可用性
+1. 【热门文章】[空间数据可视化与 R 语言（上篇）](/2022/02/maps-in-r/) 介绍空间数据操作 sf 包，用 echarts4r、 leaflet、plotly 和 lattice 包绘制可视化图形。
+1. [空间数据可视化与 R 语言（中篇）](/2022/02/spatial-data-visualization/) 找各类在线地图服务，结合在线地图绘制空间数据的各类可视化图形。
+1. [空间数据可视化与 R 语言（下篇）](/2023/02/visualize-spatial-data/) 不同类型的空间数据和不同的绘制方法。
+1. 【进阶】[地区分布图及其应用](/2022/04/choropleth-map/) 总结 R 语言中 7 种空间数据可视化的绘图方法。
+1. 【进阶】[R 语言制作地区分布图及其动画](/2022/05/choropleth-map-animation/) 以动画的方式可视化空间数据（时空数据）。
+1. 【高阶】[预测朗格拉普岛核辐射强度的分布](/2023/05/nuclear-pollution/) R 语言做空间分析和建模。
+1. 【进阶】[中国常住人口分布图（2023 年市级）](/2025/09/china-population/) leaflet 包 可视化中国各市的常住人口数及其变化。
+1. [地震越来越频繁了吗？](/2019/07/earthquake/) ggplot2 包绘制地图。
+1. [highcharter 食谱](/2019/06/highcharter-cookbook/) highcharter 包绘制地图。
+
+今天，用一些 Python 模块绘制一幅邵阳市人口的空间分布图。
+
+读取邵阳市的地图数据，这是一个 JSON 格式的数据。用 geopandas 模块读取该数据，之后，可以类似 pandas 模块那样操作数据。
+
+```{python}
+import geopandas as gpd
+shaoyang = gpd.read_file('data/邵阳市.json')
+# 坐标参考系
+shaoyang.crs
+# 查看前几行数据
+shaoyang.head()
+```
+
+显示了行数和列数，第一列和最后一列，中间列的数据都省略了。下面查看行政区域编码 'adcode', 区县名称 'name' 和地理边界 'geometry' 三列。
+
+```{python}
+shaoyang.loc[:, ['adcode', 'name', 'geometry']]
+```
+
+邵阳市一共 12 个区县。还可以查看所有的列。
+
+```{python}
+# 查看所有的列
+shaoyang.columns
+# 查看所有的列的数据类型
+shaoyang.dtypes
+```
+
+绘制邵阳市区县级行政区划图，默认设置下的效果图。
+
+```{python plot-district}
+shaoyang.plot()
+```
+
+有了地图数据集后，下面准备邵阳市各区县 2023年的常住年末户数（单位：万户）及人口（单位：万人）数据。
+
+```{python}
+import pandas as pd
+pop23 = pd.DataFrame(
+    {
+        "adcode": [430502, 430503, 430511, 430522, 430523, 430524, 430525, 430527, 430528, 430529, 430581, 430582],
+        "name": ["双清区", "大祥区", "北塔区", "新邵县", "邵阳县", "隆回县", "洞口县", "绥宁县", "新宁县", "城步苗族自治县", "武冈市", "邵东市"],
+        "household": [11.55, 14.14, 4.86, 19.94, 24.01, 35.18, 22.6, 10.83, 16.69, 7.67, 22.65, 36.59],
+        "population": [32.01, 36.32, 12.37, 58.59, 71.45, 98.02, 65.71, 28.32, 49.78, 22.11, 62.01, 99.19]
+    }
+)
+pop23
+```
+
+
+调用 pandas 模块的 merge 方法将地图数据和常住人口数据合并至一个数据框内。
+
+```{python}
+mydata = pd.merge(shaoyang.loc[:, ['name', 'geometry']], pop23, on="name")
+```
+
+最后，借助模块 geopandas 的 plot 方法 绘制可视化图形，指定要可视化的数据列，选择一个合适的[调色板](https://matplotlib.org/stable/tutorials/colors/colormaps.html)，显示图例。
+
+
+```{python plot-population}
+mydata.plot(column="population", cmap='OrRd', legend=True)
+```
+
+matplotlib 模块内置的调色板还有很多，运行如下代码可查看。
+
+```{python}
+from matplotlib import colormaps
+# 多少个调色板
+len(list(colormaps))
+```
+
+```{python}
+# 全部显示出来
+df = pd.DataFrame(list(colormaps), columns=list("A"))
+df["A"].to_numpy()
+```
+
+实际上是 90 个调色板，后缀 `_r` 表示反向。
+
+geopandas 还可以画各种常规图形，如散点图、折线图、箱线图、直方图。
+
+```{python plot-scatter}
+mydata.plot(kind="scatter", x="household", y="population")
+```
+
+geopandas 还可以绘制交互图形，此时，需要安装额外的 Python 模块 folium （调用 leaflet.js）和 mapclassify 。
+
+```{python}
+mydata.explore(column="population", tooltip="population", cmap='OrRd')
+```
+
+下面补充本文运行的环境。
+
+```{r}
+reticulate::py_config()
+```
+
+所用 Python 模块的版本，如下。
+
+- matplotlib 3.10.7
+- pandas 3.0.0
+- geopandas 1.1.3
+- shapely 2.1.2
+- folium 0.20.0
+- mapclassify 2.10.0
+
+这是用到的几个 Python 模块的官方网站。
+
+1. <https://github.com/geopandas/geopandas>
+1. <https://github.com/shapely/shapely>
+1. <https://matplotlib.org/stable/>
+1. [Scientific Visualization: Python + Matplotlib](https://github.com/rougier/scientific-visualization-book) Nicolas P. Rougier, Bordeaux, November 2021. Matplotlib 高级绘图画廊。
