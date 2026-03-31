@@ -1,0 +1,486 @@
+---
+title: A/B 实验之两样本的比率检验
+date: "2026-03-30"
+author: "黄湘云"
+slug: prop-test
+categories:
+  - 统计软件
+tags:
+  - 数据科学
+  - A/B 实验
+  - 增长优化
+  - 伯努利分布
+  - 二项分布
+  - 比率检验
+  - 卡方检验
+  - Yates 连续性矫正
+  - Fisher 精确检验
+math: true
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+description: "本文介绍 A/B 实验实施过程中，在实验数据分析环节上对目标指标的统计分析与计算。访购率的变化是否达到统计上的显著性？由此，需要多少样本，做多久的实验才能确认实验效果。在 A/B 实验中，对照组和实验组的观察值，分别统计出来的访购率，逐天对比（比例检验），衡量策略的整体效果，平均意义下的累积对比（比率型指标检验 bootstrap 方法）。"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#%E6%98%BE%E8%91%97%E6%80%A7%E6%A3%80%E9%AA%8C" id="toc-显著性检验"><span class="toc-section-number">1</span> 显著性检验</a>
+<ul>
+<li><a href="#%E6%89%8B%E6%90%93%E7%89%88%E6%9C%AC" id="toc-手搓版本"><span class="toc-section-number">1.1</span> 手搓版本</a></li>
+<li><a href="#%E6%AF%94%E4%BE%8B%E6%A3%80%E9%AA%8C-prop.test" id="toc-比例检验-prop.test"><span class="toc-section-number">1.2</span> 比例检验 <code>prop.test()</code></a></li>
+<li><a href="#%E5%8D%A1%E6%96%B9%E6%A3%80%E9%AA%8C-chisq.test" id="toc-卡方检验-chisq.test"><span class="toc-section-number">1.3</span> 卡方检验 <code>chisq.test()</code></a>
+<ul>
+<li><a href="#yates-%E7%9F%AB%E6%AD%A3" id="toc-yates-矫正"><span class="toc-section-number">1.3.1</span> Yates 矫正</a></li>
+</ul></li>
+<li><a href="#fisher-%E7%B2%BE%E7%A1%AE%E6%A3%80%E9%AA%8C-fisher.test" id="toc-fisher-精确检验-fisher.test"><span class="toc-section-number">1.4</span> Fisher 精确检验 <code>fisher.test()</code></a></li>
+<li><a href="#%E4%BA%8C%E9%A1%B9%E6%A3%80%E9%AA%8C-binom.test" id="toc-二项检验-binom.test"><span class="toc-section-number">1.5</span> 二项检验 <code>binom.test()</code></a></li>
+</ul></li>
+<li><a href="#%E6%A0%B7%E6%9C%AC%E9%87%8F%E9%A2%84%E4%BC%B0%E4%B8%8E%E5%8A%9F%E6%95%88%E8%AE%A1%E7%AE%97" id="toc-样本量预估与功效计算"><span class="toc-section-number">2</span> 样本量预估与功效计算</a>
+<ul>
+<li><a href="#%E5%AE%9E%E9%AA%8C%E5%89%8D%E9%A2%84%E4%BC%B0%E6%A0%B7%E6%9C%AC%E9%87%8F" id="toc-实验前预估样本量"><span class="toc-section-number">2.1</span> 实验前预估样本量</a></li>
+<li><a href="#%E5%AE%9E%E9%AA%8C%E4%B8%AD%E8%AE%A1%E7%AE%97%E5%8A%9F%E6%95%88" id="toc-实验中计算功效"><span class="toc-section-number">2.2</span> 实验中计算功效</a></li>
+</ul></li>
+</ul>
+</div>
+
+<p>在 A/B 实验场景下，对于比率型指标的检验，以访购率为例，今天的访购率相比于昨天的访购率是有显著提升还是随机波动？这涉及到两样本二项总体的比例检验。</p>
+<div id="显著性检验" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> 显著性检验</h1>
+<p>对每个访问过平台的商品的人，都有两个可能结果，购买商品和没有购买商品，购买与否可以看作是一个随机事件，顾客购买商品的可能性可以用概率来刻画。对平台而言，努力提高顾客的购买率是核心商业价值。</p>
+<table>
+<caption>访购率观测数据</caption>
+<thead>
+<tr class="header">
+<th>日期</th>
+<th align="center">第 1 天（今天）</th>
+<th align="center">第2天（昨天）</th>
+<th align="center">第3天（前天）</th>
+<th>···</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>购买 UV</td>
+<td align="center"><span class="math inline">\(a_1\)</span></td>
+<td align="center"><span class="math inline">\(a_2\)</span></td>
+<td align="center"><span class="math inline">\(a_3\)</span></td>
+<td>···</td>
+</tr>
+<tr class="even">
+<td>访问 UV</td>
+<td align="center"><span class="math inline">\(n_1\)</span></td>
+<td align="center"><span class="math inline">\(n_2\)</span></td>
+<td align="center"><span class="math inline">\(n_3\)</span></td>
+<td>···</td>
+</tr>
+<tr class="odd">
+<td>访购率</td>
+<td align="center"><span class="math inline">\(a_1/n_1\)</span></td>
+<td align="center"><span class="math inline">\(a_2/n_2\)</span></td>
+<td align="center"><span class="math inline">\(a_3/n_3\)</span></td>
+<td>···</td>
+</tr>
+</tbody>
+</table>
+<p>设一组样本（今天），顾客购买与否可以用 0-1 分布（伯努利分布）来刻画，对每个顾客 <span class="math inline">\(x_1,x_2,\ldots,x_{n_{1}}\)</span> （取值为 1 表示购买或者 0 表示没有购买）假定服从伯努利分布 <span class="math inline">\(\mathrm{Bernoulli}(p_1)\)</span> ，且每个顾客购买与否相互独立，且购买意愿强弱由平台决定，是一样的，则该天所有人的购买行为累加 <span class="math inline">\(\sum_{i=1}^{n_1}x_i\)</span> 就服从二项分布 <span class="math inline">\(\mathrm{Binom}(n_1,p_1)\)</span> 。</p>
+<p>当然，实际上，对同一件商品，不同的人看到后购买意愿是不同的，受顾客本身的因素影响。而平台的威力在于，它已经知道顾客的很多信息，比如年龄、性别、收入水平、城市线、历史购买习惯等，使得平台可以个性化地、针对性地推送，这个个性化服务包含了用户因素，就是说平台的推送包含了用户因素，那么平台的服务质量可以看作是影响访购率的主要因素。</p>
+<p>基于以上考量，同理，设另一组样本（昨天），每个顾客的购买行为为 <span class="math inline">\(y_1,y_2,\ldots,y_{n_2}\)</span> （取值为 1 或者 0），累加之后，<span class="math inline">\(\sum_{i=1}^{n_2}y_i\)</span> 服从二项分布 <span class="math inline">\(\mathrm{Binom}(n_2,p_2)\)</span> 。</p>
+<p>结合前面表格的记号，则有</p>
+<p><span class="math display">\[
+\begin{aligned}
+a_1 &amp;= \sum_{i=1}^{n_1}x_i \sim \mathrm{Binom}(n_1,p_1) \\
+a_2 &amp;= \sum_{i=1}^{n_2}y_i \sim \mathrm{Binom}(n_2,p_2)
+\end{aligned}
+\]</span></p>
+<p>今天的访购率相比于昨天的访购率是有显著提升还是随机波动？转化为统计检验问题如下：</p>
+<p><span class="math display">\[
+H_0: p_1 = p_2 \quad vs. \quad H_1: p_1 \neq p_2
+\]</span></p>
+<p>对于这个检验问题，我们构造检验统计量 <span class="math inline">\(T\)</span> ，在大样本情形下，根据中心极限定理，可得</p>
+<p><span class="math display">\[
+T = \frac{(\hat{p_1}-\hat{p_2}) - (p_1 - p_2)}{\sqrt{\frac{p_1(1-p_1)}{n_1}+\frac{p_2(1-p_2)}{n_2}}} \sim N(0,1)
+\]</span></p>
+<p>其中，<span class="math inline">\(\hat{p_1},\hat{p_2}\)</span> 是根据样本观察值计算的样本均值，根据替换法（Slutsky 定理），以样本均值替换总体均值。</p>
+<p><span class="math display">\[
+T \approx \frac{(\hat{p_1}-\hat{p_2}) - (p_1 - p_2)}{\sqrt{\frac{\hat{p_1}(1-\hat{p_1})}{n_1}+\frac{\hat{p_2}(1-\hat{p_2})}{n_2}}} \sim N(0,1)
+\]</span></p>
+<p>在原假设成立的情况下，<span class="math inline">\(p_1 - p_2 = 0\)</span> ，检验统计量 <span class="math inline">\(T\)</span> 简化为</p>
+<p><span class="math display">\[
+\hat{T} = \frac{(\hat{p_1}-\hat{p_2})}{\sqrt{\frac{\hat{p_1}(1-\hat{p_1})}{n_1}+\frac{\hat{p_2}(1-\hat{p_2})}{n_2}}}
+\]</span></p>
+<p>其中，<span class="math inline">\(\hat{p_1} = a_1/n_1,\hat{p_2}=a_2/n_2\)</span> 。</p>
+<div id="手搓版本" class="section level2" number="1.1">
+<h2><span class="header-section-number">1.1</span> 手搓版本</h2>
+<p>在显著性水平 <span class="math inline">\(\alpha = 0.05\)</span> 的情况下，下面计算检验统计量和 P 值。</p>
+<pre class="r"><code>n1 &lt;- 86
+n2 &lt;- 93
+a1 &lt;- 30
+a2 &lt;- 50
+p1 &lt;- a1 / n1
+p2 &lt;- a2 / n2
+T_hat &lt;- (p1 - p2) / sqrt(p1 * (1 - p1) / n1 + p2 * (1 - p2) / n2)
+# 检验统计量的值
+T_hat</code></pre>
+<pre><code>## [1] -2.59</code></pre>
+<pre class="r"><code># P 值
+2 * pnorm(q = T_hat) # 这是一个双侧检验，正态分布是对称的</code></pre>
+<pre><code>## [1] 0.009602</code></pre>
+<p>检验结果显示，P 值小于 0.05，拒绝 H<sub>0</sub> 。根据前面检验统计量的极限分布，检验统计量 <span class="math inline">\(\hat{T}\sim N(0,1)\)</span> ，那么 <span class="math inline">\(\hat{T}^2 \sim \chi^2(1)\)</span> 。换算成卡方分布，那么检验统计量和 P 值如下：</p>
+<pre class="r"><code># 检验统计量
+T_hat^2</code></pre>
+<pre><code>## [1] 6.707</code></pre>
+<pre class="r"><code># P 值
+1 - pchisq(q = T_hat^2, df = 1)</code></pre>
+<pre><code>## [1] 0.009602</code></pre>
+<p>两种计算方法得到的 P 值是一样的。</p>
+</div>
+<div id="比例检验-prop.test" class="section level2" number="1.2">
+<h2><span class="header-section-number">1.2</span> 比例检验 <code>prop.test()</code></h2>
+<p>在 R 语言软件中，函数 <code>prop.test()</code> （两/多样本）、<code>chisq.test()</code> （两/多样本）和 <code>binom.test()</code> （单样本）都可以做比例检验问题。</p>
+<pre class="r"><code># x 表示购买的用户 n 表示访问的用户
+prop.test(
+  x = c(30, 50), n = c(86, 93),
+  conf.level = 0.95,
+  alternative = &quot;two.sided&quot;
+)</code></pre>
+<pre><code>## 
+## 	2-sample test for equality of proportions with continuity correction
+## 
+## data:  c(30, 50) out of c(86, 93)
+## X-squared = 5.7, df = 1, p-value = 0.02
+## alternative hypothesis: two.sided
+## 95 percent confidence interval:
+##  -0.34287 -0.03473
+## sample estimates:
+## prop 1 prop 2 
+## 0.3488 0.5376</code></pre>
+<p>函数 <code>prop.test()</code> 和前面计算的卡方检验统计量、P值存在差异是因为它内部调用卡方检验，且存在 Yates 矫正。手搓的版本实际上是 <span class="math inline">\(Z\)</span> 检验（检验统计量的极限分布是标准正态分布），这二者是不同的检验方法。</p>
+</div>
+<div id="卡方检验-chisq.test" class="section level2" number="1.3">
+<h2><span class="header-section-number">1.3</span> 卡方检验 <code>chisq.test()</code></h2>
+<p>为了验证这一点，调用卡方检验函数 <code>chisq.test()</code> 来计算。在做卡方检验前，先将数据整理成列联表的形式。这个两样本的比例检验问题等价于 <span class="math inline">\(2\times 2\)</span> 的列联表检验。</p>
+<table>
+<caption><span class="math inline">\(2\times2\)</span> 的列联表</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th>第一天</th>
+<th>第二天</th>
+<th>总计（行和）</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>购买</td>
+<td><span class="math inline">\(a_1\)</span> (30)</td>
+<td><span class="math inline">\(a_2\)</span> (50)</td>
+<td>80</td>
+</tr>
+<tr class="even">
+<td>未购买</td>
+<td><span class="math inline">\(n_1-a_1\)</span> (56)</td>
+<td><span class="math inline">\(n_2-a_2\)</span> (43)</td>
+<td>99</td>
+</tr>
+<tr class="odd">
+<td>总计（列和）</td>
+<td><span class="math inline">\(n_1\)</span> (86)</td>
+<td><span class="math inline">\(n_2\)</span> (93)</td>
+<td>179</td>
+</tr>
+</tbody>
+</table>
+<p>此种情形下，根据中心极限定理，检验统计量 <span class="math inline">\(T\)</span> 极限分布为标准正态分布 <span class="math inline">\(N(0,1)\)</span> ，其形式与前面的两样本比例相等的检验的公式非常接近，只是在列联表的框架下重新表示罢了。</p>
+<p><span class="math display">\[
+\begin{aligned}
+\widetilde{p} &amp;= \frac{a_1 + a_2}{n_1+n_2} \\
+T &amp;= \frac{(\frac{a_1}{n_1} - \frac{a_2}{n_2})}{ \sqrt{(\frac{1}{n_1} + \frac{1}{n_2})*\widetilde{p}*(1-\widetilde{p}) }}
+\end{aligned}
+\]</span></p>
+<p>此检验统计量 <span class="math inline">\(T^2\)</span> 渐近服从自由度为 1 的卡方分布 <span class="math inline">\(\chi^2(1)\)</span>。</p>
+<pre class="r"><code>p_wide &lt;- (a1 + a2) / (n1 + n2)
+chi &lt;- (p1 - p2)^2 / ((1 / n1 + 1 / n2) * p_wide * (1 - p_wide))
+# 卡方统计量
+chi</code></pre>
+<pre><code>## [1] 6.443</code></pre>
+<pre class="r"><code># P 值
+1 - pchisq(q = chi, df = 1)</code></pre>
+<pre><code>## [1] 0.01114</code></pre>
+<p>函数 <code>chisq.test()</code> 需要一个矩阵（二维列联表在 R 语言内的表示是一个矩阵）。</p>
+<pre class="r"><code># 直接使用卡方检验 chisq.test()
+chisq.test(
+  x = rbind(
+    c(30, 50), # 购买
+    c(56, 43) # 未购买
+  ), correct = F # 不矫正
+)</code></pre>
+<pre><code>## 
+## 	Pearson&#39;s Chi-squared test
+## 
+## data:  rbind(c(30, 50), c(56, 43))
+## X-squared = 6.4, df = 1, p-value = 0.01</code></pre>
+<p>不矫正的结果和前面手动计算的结果完全一样了。</p>
+<div id="yates-矫正" class="section level3" number="1.3.1">
+<h3><span class="header-section-number">1.3.1</span> Yates 矫正</h3>
+<p>在 <span class="math inline">\(2\times2\)</span> 的列联表情形下，默认使用 Yates 连续性矫正，矫正后的检验统计量如下。</p>
+<p><span class="math display">\[
+\chi^2 = \sum_{i=1}^{2}\sum_{j=1}^{2}\frac{(|O_{ij}-E_{ij}| -0.5)^2}{E_{ij}}
+\]</span></p>
+<p>其中，<span class="math inline">\(O_{ij}\)</span> 表示观测的频数，<span class="math inline">\(E_{ij}\)</span> 表示期望的频数（需要计算，见后方表格）。这个矫正使得卡方统计量的值变得更小，在小样本（某个格子的样本量小于 5）场景下，检验结果更加保守一些。矫正后的检验结果如下：</p>
+<pre class="r"><code>chisq.test(
+  x = rbind(
+    c(30, 50), # 购买
+    c(56, 43) # 未购买
+  ), correct = TRUE
+)</code></pre>
+<pre><code>## 
+## 	Pearson&#39;s Chi-squared test with Yates&#39; continuity correction
+## 
+## data:  rbind(c(30, 50), c(56, 43))
+## X-squared = 5.7, df = 1, p-value = 0.02</code></pre>
+<p>卡方统计量和 P 值计算的结果与比例检验函数 <code>prop.test()</code> 完全一致。下面手动计算矫正过程，先计算各个 <span class="math inline">\(\hat{p_{ij}}\)</span> 的值。</p>
+<table>
+<caption>各 <span class="math inline">\(\hat{p_{ij}}\)</span> 的计算结果</caption>
+<colgroup>
+<col width="25%" />
+<col width="25%" />
+<col width="25%" />
+<col width="25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>第一天</th>
+<th>第二天</th>
+<th><span class="math inline">\(\hat{p_{i\cdot}}\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>购买</td>
+<td><span class="math inline">\((a_1+a_2)/(n_1+n_2)*n_1/(n_1+n_2)\)</span></td>
+<td>略</td>
+<td><span class="math inline">\((a_1+a_2)/(n_1+n_2)\)</span></td>
+</tr>
+<tr class="even">
+<td>未购买</td>
+<td>略</td>
+<td>略</td>
+<td><span class="math inline">\((n_1-a_1+n_2-a_2)/(n_1+n_2)\)</span></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\hat{p_{\cdot j}}\)</span></td>
+<td><span class="math inline">\(n_1/(n_1+n_2)\)</span></td>
+<td><span class="math inline">\(n_2/(n_1+n_2)\)</span></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>上表中，各 <span class="math inline">\(\hat{p_{ij}}\)</span> 与总样本量 <span class="math inline">\(n_1+n_2\)</span> 相乘的结果就是期望频数 <span class="math inline">\(E_{ij}\)</span> 。</p>
+<pre class="r"><code>p11 &lt;- (a1 + a2) / (n1 + n2) * n1 / (n1 + n2)
+a11 &lt;- (abs(a1 - (n1 + n2) * p11) - 0.5)^2 / ((n1 + n2) * p11)
+a11
+## [1] 1.638
+
+p12 &lt;- (a1 + a2) / (n1 + n2) * n2 / (n1 + n2)
+a12 &lt;- (abs(a2 - (n1 + n2) * p12) - 0.5)^2 / ((n1 + n2) * p12)
+a12
+## [1] 1.515
+
+p21 &lt;- n1 / (n1 + n2) * (n1 - a1 + n2 - a2) / (n1 + n2)
+a21 &lt;- (abs(n1 - a1 - (n1 + n2) * p21) - 0.5)^2 / ((n1 + n2) * p21)
+a21
+## [1] 1.324
+
+p22 &lt;- n2 / (n1 + n2) * (n1 - a1 + n2 - a2) / (n1 + n2)
+a22 &lt;- (abs(n2 - a2 - (n1 + n2) * p22) - 0.5)^2 / ((n1 + n2) * p22)
+a22
+## [1] 1.224
+
+# 卡方检验统计量的值
+a11 + a12 + a21 + a22
+## [1] 5.702
+
+# P 值
+1 - pchisq(q = a11 + a12 + a21 + a22, df = 1)
+## [1] 0.01695</code></pre>
+<p>这就和 Yates 矫正后的卡方检验结果一样了。</p>
+</div>
+</div>
+<div id="fisher-精确检验-fisher.test" class="section level2" number="1.4">
+<h2><span class="header-section-number">1.4</span> Fisher 精确检验 <code>fisher.test()</code></h2>
+<p>适用于小样本的情形，不依赖近似，精确计算。当 <span class="math inline">\(2\times2\)</span> 的列联表中某个格子的值小于 5 时。</p>
+<p>先引入一个优势（odds）的概念。对于二项分布的参数 <span class="math inline">\(p\)</span> ，也叫成功概率，即事件发生的概率，在本文这个示例里，代表购买的概率。优势的定义如下：</p>
+<p><span class="math display">\[
+\mathrm{优势} = \frac{p}{1-p}
+\]</span></p>
+<p>购买的概率相对于不购买的倍数，如果优势大于 1，表示购买的概率比不购买的概率大。在此基础上再定义优势比（odds ratio），两样本的二项分布的成功概率的比较。优势比的定义如下：</p>
+<p><span class="math display">\[
+\mathrm{优势比} = \frac{p_1/(1-p_1)}{p_2/(1-p_2)}
+\]</span></p>
+<p>两样本的二项分布的比例检验等价于检验优势比为 1 的 Fisher 精确检验。</p>
+<p>Fisher 精确检验：原假设 <span class="math inline">\(H_0\)</span> 优势比为 1，备择假设 <span class="math inline">\(H_1\)</span> 优势比不为 1。</p>
+<pre class="r"><code>a1 / n1 # 也就是 p1
+## [1] 0.3488
+a2 / n2 # 也就是 p2
+## [1] 0.5376
+# 优势比 odds ratio
+p1 / (1 - p1) / (p2 / (1 - p2))
+## [1] 0.4607</code></pre>
+<pre class="r"><code>fisher.test(
+  x = rbind(
+    c(30, 50), # 购买
+    c(56, 43) # 未购买
+  ),
+  or = 1, # 原假设：优势比 odds ratio = 1
+  conf.level = 0.95,
+  alternative = &quot;two.sided&quot;
+)</code></pre>
+<pre><code>## 
+## 	Fisher&#39;s Exact Test for Count Data
+## 
+## data:  rbind(c(30, 50), c(56, 43))
+## p-value = 0.02
+## alternative hypothesis: true odds ratio is not equal to 1
+## 95 percent confidence interval:
+##  0.2410 0.8778
+## sample estimates:
+## odds ratio 
+##     0.4628</code></pre>
+<p>根据这组数据来看，P 值小于 0.05，拒绝原假设。</p>
+</div>
+<div id="二项检验-binom.test" class="section level2" number="1.5">
+<h2><span class="header-section-number">1.5</span> 二项检验 <code>binom.test()</code></h2>
+<pre class="r"><code># x 表示购买的用户 n 表示访问的用户
+# 检验访购率是否为 30/86=34.88%（假设这是昨天的访购率）
+binom.test(x = 50, n = 93, p = 30 / 86, conf.level = 0.95, alternative = &quot;two.sided&quot;)</code></pre>
+<pre><code>## 
+## 	Exact binomial test
+## 
+## data:  50 and 93
+## number of successes = 50, number of trials = 93, p-value = 3e-04
+## alternative hypothesis: true probability of success is not equal to 0.3488
+## 95 percent confidence interval:
+##  0.4312 0.6416
+## sample estimates:
+## probability of success 
+##                 0.5376</code></pre>
+<p>其中，置信水平 <span class="math inline">\(1-\alpha\)</span> 为 0.95 ，则假设检验的显著性水平 <span class="math inline">\(\alpha=0.05\)</span> 。在给出检验结论的同时也给出了两比例之差的置信区间。</p>
+</div>
+</div>
+<div id="样本量预估与功效计算" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> 样本量预估与功效计算</h1>
+<p>在平台做 A/B 实验的过程中，假定访购率是实验目标之一，希望新的策略可以提升访购率。经过几天的实验，累积了一批数据，对照组数据如前表所示，实验组数据如下：</p>
+<table>
+<thead>
+<tr class="header">
+<th>日期</th>
+<th align="center">第 1 天</th>
+<th align="center">第2天</th>
+<th align="center">第3天</th>
+<th>···</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>购买 UV</td>
+<td align="center"><span class="math inline">\(b_1\)</span></td>
+<td align="center"><span class="math inline">\(b_2\)</span></td>
+<td align="center"><span class="math inline">\(b_3\)</span></td>
+<td>···</td>
+</tr>
+<tr class="even">
+<td>访问 UV</td>
+<td align="center"><span class="math inline">\(m_1\)</span></td>
+<td align="center"><span class="math inline">\(m_2\)</span></td>
+<td align="center"><span class="math inline">\(m_3\)</span></td>
+<td>···</td>
+</tr>
+<tr class="odd">
+<td>访购率</td>
+<td align="center"><span class="math inline">\(b_1/m_1\)</span></td>
+<td align="center"><span class="math inline">\(b_2/m_2\)</span></td>
+<td align="center"><span class="math inline">\(b_3/m_3\)</span></td>
+<td>···</td>
+</tr>
+</tbody>
+</table>
+<p>理想态下，实验组每天的访购率都比对照组高，新策略的效果很好。实际上，在很多时候，可能某一天实验组比对照组访购率高且达到统计显著性，而有的时候，没有达到统计显著性，甚至访购率比对照组还要低。</p>
+<p>根据前面的记号，实验组、对照组购买 UV 服从二项分布，具体如下，</p>
+<p><span class="math display">\[
+\begin{aligned}
+b_1 &amp;= \sum_{i=1}^{m_1}x^t_i \sim \mathrm{Binom}(m_1,p^t_1) \\
+a_1 &amp;= \sum_{i=1}^{n_1}x^c_i \sim \mathrm{Binom}(n_1,p^c_1)
+\end{aligned}
+\]</span></p>
+<p>其中，<span class="math inline">\(p^t_1\)</span> 和 <span class="math inline">\(p^c_1\)</span> 分别为实验组 Treatment 和对照组 Control 第一天的访购率。</p>
+<div id="实验前预估样本量" class="section level2" number="2.1">
+<h2><span class="header-section-number">2.1</span> 实验前预估样本量</h2>
+<p>另有一个函数 <code>power.prop.test()</code> 可以计算比例检验的功效，预估达到统计显著性需要的样本量。再根据业务上放量的情况，可以预估实验天数。</p>
+<pre class="r"><code># 样本量预估
+power.prop.test(
+  p1 = 0.45, # 当前业务的访购率（对照组）
+  p2 = 0.46, # 新策略实施后业务的访购率，绝对提升 1%（实验组）
+  sig.level = 0.05, # 显著性水平
+  power = 0.85, # 功效水平
+  alternative = &quot;two.sided&quot; # 双边检验
+)</code></pre>
+<pre><code>## 
+##      Two-sample comparison of proportions power calculation 
+## 
+##               n = 44527
+##              p1 = 0.45
+##              p2 = 0.46
+##       sig.level = 0.05
+##           power = 0.85
+##     alternative = two.sided
+## 
+## NOTE: n is number in *each* group</code></pre>
+<pre class="r"><code># 样本量预估
+library(pwr) # 或者使用 pwr 包
+pwr.2p.test( # 实验组和对照组相同的样本量
+  h = ES.h(p1 = 0.45, p2 = 0.46), # Effect size Cohen&#39;s d
+  sig.level = 0.05, # 显著性水平
+  power = 0.85, # 功效水平
+  alternative = &quot;two.sided&quot; # 双边检验
+)</code></pre>
+<pre><code>## 
+##      Difference of proportion power calculation for binomial distribution (arcsine transformation) 
+## 
+##               h = 0.02008
+##               n = 44527
+##       sig.level = 0.05
+##           power = 0.85
+##     alternative = two.sided
+## 
+## NOTE: same sample sizes</code></pre>
+<p>在这样的情况下，对照组和实验组各需要累积 44527 个样本才能有把握说，新策略能带来 1% 的提升。在新策略刚上线的时候，往往放量比较小，一天可能也就大几千，随着2-3天的实验结果显示效果不错，再增加放量，7 天下来，累积的样本量也能满足实验所需，若效果还能保持稳定良好，那么，实验结束，全量运行。在现如今的成熟的互联网平台上做实验，业务上 1% 的提升很可能就是一个季度的目标，带来的价值是很大的！</p>
+</div>
+<div id="实验中计算功效" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span> 实验中计算功效</h2>
+<p>实验进行几天后，实验组和对照组积累的样本量也不小了，要看一看是否可以全量了。我们将目前的效果提升情况和实验组、对照组的样本量代入，获取功效。这个功效的意思是有多少把握可以确定带来提升。如果还没有达到给结论所需要的功效标准（比如 0.85），那就继续放量，继续观察。</p>
+<pre class="r"><code># 实验中计算功效
+pwr.2p2n.test(
+  h = ES.h(p1 = 0.45, p2 = 0.46), # Effect size Cohen&#39;s d
+  n1 = 19500, # 实验组样本量
+  n2 = 245000, # 对照组样本量
+  sig.level = 0.05, # 显著性水平
+  alternative = &quot;two.sided&quot; # 双边检验
+)</code></pre>
+<pre><code>## 
+##      difference of proportion power calculation for binomial distribution (arcsine transformation) 
+## 
+##               h = 0.02008
+##              n1 = 19500
+##              n2 = 245000
+##       sig.level = 0.05
+##           power = 0.77
+##     alternative = two.sided
+## 
+## NOTE: different sample sizes</code></pre>
+<p>试验新的策略，并不确定效果的情况下，实验所收集的样本量有限，或者做实验的成本本就不低，或者实验场景所限，能够收集的样本量有限。更有甚者，样本之间不独立。这就需要 bootstrap 方法来获取检验统计量的分布及其方差。当然，实验样本量太少，而不足以代表总体，或者说样本失去对总体的代表性，那么什么统计方法也是不足用的。</p>
+</div>
+</div>
