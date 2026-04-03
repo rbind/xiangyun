@@ -1,0 +1,218 @@
+---
+title: A/B 实验之多重假设检验
+date: "2026-04-01"
+author: "黄湘云"
+slug: multiple-testing
+categories:
+  - 统计软件
+tags:
+  - 数据科学
+  - A/B 实验
+  - 增长优化
+  - 多重假设检验
+  - P值矫正
+  - Holm 方法
+  - BH 方法
+math: true
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+description: "本文介绍 A/B 实验过程中多重假设检验的问题，实验策略迭代优化的时候，可能会影响多个指标。业务上，我们希望能在保持住某些指标的情况下（约束指标），努力提升一些指标，很少有对所有指标都带来显著提升的情况。所以，在一次 A/B 实验中做了多个检验，其中一些指标向好，另一些指标向坏，在探索和利用的精细平衡之间，常常出现跷跷板现象。逐个检验指标还是同时检验多个指标以避免假阳性问题呢？当然是后者，在统计学上，这是一个多重假设检验的问题。"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#%E6%AF%94%E4%BE%8B%E9%BD%90%E6%80%A7%E6%A3%80%E9%AA%8C" id="toc-比例齐性检验"><span class="toc-section-number">1</span> 比例齐性检验</a></li>
+<li><a href="#%E5%A4%9A%E9%87%8D%E5%81%87%E8%AE%BE%E6%A3%80%E9%AA%8C" id="toc-多重假设检验"><span class="toc-section-number">2</span> 多重假设检验</a>
+<ul>
+<li><a href="#holm-%E8%B0%83%E6%95%B4" id="toc-holm-调整"><span class="toc-section-number">2.1</span> Holm 调整</a></li>
+</ul></li>
+<li><a href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE" id="toc-参考文献"><span class="toc-section-number">3</span> 参考文献</a></li>
+</ul>
+</div>
+
+<p>本文介绍 A/B 实验过程中多重假设检验的问题，实验策略迭代优化的时候，可能会影响多个指标。业务上，我们希望能在保持住某些指标的情况下（约束指标），努力提升一些指标，很少有对所有指标都带来显著提升的情况。所以，在一次 A/B 实验中做了多个检验，其中一些指标向好，另一些指标向坏，在探索和利用的精细平衡之间，常常出现跷跷板现象。逐个检验指标还是同时检验多个指标以避免假阳性问题呢？当然是后者，在统计学上，这是一个多重假设检验的问题。</p>
+<div id="比例齐性检验" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> 比例齐性检验</h1>
+<p>四个独立二项总体 <span class="math inline">\(\mathrm{Binom}(n_i, p_i),i=1,2,3,4\)</span> 的比例齐性检验问题如下：</p>
+<p><span class="math display">\[
+H_0: p_1 = p_2 = p_3 = p_4 \quad H_1: \mathrm{至少有一个} p_i \mathrm{不一致}
+\]</span></p>
+<p>下面考虑一个真实数据问题，数据集来自函数 <code>prop.test()</code> 的帮助文档。</p>
+<table>
+<caption>实验数据</caption>
+<thead>
+<tr class="header">
+<th>实验编号</th>
+<th>总样本量（病人总数）</th>
+<th>吸烟人数</th>
+<th>吸烟比例</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>86（<span class="math inline">\(n_1\)</span>）</td>
+<td>83</td>
+<td>0.965（<span class="math inline">\(p_1\)</span>）</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>93（<span class="math inline">\(n_2\)</span>）</td>
+<td>90</td>
+<td>0.968（<span class="math inline">\(p_2\)</span>）</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>136（<span class="math inline">\(n_3\)</span>）</td>
+<td>129</td>
+<td>0.949（<span class="math inline">\(p_3\)</span>）</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>82（<span class="math inline">\(n_4\)</span>）</td>
+<td>70</td>
+<td>0.854（<span class="math inline">\(p_4\)</span>）</td>
+</tr>
+<tr class="odd">
+<td>总计</td>
+<td>397</td>
+<td>372</td>
+<td>0.937（<span class="math inline">\(\bar{p}\)</span>）</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>smokers &lt;- c(83, 90, 129, 70)
+patients &lt;- c(86, 93, 136, 82)</code></pre>
+<p>R 语言中函数 <code>prop.test()</code> 可以用来做独立二项总体的比例齐性检验。</p>
+<pre class="r"><code>prop.test(x = smokers, n = patients,
+          alternative = &quot;two.sided&quot;,
+          conf.level = 0.95)</code></pre>
+<pre><code>## 
+## 	4-sample test for equality of proportions without continuity correction
+## 
+## data:  smokers out of patients
+## X-squared = 13, df = 3, p-value = 0.006
+## alternative hypothesis: two.sided
+## sample estimates:
+## prop 1 prop 2 prop 3 prop 4 
+## 0.9651 0.9677 0.9485 0.8537</code></pre>
+<p>P 值小于 0.05，意味着拒绝 <span class="math inline">\(H_0\)</span> ，至少有一个 <span class="math inline">\(p_i\)</span> 与其它的不同。要搞清楚是哪两个样本的比例存在显著差异，需要两两逐对比较（pairwise comparisons）检验。</p>
+<pre class="r"><code># 等价于
+chisq.test(
+  x = rbind(smokers, patients - smokers)
+)</code></pre>
+<pre><code>## 
+## 	Pearson&#39;s Chi-squared test
+## 
+## data:  rbind(smokers, patients - smokers)
+## X-squared = 13, df = 3, p-value = 0.006</code></pre>
+<p>实际上，是一个 <span class="math inline">\(4\times2\)</span> 的列联表独立性检验，检验统计量的形式如下：</p>
+<p><span class="math display">\[
+\chi^2 = \frac{1}{(1-\bar{p})\bar{p}}\sum_{i=1}^{4}n_i(p_i-\bar{p})^2
+\]</span></p>
+<p>它服从自由度为 <span class="math inline">\((4-1)\times(2-1)=3\)</span> 的卡方分布，这个检验统计量是如下一般形式的特例。</p>
+<p><span class="math display">\[
+\chi^2 = \sum_{i=1}^{4}\sum_{j=1}^{2}\frac{(O_{ij}-E_{ij})^2}{E_{ij}}
+\]</span></p>
+<p>关于上式的详细说明，以及函数 <code>prop.test()</code> 和 <code>chisq.test()</code> 的关系见文章<a href="http://localhost:4321/2026/03/prop-test/"><strong>A/B 实验之两样本的比率检验</strong></a>，此处不再赘述。</p>
+</div>
+<div id="多重假设检验" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> 多重假设检验</h1>
+<p>函数 <code>pairwise.prop.test()</code> 可以做两两逐对比较的多重检验，四个组共计 <span class="math inline">\(4*(4-1)/2 = 6\)</span> 个检验问题。如果每个检验问题都独立地看，显著性水平都控制在 0.05，也就是犯第一类错误的概率控制在 0.05。如果将每个检验看作一次事件，就是说检验出错的事件概率为 0.05。那 6 次检验至少有一个检验出错的概率为 1 减去 6 个检验都不出错的概率。</p>
+<pre class="r"><code># 6 个检验都不出问题的概率
+(1 - 0.05)^6 # 小于 0.95</code></pre>
+<pre><code>## [1] 0.7351</code></pre>
+<pre class="r"><code># 至少有一个检验出错的概率
+1 - (1 - 0.05)^6 # 大于 0.05</code></pre>
+<pre><code>## [1] 0.2649</code></pre>
+<p>显然，远大于 0.05。同时检验这 6 个问题，不能每个检验问题的显著性水平都设置为 0.05 ，而是要 6 个检验问题整体的显著性水平（犯第一类错误的概率）控制在 0.05 。一个自然的想法是将每个检验的显著性水平降低，比如为 <span class="math inline">\(\alpha/k\)</span> ，<span class="math inline">\(k\)</span> 是检验的个数。这是为了控制假阳性率，这需要调整每个检验的 P 值，函数 <code>pairwise.prop.test()</code> 默认采用的 P 值矫正的方法是 <code>holm</code> 。</p>
+<pre class="r"><code># R 语言软件内置的 P 值矫正方法如下
+p.adjust.methods</code></pre>
+<pre><code>## [1] &quot;holm&quot;       &quot;hochberg&quot;   &quot;hommel&quot;     &quot;bonferroni&quot; &quot;BH&quot;        
+## [6] &quot;BY&quot;         &quot;fdr&quot;        &quot;none&quot;</code></pre>
+<pre class="r"><code># 默认方法 holm
+pairwise.prop.test(x = smokers, n = patients)</code></pre>
+<pre><code>## Warning in prop.test(x[c(i, j)], n[c(i, j)], ...): Chi-squared approximation
+## may be incorrect
+## Warning in prop.test(x[c(i, j)], n[c(i, j)], ...): Chi-squared approximation
+## may be incorrect
+## Warning in prop.test(x[c(i, j)], n[c(i, j)], ...): Chi-squared approximation
+## may be incorrect</code></pre>
+<pre><code>## 
+## 	Pairwise comparisons using Pairwise comparison of proportions 
+## 
+## data:  smokers out of patients 
+## 
+##   1    2    3   
+## 2 1.00 -    -   
+## 3 1.00 1.00 -   
+## 4 0.12 0.09 0.12
+## 
+## P value adjustment method: holm</code></pre>
+<p>计算结果输出 6 个检验问题的 P 值。从中可以看出，第 4 组和第 2 组的比率相较其他组之间的差异更大，接近统计显著性水平 0.05。输出的警告是函数调用 <code>prop.test()</code> 两两检验时发出的，表明一个列联表中有的格子的 E 值（期望值，见前面的公式）小于 5，三次警告说明有三组统计检验对应的列联表中有 E 值小于 5。当我们逐个单独检验时，能发现那两组差异是最大的。</p>
+<pre class="r"><code># 多重检验对单组检验的 P 值进行了调整
+x = c(83, 90, 129, 70)
+n = c(86, 93, 136, 82)
+compare.levels &lt;- function(i, j) {
+   prop.test(x[c(i, j)], n[c(i, j)])$p.value
+}
+level.names = names(x) %||% seq_along(x)
+pairwise.table(compare.levels, level.names, p.adjust.method = &quot;holm&quot;)</code></pre>
+<pre><code>## Warning in prop.test(x[c(i, j)], n[c(i, j)]): Chi-squared approximation may be
+## incorrect
+## Warning in prop.test(x[c(i, j)], n[c(i, j)]): Chi-squared approximation may be
+## incorrect
+## Warning in prop.test(x[c(i, j)], n[c(i, j)]): Chi-squared approximation may be
+## incorrect</code></pre>
+<pre><code>##        1       2      3
+## 2 1.0000      NA     NA
+## 3 1.0000 1.00000     NA
+## 4 0.1186 0.09322 0.1238</code></pre>
+<p>多重检验对单组检验的 P 值进行了调整。</p>
+<div id="holm-调整" class="section level2" number="2.1">
+<h2><span class="header-section-number">2.1</span> Holm 调整</h2>
+<p>调整过程分三步：</p>
+<ol style="list-style-type: decimal">
+<li>将所有假设（共 <span class="math inline">\(m\)</span> 个），做检验并计算 P 值，将 P 值由小到大排列，记住重排 P 值后，P 值对应的假设，显著性水平 <span class="math inline">\(\alpha=0.05\)</span> 。</li>
+<li>逐步比较
+<ul>
+<li>从最小的 P 值开始，对于第 <span class="math inline">\(k\)</span> 个排序后的 P 值 <span class="math inline">\(p^{(k)}\)</span> ，计算阈值 <span class="math inline">\(\alpha/(m - k + 1)\)</span></li>
+<li>如果 <span class="math inline">\(p^{(k)}\)</span> 小于阈值 <span class="math inline">\(\alpha/(m - k + 1)\)</span> ，则拒绝该 P 值对应的假设，并继续到下一个 <span class="math inline">\(k\)</span> ，否则，停止，不再拒绝该假设及之后的所有假设。</li>
+</ul></li>
+<li>结论：所有被拒绝的假设都视为显著，未被拒绝的假设保持现状。</li>
+</ol>
+<pre class="r"><code># 第二组和第四组 
+(m &lt;- prop.test(x = c(90, 70), n = c(93, 82),
+          alternative = &quot;two.sided&quot;))</code></pre>
+<pre><code>## 
+## 	2-sample test for equality of proportions with continuity correction
+## 
+## data:  c(90, 70) out of c(93, 82)
+## X-squared = 5.9, df = 1, p-value = 0.02
+## alternative hypothesis: two.sided
+## 95 percent confidence interval:
+##  0.0181 0.2101
+## sample estimates:
+## prop 1 prop 2 
+## 0.9677 0.8537</code></pre>
+<pre class="r"><code>m$p.value</code></pre>
+<pre><code>## [1] 0.01554</code></pre>
+<p>第二组和第四组的 P 值是最小的，但是它并没有小于阈值 <span class="math inline">\(1/6*\alpha\)</span> ，所以它以及 P 值比它大的组都不能被拒绝。</p>
+<pre class="r"><code># P 值 m$p.value 被 holm 方法调整后的值
+p.adjust(m$p.value, method = &quot;holm&quot;, n = 6)</code></pre>
+<pre><code>## [1] 0.09322</code></pre>
+<p>调整后的 P 值，凡是比 0.05 大都不能视为显著。</p>
+<pre class="r"><code>m$p.value * 6</code></pre>
+<pre><code>## [1] 0.09322</code></pre>
+</div>
+</div>
+<div id="参考文献" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> 参考文献</h1>
+<ol style="list-style-type: decimal">
+<li>示例数据来自书籍《Statistical Methods for Rates &amp; Proportions》（第三版）Joseph L. Fleiss, 189 页. 打包在 R 环境中，见函数 <code>prop.test()</code> 或 <code>chisq.test()</code> 的帮助文档。</li>
+</ol>
+</div>
