@@ -356,8 +356,12 @@ addmargins(proportions(x))
 <p><span class="math display">\[
 \mathrm{优势比} = \frac{p_1/(1-p_1)}{p_2/(1-p_2)}
 \]</span></p>
-<p>两样本的二项分布的比例检验等价于检验优势比为 1 的 Fisher 精确检验。</p>
-<p>Fisher 精确检验：原假设 <span class="math inline">\(H_0\)</span> 优势比为 1，备择假设 <span class="math inline">\(H_1\)</span> 优势比不为 1。</p>
+<p>查看函数 <code>fisher.test()</code> 的帮助文档，可以知道 Fisher 精确检验的内容如下：</p>
+<ul>
+<li>原假设 <span class="math inline">\(H_0\)</span>：优势比为 1，</li>
+<li>备择假设 <span class="math inline">\(H_1\)</span>：优势比不为 1。</li>
+</ul>
+<p>不难看出，两样本的二项分布的比例检验等价于检验优势比为 1 的 Fisher 精确检验。</p>
 <pre class="r"><code>a1 / n1 # 也就是 p1
 ## [1] 0.3488
 a2 / n2 # 也就是 p2
@@ -516,6 +520,31 @@ pwr.2p2n.test(
 ##     alternative = two.sided
 ## 
 ## NOTE: different sample sizes</code></pre>
+<p>其中，函数 <code>ES.h()</code> 用来计算两个比例的效应（Cohen’s D）大小。对应的计算公式如下：</p>
+<p><span class="math display">\[
+h = 2 \arcsin \sqrt{p_1} - 2 \arcsin \sqrt{p_2}
+\]</span></p>
+<p>计算比例检验的功效，从 <strong>pwr</strong> 包的文档与源码中查看计算过程。</p>
+<pre class="r"><code>p1 = 0.45
+p2 = 0.46
+h = 2*(asin(sqrt(p1)) - asin(sqrt(p2)))
+h</code></pre>
+<pre><code>## [1] -0.02008</code></pre>
+<pre class="r"><code>h = abs(h)
+sig.level = 0.05
+n1 = 245000
+n2 = 19500
+# Power 计算
+pnorm(
+  qnorm(sig.level / 2, lower = FALSE) - h * sqrt((n1 *
+    n2) / (n1 + n2)),
+  lower = FALSE
+) +
+  pnorm(
+    qnorm(sig.level / 2, lower = TRUE) - h * sqrt((n1 * n2) / (n1 + n2)),
+    lower = TRUE
+  )</code></pre>
+<pre><code>## [1] 0.77</code></pre>
 <p>试验新的策略，并不确定效果的情况下，实验所收集的样本量有限，或者做实验的成本本就不低，或者实验场景所限，能够收集的样本量有限。更有甚者，样本之间不独立。这就需要 bootstrap 方法来获取检验统计量的分布及其方差。当然，实验样本量太少，而不足以代表总体，或者说样本失去对总体的代表性，那么什么统计方法也是不足用的。</p>
 </div>
 </div>
