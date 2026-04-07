@@ -125,14 +125,14 @@ g2(house_loan, x = &quot;年份&quot;, y = &quot;个人住房&quot;) |&gt;
   title_(text = &quot;2011-2025 年个人住房贷款余额&quot;,
          subtitle = &#39;数据源：中国人民银行&#39;) |&gt;
   theme_academy()</code></pre>
-<div id="gglite-1775537002-735794">
+<div id="gglite-1775547218-714520">
 
 </div>
 <script type="module">
 const chart = new G2.Chart({
   "height": 480,
   "autoFit": true,
-  "container": "gglite-1775537002-735794"
+  "container": "gglite-1775547218-714520"
 });
 chart.options({
   "data": {
@@ -180,14 +180,14 @@ chart.render();
   style_mark(shape = &#39;smooth&#39;, lineWidth = 2) |&gt; 
   axis_y(position = &quot;right&quot;, title = &quot;同比增速（单位：%）&quot;) |&gt;
   theme_academy()</code></pre>
-<div id="gglite-1775537002-235455">
+<div id="gglite-1775547218-39367">
 
 </div>
 <script type="module">
 const chart = new G2.Chart({
   "height": 480,
   "autoFit": true,
-  "container": "gglite-1775537002-235455"
+  "container": "gglite-1775547218-39367"
 });
 chart.options({
   "data": {
@@ -229,4 +229,79 @@ chart.options({
 });
 chart.render();
 </script>
-<p>如何合二为一呢？</p>
+<p>如何合二为一呢？<code>scale_y()</code> 函数中设置 <code>independent = T</code></p>
+<pre class="r"><code>library(gglite)
+# 双轴图：柱状图（个人住房，左轴）+ 线图（同比增速，右轴）
+g2(house_loan, x = &#39;年份&#39;) |&gt;
+  mark_interval(encode = list(color = &#39;#4C72B0&#39;, y = &#39;个人住房&#39;)) |&gt;  # 柱状图
+  scale_y(independent = T) |&gt;
+  axis_y(position = &#39;left&#39;, title = &quot;个人住房贷款余额（单位：万亿）&quot;) |&gt; 
+  mark_line(encode = list(color = &#39;#DD8452&#39;, y = &#39;同比增速&#39;)) |&gt;  # 线图
+  scale_y(independent = TRUE) |&gt;
+  style_mark(shape = &#39;smooth&#39;, lineWidth = 2) |&gt; 
+  axis_y(position = &#39;right&#39;, title = &#39;同比增速 (%)&#39;) |&gt;  # 右轴标题
+  title_(text = &quot;2011-2025 年个人住房贷款余额&quot;,
+         subtitle = &#39;数据源：中国人民银行&#39;) |&gt;
+  theme_academy()</code></pre>
+<div id="gglite-1775547218-976182">
+
+</div>
+<script type="module">
+const chart = new G2.Chart({
+  "height": 480,
+  "autoFit": true,
+  "container": "gglite-1775547218-976182"
+});
+chart.options({
+  "data": {
+    "type": "column",
+    "value": {
+      "年份": [2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025],
+      "季度": ["Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3"],
+      "个人住房": [6.4, 7.2, 8.7, 10.2, 12.4, 16.8, 21.1, 24.97, 29.05, 33.59, 37.4, 38.9, 38.4, 37.56, 37.44],
+      "同比增速": [16.2, 12, 20.9, 17.6, 21.6, 34.9, 26.2, 17.9, 16.8, 15.7, 11.3, 4.1, -1.2, -2.3, -0.3]
+    }
+  },
+  "children": [
+    {
+      "type": "interval",
+      "encode": {
+        "x": "年份",
+        "color": "#4C72B0",
+        "y": "个人住房"
+      }
+    },
+    {
+      "type": "line",
+      "encode": {
+        "x": "年份",
+        "color": "#DD8452",
+        "y": "同比增速"
+      },
+      "style": {
+        "shape": "smooth",
+        "lineWidth": 2
+      }
+    }
+  ],
+  "scale": {
+    "y": {
+      "independent": true
+    }
+  },
+  "axis": {
+    "y": {
+      "position": "right",
+      "title": "同比增速 (%)"
+    }
+  },
+  "title": {
+    "title": "2011-2025 年个人住房贷款余额",
+    "subtitle": "数据源：中国人民银行"
+  },
+  "theme": {
+    "type": "academy"
+  }
+});
+chart.render();
+</script>

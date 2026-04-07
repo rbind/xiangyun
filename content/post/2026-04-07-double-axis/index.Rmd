@@ -132,4 +132,21 @@ g2(house_loan, x = "年份", y = "同比增速") |>
   theme_academy()
 ```
 
-如何合二为一呢？
+如何合二为一呢？`scale_y()` 函数中设置 `independent = T`
+
+```{r}
+library(gglite)
+# 双轴图：柱状图（个人住房，左轴）+ 线图（同比增速，右轴）
+g2(house_loan, x = '年份') |>
+  mark_interval(encode = list(color = '#4C72B0', y = '个人住房')) |>  # 柱状图
+  scale_y(independent = T) |>
+  axis_y(position = 'left', title = "个人住房贷款余额（单位：万亿）") |> 
+  mark_line(encode = list(color = '#DD8452', y = '同比增速')) |>  # 线图
+  scale_y(independent = TRUE) |>
+  style_mark(shape = 'smooth', lineWidth = 2) |> 
+  axis_y(position = 'right', title = '同比增速 (%)') |>  # 右轴标题
+  title_(text = "2011-2025 年个人住房贷款余额",
+         subtitle = '数据源：中国人民银行') |>
+  theme_academy()
+```
+
