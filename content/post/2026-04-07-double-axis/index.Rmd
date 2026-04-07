@@ -1,0 +1,125 @@
+---
+title: matplotlib 绘制双轴图
+author: 黄湘云
+date: '2026-04-24'
+slug: double-axis
+categories:
+  - 统计软件
+tags:
+  - matplotlib
+  - 数据可视化
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+description: "2011-2025 年个人住房贷款余额变化趋势，包括绝对量及其增速的走势。"
+---
+
+注：本文的绘图代码借助 AI 转化和生成。读取数据的代码由 R 语言版转为 Python 版，绘图代码由 AI 生成，再手动调整。
+
+个人住房贷款余额的变化能反应房地产市场居民端购房情况。结合数据来看，购房需求见顶，房地产市场进入存量时代。
+
+```{python}
+import pandas as pd
+from io import StringIO
+
+# R 中的文本数据
+text_data = """年份	季度	个人住房	同比增速
+2011	Q3	6.4	16.2
+2012	Q3	7.2	12.0
+2013	Q3	8.7	20.9
+2014	Q3	10.2	17.6
+2015	Q3	12.4	21.6
+2016	Q3	16.8	34.9
+2017	Q3	21.1	26.2
+2018	Q3	24.97	17.9
+2019	Q3	29.05	16.8
+2020	Q3	33.59	15.7
+2021	Q3	37.4	11.3
+2022	Q3	38.9	4.1
+2023	Q3	38.4	-1.2
+2024	Q3	37.56	-2.3
+2025	Q3	37.44	-0.3"""
+
+# 读取到 DataFrame（类似 R 的 read.table）
+house_loan = pd.read_table(StringIO(text_data), sep='\t', header=0)
+print(house_loan)
+```
+
+```{python}
+import matplotlib.pyplot as plt
+# 设置中文字体
+import matplotlib.font_manager as fm
+fontP = fm.FontProperties()
+fontP.set_family('Noto Serif CJK SC')
+fontP.set_size(14)
+
+# 创建双轴图
+fig, ax1 = plt.subplots(figsize=(8, 5))
+
+# 左轴：个人住房（柱状图）
+ax1.bar(house_loan['年份'], house_loan['个人住房'], color='#4C72B0', label='个人住房')
+ax1.set_xlabel('年份', fontproperties=fontP)
+ax1.set_ylabel('个人住房贷款余额（单位：万亿）', fontproperties=fontP)
+
+# 右轴：同比增速（线图）
+ax2 = ax1.twinx()
+ax2.plot(house_loan['年份'], house_loan['同比增速'], color='#DD8452', marker='o', label='同比增速')
+ax2.set_ylabel('同比增速 (%)', fontproperties=fontP)
+
+# 添加标题和图例
+plt.title('2011-2025年个人住房贷款余额', fontproperties=fontP)
+fig.legend(loc='upper left', bbox_to_anchor=(0.12, 0.88), prop=fontP)
+# 背景网格线
+plt.grid(linestyle="--")
+
+plt.show()
+```
+
+
+数据来源：
+
+- 中华人民共和国中央人民政府，比如[2025年三季度金融机构贷款投向统计报告](https://www.gov.cn/lianbo/bumen/202510/content_7045664.htm) 近期数据
+- 中国人民银行，比如[2025年货币政策执行报告](https://www.pbc.gov.cn/zhengcehuobisi/125207/125227/index.html) 历史数据
+
+2022 年个人住房贷款余额达到顶峰，之后略微降低。说明个人住房需求都得到满足，而不再买房吗？不是的，实际上，许多居民想买而买不起城里的房子。说明居民不再继续贷款购房了吗？是的，一部分未能在城里安家的居民更愿意拿钱在老家购房，特别是钱在城里购房不足而在老家建房有余的人。另一部分，持币观望的人，这分两类，还未购房的人，已有住房想改善的人。
+
+说明居民还款量多于贷款量。当前房地产市场，不再有大量新的购房者。过去已经背上房贷的人在还款，新增的个人住房贷款在减少，还款减去贷款是正数。
+
+附：
+
+R 语言读取数据的代码。
+
+```{r}
+house_loan = read.table(text = 
+"年份	季度	个人住房	同比增速
+2011	Q3	6.4	16.2
+2012	Q3	7.2	12.0
+2013	Q3	8.7	20.9
+2014	Q3	10.2	17.6
+2015	Q3	12.4	21.6
+2016	Q3	16.8	34.9
+2017	Q3	21.1	26.2
+2018	Q3	24.97	17.9
+2019	Q3	29.05	16.8
+2020	Q3	33.59	15.7
+2021	Q3	37.4	11.3
+2022	Q3	38.9	4.1
+2023	Q3	38.4	-1.2
+2024	Q3	37.56	-2.3
+2025	Q3	37.44	-0.3
+", header = T, sep = "\t")
+```
+
+以上数据是我手动从 PDF 报告和 HTML 网页中复制粘贴到 Excel 表格，再从表格复制粘贴到本文档的。
+
+```{r}
+library(gglite)
+g2(house_loan, x = "年份", y = "个人住房") |> 
+  mark_interval() |> 
+  labels_(text = "个人住房", position = 'inside') |> 
+  title_(text = "2011-2025 年个人住房贷款余额（单位：万亿）",
+         subtitle = '数据源：中国人民银行') |>
+  theme_academy()
+```
+
