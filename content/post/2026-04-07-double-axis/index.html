@@ -125,14 +125,14 @@ g2(house_loan, x = &quot;年份&quot;, y = &quot;个人住房&quot;) |&gt;
   title_(text = &quot;2011-2025 年个人住房贷款余额&quot;,
          subtitle = &#39;数据源：中国人民银行&#39;) |&gt;
   theme_academy()</code></pre>
-<div id="gglite-1775536288-885873">
+<div id="gglite-1775537002-735794">
 
 </div>
 <script type="module">
 const chart = new G2.Chart({
   "height": 480,
   "autoFit": true,
-  "container": "gglite-1775536288-885873"
+  "container": "gglite-1775537002-735794"
 });
 chart.options({
   "data": {
@@ -176,17 +176,18 @@ chart.render();
 </script>
 <pre class="r"><code>g2(house_loan, x = &quot;年份&quot;, y = &quot;同比增速&quot;) |&gt; 
   scale_y(independent = T) |&gt; 
-  mark_line(y = &#39;y&#39;) |&gt; 
+  mark_line() |&gt; 
+  style_mark(shape = &#39;smooth&#39;, lineWidth = 2) |&gt; 
   axis_y(position = &quot;right&quot;, title = &quot;同比增速（单位：%）&quot;) |&gt;
   theme_academy()</code></pre>
-<div id="gglite-1775536288-991814">
+<div id="gglite-1775537002-235455">
 
 </div>
 <script type="module">
 const chart = new G2.Chart({
   "height": 480,
   "autoFit": true,
-  "container": "gglite-1775536288-991814"
+  "container": "gglite-1775537002-235455"
 });
 chart.options({
   "data": {
@@ -205,7 +206,10 @@ chart.options({
         "x": "年份",
         "y": "同比增速"
       },
-      "y": "y"
+      "style": {
+        "shape": "smooth",
+        "lineWidth": 2
+      }
     }
   ],
   "scale": {

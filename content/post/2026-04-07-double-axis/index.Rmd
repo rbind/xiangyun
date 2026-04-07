@@ -126,7 +126,8 @@ g2(house_loan, x = "年份", y = "个人住房") |>
 
 g2(house_loan, x = "年份", y = "同比增速") |> 
   scale_y(independent = T) |> 
-  mark_line(y = 'y') |> 
+  mark_line() |> 
+  style_mark(shape = 'smooth', lineWidth = 2) |> 
   axis_y(position = "right", title = "同比增速（单位：%）") |>
   theme_academy()
 ```
