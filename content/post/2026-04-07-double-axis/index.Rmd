@@ -1,7 +1,7 @@
 ---
 title: matplotlib 绘制双轴图
 author: 黄湘云
-date: '2026-04-24'
+date: '2026-04-07'
 slug: double-axis
 categories:
   - 统计软件
@@ -117,9 +117,18 @@ house_loan = read.table(text =
 library(gglite)
 g2(house_loan, x = "年份", y = "个人住房") |> 
   mark_interval() |> 
+  axis_y(title = "个人住房贷款余额（单位：万亿）") |> 
   labels_(text = "个人住房", position = 'inside') |> 
-  title_(text = "2011-2025 年个人住房贷款余额（单位：万亿）",
+  title_(text = "2011-2025 年个人住房贷款余额",
          subtitle = '数据源：中国人民银行') |>
+  theme_academy()
+
+
+g2(house_loan, x = "年份", y = "同比增速") |> 
+  scale_y(independent = T) |> 
+  mark_line(y = 'y') |> 
+  axis_y(position = "right", title = "同比增速（单位：%）") |>
   theme_academy()
 ```
 
+如何合二为一呢？
