@@ -120,19 +120,20 @@ plt.show()</code></pre>
 <pre class="r"><code>library(gglite)
 g2(house_loan, x = &quot;年份&quot;, y = &quot;个人住房&quot;) |&gt; 
   mark_interval() |&gt; 
-  axis_y(title = &quot;个人住房贷款余额（单位：万亿）&quot;) |&gt; 
-  labels_(text = &quot;个人住房&quot;, position = &#39;inside&#39;) |&gt; 
+  axis_y(title = &quot;个人住房贷款余额（万亿）&quot;) |&gt; 
   title_(text = &quot;2011-2025 年个人住房贷款余额&quot;,
          subtitle = &#39;数据源：中国人民银行&#39;) |&gt;
   theme_academy()</code></pre>
-<div id="gglite-1775547218-714520">
+<div data-gglite-container="">
 
 </div>
 <script type="module">
+const el = document.querySelector("[data-gglite-container]");
+el.removeAttribute("data-gglite-container");
 const chart = new G2.Chart({
   "height": 480,
   "autoFit": true,
-  "container": "gglite-1775547218-714520"
+  "container": el
 });
 chart.options({
   "data": {
@@ -150,18 +151,12 @@ chart.options({
       "encode": {
         "x": "年份",
         "y": "个人住房"
-      },
-      "labels": [
-        {
-          "text": "个人住房",
-          "position": "inside"
-        }
-      ]
+      }
     }
   ],
   "axis": {
     "y": {
-      "title": "个人住房贷款余额（单位：万亿）"
+      "title": "个人住房贷款余额（万亿）"
     }
   },
   "title": {
@@ -174,20 +169,21 @@ chart.options({
 });
 chart.render();
 </script>
-<pre class="r"><code>g2(house_loan, x = &quot;年份&quot;, y = &quot;同比增速&quot;) |&gt; 
-  scale_y(independent = T) |&gt; 
+<pre class="r"><code>g2(house_loan, x = &quot;年份&quot;, y = &quot;同比增速&quot;, color = &#39;#DD8452&#39;) |&gt; 
   mark_line() |&gt; 
-  style_mark(shape = &#39;smooth&#39;, lineWidth = 2) |&gt; 
+  style_mark(lineWidth = 2) |&gt;
   axis_y(position = &quot;right&quot;, title = &quot;同比增速（单位：%）&quot;) |&gt;
   theme_academy()</code></pre>
-<div id="gglite-1775547218-39367">
+<div data-gglite-container="">
 
 </div>
 <script type="module">
+const el = document.querySelector("[data-gglite-container]");
+el.removeAttribute("data-gglite-container");
 const chart = new G2.Chart({
   "height": 480,
   "autoFit": true,
-  "container": "gglite-1775547218-39367"
+  "container": el
 });
 chart.options({
   "data": {
@@ -204,19 +200,14 @@ chart.options({
       "type": "line",
       "encode": {
         "x": "年份",
-        "y": "同比增速"
+        "y": "同比增速",
+        "color": "#DD8452"
       },
       "style": {
-        "shape": "smooth",
         "lineWidth": 2
       }
     }
   ],
-  "scale": {
-    "y": {
-      "independent": true
-    }
-  },
   "axis": {
     "y": {
       "position": "right",
@@ -229,28 +220,29 @@ chart.options({
 });
 chart.render();
 </script>
-<p>如何合二为一呢？<code>scale_y()</code> 函数中设置 <code>independent = T</code></p>
+<p>如何合二为一呢？<code>scale_y()</code> 函数中设置 <code>independent = TRUE</code></p>
 <pre class="r"><code>library(gglite)
 # 双轴图：柱状图（个人住房，左轴）+ 线图（同比增速，右轴）
 g2(house_loan, x = &#39;年份&#39;) |&gt;
   mark_interval(encode = list(color = &#39;#4C72B0&#39;, y = &#39;个人住房&#39;)) |&gt;  # 柱状图
-  scale_y(independent = T) |&gt;
-  axis_y(position = &#39;left&#39;, title = &quot;个人住房贷款余额（单位：万亿）&quot;) |&gt; 
-  mark_line(encode = list(color = &#39;#DD8452&#39;, y = &#39;同比增速&#39;)) |&gt;  # 线图
+  axis_y(position = &#39;left&#39;, title = &quot;个人住房贷款余额（万亿）&quot;) |&gt;
   scale_y(independent = TRUE) |&gt;
-  style_mark(shape = &#39;smooth&#39;, lineWidth = 2) |&gt; 
+  mark_line(encode = list(color = &#39;#DD8452&#39;, y = &#39;同比增速&#39;)) |&gt;  # 线图
+  style_mark(lineWidth = 2) |&gt; 
   axis_y(position = &#39;right&#39;, title = &#39;同比增速 (%)&#39;) |&gt;  # 右轴标题
   title_(text = &quot;2011-2025 年个人住房贷款余额&quot;,
          subtitle = &#39;数据源：中国人民银行&#39;) |&gt;
   theme_academy()</code></pre>
-<div id="gglite-1775547218-976182">
+<div data-gglite-container="">
 
 </div>
 <script type="module">
+const el = document.querySelector("[data-gglite-container]");
+el.removeAttribute("data-gglite-container");
 const chart = new G2.Chart({
   "height": 480,
   "autoFit": true,
-  "container": "gglite-1775547218-976182"
+  "container": el
 });
 chart.options({
   "data": {
@@ -279,8 +271,13 @@ chart.options({
         "y": "同比增速"
       },
       "style": {
-        "shape": "smooth",
         "lineWidth": 2
+      },
+      "axis": {
+        "y": {
+          "position": "right",
+          "title": "同比增速 (%)"
+        }
       }
     }
   ],
@@ -291,8 +288,8 @@ chart.options({
   },
   "axis": {
     "y": {
-      "position": "right",
-      "title": "同比增速 (%)"
+      "position": "left",
+      "title": "个人住房贷款余额（万亿）"
     }
   },
   "title": {
@@ -305,3 +302,23 @@ chart.options({
 });
 chart.render();
 </script>
+<p>最后，补充 ggplot2 包绘制双轴图的代码。</p>
+<pre class="r"><code>library(ggplot2)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;ggplot2&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:gglite&#39;:
+## 
+##     coord_polar, coord_radial, scale_shape, scale_size, theme_classic,
+##     theme_dark, theme_light</code></pre>
+<pre class="r"><code>showtext::showtext_auto()
+# 双轴图：左轴柱状图（个人住房），右轴线图（同比增速）
+ggplot(house_loan, aes(x = 年份)) +
+  geom_bar(aes(y = 个人住房), stat = &quot;identity&quot;, fill = &quot;#4C72B0&quot;, alpha = 0.7) +
+  geom_line(aes(y = 同比增速), color = &quot;#DD8452&quot;, linewidth = 1) +  # 缩放同比增速以匹配左轴范围
+  scale_y_continuous(
+    name = &quot;个人住房贷款余额（万亿）&quot;,
+    sec.axis = sec_axis(~ ., name = &quot;同比增速 (%)&quot;)  # 右轴
+  ) +
+  labs(title = &quot;2011-2025 年个人住房贷款余额&quot;, subtitle = &quot;数据源：中国人民银行&quot;) +
+  theme_classic(base_size = 14)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-1.png" alt="" width="768" /></p>
