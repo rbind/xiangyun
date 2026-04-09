@@ -400,3 +400,26 @@ pnorm(
 
 1.  《概率论与数理统计教程》（第二版），茆诗松、程依明、濮晓龙。分类数据的$\chi^2$拟合优度检验，列联表的独立性检验。
 2.  美团因果技术实践[可信实验白皮书](https://s3plus.meituan.net/ddfile/2025%E5%8F%AF%E4%BF%A1%E5%AE%9E%E9%AA%8C%E7%99%BD%E7%9A%AE%E4%B9%A62025.8.20.pdf)。
+
+# 附录 {#appendix}
+
+注意：功效计算函数 `power.prop.test()` 的检验统计量见前面卡方检验一节，使用到大样本下的正态近似。
+
+```{r}
+# 比率的绝对提升一样，但是 power 是不同的
+power.prop.test(n = 46, sig.level = 0.05, p1 = 0.65, p2 = 0.45)
+power.prop.test(n = 46, sig.level = 0.05, p1 = 0.25, p2 = 0.05)
+```
+
+在此，可以这么直观理解比率型指标提升的效应大小，提升一项指标刚开始总是容易些，越到后面，提升起来越难。
+
+```{r collapse=TRUE}
+library(pwr)
+# arcsine transformation 来计算效应大小
+ES.h(p1 = 0.65, p2 = 0.45)
+ES.h(p1 = 0.25, p2 = 0.05)
+pwr.2p.test(h = ES.h(p1 = 0.65, p2 = 0.45), sig.level = 0.05, n = 46)
+pwr.2p.test(h = ES.h(p1 = 0.25, p2 = 0.05), sig.level = 0.05, n = 46)
+```
+
+样本量比较小时，**pwr** 包计算的结果与函数 `power.prop.test()` 不同。
