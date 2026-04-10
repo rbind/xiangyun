@@ -83,9 +83,40 @@ $$
 
 ## 手搓版本 {#handout}
 
-在显著性水平 $\alpha = 0.05$ 的情况下，下面计算检验统计量和 P 值。
+```{r echo=FALSE}
+# A/B 实验之假设检验 单样本 T 检验
+dat1 = data.frame(x1 = seq(-4, 4, length.out = 200)) |> 
+  transform(y1 = dnorm(x1, mean = 0, sd = 1))
 
-```{r}
+dat2 = data.frame(x2 = seq(-4, -1.96, length.out = 100)) |>
+  transform(y2 = dnorm(x2, mean = 0, sd = 1))
+
+dat3 = data.frame(x3 = seq(1.96, 4, length.out = 100)) |> 
+  transform(y3 = dnorm(x3, mean = 0, sd = 1))
+
+dat4 = data.frame(x4 = c(-1.96, 1.96)) |> 
+  transform(y4 = dnorm(x4, mean = 0, sd = 1))
+
+dat5 = data.frame(x5 = c(-1.96-0.5, 1.96+0.5), text = c("alpha/2", "1-alpha/2")) |> 
+  transform(y5 = dnorm(x5, mean = 0, sd = 1))
+
+library(gglite)
+g2() |>
+  mark_area(data = dat1, encode = list(x = "x1", y = "y1", color = "#4C72B0"), style = list(fillOpacity = 0.5)) |>
+  mark_area(data = dat2, encode = list(x = "x2", y = "y2", color = "#DD8452")) |>
+  mark_area(data = dat3, encode = list(x = "x3", y = "y3", color = "#DD8452")) |>
+  mark_point(data = dat4, encode = list(x = "x4", y = "y4", color = "#4C72B0")) |>
+  mark_text(data = dat4, encode = list(x = "x4", y = "y4", text = "x4", color = "#DD8452"), style = list(textAlign = "center", dy = -20, fontSize = 15)) |>
+  axis_x(title = "x") |>
+  mark_text(data = dat5, encode = list(x = "x5", y = "y5", text = "text", color = "#DD8452"), style = list(textAlign = "center", dy = -70,  fontSize = 20, connector = TRUE, startMarker = TRUE, startMarkerFill = "#4C72B0")) |> 
+  axis_y(title = "f(x)") |>
+  title_(text = "u 检验示意图") |>
+  theme_academy()
+```
+
+在显著性水平 $\alpha = 0.05$ 的情况下，下面计算检验统计量的值和 P 值。
+
+```{r collapse=TRUE}
 n1 <- 86
 n2 <- 93
 a1 <- 30
@@ -99,7 +130,7 @@ T_hat
 2 * pnorm(q = T_hat) # 这是一个双侧检验，正态分布是对称的
 ```
 
-检验结果显示，P 值小于 0.05，拒绝 H~0~ 。根据前面检验统计量的极限分布，检验统计量 $\hat{T}\sim N(0,1)$ ，那么 $\hat{T}^2 \sim \chi^2(1)$ 。换算成卡方分布，那么检验统计量和 P 值如下：
+检验结果显示，检验统计量的绝对值大于临界值 1.96，P 值小于 0.05，拒绝 H~0~ 。根据前面检验统计量的极限分布，检验统计量 $\hat{T}\sim N(0,1)$ ，那么 $\hat{T}^2 \sim \chi^2(1)$ 。换算成卡方分布，那么检验统计量和 P 值如下：
 
 ```{r}
 # 检验统计量
