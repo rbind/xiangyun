@@ -3,9 +3,11 @@
   <ul class="footer-links">
     <li>
       {{ with .OutputFormats.Get "RSS" }}
-      <a href="{{ .Permalink | relURL }}" type="application/rss+xml" target="_blank"><i class="fa fa-rss" aria-hidden="true" title="RSS"></i></a>
+      <a href="{{ .Permalink | relURL }}" type="application/rss+xml" target="_blank"><i class="fa fa-rss" aria-hidden="true" title="订阅 RSS"></i></a>
       {{ end }}
     </li>
+    <li><a href="mailto:xiangyunfaith@outlook.com" title="邮箱"><i class="fa fa-envelope"></i>
+   </a></li>
     <li><a href="https://github.com/{{ .Site.Params.Github }}"><i class="fa fa-github" aria-hidden="true" title="Github"></i><span class="sr-only">Github</span></a>
     </li>
     <li>
