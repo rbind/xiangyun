@@ -62,9 +62,7 @@
     {{ partial "prev_next.html" . }}
     
     <br>
-    {{ if in (split "post,daily,business" ",") .Section }}
     {{ partial "comments.html" . }}
-    {{ end }}
     
   </article>
 
