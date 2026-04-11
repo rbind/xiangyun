@@ -15,8 +15,6 @@ output:
 description: "2011-2025 年个人住房贷款余额变化趋势，包括绝对量及其增速的走势。"
 ---
 
-<script src="https://unpkg.com/@antv/g2@5/dist/g2.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/@xiee/utils@v1.14.31/js/g2-patches.min.js" defer></script>
 
 
 <p>注：本文的绘图代码借助 AI 转化和生成。读取数据的代码由 R 语言版转为 Python 版，绘图代码由 AI 生成，再手动调整。</p>
@@ -118,12 +116,14 @@ plt.show()</code></pre>
 &quot;, header = T, sep = &quot;\t&quot;)</code></pre>
 <p>以上数据是我手动从 PDF 报告和 HTML 网页中复制粘贴到 Excel 表格，再从表格复制粘贴到本文档的。</p>
 <pre class="r"><code>library(gglite)
-g2(house_loan, x = &quot;年份&quot;, y = &quot;个人住房&quot;) |&gt; 
+g2(house_loan, x = ~年份, y = ~个人住房, color = &#39;#4C72B0&#39;) |&gt; 
   mark_interval() |&gt; 
   axis_y(title = &quot;个人住房贷款余额（万亿）&quot;) |&gt; 
-  title_(text = &quot;2011-2025 年个人住房贷款余额&quot;,
+  header(title = &quot;2011-2025 年个人住房贷款余额&quot;,
          subtitle = &#39;数据源：中国人民银行&#39;) |&gt;
-  theme_academy()</code></pre>
+  theme_classic()</code></pre>
+<script src="https://unpkg.com/@antv/g2@5/dist/g2.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@xiee/utils@v1.14.34/js/g2-patches.min.js" defer></script>
 <div data-gglite-container="">
 
 </div>
@@ -140,9 +140,7 @@ chart.options({
     "type": "column",
     "value": {
       "年份": [2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025],
-      "季度": ["Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3"],
-      "个人住房": [6.4, 7.2, 8.7, 10.2, 12.4, 16.8, 21.1, 24.97, 29.05, 33.59, 37.4, 38.9, 38.4, 37.56, 37.44],
-      "同比增速": [16.2, 12, 20.9, 17.6, 21.6, 34.9, 26.2, 17.9, 16.8, 15.7, 11.3, 4.1, -1.2, -2.3, -0.3]
+      "个人住房": [6.4, 7.2, 8.7, 10.2, 12.4, 16.8, 21.1, 24.97, 29.05, 33.59, 37.4, 38.9, 38.4, 37.56, 37.44]
     }
   },
   "children": [
@@ -150,30 +148,31 @@ chart.options({
       "type": "interval",
       "encode": {
         "x": "年份",
-        "y": "个人住房"
+        "y": "个人住房",
+        "color": "#4C72B0"
+      },
+      "axis": {
+        "y": {
+          "title": "个人住房贷款余额（万亿）"
+        }
       }
     }
   ],
-  "axis": {
-    "y": {
-      "title": "个人住房贷款余额（万亿）"
-    }
-  },
   "title": {
     "title": "2011-2025 年个人住房贷款余额",
     "subtitle": "数据源：中国人民银行"
   },
   "theme": {
-    "type": "academy"
+    "type": "classic"
   }
 });
 chart.render();
 </script>
-<pre class="r"><code>g2(house_loan, x = &quot;年份&quot;, y = &quot;同比增速&quot;, color = &#39;#DD8452&#39;) |&gt; 
+<pre class="r"><code>g2(house_loan, x = ~年份, y = ~同比增速, color = &#39;#DD8452&#39;) |&gt; 
   mark_line() |&gt; 
   style_mark(lineWidth = 2) |&gt;
   axis_y(position = &quot;right&quot;, title = &quot;同比增速（单位：%）&quot;) |&gt;
-  theme_academy()</code></pre>
+  theme_classic()</code></pre>
 <div data-gglite-container="">
 
 </div>
@@ -190,8 +189,6 @@ chart.options({
     "type": "column",
     "value": {
       "年份": [2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025],
-      "季度": ["Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3"],
-      "个人住房": [6.4, 7.2, 8.7, 10.2, 12.4, 16.8, 21.1, 24.97, 29.05, 33.59, 37.4, 38.9, 38.4, 37.56, 37.44],
       "同比增速": [16.2, 12, 20.9, 17.6, 21.6, 34.9, 26.2, 17.9, 16.8, 15.7, 11.3, 4.1, -1.2, -2.3, -0.3]
     }
   },
@@ -205,17 +202,17 @@ chart.options({
       },
       "style": {
         "lineWidth": 2
+      },
+      "axis": {
+        "y": {
+          "position": "right",
+          "title": "同比增速（单位：%）"
+        }
       }
     }
   ],
-  "axis": {
-    "y": {
-      "position": "right",
-      "title": "同比增速（单位：%）"
-    }
-  },
   "theme": {
-    "type": "academy"
+    "type": "classic"
   }
 });
 chart.render();
@@ -230,9 +227,10 @@ g2(house_loan, x = &#39;年份&#39;) |&gt;
   mark_line(encode = list(color = &#39;#DD8452&#39;, y = &#39;同比增速&#39;)) |&gt;  # 线图
   style_mark(lineWidth = 2) |&gt; 
   axis_y(position = &#39;right&#39;, title = &#39;同比增速 (%)&#39;) |&gt;  # 右轴标题
-  title_(text = &quot;2011-2025 年个人住房贷款余额&quot;,
+  mark_point(encode = list(color = &#39;#DD8452&#39;, y = &#39;同比增速&#39;)) |&gt; 
+  header(title = &quot;2011-2025 年个人住房贷款余额&quot;,
          subtitle = &#39;数据源：中国人民银行&#39;) |&gt;
-  theme_academy()</code></pre>
+  theme_classic()</code></pre>
 <div data-gglite-container="">
 
 </div>
@@ -249,7 +247,6 @@ chart.options({
     "type": "column",
     "value": {
       "年份": [2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025],
-      "季度": ["Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3", "Q3"],
       "个人住房": [6.4, 7.2, 8.7, 10.2, 12.4, 16.8, 21.1, 24.97, 29.05, 33.59, 37.4, 38.9, 38.4, 37.56, 37.44],
       "同比增速": [16.2, 12, 20.9, 17.6, 21.6, 34.9, 26.2, 17.9, 16.8, 15.7, 11.3, 4.1, -1.2, -2.3, -0.3]
     }
@@ -261,6 +258,17 @@ chart.options({
         "x": "年份",
         "color": "#4C72B0",
         "y": "个人住房"
+      },
+      "axis": {
+        "y": {
+          "position": "left",
+          "title": "个人住房贷款余额（万亿）"
+        }
+      },
+      "scale": {
+        "y": {
+          "independent": true
+        }
       }
     },
     {
@@ -279,25 +287,25 @@ chart.options({
           "title": "同比增速 (%)"
         }
       }
+    },
+    {
+      "type": "point",
+      "encode": {
+        "x": "年份",
+        "color": "#DD8452",
+        "y": "同比增速"
+      },
+      "style": {
+        "shape": "point"
+      }
     }
   ],
-  "scale": {
-    "y": {
-      "independent": true
-    }
-  },
-  "axis": {
-    "y": {
-      "position": "left",
-      "title": "个人住房贷款余额（万亿）"
-    }
-  },
   "title": {
     "title": "2011-2025 年个人住房贷款余额",
     "subtitle": "数据源：中国人民银行"
   },
   "theme": {
-    "type": "academy"
+    "type": "classic"
   }
 });
 chart.render();
@@ -313,7 +321,7 @@ chart.render();
 <pre class="r"><code>showtext::showtext_auto()
 # 双轴图：左轴柱状图（个人住房），右轴线图（同比增速）
 ggplot(house_loan, aes(x = 年份)) +
-  geom_bar(aes(y = 个人住房), stat = &quot;identity&quot;, fill = &quot;#4C72B0&quot;, alpha = 0.7) +
+  geom_bar(aes(y = 个人住房), stat = &quot;identity&quot;, fill = &quot;#4C72B0&quot;) +
   geom_line(aes(y = 同比增速), color = &quot;#DD8452&quot;, linewidth = 1) +
   scale_y_continuous(
     name = &quot;个人住房贷款余额（万亿）&quot;,

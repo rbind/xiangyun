@@ -115,18 +115,18 @@ house_loan = read.table(text =
 
 ```{r}
 library(gglite)
-g2(house_loan, x = "年份", y = "个人住房") |> 
+g2(house_loan, x = ~年份, y = ~个人住房, color = '#4C72B0') |> 
   mark_interval() |> 
   axis_y(title = "个人住房贷款余额（万亿）") |> 
-  title_(text = "2011-2025 年个人住房贷款余额",
+  header(title = "2011-2025 年个人住房贷款余额",
          subtitle = '数据源：中国人民银行') |>
-  theme_academy()
+  theme_classic()
 
-g2(house_loan, x = "年份", y = "同比增速", color = '#DD8452') |> 
+g2(house_loan, x = ~年份, y = ~同比增速, color = '#DD8452') |> 
   mark_line() |> 
   style_mark(lineWidth = 2) |>
   axis_y(position = "right", title = "同比增速（单位：%）") |>
-  theme_academy()
+  theme_classic()
 ```
 
 如何合二为一呢？`scale_y()` 函数中设置 `independent = TRUE` 。
@@ -141,11 +141,11 @@ g2(house_loan, x = '年份') |>
   mark_line(encode = list(color = '#DD8452', y = '同比增速')) |>  # 线图
   style_mark(lineWidth = 2) |> 
   axis_y(position = 'right', title = '同比增速 (%)') |>  # 右轴标题
-  title_(text = "2011-2025 年个人住房贷款余额",
+  mark_point(encode = list(color = '#DD8452', y = '同比增速')) |> 
+  header(title = "2011-2025 年个人住房贷款余额",
          subtitle = '数据源：中国人民银行') |>
-  theme_academy()
+  theme_classic()
 ```
-
 
 最后，补充 **ggplot2** 包绘制双轴图的代码。
 
@@ -154,7 +154,7 @@ library(ggplot2)
 showtext::showtext_auto()
 # 双轴图：左轴柱状图（个人住房），右轴线图（同比增速）
 ggplot(house_loan, aes(x = 年份)) +
-  geom_bar(aes(y = 个人住房), stat = "identity", fill = "#4C72B0", alpha = 0.7) +
+  geom_bar(aes(y = 个人住房), stat = "identity", fill = "#4C72B0") +
   geom_line(aes(y = 同比增速), color = "#DD8452", linewidth = 1) +
   scale_y_continuous(
     name = "个人住房贷款余额（万亿）",
