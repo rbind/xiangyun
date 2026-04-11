@@ -85,4 +85,9 @@ title: 关于
 -   [张铜川](https://tc.rbind.io/) R 语言、生物
 -   [张丹](http://fens.me/) R 语言
 -   [齐琛](https://hetal-cq.github.io/)
+-   [邓一硕](https://gewutang.com) 金融、R 语言
+
+博客聚合网站
+
+-   [博友圈](https://www.boyouquan.com/home)
 -->
