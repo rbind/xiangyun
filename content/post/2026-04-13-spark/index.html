@@ -1,0 +1,257 @@
+---
+title: R 语言中使用 Spark 
+author: 黄湘云
+date: '2026-04-13'
+slug: spark
+categories:
+  - 统计软件
+tags:
+  - 大规模数据
+  - 分布式计算
+  - Spark
+  - sparklyr
+  - Spark SQL
+  - 窗口函数
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#%E5%88%86%E7%BB%84%E8%81%9A%E5%90%88%E7%BB%9F%E8%AE%A1" id="toc-分组聚合统计"><span class="toc-section-number">1</span> 分组聚合统计</a></li>
+<li><a href="#window-functions" id="toc-window-functions"><span class="toc-section-number">2</span> 窗口函数</a></li>
+</ul>
+</div>
+
+<p>在生产环境中，数仓团队根据业务需求，生产一张张表（明细表 detail、维度表 dim、主题表 topic、聚合表 aggr、应用表 app），落在 Hive 管理的数据仓库中。Spark 是大规模分布式计算引擎，将数据加载到内存中进行计算。在大规模复杂的计算中，会用到 Hive SQL 或 Spark SQL，前者内存资源需求少但计算慢，后者吃内存资源但计算更快。</p>
+<p>首先，安装配置 Java 开发环境</p>
+<pre class="bash"><code># 安装 Java 开发环境
+brew install oracle-jdk@21</code></pre>
+<p>接着，配置 R 软件发现 Java 开发环境，一些依赖 Java 的 R 包需要，比如 <strong>rJava</strong> 包。</p>
+<pre class="bash"><code>sudo R CMD javareconf</code></pre>
+<p>从源码安装 <strong>rJava</strong> 包，这样便可以利用系统安装的 Java 开发环境。</p>
+<pre class="r"><code>install.packages(&quot;rJava&quot;, type = &quot;source&quot;)
+install.packages(&quot;sparklyr&quot;, type = &quot;source&quot;)</code></pre>
+<pre class="r"><code>library(sparklyr)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;sparklyr&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:stats&#39;:
+## 
+##     filter</code></pre>
+<pre class="r"><code># Spark 配置
+config = spark_config()
+config</code></pre>
+<pre><code>## $spark.env.SPARK_LOCAL_IP.local
+## [1] &quot;127.0.0.1&quot;
+## 
+## $sparklyr.connect.csv.embedded
+## [1] &quot;^1.*&quot;
+## 
+## $spark.sql.legacy.utcTimestampFunc.enabled
+## [1] TRUE
+## 
+## $sparklyr.connect.cores.local
+## [1] 10
+## 
+## $spark.sql.shuffle.partitions.local
+## [1] 10</code></pre>
+<p>选择与 Spark 配套的 Hadoop 的版本，这个安装包几百兆，可以考虑先在 Spark 官网单独<a href="https://spark.apache.org/downloads.html">下载</a>，再解压到本地目录 <code>~/spark/</code> 下面。</p>
+<pre class="bash"><code>mkdir -p ~/spark
+tar -xzf spark-4.1.1-bin-hadoop3.tgz -C ~/spark/</code></pre>
+<pre class="r"><code># Spark 安装目录
+Sys.setenv(SPARK_HOME=&quot;~/spark/spark-4.1.1-bin-hadoop3&quot;)
+sc &lt;- spark_connect(
+  master = &quot;local&quot;, # spark_install() 本地安装的 Spark
+  method = &quot;shell&quot;  # 对应 spark-submit
+)
+# 拷贝一个数据集到 Spark 环境中
+iris_tbl &lt;- copy_to(sc, iris, overwrite = TRUE)
+# 查看已连接的表
+dplyr::src_tbls(sc)</code></pre>
+<pre><code>## [1] &quot;iris&quot;</code></pre>
+<p>鸢尾花数据集 iris 导入 Spark 后，可以用 Spark SQL 查询数据了。</p>
+<pre class="r"><code>library(DBI)
+iris_preview &lt;- dbGetQuery(sc, &quot;SELECT * FROM iris LIMIT 10&quot;)
+iris_preview</code></pre>
+<pre><code>##    Sepal_Length Sepal_Width Petal_Length Petal_Width Species
+## 1           5.1         3.5          1.4         0.2  setosa
+## 2           4.9         3.0          1.4         0.2  setosa
+## 3           4.7         3.2          1.3         0.2  setosa
+## 4           4.6         3.1          1.5         0.2  setosa
+## 5           5.0         3.6          1.4         0.2  setosa
+## 6           5.4         3.9          1.7         0.4  setosa
+## 7           4.6         3.4          1.4         0.3  setosa
+## 8           5.0         3.4          1.5         0.2  setosa
+## 9           4.4         2.9          1.4         0.2  setosa
+## 10          4.9         3.1          1.5         0.1  setosa</code></pre>
+<p>在 Spark 环境中，列名不能含有点号，因为点号在数据库中有特殊的含义。<code>a.b</code> a 常表示数据库，b 表示该数据库下的表。</p>
+<div id="分组聚合统计" class="section level2" number="1">
+<h2><span class="header-section-number">1</span> 分组聚合统计</h2>
+<p>按 Species 变量分组统计各类鸢尾花的数量，以及 <code>Sepal_Length</code> 的平均值。</p>
+<pre class="r"><code>dbGetQuery(sc, &quot;SELECT count(1) as cnt, avg(Sepal_Length) as avg_Sepal_Length, Species FROM iris GROUP BY Species&quot;)</code></pre>
+<pre><code>##   cnt avg_Sepal_Length    Species
+## 1  50            6.588  virginica
+## 2  50            5.936 versicolor
+## 3  50            5.006     setosa</code></pre>
+<p>分组取 <code>Sepal_Length</code>最长的样本。</p>
+<pre class="r"><code>dbGetQuery(sc, &quot;
+           SELECT max(Sepal_Length) as max_Sepal_Length, Species 
+           FROM iris GROUP BY Species&quot;)</code></pre>
+<pre><code>##   max_Sepal_Length    Species
+## 1              7.9  virginica
+## 2              7.0 versicolor
+## 3              5.8     setosa</code></pre>
+<pre class="r"><code># 等价于
+aggregate(iris, Sepal.Length ~ Species, max)</code></pre>
+<pre><code>##      Species Sepal.Length
+## 1     setosa          5.8
+## 2 versicolor          7.0
+## 3  virginica          7.9</code></pre>
+<p>分组计算某列的中位数。</p>
+<pre class="r"><code>dbGetQuery(sc, &quot;
+           SELECT median(Sepal_Length) as med_Sepal_Length, Species 
+           FROM iris GROUP BY Species&quot;)</code></pre>
+<pre><code>##   med_Sepal_Length    Species
+## 1              6.5  virginica
+## 2              5.9 versicolor
+## 3              5.0     setosa</code></pre>
+<p>计算某列的分布。</p>
+<pre class="r"><code>dbGetQuery(sc, &quot;
+           SELECT histogram_numeric(Sepal_Length, 5) as hn
+           FROM iris&quot;)</code></pre>
+<pre><code>##                                                                          hn
+## 1 4.586, 14.000, 5.110, 40.000, 5.771, 38.000, 6.511, 47.000, 7.509, 11.000</code></pre>
+<p>返回值是(x,y) x 表示柱子的中心位置，y 表示柱子的高度（频数）</p>
+<pre class="r"><code>hist(iris$Sepal.Length, breaks = 6, plot = F)</code></pre>
+<pre><code>## $breaks
+## [1] 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0
+## 
+## $counts
+## [1]  5 27 27 30 31 18  6  6
+## 
+## $density
+## [1] 0.06667 0.36000 0.36000 0.40000 0.41333 0.24000 0.08000 0.08000
+## 
+## $mids
+## [1] 4.25 4.75 5.25 5.75 6.25 6.75 7.25 7.75
+## 
+## $xname
+## [1] &quot;iris$Sepal.Length&quot;
+## 
+## $equidist
+## [1] TRUE
+## 
+## attr(,&quot;class&quot;)
+## [1] &quot;histogram&quot;</code></pre>
+<p>分组计算某列的分布。</p>
+<pre class="r"><code>dbGetQuery(sc, &quot;
+           SELECT histogram_numeric(Sepal_Length, 5) as hn, Species 
+           FROM iris GROUP BY Species&quot;)</code></pre>
+<pre><code>##                                                                        hn
+## 1 4.900, 1.000, 5.880, 10.000, 6.457, 23.000, 7.090, 10.000, 7.717, 6.000
+## 2 5.040, 5.000, 5.588, 16.000, 5.969, 13.000, 6.380, 10.000, 6.800, 6.000
+## 3  4.400, 5.000, 4.689, 9.000, 5.000, 22.000, 5.355, 11.000, 5.733, 3.000
+##      Species
+## 1  virginica
+## 2 versicolor
+## 3     setosa</code></pre>
+<pre class="r"><code>aggregate(iris, Sepal.Length ~ Species, FUN = function(x) hist(x, breaks = 5, plot = F)$mids )</code></pre>
+<pre><code>##      Species                             Sepal.Length
+## 1     setosa                   4.25, 4.75, 5.25, 5.75
+## 2 versicolor             4.75, 5.25, 5.75, 6.25, 6.75
+## 3  virginica 4.75, 5.25, 5.75, 6.25, 6.75, 7.25, 7.75</code></pre>
+<pre class="r"><code>aggregate(iris, Sepal.Length ~ Species, FUN = function(x) hist(x, breaks = 5, plot = F)$counts )</code></pre>
+<pre><code>##      Species          Sepal.Length
+## 1     setosa          5, 23, 19, 3
+## 2 versicolor       3, 8, 19, 12, 8
+## 3  virginica 1, 0, 8, 19, 10, 6, 6</code></pre>
+<p>分箱的算法不同，结果也不同。</p>
+</div>
+<div id="window-functions" class="section level2" number="2">
+<h2><span class="header-section-number">2</span> 窗口函数</h2>
+<p>窗口函数是为了应对复杂查询而设计的，下面以 <code>RANK()</code> 和 <code>row_number()</code> 为例。</p>
+<p>目标：每类鸢尾花中 Sepal.Length （萼片长度）最长的 5 个样本。</p>
+<ol style="list-style-type: decimal">
+<li>按 Sepal.Length （萼片长度）对样本排序。</li>
+</ol>
+<pre class="r"><code>dbGetQuery(sc, &quot;
+SELECT *, RANK() OVER (PARTITION BY Species ORDER BY Sepal_Length DESC) AS rank
+FROM iris
+LIMIT 5
+&quot;)</code></pre>
+<pre><code>##   Sepal_Length Sepal_Width Petal_Length Petal_Width Species rank
+## 1          5.8         4.0          1.2         0.2  setosa    1
+## 2          5.7         4.4          1.5         0.4  setosa    2
+## 3          5.7         3.8          1.7         0.3  setosa    2
+## 4          5.5         4.2          1.4         0.2  setosa    4
+## 5          5.5         3.5          1.3         0.2  setosa    4</code></pre>
+<pre class="r"><code>dbGetQuery(sc, &quot;
+SELECT *, row_number() OVER (PARTITION BY Species ORDER BY Sepal_Length DESC) AS rn
+FROM iris
+LIMIT 5
+&quot;)</code></pre>
+<pre><code>##   Sepal_Length Sepal_Width Petal_Length Petal_Width Species rn
+## 1          5.8         4.0          1.2         0.2  setosa  1
+## 2          5.7         4.4          1.5         0.4  setosa  2
+## 3          5.7         3.8          1.7         0.3  setosa  3
+## 4          5.5         4.2          1.4         0.2  setosa  4
+## 5          5.5         3.5          1.3         0.2  setosa  5</code></pre>
+<p><code>RANK()</code> 和 <code>row_number()</code> 都是窗口函数，前者对某列排序，值相同的给相同的序号，后者排完序后，序号是唯一的。都是在原数据上新增一列记录排序结果。</p>
+<ol start="2" style="list-style-type: decimal">
+<li>筛选排序结果。</li>
+</ol>
+<pre class="r"><code>dbGetQuery(sc, &quot;
+SELECT * FROM
+(
+SELECT *, RANK() OVER (PARTITION BY Species ORDER BY Sepal_Length DESC) AS rank
+FROM iris
+) a
+WHERE a.rank &lt; 6
+&quot;)</code></pre>
+<pre><code>##    Sepal_Length Sepal_Width Petal_Length Petal_Width    Species rank
+## 1           5.8         4.0          1.2         0.2     setosa    1
+## 2           5.7         4.4          1.5         0.4     setosa    2
+## 3           5.7         3.8          1.7         0.3     setosa    2
+## 4           5.5         4.2          1.4         0.2     setosa    4
+## 5           5.5         3.5          1.3         0.2     setosa    4
+## 6           7.0         3.2          4.7         1.4 versicolor    1
+## 7           6.9         3.1          4.9         1.5 versicolor    2
+## 8           6.8         2.8          4.8         1.4 versicolor    3
+## 9           6.7         3.1          4.4         1.4 versicolor    4
+## 10          6.7         3.0          5.0         1.7 versicolor    4
+## 11          6.7         3.1          4.7         1.5 versicolor    4
+## 12          7.9         3.8          6.4         2.0  virginica    1
+## 13          7.7         3.8          6.7         2.2  virginica    2
+## 14          7.7         2.6          6.9         2.3  virginica    2
+## 15          7.7         2.8          6.7         2.0  virginica    2
+## 16          7.7         3.0          6.1         2.3  virginica    2</code></pre>
+<pre class="r"><code>dbGetQuery(sc, &quot;
+SELECT * FROM
+(
+SELECT *, row_number() OVER (PARTITION BY Species ORDER BY Sepal_Length DESC) AS rn
+FROM iris
+) a
+WHERE a.rn &lt; 6
+&quot;)</code></pre>
+<pre><code>##    Sepal_Length Sepal_Width Petal_Length Petal_Width    Species rn
+## 1           5.8         4.0          1.2         0.2     setosa  1
+## 2           5.7         4.4          1.5         0.4     setosa  2
+## 3           5.7         3.8          1.7         0.3     setosa  3
+## 4           5.5         4.2          1.4         0.2     setosa  4
+## 5           5.5         3.5          1.3         0.2     setosa  5
+## 6           7.0         3.2          4.7         1.4 versicolor  1
+## 7           6.9         3.1          4.9         1.5 versicolor  2
+## 8           6.8         2.8          4.8         1.4 versicolor  3
+## 9           6.7         3.1          4.4         1.4 versicolor  4
+## 10          6.7         3.0          5.0         1.7 versicolor  5
+## 11          7.9         3.8          6.4         2.0  virginica  1
+## 12          7.7         3.8          6.7         2.2  virginica  2
+## 13          7.7         2.6          6.9         2.3  virginica  3
+## 14          7.7         2.8          6.7         2.0  virginica  4
+## 15          7.7         3.0          6.1         2.3  virginica  5</code></pre>
+<p>最后，当不需要使用 Spark 的时候，要关闭清理连接。</p>
+<pre class="r"><code>spark_disconnect(sc)</code></pre>
+</div>

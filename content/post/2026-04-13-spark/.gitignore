@@ -1,0 +1,5 @@
+
+# Spark
+logs/
+derby.log
+metastore_db

@@ -1,0 +1,201 @@
+---
+title: R 语言中使用 Spark 
+author: 黄湘云
+date: '2026-04-13'
+slug: spark
+categories:
+  - 统计软件
+tags:
+  - 大规模数据
+  - 分布式计算
+  - Spark
+  - sparklyr
+  - Spark SQL
+  - 窗口函数
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+---
+
+
+在生产环境中，数仓团队根据业务需求，生产一张张表（明细表 detail、维度表 dim、主题表 topic、聚合表 aggr、应用表 app），落在 Hive 管理的数据仓库中。Spark 是大规模分布式计算引擎，将数据加载到内存中进行计算。在大规模复杂的计算中，会用到 Hive SQL 或 Spark SQL，前者内存资源需求少但计算慢，后者吃内存资源但计算更快。
+
+
+首先，安装配置 Java 开发环境
+
+``` bash
+# 安装 Java 开发环境
+brew install oracle-jdk@21
+```
+
+接着，配置 R 软件发现 Java 开发环境，一些依赖 Java 的 R 包需要，比如 **rJava** 包。
+
+``` bash
+sudo R CMD javareconf
+```
+
+从源码安装 **rJava** 包，这样便可以利用系统安装的 Java 开发环境。
+
+```{r}
+#| eval: false
+#| echo: true
+
+install.packages("rJava", type = "source")
+install.packages("sparklyr", type = "source")
+```
+
+```{r}
+library(sparklyr)
+# Spark 配置
+config = spark_config()
+config
+```
+
+选择与 Spark 配套的 Hadoop 的版本，这个安装包几百兆，可以考虑先在 Spark 官网单独[下载](https://spark.apache.org/downloads.html)，再解压到本地目录 `~/spark/` 下面。
+
+```bash
+mkdir -p ~/spark
+tar -xzf spark-4.1.1-bin-hadoop3.tgz -C ~/spark/
+```
+
+```{r}
+# Spark 安装目录
+Sys.setenv(SPARK_HOME="~/spark/spark-4.1.1-bin-hadoop3")
+sc <- spark_connect(
+  master = "local", # spark_install() 本地安装的 Spark
+  method = "shell"  # 对应 spark-submit
+)
+# 拷贝一个数据集到 Spark 环境中
+iris_tbl <- copy_to(sc, iris, overwrite = TRUE)
+# 查看已连接的表
+dplyr::src_tbls(sc)
+```
+
+鸢尾花数据集 iris 导入 Spark 后，可以用 Spark SQL 查询数据了。
+
+```{r}
+library(DBI)
+iris_preview <- dbGetQuery(sc, "SELECT * FROM iris LIMIT 10")
+iris_preview
+```
+
+在 Spark 环境中，列名不能含有点号，因为点号在数据库中有特殊的含义。`a.b` a 常表示数据库，b 表示该数据库下的表。
+
+## 分组聚合统计
+
+按 Species 变量分组统计各类鸢尾花的数量，以及 `Sepal_Length` 的平均值。
+
+```{r}
+dbGetQuery(sc, "SELECT count(1) as cnt, avg(Sepal_Length) as avg_Sepal_Length, Species FROM iris GROUP BY Species")
+```
+
+分组取 `Sepal_Length `最长的样本。
+
+```{r}
+dbGetQuery(sc, "
+           SELECT max(Sepal_Length) as max_Sepal_Length, Species 
+           FROM iris GROUP BY Species")
+```
+```{r}
+# 等价于
+aggregate(iris, Sepal.Length ~ Species, max)
+```
+
+
+分组计算某列的中位数。
+
+```{r}
+dbGetQuery(sc, "
+           SELECT median(Sepal_Length) as med_Sepal_Length, Species 
+           FROM iris GROUP BY Species")
+```
+
+计算某列的分布。
+
+```{r}
+dbGetQuery(sc, "
+           SELECT histogram_numeric(Sepal_Length, 5) as hn
+           FROM iris")
+```
+
+返回值是(x,y) x 表示柱子的中心位置，y 表示柱子的高度（频数）
+
+```{r}
+hist(iris$Sepal.Length, breaks = 6, plot = F)
+```
+
+分组计算某列的分布。
+
+```{r}
+dbGetQuery(sc, "
+           SELECT histogram_numeric(Sepal_Length, 5) as hn, Species 
+           FROM iris GROUP BY Species")
+```
+
+
+```{r}
+aggregate(iris, Sepal.Length ~ Species, FUN = function(x) hist(x, breaks = 5, plot = F)$mids )
+
+aggregate(iris, Sepal.Length ~ Species, FUN = function(x) hist(x, breaks = 5, plot = F)$counts )
+```
+
+分箱的算法不同，结果也不同。
+
+
+## 窗口函数 {#window-functions}
+
+窗口函数是为了应对复杂查询而设计的，下面以 `RANK()` 和 `row_number()` 为例。
+
+目标：每类鸢尾花中 Sepal.Length （萼片长度）最长的 5 个样本。
+
+1. 按 Sepal.Length （萼片长度）对样本排序。
+
+```{r}
+dbGetQuery(sc, "
+SELECT *, RANK() OVER (PARTITION BY Species ORDER BY Sepal_Length DESC) AS rank
+FROM iris
+LIMIT 5
+")
+```
+
+```{r}
+dbGetQuery(sc, "
+SELECT *, row_number() OVER (PARTITION BY Species ORDER BY Sepal_Length DESC) AS rn
+FROM iris
+LIMIT 5
+")
+```
+
+`RANK()` 和 `row_number()` 都是窗口函数，前者对某列排序，值相同的给相同的序号，后者排完序后，序号是唯一的。都是在原数据上新增一列记录排序结果。
+
+2. 筛选排序结果。
+
+```{r}
+dbGetQuery(sc, "
+SELECT * FROM
+(
+SELECT *, RANK() OVER (PARTITION BY Species ORDER BY Sepal_Length DESC) AS rank
+FROM iris
+) a
+WHERE a.rank < 6
+")
+```
+
+```{r}
+dbGetQuery(sc, "
+SELECT * FROM
+(
+SELECT *, row_number() OVER (PARTITION BY Species ORDER BY Sepal_Length DESC) AS rn
+FROM iris
+) a
+WHERE a.rn < 6
+")
+```
+
+最后，当不需要使用 Spark 的时候，要关闭清理连接。
+
+```{r}
+spark_disconnect(sc)
+```
+
