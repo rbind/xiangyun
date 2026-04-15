@@ -1,0 +1,501 @@
+---
+title: R 语言中使用 JAGS 和 CmdStan
+author: 黄湘云
+date: '2026-04-13'
+slug: jags-stan
+categories:
+  - 统计软件
+tags:
+  - Gibbs 采样
+  - JAGS
+  - 贝叶斯计算
+  - CmdStan
+math: true
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+code_fold: true
+---
+
+# cars 数据集
+
+数据集 cars 来自 Base R 内置的 **datasets** 包，仅有两个变量 speed （单位：英里/每小时）和 dist（单位：英尺），1 英里约等于 1.6 公里，1 英尺约等于 30.48 厘米。下表展示了数据集 cars 的部分内容。
+
+```{r}
+#| label: tbl-cars-data
+#| echo: false
+
+knitr::kable(t(head(cars, 20)), caption = "cars 数据集（部分）")
+```
+
+将每一对速度与距离的值绘制在图上，并添加线性趋势拟合线及其预测值的置信带。下图展示 20 世纪 20 年代汽车里程与行驶速度的关系，那时候的汽车也就比乌龟爬得快一些，距今已有 100 年历史了。
+
+```{r}
+#| label: fig-cars
+#| fig-cap: "汽车里程与速度的关系"
+#| fig-width: 5
+#| fig-height: 4
+#| echo: false
+#| fig-showtext: true
+
+library(ggplot2)
+ggplot(data = cars, aes(x = speed, y = dist)) +
+  geom_point() +
+  labs(x = "速度（英里/小时）", y = "停车距离（英尺）")
+```
+
+# 线性模型
+
+一般线性模型如下：
+
+$$
+\begin{aligned} 
+\bm{y} &= X\bm{\beta} + \bm{\epsilon} \\
+\bm{\epsilon} &\sim \mathrm{MVN}(\bm{0},\sigma^2 I)
+\end{aligned}
+$$
+
+其中，$\bm{y}$ 是观测的响应变量值，$X$ 是观测的预测变量对应的系数矩阵，不是随机的，$\bm{\beta}$ 是与预测变量对应的回归系数，$\bm{\epsilon}$ 是随机的残差，各分量相互独立，且服从均值为 0，方差为 $\sigma^2$ 的正态分布，$I$ 表示单位矩阵。
+
+回归系数 $\bm{\beta}$ 最小二乘估计和残差方差 $\sigma^2$ 的无偏估计如下：
+
+$$
+\begin{aligned}
+\hat{\boldsymbol{\beta}} &= (X^{\top}X)^{-1}X^{\top}\boldsymbol{y} \\
+\hat{\sigma^2} &= \frac{\boldsymbol{y}^{\top}(I - X(X^{\top}X)^{-1}X^{\top})\boldsymbol{y}}{n - \mathrm{rank}(X)}
+\end{aligned}
+$$
+
+其中，$X^{\top}X$ 是可逆的，$\mathrm{rank}(X)$ 表示矩阵 $X$ 的秩。$\hat{\sigma^2}$ 是根据残差的情况构造出来的。
+
+关于残差 $\hat{\bm{\epsilon}}$ 有如下结果：
+
+$$
+\begin{aligned}
+\hat{\bm{\epsilon}} &= \bm{y} - X\hat{\bm{\beta}} = (I - X(X^{\top}X)^{-1}X^{\top})\bm{y} \\
+\hat{\bm{\epsilon}}^{\top}\hat{\bm{\epsilon}} &= (\bm{y} - X\hat{\bm{\beta}})^{\top}(\bm{y} - X\hat{\bm{\beta}}) \\
+&= \boldsymbol{y}^{\top}(I - X(X^{\top}X)^{-1}X^{\top})\boldsymbol{y}
+\end{aligned}
+$$
+
+$\sigma^2$ 的极大似然估计如下：
+
+$$
+\widetilde{\sigma^2} = \frac{n - \mathrm{rank}(X)}{n}\hat{\sigma^2}
+$$
+
+可见，极大似然估计有偏，但是它比最小二乘估计小。
+
+回归系数 $\bm{\beta}$ 的最小二乘估计的方差 $\mathrm{Var}\{\hat{\bm\beta}\}$ 如下：
+
+$$
+\begin{aligned} 
+\mathrm{Var}\{\hat{\bm\beta}\} & =\mathrm{Var}\{(X^{\top}X)^{-1}X^{\top}\bm{y}\}\\
+ & =(X^{\top}X)^{-1}X^{\top}\mathrm{Var}\{\bm{y}\}((X^{\top}X)^{-1}X^{\top})^{\top}\\
+ & =(X^{\top}X)^{-1}X^{\top}\mathrm{Var}\{\bm{y}\}X(X^{\top}X)^{-1}\\
+ & =(X^{\top}X)^{-1}X^{\top}\sigma^{2}\mathsf{I}X(X^{\top}X)^{-1}\\
+ & =(X^{\top}X)^{-1}\sigma^{2}
+\end{aligned}
+$$
+
+# 手搓线性回归
+
+在 R 语言环境中，矩阵计算的函数是很丰富的，回归系数的计算涉及矩阵的乘法和求逆，分别用内置函数 `crossprod()` 和 `solve()` 即可。
+
+```{r}
+y = cars[, "dist"] # 这是一个向量
+X = cbind(1, cars[, "speed"]) # 这是一个矩阵
+# 回归系数 beta 向量
+solve(a = crossprod(X), b = crossprod(X, y))
+```
+
+截矩项和速度变量的系数分别是 -17.579 和 3.932 。所以回归方程如下：
+
+$$
+\begin{aligned}
+\mathrm{dist} = -17.579 + 3.932 \times \mathrm{speed}.
+\end{aligned}
+$$
+
+```{r}
+# 系数矩阵 X 的秩
+qr(X)$rank
+# 样本量
+nrow(cars)
+# 投影阵
+P = diag(rep(1, nrow(cars))) - X %*% solve(crossprod(X)) %*% t(X)
+# sigma 的估计
+sqrt((t(y) %*% P %*% y) / (50 - 2))
+```
+
+# R 语言函数 `lm()`
+
+统计计算和建模是 R 语言的核心优势之一，对于线性模型拟合，已有内置函数 `lm()` 。
+
+```{r}
+#| label: fit-lm-cars
+
+fit_lm_cars <- lm(data = cars, dist ~ speed)
+# 输出线性模型拟合结果
+summary(fit_lm_cars)
+```
+
+从模型输出结果来看，线性模型的参数分别是 $\alpha = -17.579, \beta = 3.932, \sigma = 15.4$ 。这与前面手搓的结果一样。
+
+```{r}
+#| label: fig-cars-lm
+#| fig-cap: "汽车里程与速度的关系"
+#| fig-width: 5
+#| fig-height: 4
+#| echo: false
+#| fig-showtext: true
+
+ggplot(data = cars, aes(x = speed, y = dist)) +
+  geom_point() +
+  geom_smooth(method = lm, formula = y ~ x) +
+  labs(x = "速度（英里/小时）", y = "停车距离（英尺）")
+```
+
+# JAGS 软件 {#sec-jags}
+
+[JAGS](https://mcmc-jags.sourceforge.io) 是一款用于贝叶斯计算的开源免费软件。它的 R 语言接口是 **rjags** 包，另有一个 **coda** 包专门处理后验分布采样的数据。
+
+## 模型设定 {#sec-jags-model}
+
+在 cars 数据集中，对距离与速度的关系进行建模，在贝叶斯分析框架下，参数的先验分布做如下设置。
+
+$$
+\begin{aligned}
+\alpha &\sim \mathcal{N}(0, 0.0001) \\
+\beta  &\sim \mathcal{N}(0, 0.0001) \\
+\tau   &\sim \Gamma(0.001, 0.001) \\
+\sigma &= 1/\sqrt{\tau}
+\end{aligned}
+$$
+
+则 $\tau = 1/\sigma^2$ ，意味着 $1/\sigma^2 \sim \Gamma(0.001,0.001)$ ，此伽马分布的图像如下。
+
+```{r}
+#| label: fig-gamma
+#| fig-width: 5
+#| fig-height: 3
+#| fig-showtext: true
+#| fig-cap: 标准差的先验分布
+#| code-fold: true
+
+ggplot() +
+  geom_function(
+    fun = dnorm, args = list(mean = 0, sd = 0.0001),
+    aes(colour = "dnorm"), linewidth = 1.2, xlim = c(-6, 6)
+  ) +
+  geom_function(
+    fun = dgamma, args = list(shape = 0.001, scale = 0.001),
+    aes(colour = "dgamma"), linewidth = 1.2, xlim = c(-6, 6)
+  ) +
+  theme_classic() +
+  labs(x = expression(x), y = expression(f(x)), colour = NULL)
+```
+
+## 模型编码 {#sec-jags-code}
+
+一个简单线性模型（一元线性回归）的 JAGS 代码如下：
+
+```{r,echo=FALSE,comment=NA}
+writeLines(readLines(con = file("code/cars.bugs")))
+```
+
+模型内容包裹在一对大括号`{}`内，且有保留的关键词 `model` 声明。循环控制语句 `for` 含义和一般编程语言无二，变量可以不先声明类型和初始化即可使用，这和 R 语言的习惯也是一样。JAGS 是用两类关系来表示模型的，一类是表示确定性的关系，对应赋值符号`<-`，一类是表示随机性的关系，对应等价符号 `~`，在 LaTeX 中排版变量独立同分布的数学公式用到命令 `\sim` ，就是这个符号。JAGS 还定义了很多分布函数，以上代码块用到了正态分布 `dnorm` 和伽马分布 `dgamma` 的概率密度函数。
+
+代码中的 `x`、`y` 和 `N` 是需要用户输入的数据。
+
+## 模型配置 {#sec-jags-setup}
+
+```{r}
+library(coda)
+library(rjags)
+# 准备数据
+line_data <- list(
+  "x" = cars$speed,
+  "Y" = cars$dist, 
+  "N" = 50
+)
+# 初始值
+line_inits <- list(
+  list(".RNG.name" = "base::Marsaglia-Multicarry", 
+       ".RNG.seed" = 20222022, 
+       "alpha" = 3, "beta" = 0, "tau" = 1.5),
+  list(".RNG.name" = "base::Marsaglia-Multicarry", 
+       ".RNG.seed" = 20232023, 
+       "alpha" = 0, "beta" = 1, "tau" = 0.375)
+)
+```
+
+除了数据外，还需要指定随机数生成器，随机数种子（为了结果可重复），各参数的初始值。
+
+## 模型训练 {#sec-jags-train}
+
+当数据、初始值和模型都准备好后，就是在函数 `jags.model` 里将它们传递给模型，一起训练。
+
+```{r}
+# 模型
+model <- jags.model(
+  file = "code/cars.bugs",
+  data = line_data,
+  inits = line_inits, 
+  n.chains = 2 # 两条链
+)
+# burn-in 初始迭代次数
+update(model, n.iter = 500)
+```
+
+训练时，会输出模型的信息。 JAGS 将贝叶斯模型看成一个有层次的模型图。
+
+-   `Observed stochastic nodes: 50` 观测数据 50 条记录，根据模型结构表达观测数据的隐含模式，模型含有未知参数，即随机变量。
+
+-   `Unobserved stochastic nodes: 3` 模型未知参数 3 个，对应 3 个先验分布。在贝叶斯框架下，未知参数都是随机变量，需要指定先验分布。
+
+## 模型输出 {#sec-jags-output}
+
+函数 `coda.samples()` 对参数 $\alpha,\beta,\sigma$ 做 Gibbs 抽样。下面设置迭代 1000 次，每次迭代的值都采样。
+
+```{r}
+# 抽样
+samples <- coda.samples(model,
+  variable.names = c("alpha", "beta", "sigma"),
+  thin = 1,  # 采样间隔
+  n.iter = 1000 # 迭代次数
+)
+# 参数的后验估计
+summary(samples)
+```
+
+除了输出采样的信息，此外，还有采样结果，也就是参数的贝叶斯估计。
+
+从输出结果来看，$\alpha = -17.95, \beta = 3.95, \sigma = 15.63$ ，这和前面函数 `lm()` 计算的结果是很接近的。
+
+## 后验分布 {#sec-jags-posterior}
+
+模型训练得到一个 `mcmc.list` 类型的列表，**coda** 包专为操作此数据。
+
+```{r}
+class(samples)
+str(samples)
+```
+
+这个列表存储了模型参数在采样过程中的迭代值，两条链对应列表的两个元素，每个元素是一个二维矩阵。了解了这个数据结构后，下面查看第一条链模型三个参数 $\alpha,\beta,\sigma$ 的前几个迭代值。
+
+```{r}
+head(samples[[1]])
+```
+
+### 参数区间估计 {#sec-jags-ci}
+
+参数后验区间估计，前面设置了两条马尔可夫迭代链，所以输出两个结果，两个结果是很接近的。
+
+```{r}
+# Highest Posterior Density intervals
+HPDinterval(samples)
+```
+
+### 参数后验分布 {#sec-jags-dist}
+
+coda 包可视化参数的迭代轨迹图和后验概率密度图。
+
+每个参数的后验分布的概率密度图，两条链。
+
+```{r jags-dens,fig.cap="后验分布的概率密度图"}
+library(lattice)
+# 密度图
+densityplot(samples)
+```
+
+每个参数的迭代序列，看作一个时间序列，这个时间序列应该是平稳的。
+
+```{r jags-acf,fig.cap="迭代序列的自相关图"}
+# 自相关图
+acfplot(samples)
+```
+
+## 模型诊断 {#sec-jags-diag}
+
+### 潜在尺度缩减因子 {#sec-jags-psrf}
+
+Gelman and Rubin's 收缩因子随迭代次数的变化。
+
+```{r jags-gelman,fig.cap="Gelman-Rubin-Brooks 图"}
+gelman.plot(samples)
+```
+
+Gelman and Rubin 收敛性诊断，潜在尺度缩减因子（Potential Scale Reduction Factors，简称 psrf），也就是通常所说的 $\hat{R}$ ，它要越接近 1 越好，表示迭代序列混合效果好。
+
+```{r}
+gelman.diag(samples, confidence = 0.95)
+```
+
+### 有效样本量 ESS {#sec-jags-ess}
+
+ESS 表示 Effective sample size for estimating the mean 参数后验均值估计的有效样本量。
+
+```{r}
+effectiveSize(samples)
+```
+
+## 模型评估 {#sec-jags-eval}
+
+### DIC {#sec-jags-dic}
+
+Generate penalized deviance samples
+
+```{r}
+dic.samples(model, n.iter = 1000)
+```
+
+# CmdStan 软件 {#sec-cmdstan}
+
+CmdStan 是 Stan 的命令行接口，**cmdstanr** 包是 CmdStan 的 R 语言接口。
+
+## 编码模型 {#sec-stan-encode}
+
+Stan 编码的线性模型如下：
+
+```{r echo=FALSE,comment=NA}
+writeLines(readLines(con = file("code/cars.stan")))
+```
+
+## 编译模型 {#sec-compile-model}
+
+```{r compile-cars,message=FALSE}
+# 不检查新版 CmdStan
+Sys.setenv(cmdstanr_no_ver_check=TRUE)
+library(cmdstanr)
+# 编译模型
+mod_cars <- cmdstan_model(
+  stan_file = "code/cars.stan",
+  compile = TRUE,
+  cpp_options = list(stan_threads = TRUE)
+)
+```
+
+## 准备数据 {#sec-reshape-data}
+
+```{r data-cars}
+# 准备数据
+cars_d <- list(
+  N = nrow(cars), # 观测记录的条数
+  K = 1, # 协变量个数
+  x = cars[, "speed", drop = F], # N x 1 矩阵
+  y = cars[, "dist"] # N 向量
+)
+
+nchains <- 2 # 2 条迭代链
+# 给每条链设置不同的参数初始值
+inits_data <- lapply(1:nchains, function(i) {
+  list(
+    alpha = runif(1, 0, 1),
+    beta = runif(1, 0, 1),
+    sigma = runif(1, 1, 10)
+  )
+})
+```
+
+## 训练模型 {#sec-train-model}
+
+采样拟合模型
+
+```{r sampling-cars}
+# 采样拟合模型
+fit_cars <- mod_cars$sample(
+  data = cars_d, # 观测数据
+  init = inits_data, # 迭代初值
+  iter_warmup = 500, # 每条链预处理迭代次数
+  iter_sampling = 1000, # 每条链总迭代次数
+  chains = nchains, # 马尔科夫链的数目
+  parallel_chains = 1, # 指定 CPU 核心数，可以给每条链分配一个
+  threads_per_chain = 1, # 每条链设置一个线程
+  show_messages = FALSE, # 不显示迭代的中间过程
+  refresh = 0, # 不显示采样的进度
+  seed = 20190425 # 设置随机数种子，不要使用 set.seed() 函数
+)
+```
+
+## 模型输出 {#sec-model-output}
+
+模型参数估计结果如下：
+
+```{r output-cars}
+#| echo: false
+
+fit_cars$summary(c("alpha", "beta", "sigma", "lp__")) |> 
+  knitr::kable(digits = 3, caption = "贝叶斯线性模型参数估计结果")
+```
+
+## 后验分布
+
+### 参数迭代轨迹图 {#sec-pars-trace}
+
+```{r stan-trace,collapse=TRUE,fig.cap="参数迭代轨迹图"}
+library(bayesplot)
+mcmc_trace(fit_cars$draws(c("alpha", "beta")),
+  facet_args = list(
+    labeller = ggplot2::label_parsed, strip.position = "top", ncol = 1
+  )
+) + theme_bw(base_size = 12)
+```
+
+### 参数后验分布图 {#sec-pars-dist}
+
+```{r stan-dens,fig.cap="参数后验分布图"}
+mcmc_dens(fit_cars$draws(c("alpha", "beta")),
+  facet_args = list(
+    labeller = ggplot2::label_parsed, strip.position = "top", ncol = 1
+  )
+) + theme_bw(base_size = 12)
+```
+
+## 模型诊断 {#sec-cmdstan-diag}
+
+### 潜在尺度收缩因子 {#sec-cmdstan-psrf}
+
+潜在尺度收缩因子 $\hat{R}$
+
+```{r}
+bayesplot::rhat(fit_cars, pars = c("alpha", "beta", "sigma"))
+```
+
+rhat 值越接近 1 越好。
+
+### 有效样本量 {#sec-cmdstan-ess}
+
+`neff_ratio` 衡量采样效率，有效样本比率。
+
+```{r}
+bayesplot::neff_ratio(fit_cars, pars = c("alpha", "beta", "sigma"))
+```
+
+## 模型评估 {#sec-cmdstan-eval}
+
+### WAIC
+
+```{r}
+fit_cars_waic <- loo::waic(fit_cars$draws(variables = "log_lik"))
+print(fit_cars_waic)
+```
+
+### LOOIC
+
+```{r}
+fit_cars_loo <- fit_cars$loo(variables = "log_lik", cores = 2)
+print(fit_cars_loo)
+```
+
+# 运行环境 {#session}
+
+本文用到的 JAGS 版本为 4.3.2，CmdStan 版本为 2.37.0。
+
+```{r}
+xfun::session_info(
+  packages = c("ggplot2", "rjags", "coda", "cmdstanr", "bayesplot", "lattice", "loo"),
+  dependencies = F
+)
+```

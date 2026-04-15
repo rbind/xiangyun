@@ -1,0 +1,819 @@
+---
+title: R 语言中使用 JAGS 和 CmdStan
+author: 黄湘云
+date: '2026-04-13'
+slug: jags-stan
+categories:
+  - 统计软件
+tags:
+  - Gibbs 采样
+  - JAGS
+  - 贝叶斯计算
+  - CmdStan
+math: true
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+code_fold: true
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#cars-%E6%95%B0%E6%8D%AE%E9%9B%86" id="toc-cars-数据集"><span class="toc-section-number">1</span> cars 数据集</a></li>
+<li><a href="#%E7%BA%BF%E6%80%A7%E6%A8%A1%E5%9E%8B" id="toc-线性模型"><span class="toc-section-number">2</span> 线性模型</a></li>
+<li><a href="#%E6%89%8B%E6%90%93%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92" id="toc-手搓线性回归"><span class="toc-section-number">3</span> 手搓线性回归</a></li>
+<li><a href="#r-%E8%AF%AD%E8%A8%80%E5%87%BD%E6%95%B0-lm" id="toc-r-语言函数-lm"><span class="toc-section-number">4</span> R 语言函数 <code>lm()</code></a></li>
+<li><a href="#sec-jags" id="toc-sec-jags"><span class="toc-section-number">5</span> JAGS 软件</a>
+<ul>
+<li><a href="#sec-jags-model" id="toc-sec-jags-model"><span class="toc-section-number">5.1</span> 模型设定</a></li>
+<li><a href="#sec-jags-code" id="toc-sec-jags-code"><span class="toc-section-number">5.2</span> 模型编码</a></li>
+<li><a href="#sec-jags-setup" id="toc-sec-jags-setup"><span class="toc-section-number">5.3</span> 模型配置</a></li>
+<li><a href="#sec-jags-train" id="toc-sec-jags-train"><span class="toc-section-number">5.4</span> 模型训练</a></li>
+<li><a href="#sec-jags-output" id="toc-sec-jags-output"><span class="toc-section-number">5.5</span> 模型输出</a></li>
+<li><a href="#sec-jags-posterior" id="toc-sec-jags-posterior"><span class="toc-section-number">5.6</span> 后验分布</a>
+<ul>
+<li><a href="#sec-jags-ci" id="toc-sec-jags-ci"><span class="toc-section-number">5.6.1</span> 参数区间估计</a></li>
+<li><a href="#sec-jags-dist" id="toc-sec-jags-dist"><span class="toc-section-number">5.6.2</span> 参数后验分布</a></li>
+</ul></li>
+<li><a href="#sec-jags-diag" id="toc-sec-jags-diag"><span class="toc-section-number">5.7</span> 模型诊断</a>
+<ul>
+<li><a href="#sec-jags-psrf" id="toc-sec-jags-psrf"><span class="toc-section-number">5.7.1</span> 潜在尺度缩减因子</a></li>
+<li><a href="#sec-jags-ess" id="toc-sec-jags-ess"><span class="toc-section-number">5.7.2</span> 有效样本量 ESS</a></li>
+</ul></li>
+<li><a href="#sec-jags-eval" id="toc-sec-jags-eval"><span class="toc-section-number">5.8</span> 模型评估</a>
+<ul>
+<li><a href="#sec-jags-dic" id="toc-sec-jags-dic"><span class="toc-section-number">5.8.1</span> DIC</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#sec-cmdstan" id="toc-sec-cmdstan"><span class="toc-section-number">6</span> CmdStan 软件</a>
+<ul>
+<li><a href="#sec-stan-encode" id="toc-sec-stan-encode"><span class="toc-section-number">6.1</span> 编码模型</a></li>
+<li><a href="#sec-compile-model" id="toc-sec-compile-model"><span class="toc-section-number">6.2</span> 编译模型</a></li>
+<li><a href="#sec-reshape-data" id="toc-sec-reshape-data"><span class="toc-section-number">6.3</span> 准备数据</a></li>
+<li><a href="#sec-train-model" id="toc-sec-train-model"><span class="toc-section-number">6.4</span> 训练模型</a></li>
+<li><a href="#sec-model-output" id="toc-sec-model-output"><span class="toc-section-number">6.5</span> 模型输出</a></li>
+<li><a href="#%E5%90%8E%E9%AA%8C%E5%88%86%E5%B8%83" id="toc-后验分布"><span class="toc-section-number">6.6</span> 后验分布</a>
+<ul>
+<li><a href="#sec-pars-trace" id="toc-sec-pars-trace"><span class="toc-section-number">6.6.1</span> 参数迭代轨迹图</a></li>
+<li><a href="#sec-pars-dist" id="toc-sec-pars-dist"><span class="toc-section-number">6.6.2</span> 参数后验分布图</a></li>
+</ul></li>
+<li><a href="#sec-cmdstan-diag" id="toc-sec-cmdstan-diag"><span class="toc-section-number">6.7</span> 模型诊断</a>
+<ul>
+<li><a href="#sec-cmdstan-psrf" id="toc-sec-cmdstan-psrf"><span class="toc-section-number">6.7.1</span> 潜在尺度收缩因子</a></li>
+<li><a href="#sec-cmdstan-ess" id="toc-sec-cmdstan-ess"><span class="toc-section-number">6.7.2</span> 有效样本量</a></li>
+</ul></li>
+<li><a href="#sec-cmdstan-eval" id="toc-sec-cmdstan-eval"><span class="toc-section-number">6.8</span> 模型评估</a>
+<ul>
+<li><a href="#waic" id="toc-waic"><span class="toc-section-number">6.8.1</span> WAIC</a></li>
+<li><a href="#looic" id="toc-looic"><span class="toc-section-number">6.8.2</span> LOOIC</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#session" id="toc-session"><span class="toc-section-number">7</span> 运行环境</a></li>
+</ul>
+</div>
+
+<div id="cars-数据集" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> cars 数据集</h1>
+<p>数据集 cars 来自 Base R 内置的 <strong>datasets</strong> 包，仅有两个变量 speed （单位：英里/每小时）和 dist（单位：英尺），1 英里约等于 1.6 公里，1 英尺约等于 30.48 厘米。下表展示了数据集 cars 的部分内容。</p>
+<table style="width:100%;">
+<caption><span id="tab:tbl-cars-data">表 1.1: </span>cars 数据集（部分）</caption>
+<colgroup>
+<col width="9%" />
+<col width="4%" />
+<col width="4%" />
+<col width="4%" />
+<col width="4%" />
+<col width="4%" />
+<col width="4%" />
+<col width="4%" />
+<col width="4%" />
+<col width="4%" />
+<col width="4%" />
+<col width="4%" />
+<col width="4%" />
+<col width="4%" />
+<col width="4%" />
+<col width="4%" />
+<col width="4%" />
+<col width="4%" />
+<col width="4%" />
+<col width="4%" />
+<col width="4%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">1</th>
+<th align="right">2</th>
+<th align="right">3</th>
+<th align="right">4</th>
+<th align="right">5</th>
+<th align="right">6</th>
+<th align="right">7</th>
+<th align="right">8</th>
+<th align="right">9</th>
+<th align="right">10</th>
+<th align="right">11</th>
+<th align="right">12</th>
+<th align="right">13</th>
+<th align="right">14</th>
+<th align="right">15</th>
+<th align="right">16</th>
+<th align="right">17</th>
+<th align="right">18</th>
+<th align="right">19</th>
+<th align="right">20</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">speed</td>
+<td align="right">4</td>
+<td align="right">4</td>
+<td align="right">7</td>
+<td align="right">7</td>
+<td align="right">8</td>
+<td align="right">9</td>
+<td align="right">10</td>
+<td align="right">10</td>
+<td align="right">10</td>
+<td align="right">11</td>
+<td align="right">11</td>
+<td align="right">12</td>
+<td align="right">12</td>
+<td align="right">12</td>
+<td align="right">12</td>
+<td align="right">13</td>
+<td align="right">13</td>
+<td align="right">13</td>
+<td align="right">13</td>
+<td align="right">14</td>
+</tr>
+<tr class="even">
+<td align="left">dist</td>
+<td align="right">2</td>
+<td align="right">10</td>
+<td align="right">4</td>
+<td align="right">22</td>
+<td align="right">16</td>
+<td align="right">10</td>
+<td align="right">18</td>
+<td align="right">26</td>
+<td align="right">34</td>
+<td align="right">17</td>
+<td align="right">28</td>
+<td align="right">14</td>
+<td align="right">20</td>
+<td align="right">24</td>
+<td align="right">28</td>
+<td align="right">26</td>
+<td align="right">34</td>
+<td align="right">34</td>
+<td align="right">46</td>
+<td align="right">26</td>
+</tr>
+</tbody>
+</table>
+<p>将每一对速度与距离的值绘制在图上，并添加线性趋势拟合线及其预测值的置信带。下图展示 20 世纪 20 年代汽车里程与行驶速度的关系，那时候的汽车也就比乌龟爬得快一些，距今已有 100 年历史了。</p>
+<div class="figure"><span style="display:block;" id="fig:fig-cars"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-cars-1.png" alt="汽车里程与速度的关系" width="480" />
+<p class="caption">
+图 1.1: 汽车里程与速度的关系
+</p>
+</div>
+</div>
+<div id="线性模型" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> 线性模型</h1>
+<p>一般线性模型如下：</p>
+<p><span class="math display">\[
+\begin{aligned}
+\bm{y} &amp;= X\bm{\beta} + \bm{\epsilon} \\
+\bm{\epsilon} &amp;\sim \mathrm{MVN}(\bm{0},\sigma^2 I)
+\end{aligned}
+\]</span></p>
+<p>其中，<span class="math inline">\(\bm{y}\)</span> 是观测的响应变量值，<span class="math inline">\(X\)</span> 是观测的预测变量对应的系数矩阵，不是随机的，<span class="math inline">\(\bm{\beta}\)</span> 是与预测变量对应的回归系数，<span class="math inline">\(\bm{\epsilon}\)</span> 是随机的残差，各分量相互独立，且服从均值为 0，方差为 <span class="math inline">\(\sigma^2\)</span> 的正态分布，<span class="math inline">\(I\)</span> 表示单位矩阵。</p>
+<p>回归系数 <span class="math inline">\(\bm{\beta}\)</span> 最小二乘估计和残差方差 <span class="math inline">\(\sigma^2\)</span> 的无偏估计如下：</p>
+<p><span class="math display">\[
+\begin{aligned}
+\hat{\boldsymbol{\beta}} &amp;= (X^{\top}X)^{-1}X^{\top}\boldsymbol{y} \\
+\hat{\sigma^2} &amp;= \frac{\boldsymbol{y}^{\top}(I - X(X^{\top}X)^{-1}X^{\top})\boldsymbol{y}}{n - \mathrm{rank}(X)}
+\end{aligned}
+\]</span></p>
+<p>其中，<span class="math inline">\(X^{\top}X\)</span> 是可逆的，<span class="math inline">\(\mathrm{rank}(X)\)</span> 表示矩阵 <span class="math inline">\(X\)</span> 的秩。<span class="math inline">\(\hat{\sigma^2}\)</span> 是根据残差的情况构造出来的。</p>
+<p>关于残差 <span class="math inline">\(\hat{\bm{\epsilon}}\)</span> 有如下结果：</p>
+<p><span class="math display">\[
+\begin{aligned}
+\hat{\bm{\epsilon}} &amp;= \bm{y} - X\hat{\bm{\beta}} = (I - X(X^{\top}X)^{-1}X^{\top})\bm{y} \\
+\hat{\bm{\epsilon}}^{\top}\hat{\bm{\epsilon}} &amp;= (\bm{y} - X\hat{\bm{\beta}})^{\top}(\bm{y} - X\hat{\bm{\beta}}) \\
+&amp;= \boldsymbol{y}^{\top}(I - X(X^{\top}X)^{-1}X^{\top})\boldsymbol{y}
+\end{aligned}
+\]</span></p>
+<p><span class="math inline">\(\sigma^2\)</span> 的极大似然估计如下：</p>
+<p><span class="math display">\[
+\widetilde{\sigma^2} = \frac{n - \mathrm{rank}(X)}{n}\hat{\sigma^2}
+\]</span></p>
+<p>可见，极大似然估计有偏，但是它比最小二乘估计小。</p>
+<p>回归系数 <span class="math inline">\(\bm{\beta}\)</span> 的最小二乘估计的方差 <span class="math inline">\(\mathrm{Var}\{\hat{\bm\beta}\}\)</span> 如下：</p>
+<p><span class="math display">\[
+\begin{aligned}
+\mathrm{Var}\{\hat{\bm\beta}\} &amp; =\mathrm{Var}\{(X^{\top}X)^{-1}X^{\top}\bm{y}\}\\
+&amp; =(X^{\top}X)^{-1}X^{\top}\mathrm{Var}\{\bm{y}\}((X^{\top}X)^{-1}X^{\top})^{\top}\\
+&amp; =(X^{\top}X)^{-1}X^{\top}\mathrm{Var}\{\bm{y}\}X(X^{\top}X)^{-1}\\
+&amp; =(X^{\top}X)^{-1}X^{\top}\sigma^{2}\mathsf{I}X(X^{\top}X)^{-1}\\
+&amp; =(X^{\top}X)^{-1}\sigma^{2}
+\end{aligned}
+\]</span></p>
+</div>
+<div id="手搓线性回归" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> 手搓线性回归</h1>
+<p>在 R 语言环境中，矩阵计算的函数是很丰富的，回归系数的计算涉及矩阵的乘法和求逆，分别用内置函数 <code>crossprod()</code> 和 <code>solve()</code> 即可。</p>
+<pre class="r"><code>y = cars[, &quot;dist&quot;] # 这是一个向量
+X = cbind(1, cars[, &quot;speed&quot;]) # 这是一个矩阵
+# 回归系数 beta 向量
+solve(a = crossprod(X), b = crossprod(X, y))</code></pre>
+<pre><code>##         [,1]
+## [1,] -17.579
+## [2,]   3.932</code></pre>
+<p>截矩项和速度变量的系数分别是 -17.579 和 3.932 。所以回归方程如下：</p>
+<p><span class="math display">\[
+\begin{aligned}
+\mathrm{dist} = -17.579 + 3.932 \times \mathrm{speed}.
+\end{aligned}
+\]</span></p>
+<pre class="r"><code># 系数矩阵 X 的秩
+qr(X)$rank</code></pre>
+<pre><code>## [1] 2</code></pre>
+<pre class="r"><code># 样本量
+nrow(cars)</code></pre>
+<pre><code>## [1] 50</code></pre>
+<pre class="r"><code># 投影阵
+P = diag(rep(1, nrow(cars))) - X %*% solve(crossprod(X)) %*% t(X)
+# sigma 的估计
+sqrt((t(y) %*% P %*% y) / (50 - 2))</code></pre>
+<pre><code>##       [,1]
+## [1,] 15.38</code></pre>
+</div>
+<div id="r-语言函数-lm" class="section level1" number="4">
+<h1><span class="header-section-number">4</span> R 语言函数 <code>lm()</code></h1>
+<p>统计计算和建模是 R 语言的核心优势之一，对于线性模型拟合，已有内置函数 <code>lm()</code> 。</p>
+<pre class="r"><code>fit_lm_cars &lt;- lm(data = cars, dist ~ speed)
+# 输出线性模型拟合结果
+summary(fit_lm_cars)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = dist ~ speed, data = cars)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -29.07  -9.53  -2.27   9.21  43.20 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  -17.579      6.758   -2.60    0.012 *  
+## speed          3.932      0.416    9.46  1.5e-12 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 15.4 on 48 degrees of freedom
+## Multiple R-squared:  0.651,	Adjusted R-squared:  0.644 
+## F-statistic: 89.6 on 1 and 48 DF,  p-value: 1.49e-12</code></pre>
+<p>从模型输出结果来看，线性模型的参数分别是 <span class="math inline">\(\alpha = -17.579, \beta = 3.932, \sigma = 15.4\)</span> 。这与前面手搓的结果一样。</p>
+<div class="figure"><span style="display:block;" id="fig:fig-cars-lm"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-cars-lm-1.png" alt="汽车里程与速度的关系" width="480" />
+<p class="caption">
+图 4.1: 汽车里程与速度的关系
+</p>
+</div>
+</div>
+<div id="sec-jags" class="section level1" number="5">
+<h1><span class="header-section-number">5</span> JAGS 软件</h1>
+<p><a href="https://mcmc-jags.sourceforge.io">JAGS</a> 是一款用于贝叶斯计算的开源免费软件。它的 R 语言接口是 <strong>rjags</strong> 包，另有一个 <strong>coda</strong> 包专门处理后验分布采样的数据。</p>
+<div id="sec-jags-model" class="section level2" number="5.1">
+<h2><span class="header-section-number">5.1</span> 模型设定</h2>
+<p>在 cars 数据集中，对距离与速度的关系进行建模，在贝叶斯分析框架下，参数的先验分布做如下设置。</p>
+<p><span class="math display">\[
+\begin{aligned}
+\alpha &amp;\sim \mathcal{N}(0, 0.0001) \\
+\beta  &amp;\sim \mathcal{N}(0, 0.0001) \\
+\tau   &amp;\sim \Gamma(0.001, 0.001) \\
+\sigma &amp;= 1/\sqrt{\tau}
+\end{aligned}
+\]</span></p>
+<p>则 <span class="math inline">\(\tau = 1/\sigma^2\)</span> ，意味着 <span class="math inline">\(1/\sigma^2 \sim \Gamma(0.001,0.001)\)</span> ，此伽马分布的图像如下。</p>
+<pre class="r"><code>ggplot() +
+  geom_function(
+    fun = dnorm, args = list(mean = 0, sd = 0.0001),
+    aes(colour = &quot;dnorm&quot;), linewidth = 1.2, xlim = c(-6, 6)
+  ) +
+  geom_function(
+    fun = dgamma, args = list(shape = 0.001, scale = 0.001),
+    aes(colour = &quot;dgamma&quot;), linewidth = 1.2, xlim = c(-6, 6)
+  ) +
+  theme_classic() +
+  labs(x = expression(x), y = expression(f(x)), colour = NULL)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:fig-gamma"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/fig-gamma-1.png" alt="标准差的先验分布" width="480" />
+<p class="caption">
+图 5.1: 标准差的先验分布
+</p>
+</div>
+</div>
+<div id="sec-jags-code" class="section level2" number="5.2">
+<h2><span class="header-section-number">5.2</span> 模型编码</h2>
+<p>一个简单线性模型（一元线性回归）的 JAGS 代码如下：</p>
+<pre><code>model {
+  for (i in 1:N) {
+    Y[i] ~ dnorm(mu[i], tau)
+    mu[i] &lt;- alpha + beta * x[i]
+  }
+  # Prior distribution
+  alpha ~ dnorm(0.0, 1.0E-4)
+  beta ~ dnorm(0.0, 1.0E-4)
+  sigma &lt;- 1.0/sqrt(tau)
+  tau ~ dgamma(1.0E-3, 1.0E-3)
+}</code></pre>
+<p>模型内容包裹在一对大括号<code>{}</code>内，且有保留的关键词 <code>model</code> 声明。循环控制语句 <code>for</code> 含义和一般编程语言无二，变量可以不先声明类型和初始化即可使用，这和 R 语言的习惯也是一样。JAGS 是用两类关系来表示模型的，一类是表示确定性的关系，对应赋值符号<code>&lt;-</code>，一类是表示随机性的关系，对应等价符号 <code>~</code>，在 LaTeX 中排版变量独立同分布的数学公式用到命令 <code>\sim</code> ，就是这个符号。JAGS 还定义了很多分布函数，以上代码块用到了正态分布 <code>dnorm</code> 和伽马分布 <code>dgamma</code> 的概率密度函数。</p>
+<p>代码中的 <code>x</code>、<code>y</code> 和 <code>N</code> 是需要用户输入的数据。</p>
+</div>
+<div id="sec-jags-setup" class="section level2" number="5.3">
+<h2><span class="header-section-number">5.3</span> 模型配置</h2>
+<pre class="r"><code>library(coda)
+library(rjags)</code></pre>
+<pre><code>## Linked to JAGS 4.3.2</code></pre>
+<pre><code>## Loaded modules: basemod,bugs</code></pre>
+<pre class="r"><code># 准备数据
+line_data &lt;- list(
+  &quot;x&quot; = cars$speed,
+  &quot;Y&quot; = cars$dist, 
+  &quot;N&quot; = 50
+)
+# 初始值
+line_inits &lt;- list(
+  list(&quot;.RNG.name&quot; = &quot;base::Marsaglia-Multicarry&quot;, 
+       &quot;.RNG.seed&quot; = 20222022, 
+       &quot;alpha&quot; = 3, &quot;beta&quot; = 0, &quot;tau&quot; = 1.5),
+  list(&quot;.RNG.name&quot; = &quot;base::Marsaglia-Multicarry&quot;, 
+       &quot;.RNG.seed&quot; = 20232023, 
+       &quot;alpha&quot; = 0, &quot;beta&quot; = 1, &quot;tau&quot; = 0.375)
+)</code></pre>
+<p>除了数据外，还需要指定随机数生成器，随机数种子（为了结果可重复），各参数的初始值。</p>
+</div>
+<div id="sec-jags-train" class="section level2" number="5.4">
+<h2><span class="header-section-number">5.4</span> 模型训练</h2>
+<p>当数据、初始值和模型都准备好后，就是在函数 <code>jags.model</code> 里将它们传递给模型，一起训练。</p>
+<pre class="r"><code># 模型
+model &lt;- jags.model(
+  file = &quot;code/cars.bugs&quot;,
+  data = line_data,
+  inits = line_inits, 
+  n.chains = 2 # 两条链
+)</code></pre>
+<pre><code>## Compiling model graph
+##    Resolving undeclared variables
+##    Allocating nodes
+## Graph information:
+##    Observed stochastic nodes: 50
+##    Unobserved stochastic nodes: 3
+##    Total graph size: 148
+## 
+## Initializing model</code></pre>
+<pre class="r"><code># burn-in 初始迭代次数
+update(model, n.iter = 500)</code></pre>
+<p>训练时，会输出模型的信息。 JAGS 将贝叶斯模型看成一个有层次的模型图。</p>
+<ul>
+<li><p><code>Observed stochastic nodes: 50</code> 观测数据 50 条记录，根据模型结构表达观测数据的隐含模式，模型含有未知参数，即随机变量。</p></li>
+<li><p><code>Unobserved stochastic nodes: 3</code> 模型未知参数 3 个，对应 3 个先验分布。在贝叶斯框架下，未知参数都是随机变量，需要指定先验分布。</p></li>
+</ul>
+</div>
+<div id="sec-jags-output" class="section level2" number="5.5">
+<h2><span class="header-section-number">5.5</span> 模型输出</h2>
+<p>函数 <code>coda.samples()</code> 对参数 <span class="math inline">\(\alpha,\beta,\sigma\)</span> 做 Gibbs 抽样。下面设置迭代 1000 次，每次迭代的值都采样。</p>
+<pre class="r"><code># 抽样
+samples &lt;- coda.samples(model,
+  variable.names = c(&quot;alpha&quot;, &quot;beta&quot;, &quot;sigma&quot;),
+  thin = 1,  # 采样间隔
+  n.iter = 1000 # 迭代次数
+)
+# 参数的后验估计
+summary(samples)</code></pre>
+<pre><code>## 
+## Iterations = 501:1500
+## Thinning interval = 1 
+## Number of chains = 2 
+## Sample size per chain = 1000 
+## 
+## 1. Empirical mean and standard deviation for each variable,
+##    plus standard error of the mean:
+## 
+##         Mean    SD Naive SE Time-series SE
+## alpha -17.95 6.967  0.15579         0.6511
+## beta    3.95 0.429  0.00959         0.0416
+## sigma  15.63 1.643  0.03674         0.0390
+## 
+## 2. Quantiles for each variable:
+## 
+##         2.5%    25%    50%    75% 97.5%
+## alpha -31.43 -22.58 -17.66 -13.25 -4.77
+## beta    3.15   3.67   3.94   4.23  4.79
+## sigma  12.79  14.45  15.46  16.64 19.20</code></pre>
+<p>除了输出采样的信息，此外，还有采样结果，也就是参数的贝叶斯估计。</p>
+<p>从输出结果来看，<span class="math inline">\(\alpha = -17.95, \beta = 3.95, \sigma = 15.63\)</span> ，这和前面函数 <code>lm()</code> 计算的结果是很接近的。</p>
+</div>
+<div id="sec-jags-posterior" class="section level2" number="5.6">
+<h2><span class="header-section-number">5.6</span> 后验分布</h2>
+<p>模型训练得到一个 <code>mcmc.list</code> 类型的列表，<strong>coda</strong> 包专为操作此数据。</p>
+<pre class="r"><code>class(samples)</code></pre>
+<pre><code>## [1] &quot;mcmc.list&quot;</code></pre>
+<pre class="r"><code>str(samples)</code></pre>
+<pre><code>## List of 2
+##  $ : &#39;mcmc&#39; num [1:1000, 1:3] -15.7 -14.1 -16.2 -15.4 -13.6 ...
+##   ..- attr(*, &quot;dimnames&quot;)=List of 2
+##   .. ..$ : NULL
+##   .. ..$ : chr [1:3] &quot;alpha&quot; &quot;beta&quot; &quot;sigma&quot;
+##   ..- attr(*, &quot;mcpar&quot;)= num [1:3] 501 1500 1
+##  $ : &#39;mcmc&#39; num [1:1000, 1:3] -9.52 -12.09 -8.87 -11.15 -12.11 ...
+##   ..- attr(*, &quot;dimnames&quot;)=List of 2
+##   .. ..$ : NULL
+##   .. ..$ : chr [1:3] &quot;alpha&quot; &quot;beta&quot; &quot;sigma&quot;
+##   ..- attr(*, &quot;mcpar&quot;)= num [1:3] 501 1500 1
+##  - attr(*, &quot;class&quot;)= chr &quot;mcmc.list&quot;</code></pre>
+<p>这个列表存储了模型参数在采样过程中的迭代值，两条链对应列表的两个元素，每个元素是一个二维矩阵。了解了这个数据结构后，下面查看第一条链模型三个参数 <span class="math inline">\(\alpha,\beta,\sigma\)</span> 的前几个迭代值。</p>
+<pre class="r"><code>head(samples[[1]])</code></pre>
+<pre><code>## Markov Chain Monte Carlo (MCMC) output:
+## Start = 501 
+## End = 507 
+## Thinning interval = 1 
+##       alpha  beta sigma
+## [1,] -15.73 3.776 13.90
+## [2,] -14.14 3.680 14.77
+## [3,] -16.21 4.065 13.46
+## [4,] -15.35 3.710 14.18
+## [5,] -13.64 3.754 13.74
+## [6,] -10.48 3.291 13.06
+## [7,] -11.63 3.827 17.37</code></pre>
+<div id="sec-jags-ci" class="section level3" number="5.6.1">
+<h3><span class="header-section-number">5.6.1</span> 参数区间估计</h3>
+<p>参数后验区间估计，前面设置了两条马尔可夫迭代链，所以输出两个结果，两个结果是很接近的。</p>
+<pre class="r"><code># Highest Posterior Density intervals
+HPDinterval(samples)</code></pre>
+<pre><code>## [[1]]
+##         lower  upper
+## alpha -30.444 -4.305
+## beta    3.136  4.784
+## sigma  12.784 19.109
+## attr(,&quot;Probability&quot;)
+## [1] 0.95
+## 
+## [[2]]
+##         lower  upper
+## alpha -31.539 -4.875
+## beta    3.155  4.759
+## sigma  12.593 18.908
+## attr(,&quot;Probability&quot;)
+## [1] 0.95</code></pre>
+</div>
+<div id="sec-jags-dist" class="section level3" number="5.6.2">
+<h3><span class="header-section-number">5.6.2</span> 参数后验分布</h3>
+<p>coda 包可视化参数的迭代轨迹图和后验概率密度图。</p>
+<p>每个参数的后验分布的概率密度图，两条链。</p>
+<pre class="r"><code>library(lattice)
+# 密度图
+densityplot(samples)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:jags-dens"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/jags-dens-1.png" alt="后验分布的概率密度图" width="672" />
+<p class="caption">
+图 5.2: 后验分布的概率密度图
+</p>
+</div>
+<p>每个参数的迭代序列，看作一个时间序列，这个时间序列应该是平稳的。</p>
+<pre class="r"><code># 自相关图
+acfplot(samples)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:jags-acf"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/jags-acf-1.png" alt="迭代序列的自相关图" width="672" />
+<p class="caption">
+图 5.3: 迭代序列的自相关图
+</p>
+</div>
+</div>
+</div>
+<div id="sec-jags-diag" class="section level2" number="5.7">
+<h2><span class="header-section-number">5.7</span> 模型诊断</h2>
+<div id="sec-jags-psrf" class="section level3" number="5.7.1">
+<h3><span class="header-section-number">5.7.1</span> 潜在尺度缩减因子</h3>
+<p>Gelman and Rubin’s 收缩因子随迭代次数的变化。</p>
+<pre class="r"><code>gelman.plot(samples)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:jags-gelman"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/jags-gelman-1.png" alt="Gelman-Rubin-Brooks 图" width="672" />
+<p class="caption">
+图 5.4: Gelman-Rubin-Brooks 图
+</p>
+</div>
+<p>Gelman and Rubin 收敛性诊断，潜在尺度缩减因子（Potential Scale Reduction Factors，简称 psrf），也就是通常所说的 <span class="math inline">\(\hat{R}\)</span> ，它要越接近 1 越好，表示迭代序列混合效果好。</p>
+<pre class="r"><code>gelman.diag(samples, confidence = 0.95)</code></pre>
+<pre><code>## Potential scale reduction factors:
+## 
+##       Point est. Upper C.I.
+## alpha       1.01       1.01
+## beta        1.01       1.01
+## sigma       1.00       1.00
+## 
+## Multivariate psrf
+## 
+## 1</code></pre>
+</div>
+<div id="sec-jags-ess" class="section level3" number="5.7.2">
+<h3><span class="header-section-number">5.7.2</span> 有效样本量 ESS</h3>
+<p>ESS 表示 Effective sample size for estimating the mean 参数后验均值估计的有效样本量。</p>
+<pre class="r"><code>effectiveSize(samples)</code></pre>
+<pre><code>##  alpha   beta  sigma 
+##  114.6  106.4 1794.7</code></pre>
+</div>
+</div>
+<div id="sec-jags-eval" class="section level2" number="5.8">
+<h2><span class="header-section-number">5.8</span> 模型评估</h2>
+<div id="sec-jags-dic" class="section level3" number="5.8.1">
+<h3><span class="header-section-number">5.8.1</span> DIC</h3>
+<p>Generate penalized deviance samples</p>
+<pre class="r"><code>dic.samples(model, n.iter = 1000)</code></pre>
+<pre><code>## Mean deviance:  416 
+## penalty 3.05 
+## Penalized deviance: 419</code></pre>
+</div>
+</div>
+</div>
+<div id="sec-cmdstan" class="section level1" number="6">
+<h1><span class="header-section-number">6</span> CmdStan 软件</h1>
+<p>CmdStan 是 Stan 的命令行接口，<strong>cmdstanr</strong> 包是 CmdStan 的 R 语言接口。</p>
+<div id="sec-stan-encode" class="section level2" number="6.1">
+<h2><span class="header-section-number">6.1</span> 编码模型</h2>
+<p>Stan 编码的线性模型如下：</p>
+<pre><code>data {
+  int&lt;lower=0&gt; N;   // number of data items
+  int&lt;lower=0&gt; K;   // number of predictors
+  matrix[N, K] x;   // predictor matrix
+  vector[N] y;      // outcome vector
+}
+parameters {
+  real alpha;           // intercept
+  vector[K] beta;       // coefficients for predictors
+  real&lt;lower=0&gt; sigma;  // error scale
+}
+model {
+  // alpha ~ normal(0, 1);  // prior
+  // beta ~ normal(0, 1);   // prior
+  y ~ normal(x * beta + alpha, sigma);  // likelihood
+}
+generated quantities {
+  vector[N] log_lik; // pointwise log-likelihood for LOO
+  vector[N] y_rep;   // replications from posterior predictive dist
+  for (i in 1 : N) {
+    real y_hat_i = alpha + x[i] * beta;
+    log_lik[i] = normal_lpdf(y[i] | y_hat_i, sigma);
+    y_rep[i] = normal_rng(y_hat_i, sigma);
+  }
+}</code></pre>
+</div>
+<div id="sec-compile-model" class="section level2" number="6.2">
+<h2><span class="header-section-number">6.2</span> 编译模型</h2>
+<pre class="r"><code># 不检查新版 CmdStan
+Sys.setenv(cmdstanr_no_ver_check=TRUE)
+library(cmdstanr)
+# 编译模型
+mod_cars &lt;- cmdstan_model(
+  stan_file = &quot;code/cars.stan&quot;,
+  compile = TRUE,
+  cpp_options = list(stan_threads = TRUE)
+)</code></pre>
+</div>
+<div id="sec-reshape-data" class="section level2" number="6.3">
+<h2><span class="header-section-number">6.3</span> 准备数据</h2>
+<pre class="r"><code># 准备数据
+cars_d &lt;- list(
+  N = nrow(cars), # 观测记录的条数
+  K = 1, # 协变量个数
+  x = cars[, &quot;speed&quot;, drop = F], # N x 1 矩阵
+  y = cars[, &quot;dist&quot;] # N 向量
+)
+
+nchains &lt;- 2 # 2 条迭代链
+# 给每条链设置不同的参数初始值
+inits_data &lt;- lapply(1:nchains, function(i) {
+  list(
+    alpha = runif(1, 0, 1),
+    beta = runif(1, 0, 1),
+    sigma = runif(1, 1, 10)
+  )
+})</code></pre>
+</div>
+<div id="sec-train-model" class="section level2" number="6.4">
+<h2><span class="header-section-number">6.4</span> 训练模型</h2>
+<p>采样拟合模型</p>
+<pre class="r"><code># 采样拟合模型
+fit_cars &lt;- mod_cars$sample(
+  data = cars_d, # 观测数据
+  init = inits_data, # 迭代初值
+  iter_warmup = 500, # 每条链预处理迭代次数
+  iter_sampling = 1000, # 每条链总迭代次数
+  chains = nchains, # 马尔科夫链的数目
+  parallel_chains = 1, # 指定 CPU 核心数，可以给每条链分配一个
+  threads_per_chain = 1, # 每条链设置一个线程
+  show_messages = FALSE, # 不显示迭代的中间过程
+  refresh = 0, # 不显示采样的进度
+  seed = 20190425 # 设置随机数种子，不要使用 set.seed() 函数
+)</code></pre>
+</div>
+<div id="sec-model-output" class="section level2" number="6.5">
+<h2><span class="header-section-number">6.5</span> 模型输出</h2>
+<p>模型参数估计结果如下：</p>
+<table>
+<caption><span id="tab:output-cars">表 6.1: </span>贝叶斯线性模型参数估计结果</caption>
+<colgroup>
+<col width="11%" />
+<col width="11%" />
+<col width="11%" />
+<col width="7%" />
+<col width="7%" />
+<col width="11%" />
+<col width="11%" />
+<col width="7%" />
+<col width="11%" />
+<col width="11%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">variable</th>
+<th align="right">mean</th>
+<th align="right">median</th>
+<th align="right">sd</th>
+<th align="right">mad</th>
+<th align="right">q5</th>
+<th align="right">q95</th>
+<th align="right">rhat</th>
+<th align="right">ess_bulk</th>
+<th align="right">ess_tail</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">alpha</td>
+<td align="right">-17.850</td>
+<td align="right">-17.841</td>
+<td align="right">6.868</td>
+<td align="right">6.719</td>
+<td align="right">-29.072</td>
+<td align="right">-6.495</td>
+<td align="right">1.002</td>
+<td align="right">622.3</td>
+<td align="right">719.1</td>
+</tr>
+<tr class="even">
+<td align="left">beta[1]</td>
+<td align="right">3.953</td>
+<td align="right">3.956</td>
+<td align="right">0.424</td>
+<td align="right">0.426</td>
+<td align="right">3.273</td>
+<td align="right">4.645</td>
+<td align="right">1.002</td>
+<td align="right">608.6</td>
+<td align="right">731.0</td>
+</tr>
+<tr class="odd">
+<td align="left">sigma</td>
+<td align="right">15.712</td>
+<td align="right">15.610</td>
+<td align="right">1.573</td>
+<td align="right">1.498</td>
+<td align="right">13.265</td>
+<td align="right">18.491</td>
+<td align="right">1.004</td>
+<td align="right">970.6</td>
+<td align="right">1083.4</td>
+</tr>
+<tr class="even">
+<td align="left">lp__</td>
+<td align="right">-159.428</td>
+<td align="right">-159.097</td>
+<td align="right">1.246</td>
+<td align="right">0.998</td>
+<td align="right">-161.885</td>
+<td align="right">-158.103</td>
+<td align="right">1.003</td>
+<td align="right">594.5</td>
+<td align="right">772.0</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="后验分布" class="section level2" number="6.6">
+<h2><span class="header-section-number">6.6</span> 后验分布</h2>
+<div id="sec-pars-trace" class="section level3" number="6.6.1">
+<h3><span class="header-section-number">6.6.1</span> 参数迭代轨迹图</h3>
+<pre class="r"><code>library(bayesplot)
+## This is bayesplot version 1.15.0
+## - Online documentation and vignettes at mc-stan.org/bayesplot
+## - bayesplot theme set to bayesplot::theme_default()
+##    * Does _not_ affect other ggplot2 plots
+##    * See ?bayesplot_theme_set for details on theme setting
+mcmc_trace(fit_cars$draws(c(&quot;alpha&quot;, &quot;beta&quot;)),
+  facet_args = list(
+    labeller = ggplot2::label_parsed, strip.position = &quot;top&quot;, ncol = 1
+  )
+) + theme_bw(base_size = 12)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:stan-trace"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/stan-trace-1.png" alt="参数迭代轨迹图" width="672" />
+<p class="caption">
+图 6.1: 参数迭代轨迹图
+</p>
+</div>
+</div>
+<div id="sec-pars-dist" class="section level3" number="6.6.2">
+<h3><span class="header-section-number">6.6.2</span> 参数后验分布图</h3>
+<pre class="r"><code>mcmc_dens(fit_cars$draws(c(&quot;alpha&quot;, &quot;beta&quot;)),
+  facet_args = list(
+    labeller = ggplot2::label_parsed, strip.position = &quot;top&quot;, ncol = 1
+  )
+) + theme_bw(base_size = 12)</code></pre>
+<div class="figure"><span style="display:block;" id="fig:stan-dens"></span>
+<img src="{{< blogdown/postref >}}index_files/figure-html/stan-dens-1.png" alt="参数后验分布图" width="672" />
+<p class="caption">
+图 6.2: 参数后验分布图
+</p>
+</div>
+</div>
+</div>
+<div id="sec-cmdstan-diag" class="section level2" number="6.7">
+<h2><span class="header-section-number">6.7</span> 模型诊断</h2>
+<div id="sec-cmdstan-psrf" class="section level3" number="6.7.1">
+<h3><span class="header-section-number">6.7.1</span> 潜在尺度收缩因子</h3>
+<p>潜在尺度收缩因子 <span class="math inline">\(\hat{R}\)</span></p>
+<pre class="r"><code>bayesplot::rhat(fit_cars, pars = c(&quot;alpha&quot;, &quot;beta&quot;, &quot;sigma&quot;))</code></pre>
+<pre><code>##   alpha beta[1]   sigma 
+##   1.002   1.002   1.004</code></pre>
+<p>rhat 值越接近 1 越好。</p>
+</div>
+<div id="sec-cmdstan-ess" class="section level3" number="6.7.2">
+<h3><span class="header-section-number">6.7.2</span> 有效样本量</h3>
+<p><code>neff_ratio</code> 衡量采样效率，有效样本比率。</p>
+<pre class="r"><code>bayesplot::neff_ratio(fit_cars, pars = c(&quot;alpha&quot;, &quot;beta&quot;, &quot;sigma&quot;))</code></pre>
+<pre><code>##   alpha beta[1]   sigma 
+##  0.3096  0.3043  0.4858</code></pre>
+</div>
+</div>
+<div id="sec-cmdstan-eval" class="section level2" number="6.8">
+<h2><span class="header-section-number">6.8</span> 模型评估</h2>
+<div id="waic" class="section level3" number="6.8.1">
+<h3><span class="header-section-number">6.8.1</span> WAIC</h3>
+<pre class="r"><code>fit_cars_waic &lt;- loo::waic(fit_cars$draws(variables = &quot;log_lik&quot;))</code></pre>
+<pre><code>## Warning: 
+## 2 (4.0%) p_waic estimates greater than 0.4. We recommend trying loo instead.</code></pre>
+<pre class="r"><code>print(fit_cars_waic)</code></pre>
+<pre><code>## 
+## Computed from 2000 by 50 log-likelihood matrix.
+## 
+##           Estimate   SE
+## elpd_waic   -209.9  6.3
+## p_waic         3.3  1.2
+## waic         419.8 12.7
+## 
+## 2 (4.0%) p_waic estimates greater than 0.4. We recommend trying loo instead.</code></pre>
+</div>
+<div id="looic" class="section level3" number="6.8.2">
+<h3><span class="header-section-number">6.8.2</span> LOOIC</h3>
+<pre class="r"><code>fit_cars_loo &lt;- fit_cars$loo(variables = &quot;log_lik&quot;, cores = 2)
+print(fit_cars_loo)</code></pre>
+<pre><code>## 
+## Computed from 2000 by 50 log-likelihood matrix.
+## 
+##          Estimate   SE
+## elpd_loo   -209.9  6.3
+## p_loo         3.3  1.2
+## looic       419.9 12.7
+## ------
+## MCSE of elpd_loo is 0.1.
+## MCSE and ESS estimates assume MCMC draws (r_eff in [0.4, 1.1]).
+## 
+## All Pareto k estimates are good (k &lt; 0.7).
+## See help(&#39;pareto-k-diagnostic&#39;) for details.</code></pre>
+</div>
+</div>
+</div>
+<div id="session" class="section level1" number="7">
+<h1><span class="header-section-number">7</span> 运行环境</h1>
+<p>本文用到的 JAGS 版本为 4.3.2，CmdStan 版本为 2.37.0。</p>
+<pre class="r"><code>xfun::session_info(
+  packages = c(&quot;ggplot2&quot;, &quot;rjags&quot;, &quot;coda&quot;, &quot;cmdstanr&quot;, &quot;bayesplot&quot;, &quot;lattice&quot;, &quot;loo&quot;),
+  dependencies = F
+)</code></pre>
+<pre><code>## R version 4.5.3 (2026-03-11)
+## Platform: aarch64-apple-darwin20
+## Running under: macOS Tahoe 26.4.1
+## 
+## Locale: en_US.UTF-8 / en_US.UTF-8 / en_US.UTF-8 / C / en_US.UTF-8 / en_US.UTF-8
+## 
+## Package version:
+##   bayesplot_1.15.0 cmdstanr_0.9.0   coda_0.19-4.1    ggplot2_4.0.2   
+##   lattice_0.22-9   loo_2.9.0        rjags_4-17</code></pre>
+</div>
