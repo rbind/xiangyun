@@ -1,0 +1,210 @@
+---
+title: 值得一试的 gglite 包
+date: "2026-04-18"
+author: "黄湘云"
+slug: gglite
+categories:
+  - 统计软件
+tags:
+  - 图形语法
+  - ggplot2
+  - Ant G2
+  - 数据可视化
+  - 交互式图形
+  - 气泡图
+  - 折线图
+  - 柱形图
+  - 双轴图
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+description: "本文介绍 gglite 包制作最常用的四种数据可视化图形。"
+---
+
+数据可视化方面，我可是用过不少的 R 包，在生产实践上，大量使用的 R 包是 **plotly** 包，自己出于兴趣又嫌 **plotly** 包太笨重，遂在本博客网站上，大量使用 **echarts4r** 包。
+
+-   [**R 语言制作地区分布图及其动画**](http://localhost:4321/2022/05/choropleth-map-animation/)**（echarts4r）**
+-   [**Gapminder：关注差异、理解变化**](http://localhost:4321/2022/06/gapminder/)**（echarts4r）**
+-   [**动画制作与 Plotly Python**](http://localhost:4321/2022/02/plotly-python-animations/)**（plotly）**
+-   [**用 Python 语言开发 Shiny 应用**](http://localhost:4321/2024/04/shiny-for-python/)**（plotly）**
+-   [**开发企业级 Shiny 应用的技术栈**](http://localhost:4321/2021/08/shiny-in-production/)**（plotly）**
+-   [**交互式网页图形与 R 语言**](http://localhost:4321/2021/11/interactive-web-graphics/)**（plotly** 和 **echarts4r）**
+
+为什么又介绍了一个新的用于数据可视化的 R 语言扩展包？因为在图形种类丰富的前提下， [**gglite**](https://pkg.yihui.org/gglite/) 包又轻量又原生支持图形语法，它站在 [Ant G2](https://g2.antv.antgroup.com) 的肩膀上。哦，对了！它还扔掉了对 **htmlwidgets** 的依赖！简直难以置信！我在博客中使用它，不需要每次上传一堆 JS 文件了。写技术博客的痛，谁懂呀？
+
+考虑到实用性，本文仅介绍几种最常用的图形。
+
+# 气泡图 {#mark-point}
+
+散点图是探索连续型变量之间关系的有效方式，气泡图更加了一个维度。一个城市（邵阳市）的自然增长率与它的城市化率的关系如下图所示。
+
+```{r}
+# 数据来源：邵阳市统计局发布的 2024 年统计年鉴
+# 2023 年邵阳市各地区人口相关数据
+shao_yang = read.table(text = "
+地区 自然增长人口 自然增长率 城镇人口 城市化率
+双清 -736 -2.82 28.83 90.07
+大祥 -345 -1.09 32.02 88.16
+北塔 -15 -0.15 9.94 80.36
+新邵 283 0.35 27.36 46.7
+邵阳 1691 1.62 34.03 47.63
+隆回 1746 1.36 44.04 44.93
+洞口 620 0.7 33.01 50.24
+绥宁 105 0.28 12.12 42.8
+新宁 96 0.15 23.76 47.73
+城步 169 0.61 9.85 44.55
+武冈 522 0.64 31.97 51.56
+邵东 -260 -0.2 58.53 59.01
+", header = T, sep = " ")
+```
+
+```{r}
+library(gglite)
+g2(data = shao_yang, 自然增长率 ~ 城市化率, size = ~城镇人口) |> 
+  mark_point(encode = list(color = "城镇人口"), 
+             tooltip = list(title = "地区"),
+             style = list(fillOpacity = 0.5)) |>
+  scale_size(type = "log", range = c(5, 25)) |> 
+  scale_color(palette = 'inferno') |> 
+  legend_size(FALSE) |> 
+  legend_color(position = 'right', title = "城镇人口（万）") |> 
+  mark_text(encode = list(text = "地区")) |>
+  axis_x(title = "城市化率（%）") |> 
+  axis_y(title = "自然增长率（‰）") |> 
+  titles(main = "2023 年邵阳市各地区人口自然增长率与城市化率的关系") |> 
+  theme_academy()
+```
+
+-   Ant G2 [内置的调色板](https://g2.antv.antgroup.com/manual/core/color)。
+-   Ant G2 [Mark Point 图层](https://g2.antv.antgroup.com/manual/core/mark/point)。
+
+# 折线图 {#mark-line}
+
+```{r}
+# 数据来源：中国人民银行（央行）货币政策执行季度报告
+# 个人住房贷款加权平均利率
+lending_rate <- data.frame(
+  "季度" = c('09Q1', '09Q2', '09Q3', '09Q4', 
+    '10Q1', '10Q2', '10Q3', '10Q4', 
+    '11Q1', '11Q2', '11Q3', '11Q4', 
+    '12Q1', '12Q2', '12Q3', '12Q4', 
+    '13Q1', '13Q2', '13Q3', '13Q4', 
+    '14Q1', '14Q2', '14Q3', '14Q4', 
+    '15Q1', '15Q2', '15Q3', '15Q4', 
+    '16Q1', '16Q2', '16Q3', '16Q4', 
+    '17Q1', '17Q2', '17Q3', '17Q4', 
+    '18Q1', '18Q2', '18Q3', '18Q4', 
+    '19Q1', '19Q2', '19Q3', '19Q4', 
+    '20Q1', '20Q2', '20Q3', '20Q4', 
+    '21Q1', '21Q2', '21Q3', '21Q4', 
+    '22Q1', '22Q2', '22Q3', '22Q4', 
+    '23Q1', '23Q2', '23Q3', '23Q4', 
+    '24Q1', '24Q2', '24Q3', '24Q4', 
+    '25Q1', '25Q2'),
+  "利率" = c(4.45, 4.34, 4.38, 4.42, 4.63, 4.95, 5.03, 5.34, 6.17, 6.83, 7.36, 7.62, 7.43, 6.68, 6.20, 6.22, 6.27, 6.29, 6.39, 6.53, 6.70, 6.93, 6.96, 6.25, 6.01, 5.53, 5.02, 4.70, 4.63, 4.55, 4.52, 4.52, 4.55, 4.69, 5.01, 5.26, 5.42, 5.60, 5.72, 5.75, 5.68, 5.53, 5.55, 5.62, 5.60, 5.42, 5.36, 5.34, 5.37, 5.42, 5.54, 5.63, 5.49, 4.62, 4.34, 4.26, 4.14, 4.11, 4.02, 3.97, 3.69, 3.45, 3.31, 3.09, 3.13, 3.06)
+)
+
+g2(data = lending_rate, 利率 ~ 季度) |> 
+  mark_line(tooltip = list(title = ""), 
+            encode = list(color = '#DD8452')) |> 
+  style_mark(lineWidth = 2) |> 
+  mark_point(tooltip = list(title = ""), 
+             encode = list(color = '#DD8452')) |> 
+  axis_x(title = "季度") |> 
+  axis_y(title = "个人住房贷款利率（%）") |> 
+  titles(main = "2009 - 2025 年个人住房贷款加权平均利率", 
+         subtitle = "数据源：中国人民银行") |> 
+  theme_academy()
+```
+
+# 柱形图 {#mark-interval}
+
+## 百分比堆积柱形图
+
+```{r}
+# 邵阳市 2020-2023 年第一、二、三产业生产总值
+shaoyang_gdp <- data.frame(
+  "年份" = rep(c(2020, 2021, 2022, 2023), each = 3),
+  "产业" = rep(c("第一产业", "第二产业", "第三产业"), 4),
+  "生产总值" = c(3976168, 6937583, 11483810,
+             4088812, 7861750, 12664786,
+             4352147, 8329085, 13310599,
+             4361137, 8976487, 13976527)
+)
+```
+
+```{r}
+g2(data = shaoyang_gdp, 生产总值 ~ 年份, color = ~产业) |>
+  mark_interval(tooltip = list(channel = "y", valueFormatter = ".2%")) |>
+  transform("stackY") |>
+  transform("normalizeY") |>
+  scale_color(palette = "set2") |>
+  axis_x(title = "年份") |> 
+  #  格式化 y 轴
+  axis_y(title = "产业占比（%）", labelFormatter = ".0%") |>
+  legend_color(title = "产业", position = "right") |> 
+  theme_academy()
+```
+
+## 堆积柱形图
+
+```{r}
+transform(shaoyang_gdp, 生产总值 = 生产总值 / 10000) |> 
+  g2(生产总值 ~ 年份, color = ~产业) |>
+  mark_interval(tooltip = list(channel = "y", valueFormatter = ".2f")) |>
+  transform("stackY") |>
+  scale_color(palette = "set2") |>
+  legend_color(title = "产业", position = "right") |> 
+  axis_x(title = "年份") |> 
+  axis_y(title = "生产总值（亿元）") |> 
+  theme_academy()
+```
+
+# 双轴图 {#dual-axis}
+
+示例数据来源见[matplotlib 绘制双轴图](/2026/04/double-axis/)。
+
+```{r}
+house_loan = read.table(text = 
+"年份	季度	个人住房	同比增速
+2011	Q3	6.4	16.2
+2012	Q3	7.2	12.0
+2013	Q3	8.7	20.9
+2014	Q3	10.2	17.6
+2015	Q3	12.4	21.6
+2016	Q3	16.8	34.9
+2017	Q3	21.1	26.2
+2018	Q3	24.97	17.9
+2019	Q3	29.05	16.8
+2020	Q3	33.59	15.7
+2021	Q3	37.4	11.3
+2022	Q3	38.9	4.1
+2023	Q3	38.4	-1.2
+2024	Q3	37.56	-2.3
+2025	Q3	37.44	-0.3
+", header = T, sep = "\t")
+
+# 双轴图：柱状图（个人住房，左轴）+ 线图（同比增速，右轴）
+g2(house_loan, x = '年份') |>
+  mark_interval(encode = list(color = '#4C72B0', y = '个人住房')) |>  # 柱状图
+  axis_y(position = 'left', title = "个人住房贷款余额（万亿）") |>
+  scale_y(independent = TRUE) |> # 独立 y 轴
+  mark_line(encode = list(color = '#DD8452', y = '同比增速')) |>  # 线图
+  style_mark(lineWidth = 2) |> 
+  axis_y(position = 'right', title = '同比增速 (%)') |>  # 右轴标题
+  mark_point(encode = list(color = '#DD8452', y = '同比增速'),
+             tooltip = list(title = "")) |> 
+  titles(main = "2011-2025 年个人住房贷款余额",
+         subtitle = '数据源：中国人民银行') |>
+  theme_academy()
+```
+
+# 运行环境 {#sessioninfo}
+
+本文代码运行的环境信息如下。
+
+```{r}
+sessionInfo()
+```

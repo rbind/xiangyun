@@ -1,0 +1,597 @@
+---
+title: 值得一试的 gglite 包
+date: "2026-04-18"
+author: "黄湘云"
+slug: gglite
+categories:
+  - 统计软件
+tags:
+  - 图形语法
+  - ggplot2
+  - Ant G2
+  - 数据可视化
+  - 交互式图形
+  - 气泡图
+  - 折线图
+  - 柱形图
+  - 双轴图
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+description: "本文介绍 gglite 包制作最常用的四种数据可视化图形。"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#mark-point" id="toc-mark-point"><span class="toc-section-number">1</span> 气泡图</a></li>
+<li><a href="#mark-line" id="toc-mark-line"><span class="toc-section-number">2</span> 折线图</a></li>
+<li><a href="#mark-interval" id="toc-mark-interval"><span class="toc-section-number">3</span> 柱形图</a>
+<ul>
+<li><a href="#%E7%99%BE%E5%88%86%E6%AF%94%E5%A0%86%E7%A7%AF%E6%9F%B1%E5%BD%A2%E5%9B%BE" id="toc-百分比堆积柱形图"><span class="toc-section-number">3.1</span> 百分比堆积柱形图</a></li>
+<li><a href="#%E5%A0%86%E7%A7%AF%E6%9F%B1%E5%BD%A2%E5%9B%BE" id="toc-堆积柱形图"><span class="toc-section-number">3.2</span> 堆积柱形图</a></li>
+</ul></li>
+<li><a href="#dual-axis" id="toc-dual-axis"><span class="toc-section-number">4</span> 双轴图</a></li>
+<li><a href="#sessioninfo" id="toc-sessioninfo"><span class="toc-section-number">5</span> 运行环境</a></li>
+</ul>
+</div>
+
+<p>数据可视化方面，我可是用过不少的 R 包，在生产实践上，大量使用的 R 包是 <strong>plotly</strong> 包，自己出于兴趣又嫌 <strong>plotly</strong> 包太笨重，遂在本博客网站上，大量使用 <strong>echarts4r</strong> 包。</p>
+<ul>
+<li><a href="http://localhost:4321/2022/05/choropleth-map-animation/"><strong>R 语言制作地区分布图及其动画</strong></a><strong>（echarts4r）</strong></li>
+<li><a href="http://localhost:4321/2022/06/gapminder/"><strong>Gapminder：关注差异、理解变化</strong></a><strong>（echarts4r）</strong></li>
+<li><a href="http://localhost:4321/2022/02/plotly-python-animations/"><strong>动画制作与 Plotly Python</strong></a><strong>（plotly）</strong></li>
+<li><a href="http://localhost:4321/2024/04/shiny-for-python/"><strong>用 Python 语言开发 Shiny 应用</strong></a><strong>（plotly）</strong></li>
+<li><a href="http://localhost:4321/2021/08/shiny-in-production/"><strong>开发企业级 Shiny 应用的技术栈</strong></a><strong>（plotly）</strong></li>
+<li><a href="http://localhost:4321/2021/11/interactive-web-graphics/"><strong>交互式网页图形与 R 语言</strong></a><strong>（plotly</strong> 和 <strong>echarts4r）</strong></li>
+</ul>
+<p>为什么又介绍了一个新的用于数据可视化的 R 语言扩展包？因为在图形种类丰富的前提下， <a href="https://pkg.yihui.org/gglite/"><strong>gglite</strong></a> 包又轻量又原生支持图形语法，它站在 <a href="https://g2.antv.antgroup.com">Ant G2</a> 的肩膀上。哦，对了！它还扔掉了对 <strong>htmlwidgets</strong> 的依赖！简直难以置信！我在博客中使用它，不需要每次上传一堆 JS 文件了。写技术博客的痛，谁懂呀？</p>
+<p>考虑到实用性，本文仅介绍几种最常用的图形。</p>
+<div id="mark-point" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> 气泡图</h1>
+<p>散点图是探索连续型变量之间关系的有效方式，气泡图更加了一个维度。一个城市（邵阳市）的自然增长率与它的城市化率的关系如下图所示。</p>
+<pre class="r"><code># 数据来源：邵阳市统计局发布的 2024 年统计年鉴
+# 2023 年邵阳市各地区人口相关数据
+shao_yang = read.table(text = &quot;
+地区 自然增长人口 自然增长率 城镇人口 城市化率
+双清 -736 -2.82 28.83 90.07
+大祥 -345 -1.09 32.02 88.16
+北塔 -15 -0.15 9.94 80.36
+新邵 283 0.35 27.36 46.7
+邵阳 1691 1.62 34.03 47.63
+隆回 1746 1.36 44.04 44.93
+洞口 620 0.7 33.01 50.24
+绥宁 105 0.28 12.12 42.8
+新宁 96 0.15 23.76 47.73
+城步 169 0.61 9.85 44.55
+武冈 522 0.64 31.97 51.56
+邵东 -260 -0.2 58.53 59.01
+&quot;, header = T, sep = &quot; &quot;)</code></pre>
+<pre class="r"><code>library(gglite)
+g2(data = shao_yang, 自然增长率 ~ 城市化率, size = ~城镇人口) |&gt; 
+  mark_point(encode = list(color = &quot;城镇人口&quot;), 
+             tooltip = list(title = &quot;地区&quot;),
+             style = list(fillOpacity = 0.5)) |&gt;
+  scale_size(type = &quot;log&quot;, range = c(5, 25)) |&gt; 
+  scale_color(palette = &#39;inferno&#39;) |&gt; 
+  legend_size(FALSE) |&gt; 
+  legend_color(position = &#39;right&#39;, title = &quot;城镇人口（万）&quot;) |&gt; 
+  mark_text(encode = list(text = &quot;地区&quot;)) |&gt;
+  axis_x(title = &quot;城市化率（%）&quot;) |&gt; 
+  axis_y(title = &quot;自然增长率（‰）&quot;) |&gt; 
+  titles(main = &quot;2023 年邵阳市各地区人口自然增长率与城市化率的关系&quot;) |&gt; 
+  theme_academy()</code></pre>
+<script src="https://unpkg.com/@antv/g2@5/dist/g2.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@xiee/utils@v1.14.35/js/g2-patches.min.js" defer></script>
+<div data-gglite-container="">
+
+</div>
+<script type="module">
+const el = document.querySelector("[data-gglite-container]");
+el.removeAttribute("data-gglite-container");
+const chart = new G2.Chart({
+  "height": 480,
+  "autoFit": true,
+  "container": el
+});
+chart.options({
+  "data": {
+    "type": "column",
+    "value": {
+      "自然增长率": [-2.82, -1.09, -0.15, 0.35, 1.62, 1.36, 0.7, 0.28, 0.15, 0.61, 0.64, -0.2],
+      "城市化率": [90.07, 88.16, 80.36, 46.7, 47.63, 44.93, 50.24, 42.8, 47.73, 44.55, 51.56, 59.01],
+      "城镇人口": [28.83, 32.02, 9.94, 27.36, 34.03, 44.04, 33.01, 12.12, 23.76, 9.85, 31.97, 58.53],
+      "地区": ["双清", "大祥", "北塔", "新邵", "邵阳", "隆回", "洞口", "绥宁", "新宁", "城步", "武冈", "邵东"]
+    }
+  },
+  "children": [
+    {
+      "type": "point",
+      "encode": {
+        "y": "自然增长率",
+        "x": "城市化率",
+        "size": "城镇人口",
+        "color": "城镇人口"
+      },
+      "style": {
+        "shape": "point",
+        "fillOpacity": 0.5
+      },
+      "tooltip": {
+        "title": "地区"
+      },
+      "scale": {
+        "size": {
+          "type": "log",
+          "range": [5, 25]
+        },
+        "color": {
+          "palette": "inferno"
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "y": "自然增长率",
+        "x": "城市化率",
+        "size": "城镇人口",
+        "text": "地区"
+      },
+      "axis": {
+        "x": {
+          "title": "城市化率（%）"
+        },
+        "y": {
+          "title": "自然增长率（‰）"
+        }
+      }
+    }
+  ],
+  "legend": {
+    "size": false,
+    "color": {
+      "position": "right",
+      "titleText": "城镇人口（万）",
+      "showTitle": true
+    }
+  },
+  "title": "2023 年邵阳市各地区人口自然增长率与城市化率的关系",
+  "theme": {
+    "type": "academy"
+  }
+});
+chart.render();
+</script>
+<ul>
+<li>Ant G2 <a href="https://g2.antv.antgroup.com/manual/core/color">内置的调色板</a>。</li>
+<li>Ant G2 <a href="https://g2.antv.antgroup.com/manual/core/mark/point">Mark Point 图层</a>。</li>
+</ul>
+</div>
+<div id="mark-line" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> 折线图</h1>
+<pre class="r"><code># 数据来源：中国人民银行（央行）货币政策执行季度报告
+# 个人住房贷款加权平均利率
+lending_rate &lt;- data.frame(
+  &quot;季度&quot; = c(&#39;09Q1&#39;, &#39;09Q2&#39;, &#39;09Q3&#39;, &#39;09Q4&#39;, 
+    &#39;10Q1&#39;, &#39;10Q2&#39;, &#39;10Q3&#39;, &#39;10Q4&#39;, 
+    &#39;11Q1&#39;, &#39;11Q2&#39;, &#39;11Q3&#39;, &#39;11Q4&#39;, 
+    &#39;12Q1&#39;, &#39;12Q2&#39;, &#39;12Q3&#39;, &#39;12Q4&#39;, 
+    &#39;13Q1&#39;, &#39;13Q2&#39;, &#39;13Q3&#39;, &#39;13Q4&#39;, 
+    &#39;14Q1&#39;, &#39;14Q2&#39;, &#39;14Q3&#39;, &#39;14Q4&#39;, 
+    &#39;15Q1&#39;, &#39;15Q2&#39;, &#39;15Q3&#39;, &#39;15Q4&#39;, 
+    &#39;16Q1&#39;, &#39;16Q2&#39;, &#39;16Q3&#39;, &#39;16Q4&#39;, 
+    &#39;17Q1&#39;, &#39;17Q2&#39;, &#39;17Q3&#39;, &#39;17Q4&#39;, 
+    &#39;18Q1&#39;, &#39;18Q2&#39;, &#39;18Q3&#39;, &#39;18Q4&#39;, 
+    &#39;19Q1&#39;, &#39;19Q2&#39;, &#39;19Q3&#39;, &#39;19Q4&#39;, 
+    &#39;20Q1&#39;, &#39;20Q2&#39;, &#39;20Q3&#39;, &#39;20Q4&#39;, 
+    &#39;21Q1&#39;, &#39;21Q2&#39;, &#39;21Q3&#39;, &#39;21Q4&#39;, 
+    &#39;22Q1&#39;, &#39;22Q2&#39;, &#39;22Q3&#39;, &#39;22Q4&#39;, 
+    &#39;23Q1&#39;, &#39;23Q2&#39;, &#39;23Q3&#39;, &#39;23Q4&#39;, 
+    &#39;24Q1&#39;, &#39;24Q2&#39;, &#39;24Q3&#39;, &#39;24Q4&#39;, 
+    &#39;25Q1&#39;, &#39;25Q2&#39;),
+  &quot;利率&quot; = c(4.45, 4.34, 4.38, 4.42, 4.63, 4.95, 5.03, 5.34, 6.17, 6.83, 7.36, 7.62, 7.43, 6.68, 6.20, 6.22, 6.27, 6.29, 6.39, 6.53, 6.70, 6.93, 6.96, 6.25, 6.01, 5.53, 5.02, 4.70, 4.63, 4.55, 4.52, 4.52, 4.55, 4.69, 5.01, 5.26, 5.42, 5.60, 5.72, 5.75, 5.68, 5.53, 5.55, 5.62, 5.60, 5.42, 5.36, 5.34, 5.37, 5.42, 5.54, 5.63, 5.49, 4.62, 4.34, 4.26, 4.14, 4.11, 4.02, 3.97, 3.69, 3.45, 3.31, 3.09, 3.13, 3.06)
+)
+
+g2(data = lending_rate, 利率 ~ 季度) |&gt; 
+  mark_line(tooltip = list(title = &quot;&quot;), 
+            encode = list(color = &#39;#DD8452&#39;)) |&gt; 
+  style_mark(lineWidth = 2) |&gt; 
+  mark_point(tooltip = list(title = &quot;&quot;), 
+             encode = list(color = &#39;#DD8452&#39;)) |&gt; 
+  axis_x(title = &quot;季度&quot;) |&gt; 
+  axis_y(title = &quot;个人住房贷款利率（%）&quot;) |&gt; 
+  titles(main = &quot;2009 - 2025 年个人住房贷款加权平均利率&quot;, 
+         subtitle = &quot;数据源：中国人民银行&quot;) |&gt; 
+  theme_academy()</code></pre>
+<div data-gglite-container="">
+
+</div>
+<script type="module">
+const el = document.querySelector("[data-gglite-container]");
+el.removeAttribute("data-gglite-container");
+const chart = new G2.Chart({
+  "height": 480,
+  "autoFit": true,
+  "container": el
+});
+chart.options({
+  "data": {
+    "type": "column",
+    "value": {
+      "季度": ["09Q1", "09Q2", "09Q3", "09Q4", "10Q1", "10Q2", "10Q3", "10Q4", "11Q1", "11Q2", "11Q3", "11Q4", "12Q1", "12Q2", "12Q3", "12Q4", "13Q1", "13Q2", "13Q3", "13Q4", "14Q1", "14Q2", "14Q3", "14Q4", "15Q1", "15Q2", "15Q3", "15Q4", "16Q1", "16Q2", "16Q3", "16Q4", "17Q1", "17Q2", "17Q3", "17Q4", "18Q1", "18Q2", "18Q3", "18Q4", "19Q1", "19Q2", "19Q3", "19Q4", "20Q1", "20Q2", "20Q3", "20Q4", "21Q1", "21Q2", "21Q3", "21Q4", "22Q1", "22Q2", "22Q3", "22Q4", "23Q1", "23Q2", "23Q3", "23Q4", "24Q1", "24Q2", "24Q3", "24Q4", "25Q1", "25Q2"],
+      "利率": [4.45, 4.34, 4.38, 4.42, 4.63, 4.95, 5.03, 5.34, 6.17, 6.83, 7.36, 7.62, 7.43, 6.68, 6.2, 6.22, 6.27, 6.29, 6.39, 6.53, 6.7, 6.93, 6.96, 6.25, 6.01, 5.53, 5.02, 4.7, 4.63, 4.55, 4.52, 4.52, 4.55, 4.69, 5.01, 5.26, 5.42, 5.6, 5.72, 5.75, 5.68, 5.53, 5.55, 5.62, 5.6, 5.42, 5.36, 5.34, 5.37, 5.42, 5.54, 5.63, 5.49, 4.62, 4.34, 4.26, 4.14, 4.11, 4.02, 3.97, 3.69, 3.45, 3.31, 3.09, 3.13, 3.06]
+    }
+  },
+  "children": [
+    {
+      "type": "line",
+      "encode": {
+        "y": "利率",
+        "x": "季度",
+        "color": "#DD8452"
+      },
+      "tooltip": {
+        "title": ""
+      },
+      "style": {
+        "lineWidth": 2
+      }
+    },
+    {
+      "type": "point",
+      "encode": {
+        "y": "利率",
+        "x": "季度",
+        "color": "#DD8452"
+      },
+      "style": {
+        "shape": "point"
+      },
+      "tooltip": {
+        "title": ""
+      },
+      "axis": {
+        "x": {
+          "title": "季度"
+        },
+        "y": {
+          "title": "个人住房贷款利率（%）"
+        }
+      }
+    }
+  ],
+  "title": {
+    "title": "2009 - 2025 年个人住房贷款加权平均利率",
+    "subtitle": "数据源：中国人民银行"
+  },
+  "theme": {
+    "type": "academy"
+  }
+});
+chart.render();
+</script>
+</div>
+<div id="mark-interval" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> 柱形图</h1>
+<div id="百分比堆积柱形图" class="section level2" number="3.1">
+<h2><span class="header-section-number">3.1</span> 百分比堆积柱形图</h2>
+<pre class="r"><code># 邵阳市 2020-2023 年第一、二、三产业生产总值
+shaoyang_gdp &lt;- data.frame(
+  &quot;年份&quot; = rep(c(2020, 2021, 2022, 2023), each = 3),
+  &quot;产业&quot; = rep(c(&quot;第一产业&quot;, &quot;第二产业&quot;, &quot;第三产业&quot;), 4),
+  &quot;生产总值&quot; = c(3976168, 6937583, 11483810,
+             4088812, 7861750, 12664786,
+             4352147, 8329085, 13310599,
+             4361137, 8976487, 13976527)
+)</code></pre>
+<pre class="r"><code>g2(data = shaoyang_gdp, 生产总值 ~ 年份, color = ~产业) |&gt;
+  mark_interval(tooltip = list(channel = &quot;y&quot;, valueFormatter = &quot;.2%&quot;)) |&gt;
+  transform(&quot;stackY&quot;) |&gt;
+  transform(&quot;normalizeY&quot;) |&gt;
+  scale_color(palette = &quot;set2&quot;) |&gt;
+  axis_x(title = &quot;年份&quot;) |&gt; 
+  #  格式化 y 轴
+  axis_y(title = &quot;产业占比（%）&quot;, labelFormatter = &quot;.0%&quot;) |&gt;
+  legend_color(title = &quot;产业&quot;, position = &quot;right&quot;) |&gt; 
+  theme_academy()</code></pre>
+<div data-gglite-container="">
+
+</div>
+<script type="module">
+const el = document.querySelector("[data-gglite-container]");
+el.removeAttribute("data-gglite-container");
+const chart = new G2.Chart({
+  "height": 480,
+  "autoFit": true,
+  "container": el
+});
+chart.options({
+  "data": {
+    "type": "column",
+    "value": {
+      "年份": [2020, 2020, 2020, 2021, 2021, 2021, 2022, 2022, 2022, 2023, 2023, 2023],
+      "产业": ["第一产业", "第二产业", "第三产业", "第一产业", "第二产业", "第三产业", "第一产业", "第二产业", "第三产业", "第一产业", "第二产业", "第三产业"],
+      "生产总值": [3976168, 6937583, 11483810, 4088812, 7861750, 12664786, 4352147, 8329085, 13310599, 4361137, 8976487, 13976527]
+    }
+  },
+  "children": [
+    {
+      "type": "interval",
+      "encode": {
+        "y": "生产总值",
+        "x": "年份",
+        "color": "产业"
+      },
+      "tooltip": {
+        "channel": "y",
+        "valueFormatter": ".2%"
+      },
+      "transform": [
+        {
+          "type": "stackY"
+        },
+        {
+          "type": "normalizeY"
+        }
+      ],
+      "scale": {
+        "color": {
+          "palette": "set2"
+        }
+      },
+      "axis": {
+        "x": {
+          "title": "年份"
+        },
+        "y": {
+          "title": "产业占比（%）",
+          "labelFormatter": ".0%"
+        }
+      }
+    }
+  ],
+  "legend": {
+    "color": {
+      "position": "right",
+      "titleText": "产业",
+      "showTitle": true
+    }
+  },
+  "theme": {
+    "type": "academy"
+  }
+});
+chart.render();
+</script>
+</div>
+<div id="堆积柱形图" class="section level2" number="3.2">
+<h2><span class="header-section-number">3.2</span> 堆积柱形图</h2>
+<pre class="r"><code>transform(shaoyang_gdp, 生产总值 = 生产总值 / 10000) |&gt; 
+  g2(生产总值 ~ 年份, color = ~产业) |&gt;
+  mark_interval(tooltip = list(channel = &quot;y&quot;, valueFormatter = &quot;.2f&quot;)) |&gt;
+  transform(&quot;stackY&quot;) |&gt;
+  scale_color(palette = &quot;set2&quot;) |&gt;
+  legend_color(title = &quot;产业&quot;, position = &quot;right&quot;) |&gt; 
+  axis_x(title = &quot;年份&quot;) |&gt; 
+  axis_y(title = &quot;生产总值（亿元）&quot;) |&gt; 
+  theme_academy()</code></pre>
+<div data-gglite-container="">
+
+</div>
+<script type="module">
+const el = document.querySelector("[data-gglite-container]");
+el.removeAttribute("data-gglite-container");
+const chart = new G2.Chart({
+  "height": 480,
+  "autoFit": true,
+  "container": el
+});
+chart.options({
+  "data": {
+    "type": "column",
+    "value": {
+      "年份": [2020, 2020, 2020, 2021, 2021, 2021, 2022, 2022, 2022, 2023, 2023, 2023],
+      "产业": ["第一产业", "第二产业", "第三产业", "第一产业", "第二产业", "第三产业", "第一产业", "第二产业", "第三产业", "第一产业", "第二产业", "第三产业"],
+      "生产总值": [397.6168, 693.7583, 1148.381, 408.8812, 786.175, 1266.4786, 435.2147, 832.9085, 1331.0599, 436.1137, 897.6487, 1397.6527]
+    }
+  },
+  "children": [
+    {
+      "type": "interval",
+      "encode": {
+        "y": "生产总值",
+        "x": "年份",
+        "color": "产业"
+      },
+      "tooltip": {
+        "channel": "y",
+        "valueFormatter": ".2f"
+      },
+      "transform": [
+        {
+          "type": "stackY"
+        }
+      ],
+      "scale": {
+        "color": {
+          "palette": "set2"
+        }
+      },
+      "axis": {
+        "x": {
+          "title": "年份"
+        },
+        "y": {
+          "title": "生产总值（亿元）"
+        }
+      }
+    }
+  ],
+  "legend": {
+    "color": {
+      "position": "right",
+      "titleText": "产业",
+      "showTitle": true
+    }
+  },
+  "theme": {
+    "type": "academy"
+  }
+});
+chart.render();
+</script>
+</div>
+</div>
+<div id="dual-axis" class="section level1" number="4">
+<h1><span class="header-section-number">4</span> 双轴图</h1>
+<p>示例数据来源见<a href="/2026/04/double-axis/">matplotlib 绘制双轴图</a>。</p>
+<pre class="r"><code>house_loan = read.table(text = 
+&quot;年份	季度	个人住房	同比增速
+2011	Q3	6.4	16.2
+2012	Q3	7.2	12.0
+2013	Q3	8.7	20.9
+2014	Q3	10.2	17.6
+2015	Q3	12.4	21.6
+2016	Q3	16.8	34.9
+2017	Q3	21.1	26.2
+2018	Q3	24.97	17.9
+2019	Q3	29.05	16.8
+2020	Q3	33.59	15.7
+2021	Q3	37.4	11.3
+2022	Q3	38.9	4.1
+2023	Q3	38.4	-1.2
+2024	Q3	37.56	-2.3
+2025	Q3	37.44	-0.3
+&quot;, header = T, sep = &quot;\t&quot;)
+
+# 双轴图：柱状图（个人住房，左轴）+ 线图（同比增速，右轴）
+g2(house_loan, x = &#39;年份&#39;) |&gt;
+  mark_interval(encode = list(color = &#39;#4C72B0&#39;, y = &#39;个人住房&#39;)) |&gt;  # 柱状图
+  axis_y(position = &#39;left&#39;, title = &quot;个人住房贷款余额（万亿）&quot;) |&gt;
+  scale_y(independent = TRUE) |&gt; # 独立 y 轴
+  mark_line(encode = list(color = &#39;#DD8452&#39;, y = &#39;同比增速&#39;)) |&gt;  # 线图
+  style_mark(lineWidth = 2) |&gt; 
+  axis_y(position = &#39;right&#39;, title = &#39;同比增速 (%)&#39;) |&gt;  # 右轴标题
+  mark_point(encode = list(color = &#39;#DD8452&#39;, y = &#39;同比增速&#39;),
+             tooltip = list(title = &quot;&quot;)) |&gt; 
+  titles(main = &quot;2011-2025 年个人住房贷款余额&quot;,
+         subtitle = &#39;数据源：中国人民银行&#39;) |&gt;
+  theme_academy()</code></pre>
+<div data-gglite-container="">
+
+</div>
+<script type="module">
+const el = document.querySelector("[data-gglite-container]");
+el.removeAttribute("data-gglite-container");
+const chart = new G2.Chart({
+  "height": 480,
+  "autoFit": true,
+  "container": el
+});
+chart.options({
+  "data": {
+    "type": "column",
+    "value": {
+      "年份": [2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025],
+      "个人住房": [6.4, 7.2, 8.7, 10.2, 12.4, 16.8, 21.1, 24.97, 29.05, 33.59, 37.4, 38.9, 38.4, 37.56, 37.44],
+      "同比增速": [16.2, 12, 20.9, 17.6, 21.6, 34.9, 26.2, 17.9, 16.8, 15.7, 11.3, 4.1, -1.2, -2.3, -0.3]
+    }
+  },
+  "children": [
+    {
+      "type": "interval",
+      "encode": {
+        "x": "年份",
+        "color": "#4C72B0",
+        "y": "个人住房"
+      },
+      "axis": {
+        "y": {
+          "position": "left",
+          "title": "个人住房贷款余额（万亿）"
+        }
+      },
+      "scale": {
+        "y": {
+          "independent": true
+        }
+      }
+    },
+    {
+      "type": "line",
+      "encode": {
+        "x": "年份",
+        "color": "#DD8452",
+        "y": "同比增速"
+      },
+      "style": {
+        "lineWidth": 2
+      },
+      "axis": {
+        "y": {
+          "position": "right",
+          "title": "同比增速 (%)"
+        }
+      }
+    },
+    {
+      "type": "point",
+      "encode": {
+        "x": "年份",
+        "color": "#DD8452",
+        "y": "同比增速"
+      },
+      "style": {
+        "shape": "point"
+      },
+      "tooltip": {
+        "title": ""
+      }
+    }
+  ],
+  "title": {
+    "title": "2011-2025 年个人住房贷款余额",
+    "subtitle": "数据源：中国人民银行"
+  },
+  "theme": {
+    "type": "academy"
+  }
+});
+chart.render();
+</script>
+</div>
+<div id="sessioninfo" class="section level1" number="5">
+<h1><span class="header-section-number">5</span> 运行环境</h1>
+<p>本文代码运行的环境信息如下。</p>
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>## R version 4.5.3 (2026-03-11)
+## Platform: aarch64-apple-darwin20
+## Running under: macOS Tahoe 26.4.1
+## 
+## Matrix products: default
+## BLAS:   /Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/lib/libRblas.0.dylib 
+## LAPACK: /Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.1
+## 
+## locale:
+## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+## 
+## time zone: Asia/Shanghai
+## tzcode source: internal
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## other attached packages:
+## [1] gglite_0.0.31
+## 
+## loaded via a namespace (and not attached):
+##  [1] digest_0.6.39     R6_2.6.1          bookdown_0.46     fastmap_1.2.0    
+##  [5] xfun_0.57.4       blogdown_1.23     cachem_1.1.0      knitr_1.51       
+##  [9] htmltools_0.5.9   rmarkdown_2.31    lifecycle_1.0.5   cli_3.6.6        
+## [13] sass_0.4.10       jquerylib_0.1.4   compiler_4.5.3    rstudioapi_0.18.0
+## [17] tools_4.5.3       evaluate_1.0.5    bslib_0.10.0      yaml_2.3.12      
+## [21] otel_0.2.0        jsonlite_2.0.0    rlang_1.2.0</code></pre>
+</div>
