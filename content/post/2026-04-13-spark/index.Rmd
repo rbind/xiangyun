@@ -18,9 +18,7 @@ output:
     number_sections: true
 ---
 
-
-在生产环境中，数仓团队根据业务需求，生产一张张表（明细表 detail、维度表 dim、主题表 topic、聚合表 aggr、应用表 app），落在 Hive 管理的数据仓库中。Spark 是大规模分布式计算引擎，将数据加载到内存中进行计算。在大规模复杂的计算中，会用到 Hive SQL 或 Spark SQL，前者内存资源需求少但计算慢，后者吃内存资源但计算更快。
-
+在生产环境中，数仓团队根据业务需求，生产一张张表（明细表 detail、维度表 dim、主题表 topic、聚合表 aggr、应用表 app），落在 Hive 管理的数据仓库中。[Spark](https://spark.apache.org) 是大规模分布式计算引擎，将数据加载到内存中进行计算。在大规模复杂的计算中，会用到 Hive SQL 或 Spark SQL，前者内存资源需求少但计算慢，后者吃内存资源但计算更快。
 
 首先，安装配置 Java 开发环境
 
@@ -54,7 +52,7 @@ config
 
 选择与 Spark 配套的 Hadoop 的版本，这个安装包几百兆，可以考虑先在 Spark 官网单独[下载](https://spark.apache.org/downloads.html)，再解压到本地目录 `~/spark/` 下面。
 
-```bash
+``` bash
 mkdir -p ~/spark
 tar -xzf spark-4.1.1-bin-hadoop3.tgz -C ~/spark/
 ```
@@ -90,18 +88,18 @@ iris_preview
 dbGetQuery(sc, "SELECT count(1) as cnt, avg(Sepal_Length) as avg_Sepal_Length, Species FROM iris GROUP BY Species")
 ```
 
-分组取 `Sepal_Length `最长的样本。
+分组取 `Sepal_Length`最长的样本。
 
 ```{r}
 dbGetQuery(sc, "
            SELECT max(Sepal_Length) as max_Sepal_Length, Species 
            FROM iris GROUP BY Species")
 ```
+
 ```{r}
 # 等价于
 aggregate(iris, Sepal.Length ~ Species, max)
 ```
-
 
 分组计算某列的中位数。
 
@@ -133,7 +131,6 @@ dbGetQuery(sc, "
            FROM iris GROUP BY Species")
 ```
 
-
 ```{r}
 aggregate(iris, Sepal.Length ~ Species, FUN = function(x) hist(x, breaks = 5, plot = F)$mids )
 
@@ -142,14 +139,13 @@ aggregate(iris, Sepal.Length ~ Species, FUN = function(x) hist(x, breaks = 5, pl
 
 分箱的算法不同，结果也不同。
 
-
 ## 窗口函数 {#window-functions}
 
 窗口函数是为了应对复杂查询而设计的，下面以 `RANK()` 和 `row_number()` 为例。
 
 目标：每类鸢尾花中 Sepal.Length （萼片长度）最长的 5 个样本。
 
-1. 按 Sepal.Length （萼片长度）对样本排序。
+1.  按 Sepal.Length （萼片长度）对样本排序。
 
 ```{r}
 dbGetQuery(sc, "
@@ -169,7 +165,7 @@ LIMIT 5
 
 `RANK()` 和 `row_number()` 都是窗口函数，前者对某列排序，值相同的给相同的序号，后者排完序后，序号是唯一的。都是在原数据上新增一列记录排序结果。
 
-2. 筛选排序结果。
+2.  筛选排序结果。
 
 ```{r}
 dbGetQuery(sc, "
@@ -199,3 +195,93 @@ WHERE a.rn < 6
 spark_disconnect(sc)
 ```
 
+## Sedona
+
+[Apache Sedona](https://github.com/apache/sedona) 是一个处理大规模空间数据的分布式集群计算系统，站在 [Apache Spark](https://github.com/apache/spark) 和 [Apache Flink](https://github.com/apache/flink) 的肩膀上，提供一套开箱即用的分布式空间数据操作和查询工具，可以高效加载、处理和分析大规模空间数据。
+
+```{r}
+library(apache.sedona)
+# Spark 安装目录 
+# Sedona 1.8.1 支持 Spark 3.x 和 JDK 17
+Sys.setenv(SPARK_HOME="~/spark/spark-3.5.8-bin-hadoop3")
+sc <- spark_connect(
+  master = "local", # spark_install() 本地安装的 Spark
+  method = "shell"  # 对应 spark-submit
+)
+```
+
+下面的示例和数据来自 [**geospark**](https://github.com/harryprince/geospark) 包。
+
+```{r eval=FALSE}
+pak::pkg_install("harryprince/geospark")
+```
+
+```{r}
+# 空间多边形数据
+polygons <- read.table(
+  system.file(package = "geospark", "examples/polygons.txt"),
+  sep = "|",
+  col.names = c("area", "geom")
+)
+# 空间点数据
+points <- read.table(
+  system.file(package = "geospark", "examples/points.txt"),
+  sep = "|",
+  col.names = c("city", "state", "geom")
+)
+# 将数据集导入 Spark 环境
+polygons_wkt <- copy_to(sc, polygons)
+points_wkt <- copy_to(sc, points)
+```
+
+查看数据集 `polygons_wkt` 和 `points_wkt` 的类型
+
+```{r}
+class(polygons_wkt)
+class(points_wkt)
+```
+
+查看数据集
+
+```{r}
+print(polygons_wkt)
+print(points_wkt)
+```
+
+SedonaSQL 支持 SpatialSQL 查询、空间计算操作，如 `ST_GeomFromWKT` / `ST_Contains` 等，详细介绍见 [SedonaSQL 文档](https://sedona.apache.org/1.8.1/tutorial/sql/)。
+
+```{r}
+DBI::dbGetQuery(sc, "
+  SELECT area, state, count(*) cnt FROM
+    (SELECT area, ST_GeomFromWKT(polygons.geom) as y FROM polygons) polygons
+  INNER JOIN
+    (SELECT ST_GeomFromWKT (points.geom) as x, state, city FROM points) points
+  WHERE ST_Contains(polygons.y,points.x) GROUP BY area, state")
+```
+
+**dplyr** 的好处是提供一套将 R 代码转化为 SQL 代码的数据操作语法，对 R 语言用户过渡到 SQL 有些帮助。笔者推荐读者直接写 SQL 代码，在小数据集上完成开发，测试，而后可部署到生产环境，较之 R 代码，SQL 代码更加流行、更方便交流，在调试阶段，更不用担心 **dplyr** 层翻译出错的问题，降低排错的成本。
+
+```{r}
+library(dplyr, warn.conflicts = FALSE)
+# ST_GeomFromWKT 也可以写做 st_geomfromwkt
+polygons_wkt <- dplyr::mutate(polygons_wkt, y = ST_GeomFromWKT(geom))
+points_wkt <- dplyr::mutate(points_wkt, x = ST_GeomFromWKT(geom))
+# 按 area, state 分组统计各个多边形区域内包含的空间点的数量
+sc_res <- dplyr::inner_join(
+  polygons_wkt, points_wkt,
+  sql_on = dplyr::sql("ST_Contains(y,x)")
+) |> 
+  dplyr::group_by(area, state) |> 
+  dplyr::summarise(cnt = n())
+```
+
+查看统计的结果，顺便一说， **dplyr** 采用惰性求值，真正开始查询计算是执行下面一行命令的时候
+
+```{r}
+sc_res
+```
+
+```{r}
+# 关闭连接
+spark_disconnect(sc)
+```
