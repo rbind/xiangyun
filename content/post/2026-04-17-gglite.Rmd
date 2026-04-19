@@ -20,31 +20,31 @@ output:
     toc: true
     number_sections: true
 link-citations: true
-description: "本文介绍 gglite 包制作最常用的四种数据可视化图形。"
+description: "本文用 gglite 包制作最常用的四种数据可视化图形。"
 ---
 
 数据可视化方面，我可是用过不少的 R 包，在生产实践上，大量使用的 R 包是 **plotly** 包，自己出于兴趣又嫌 **plotly** 包太笨重，遂在本博客网站上，大量使用 **echarts4r** 包。
 
--   [**R 语言制作地区分布图及其动画**](http://localhost:4321/2022/05/choropleth-map-animation/)**（echarts4r）**
--   [**Gapminder：关注差异、理解变化**](http://localhost:4321/2022/06/gapminder/)**（echarts4r）**
--   [**动画制作与 Plotly Python**](http://localhost:4321/2022/02/plotly-python-animations/)**（plotly）**
--   [**用 Python 语言开发 Shiny 应用**](http://localhost:4321/2024/04/shiny-for-python/)**（plotly）**
--   [**开发企业级 Shiny 应用的技术栈**](http://localhost:4321/2021/08/shiny-in-production/)**（plotly）**
--   [**交互式网页图形与 R 语言**](http://localhost:4321/2021/11/interactive-web-graphics/)**（plotly** 和 **echarts4r）**
+-   [**R 语言制作地区分布图及其动画**](/2022/05/choropleth-map-animation/)**（echarts4r）**
+-   [**Gapminder：关注差异、理解变化**](/2022/06/gapminder/)**（echarts4r）**
+-   [**动画制作与 Plotly Python**](/2022/02/plotly-python-animations/)**（plotly）**
+-   [**用 Python 语言开发 Shiny 应用**](/2024/04/shiny-for-python/)**（plotly）**
+-   [**开发企业级 Shiny 应用的技术栈**](/2021/08/shiny-in-production/)**（plotly）**
+-   [**交互式网页图形与 R 语言**](/2021/11/interactive-web-graphics/)**（plotly** 和 **echarts4r）**
 
 为什么又介绍了一个新的用于数据可视化的 R 语言扩展包？因为在图形种类丰富的前提下， [**gglite**](https://pkg.yihui.org/gglite/) 包又轻量又原生支持图形语法，它站在 [Ant G2](https://g2.antv.antgroup.com) 的肩膀上。哦，对了！它还扔掉了对 **htmlwidgets** 的依赖！简直难以置信！我在博客中使用它，不需要每次上传一堆 JS 文件了。写技术博客的痛，谁懂呀？
 
-考虑到实用性，本文仅介绍几种最常用的图形。
+考虑到实用性，本文用 **gglite** 包制作最常用的四种数据可视化图形。
 
 # 气泡图 {#mark-point}
 
-散点图是探索连续型变量之间关系的有效方式，气泡图更加了一个维度。一个城市（邵阳市）的自然增长率与它的城市化率的关系如下图所示。
+散点图是探索连续型变量之间关系的有效方式，气泡图更加了一个维度。一个城市（邵阳市）的自然增长率与它的城镇化率的关系如下图所示。
 
 ```{r}
 # 数据来源：邵阳市统计局发布的 2024 年统计年鉴
 # 2023 年邵阳市各地区人口相关数据
 shao_yang <- read.table(text = "
-地区 自然增长人口 自然增长率 城镇人口 城市化率
+地区 自然增长人口 自然增长率 城镇人口 城镇化率
 双清 -736 -2.82 28.83 90.07
 大祥 -345 -1.09 32.02 88.16
 北塔 -15 -0.15 9.94 80.36
@@ -58,11 +58,9 @@ shao_yang <- read.table(text = "
 武冈 522 0.64 31.97 51.56
 邵东 -260 -0.2 58.53 59.01
 ", header = T, sep = " ")
-```
 
-```{r}
 library(gglite)
-g2(data = shao_yang, 自然增长率 ~ 城市化率, size = ~城镇人口) |>
+g2(data = shao_yang, 自然增长率 ~ 城镇化率, size = ~城镇人口) |>
   mark_point(
     encode = list(color = "城镇人口"),
     tooltip = list(title = "地区"),
@@ -70,14 +68,26 @@ g2(data = shao_yang, 自然增长率 ~ 城市化率, size = ~城镇人口) |>
   ) |>
   scale_size(type = "log", range = c(5, 25)) |>
   scale_color(palette = "inferno") |>
+  mark_line_x(
+    data = list(list(城镇化率 = 66.16)),
+    style = list(stroke = "red", lineWidth = 3, lineDash = c(3, 3))
+  ) |>
+  mark_line_y(
+    data = list(list(自然增长率 = -1.48)),
+    style = list(stroke = "red", lineWidth = 3, lineDash = c(3, 3))
+  ) |>
   legend_size(FALSE) |>
   legend_color(position = "right", title = "城镇人口（万）") |>
   mark_text(encode = list(text = "地区")) |>
-  axis_x(title = "城市化率（%）") |>
+  axis_x(title = "城镇化率（%）") |>
   axis_y(title = "自然增长率（‰）") |>
-  titles(main = "2023 年邵阳市各地区人口自然增长率与城市化率的关系") |>
+  titles(main = "2023 年邵阳市各地区人口自然增长率与城镇化率的关系") |>
   theme_academy()
 ```
+
+根据国家统计局的[国民经济和社会发展统计公报](https://www.stats.gov.cn/sj/zxfb/202402/t20240228_1947915.html)，2023 年中国城镇化率为 66.16% ，自然增长率为 -1.48‰，将该数据视为全国平均水平，即图中两条虚线的交叉点，各区县被分割成四个象限。第一象限，区县数量最多，未来发展空间大，发展中地区。第二象限，跑在全国平均水平前面，城镇化率已经很高，发展空间较小，中等发达地区。第三象限，邵阳市下没有区县在这一象限，发展空间很小，欠发达地区。第四象限，发达地区。另，2025 年这两个数据分别为 67.89% 和 -2.41‰。
+
+如图所示，总体上城镇化率越高的地方，自然增长率越低。但是，我们不能说城市化是导致人口数量减少的原因。
 
 -   Ant G2 [内置的调色板](https://g2.antv.antgroup.com/manual/core/color)。
 -   Ant G2 [Mark Point 图层](https://g2.antv.antgroup.com/manual/core/mark/point)。
@@ -121,12 +131,12 @@ lending_rate <- data.frame(
 g2(data = lending_rate, 利率 ~ 季度) |>
   mark_line(
     tooltip = list(title = ""),
-    encode = list(color = "#DD8452")
+    encode = list(color = "#FC8D62")
   ) |>
   style_mark(lineWidth = 2) |>
   mark_point(
     tooltip = list(title = ""),
-    encode = list(color = "#DD8452")
+    encode = list(color = "#FC8D62")
   ) |>
   axis_x(title = "季度") |>
   axis_y(title = "个人住房贷款利率（%）") |>
@@ -214,14 +224,14 @@ house_loan <- read.table(
 
 # 双轴图：柱状图（个人住房，左轴）+ 线图（同比增速，右轴）
 g2(house_loan, x = "年份") |>
-  mark_interval(encode = list(color = "#4C72B0", y = "个人住房")) |> # 柱状图
+  mark_interval(encode = list(color = "#8DA0CB", y = "个人住房")) |> # 柱状图
   axis_y(position = "left", title = "个人住房贷款余额（万亿）") |>
   scale_y(independent = TRUE) |> # 独立 y 轴
-  mark_line(encode = list(color = "#DD8452", y = "同比增速")) |> # 线图
+  mark_line(encode = list(color = "#FC8D62", y = "同比增速")) |> # 线图
   style_mark(lineWidth = 2) |>
   axis_y(position = "right", title = "同比增速 (%)") |> # 右轴标题
   mark_point(
-    encode = list(color = "#DD8452", y = "同比增速"),
+    encode = list(color = "#FC8D62", y = "同比增速"),
     tooltip = list(title = "")
   ) |>
   titles(
