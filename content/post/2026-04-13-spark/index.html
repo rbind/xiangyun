@@ -1,5 +1,5 @@
 ---
-title: R 语言中使用 Spark 
+title: R 语言中使用 Spark
 author: 黄湘云
 date: '2026-04-13'
 slug: spark
@@ -8,28 +8,38 @@ categories:
 tags:
   - 大规模数据
   - 分布式计算
-  - Spark
+  - Apache Spark
   - sparklyr
   - Spark SQL
   - 窗口函数
+  - Apache Sedona
+  - 大规模空间数据操作
 output:
   blogdown::html_page:
     toc: true
     number_sections: true
+description: "在生产环境中，数仓团队根据业务需求，生产一张张表（明细表 detail、维度表 dim、主题表 topic、聚合表 aggr、应用表 app），落在 Hive 管理的数据仓库中。Spark 是大规模分布式计算引擎，将数据加载到内存中进行计算。在大规模复杂的计算中，会用到 Hive SQL 或 Spark SQL，前者内存资源需求少但计算慢，后者吃内存资源但计算更快。"
 ---
 
 
 <div id="TOC">
 <ul>
-<li><a href="#%E5%88%86%E7%BB%84%E8%81%9A%E5%90%88%E7%BB%9F%E8%AE%A1" id="toc-分组聚合统计"><span class="toc-section-number">1</span> 分组聚合统计</a></li>
-<li><a href="#window-functions" id="toc-window-functions"><span class="toc-section-number">2</span> 窗口函数</a></li>
+<li><a href="#setup-spark" id="toc-setup-spark"><span class="toc-section-number">1</span> 配置 Spark</a></li>
+<li><a href="#apache-spark" id="toc-apache-spark"><span class="toc-section-number">2</span> Apache Spark</a>
+<ul>
+<li><a href="#aggr-spark" id="toc-aggr-spark"><span class="toc-section-number">2.1</span> 分组聚合统计</a></li>
+<li><a href="#window-functions" id="toc-window-functions"><span class="toc-section-number">2.2</span> 窗口函数</a></li>
+</ul></li>
+<li><a href="#apache-sedona" id="toc-apache-sedona"><span class="toc-section-number">3</span> Apache Sedona</a></li>
 </ul>
 </div>
 
-<p>在生产环境中，数仓团队根据业务需求，生产一张张表（明细表 detail、维度表 dim、主题表 topic、聚合表 aggr、应用表 app），落在 Hive 管理的数据仓库中。Spark 是大规模分布式计算引擎，将数据加载到内存中进行计算。在大规模复杂的计算中，会用到 Hive SQL 或 Spark SQL，前者内存资源需求少但计算慢，后者吃内存资源但计算更快。</p>
-<p>首先，安装配置 Java 开发环境</p>
+<p>在生产环境中，数仓团队根据业务需求，生产一张张表（明细表 detail、维度表 dim、主题表 topic、聚合表 aggr、应用表 app），落在 Hive 管理的数据仓库中。<a href="https://spark.apache.org">Spark</a> 是大规模分布式计算引擎，将数据加载到内存中进行计算。在大规模复杂的计算中，会用到 Hive SQL 或 Spark SQL，前者内存资源需求少但计算慢，后者吃内存资源但计算更快。</p>
+<div id="setup-spark" class="section level2" number="1">
+<h2><span class="header-section-number">1</span> 配置 Spark</h2>
+<p>首先，安装配置 Java 开发环境。</p>
 <pre class="bash"><code># 安装 Java 开发环境
-brew install oracle-jdk@21</code></pre>
+brew install microsoft-openjdk@17</code></pre>
 <p>接着，配置 R 软件发现 Java 开发环境，一些依赖 Java 的 R 包需要，比如 <strong>rJava</strong> 包。</p>
 <pre class="bash"><code>sudo R CMD javareconf</code></pre>
 <p>从源码安装 <strong>rJava</strong> 包，这样便可以利用系统安装的 Java 开发环境。</p>
@@ -41,10 +51,18 @@ install.packages(&quot;sparklyr&quot;, type = &quot;source&quot;)</code></pre>
 <pre><code>## The following object is masked from &#39;package:stats&#39;:
 ## 
 ##     filter</code></pre>
-<pre class="r"><code># Spark 配置
-config = spark_config()
+<pre class="r"><code># 后续还要介绍 Sedona
+library(apache.sedona)
+# Spark 配置
+config &lt;- spark_config()
 config</code></pre>
-<pre><code>## $spark.env.SPARK_LOCAL_IP.local
+<pre><code>## $spark.kryo.registrator
+## [1] &quot;org.apache.sedona.viz.core.Serde.SedonaVizKryoRegistrator&quot;
+## 
+## $spark.serializer
+## [1] &quot;org.apache.spark.serializer.KryoSerializer&quot;
+## 
+## $spark.env.SPARK_LOCAL_IP.local
 ## [1] &quot;127.0.0.1&quot;
 ## 
 ## $sparklyr.connect.csv.embedded
@@ -60,16 +78,21 @@ config</code></pre>
 ## [1] 10</code></pre>
 <p>选择与 Spark 配套的 Hadoop 的版本，这个安装包几百兆，可以考虑先在 Spark 官网单独<a href="https://spark.apache.org/downloads.html">下载</a>，再解压到本地目录 <code>~/spark/</code> 下面。</p>
 <pre class="bash"><code>mkdir -p ~/spark
-tar -xzf spark-4.1.1-bin-hadoop3.tgz -C ~/spark/</code></pre>
+tar -xzf spark-3.5.8-bin-hadoop3.tgz -C ~/spark/</code></pre>
+</div>
+<div id="apache-spark" class="section level2" number="2">
+<h2><span class="header-section-number">2</span> Apache Spark</h2>
 <pre class="r"><code># Spark 安装目录
-Sys.setenv(SPARK_HOME=&quot;~/spark/spark-4.1.1-bin-hadoop3&quot;)
+Sys.setenv(SPARK_HOME = &quot;~/spark/spark-3.5.8-bin-hadoop3&quot;)
+# 初次连接 Spark 时 Sedona 需要下载 Jar 包
 sc &lt;- spark_connect(
   master = &quot;local&quot;, # spark_install() 本地安装的 Spark
-  method = &quot;shell&quot;  # 对应 spark-submit
-)
-# 拷贝一个数据集到 Spark 环境中
-iris_tbl &lt;- copy_to(sc, iris, overwrite = TRUE)
-# 查看已连接的表
+  method = &quot;shell&quot; # 对应 spark-submit
+)</code></pre>
+<pre><code>## ℹ Using Sedona jar version: org.apache.sedona:sedona-spark-shaded-3.5_2.12:1.8.1</code></pre>
+<pre class="r"><code># 拷贝一个数据集到 Spark 环境中
+iris_tbl &lt;- copy_to(sc, iris, overwrite = TRUE)</code></pre>
+<pre class="r"><code># 查看已连接的表
 dplyr::src_tbls(sc)</code></pre>
 <pre><code>## [1] &quot;iris&quot;</code></pre>
 <p>鸢尾花数据集 iris 导入 Spark 后，可以用 Spark SQL 查询数据了。</p>
@@ -87,18 +110,20 @@ iris_preview</code></pre>
 ## 8           5.0         3.4          1.5         0.2  setosa
 ## 9           4.4         2.9          1.4         0.2  setosa
 ## 10          4.9         3.1          1.5         0.1  setosa</code></pre>
-<p>在 Spark 环境中，列名不能含有点号，因为点号在数据库中有特殊的含义。<code>a.b</code> a 常表示数据库，b 表示该数据库下的表。</p>
-<div id="分组聚合统计" class="section level2" number="1">
-<h2><span class="header-section-number">1</span> 分组聚合统计</h2>
+<p>在 Spark 环境中，列名不能含有点号，因为点号在数据库中有特殊的含义。表名 <code>a.b</code> 中 a 常表示数据库，b 表示该数据库下的表。</p>
+<div id="aggr-spark" class="section level3" number="2.1">
+<h3><span class="header-section-number">2.1</span> 分组聚合统计</h3>
 <p>按 Species 变量分组统计各类鸢尾花的数量，以及 <code>Sepal_Length</code> 的平均值。</p>
-<pre class="r"><code>dbGetQuery(sc, &quot;SELECT count(1) as cnt, avg(Sepal_Length) as avg_Sepal_Length, Species FROM iris GROUP BY Species&quot;)</code></pre>
+<pre class="r"><code>dbGetQuery(sc, &quot;
+           SELECT count(1) as cnt, avg(Sepal_Length) as avg_Sepal_Length, Species
+           FROM iris GROUP BY Species&quot;)</code></pre>
 <pre><code>##   cnt avg_Sepal_Length    Species
 ## 1  50            6.588  virginica
 ## 2  50            5.936 versicolor
 ## 3  50            5.006     setosa</code></pre>
 <p>分组取 <code>Sepal_Length</code>最长的样本。</p>
 <pre class="r"><code>dbGetQuery(sc, &quot;
-           SELECT max(Sepal_Length) as max_Sepal_Length, Species 
+           SELECT max(Sepal_Length) as max_Sepal_Length, Species
            FROM iris GROUP BY Species&quot;)</code></pre>
 <pre><code>##   max_Sepal_Length    Species
 ## 1              7.9  virginica
@@ -112,7 +137,7 @@ aggregate(iris, Sepal.Length ~ Species, max)</code></pre>
 ## 3  virginica          7.9</code></pre>
 <p>分组计算某列的中位数。</p>
 <pre class="r"><code>dbGetQuery(sc, &quot;
-           SELECT median(Sepal_Length) as med_Sepal_Length, Species 
+           SELECT median(Sepal_Length) as med_Sepal_Length, Species
            FROM iris GROUP BY Species&quot;)</code></pre>
 <pre><code>##   med_Sepal_Length    Species
 ## 1              6.5  virginica
@@ -148,7 +173,7 @@ aggregate(iris, Sepal.Length ~ Species, max)</code></pre>
 ## [1] &quot;histogram&quot;</code></pre>
 <p>分组计算某列的分布。</p>
 <pre class="r"><code>dbGetQuery(sc, &quot;
-           SELECT histogram_numeric(Sepal_Length, 5) as hn, Species 
+           SELECT histogram_numeric(Sepal_Length, 5) as hn, Species
            FROM iris GROUP BY Species&quot;)</code></pre>
 <pre><code>##                                                                        hn
 ## 1 4.900, 1.000, 5.880, 10.000, 6.457, 23.000, 7.090, 10.000, 7.717, 6.000
@@ -158,20 +183,20 @@ aggregate(iris, Sepal.Length ~ Species, max)</code></pre>
 ## 1  virginica
 ## 2 versicolor
 ## 3     setosa</code></pre>
-<pre class="r"><code>aggregate(iris, Sepal.Length ~ Species, FUN = function(x) hist(x, breaks = 5, plot = F)$mids )</code></pre>
+<pre class="r"><code>aggregate(iris, Sepal.Length ~ Species, FUN = function(x) hist(x, breaks = 5, plot = F)$mids)</code></pre>
 <pre><code>##      Species                             Sepal.Length
 ## 1     setosa                   4.25, 4.75, 5.25, 5.75
 ## 2 versicolor             4.75, 5.25, 5.75, 6.25, 6.75
 ## 3  virginica 4.75, 5.25, 5.75, 6.25, 6.75, 7.25, 7.75</code></pre>
-<pre class="r"><code>aggregate(iris, Sepal.Length ~ Species, FUN = function(x) hist(x, breaks = 5, plot = F)$counts )</code></pre>
+<pre class="r"><code>aggregate(iris, Sepal.Length ~ Species, FUN = function(x) hist(x, breaks = 5, plot = F)$counts)</code></pre>
 <pre><code>##      Species          Sepal.Length
 ## 1     setosa          5, 23, 19, 3
 ## 2 versicolor       3, 8, 19, 12, 8
 ## 3  virginica 1, 0, 8, 19, 10, 6, 6</code></pre>
 <p>分箱的算法不同，结果也不同。</p>
 </div>
-<div id="window-functions" class="section level2" number="2">
-<h2><span class="header-section-number">2</span> 窗口函数</h2>
+<div id="window-functions" class="section level3" number="2.2">
+<h3><span class="header-section-number">2.2</span> 窗口函数</h3>
 <p>窗口函数是为了应对复杂查询而设计的，下面以 <code>RANK()</code> 和 <code>row_number()</code> 为例。</p>
 <p>目标：每类鸢尾花中 Sepal.Length （萼片长度）最长的 5 个样本。</p>
 <ol style="list-style-type: decimal">
@@ -203,7 +228,8 @@ LIMIT 5
 <ol start="2" style="list-style-type: decimal">
 <li>筛选排序结果。</li>
 </ol>
-<pre class="r"><code>dbGetQuery(sc, &quot;
+<pre class="r"><code># RANK()
+dbGetQuery(sc, &quot;
 SELECT * FROM
 (
 SELECT *, RANK() OVER (PARTITION BY Species ORDER BY Sepal_Length DESC) AS rank
@@ -228,7 +254,8 @@ WHERE a.rank &lt; 6
 ## 14          7.7         2.6          6.9         2.3  virginica    2
 ## 15          7.7         2.8          6.7         2.0  virginica    2
 ## 16          7.7         3.0          6.1         2.3  virginica    2</code></pre>
-<pre class="r"><code>dbGetQuery(sc, &quot;
+<pre class="r"><code># row_number()
+dbGetQuery(sc, &quot;
 SELECT * FROM
 (
 SELECT *, row_number() OVER (PARTITION BY Species ORDER BY Sepal_Length DESC) AS rn
@@ -252,6 +279,195 @@ WHERE a.rn &lt; 6
 ## 13          7.7         2.6          6.9         2.3  virginica  3
 ## 14          7.7         2.8          6.7         2.0  virginica  4
 ## 15          7.7         3.0          6.1         2.3  virginica  5</code></pre>
+</div>
+</div>
+<div id="apache-sedona" class="section level2" number="3">
+<h2><span class="header-section-number">3</span> Apache Sedona</h2>
+<p><a href="https://github.com/apache/sedona">Apache Sedona</a> 是一个处理大规模空间数据的分布式集群计算系统，站在 <a href="https://github.com/apache/spark">Apache Spark</a> 和 <a href="https://github.com/apache/flink">Apache Flink</a> 的肩膀上，提供一套开箱即用的分布式空间数据操作和查询工具，可以高效加载、处理和分析大规模空间数据。</p>
+<pre class="r"><code># Sedona 1.8.1 支持 Spark 3.x 和 JDK 17
+library(apache.sedona)</code></pre>
+<p>下面的示例和数据来自 <a href="https://github.com/harryprince/geospark"><strong>geospark</strong></a> 包，这里仅使用 geospark 的数据集，geospark 包已经被 apache.sedona 取代了。</p>
+<pre class="r"><code>remotes::install_github(&quot;harryprince/geospark&quot;)</code></pre>
+<pre class="r"><code># 空间多边形数据
+polygons &lt;- read.table(
+  system.file(package = &quot;geospark&quot;, &quot;examples/polygons.txt&quot;),
+  sep = &quot;|&quot;,
+  col.names = c(&quot;area&quot;, &quot;geom&quot;)
+)
+# 空间点数据
+points &lt;- read.table(
+  system.file(package = &quot;geospark&quot;, &quot;examples/points.txt&quot;),
+  sep = &quot;|&quot;,
+  col.names = c(&quot;city&quot;, &quot;state&quot;, &quot;geom&quot;)
+)
+# 将数据集导入 Spark 环境
+polygons_wkt &lt;- copy_to(sc, polygons)
+points_wkt &lt;- copy_to(sc, points)</code></pre>
+<p>查看数据集 <code>polygons_wkt</code> 和 <code>points_wkt</code> 的类型。</p>
+<pre class="r"><code>class(polygons_wkt)</code></pre>
+<pre><code>## [1] &quot;tbl_spark&quot; &quot;tbl_sql&quot;   &quot;tbl_lazy&quot;  &quot;tbl&quot;</code></pre>
+<pre class="r"><code>class(points_wkt)</code></pre>
+<pre><code>## [1] &quot;tbl_spark&quot; &quot;tbl_sql&quot;   &quot;tbl_lazy&quot;  &quot;tbl&quot;</code></pre>
+<p>查看数据集。</p>
+<pre class="r"><code>print(polygons_wkt)</code></pre>
+<pre><code>## # Source:   table&lt;`polygons`&gt; [?? x 2]
+## # Database: spark_connection
+##   area            geom                                                          
+##   &lt;chr&gt;           &lt;chr&gt;                                                         
+## 1 california area POLYGON ((-126.4746 32.99024, -126.4746 42.55308, -115.4004 4…
+## 2 new york area   POLYGON ((-80.50781 36.24427, -80.50781 41.96766, -70.75195 4…
+## 3 texas area      POLYGON ((-106.5234 25.40358, -106.5234 36.66842, -91.14258 3…
+## 4 dakota area     POLYGON ((-106.084 44.21371, -106.084 49.66763, -95.71289 49.…</code></pre>
+<pre class="r"><code>print(points_wkt)</code></pre>
+<pre><code>## # Source:   table&lt;`points`&gt; [?? x 3]
+## # Database: spark_connection
+##    city        state geom                      
+##    &lt;chr&gt;       &lt;chr&gt; &lt;chr&gt;                     
+##  1 New York    NY    POINT (-73.97759 40.74618)
+##  2 New York    NY    POINT (-73.97231 40.75216)
+##  3 New York    NY    POINT (-73.99337 40.7551) 
+##  4 West Nyack  NY    POINT (-74.06083 41.16094)
+##  5 West Point  NY    POINT (-73.9788 41.37611) 
+##  6 West Point  NY    POINT (-74.3547 41.38782) 
+##  7 Westtown    NY    POINT (-74.54593 41.33403)
+##  8 Floral Park NY    POINT (-73.70475 40.7232) 
+##  9 Floral Park NY    POINT (-73.60177 40.75476)
+## 10 Elmira      NY    POINT (-76.79217 42.09192)
+## # ℹ more rows</code></pre>
+<p>SedonaSQL 支持 SpatialSQL 查询、空间计算操作，如 <code>ST_GeomFromWKT</code> / <code>ST_Contains</code> 等，详细介绍见 <a href="https://sedona.apache.org/1.8.1/tutorial/sql/">SedonaSQL 文档</a>。</p>
+<pre class="r"><code># 按 area, state 分组统计兴趣点在多边形区域内的数量
+DBI::dbGetQuery(sc, &quot;
+  SELECT area, state, count(*) cnt FROM
+    (SELECT area, ST_GeomFromWKT(polygons.geom) as y FROM polygons) polygons
+  INNER JOIN
+    (SELECT ST_GeomFromWKT(points.geom) as x, state, city FROM points) points
+  WHERE ST_Contains(polygons.y, points.x) GROUP BY area, state&quot;)</code></pre>
+<pre><code>##              area state cnt
+## 1     dakota area    SD   1
+## 2   new york area    NY   9
+## 3 california area    CA  10
+## 4      texas area    TX  10
+## 5     dakota area    ND  10</code></pre>
+<p><strong>dplyr</strong> 的好处是提供一套将 R 代码转化为 SQL 代码的数据操作语法，对 R 语言用户过渡到 SQL 有些帮助。笔者推荐读者直接写 SQL 代码，在小数据集上完成开发，测试，而后可部署到生产环境，较之 R 代码，SQL 代码更加流行、更方便交流，在调试阶段，更不用担心 <strong>dplyr</strong> 层翻译出错的问题，降低排错的成本。</p>
+<pre class="r"><code># ST_GeomFromWKT 也可以写做 st_geomfromwkt
+polygons_wkt &lt;- dplyr::mutate(polygons_wkt, y = ST_GeomFromWKT(geom))
+points_wkt &lt;- dplyr::mutate(points_wkt, x = ST_GeomFromWKT(geom))
+# 按 area, state 分组统计各个多边形区域内包含的空间点的数量
+sc_res &lt;- dplyr::inner_join(
+  polygons_wkt, points_wkt,
+  sql_on = dplyr::sql(&quot;ST_Contains(y,x)&quot;)
+) |&gt;
+  dplyr::group_by(area, state) |&gt;
+  dplyr::summarise(cnt = n())</code></pre>
+<p>查看统计的结果，顺便一说， <strong>dplyr</strong> 采用惰性求值，真正开始查询计算是执行下面一行命令的时候。</p>
+<pre class="r"><code>dplyr::collect(sc_res)</code></pre>
+<pre><code>## `summarise()` has grouped output by &quot;area&quot;. You can override using the
+## `.groups` argument.</code></pre>
+<pre><code>## # A tibble: 5 × 3
+##   area            state   cnt
+##   &lt;chr&gt;           &lt;chr&gt; &lt;dbl&gt;
+## 1 dakota area     SD        1
+## 2 new york area   NY        9
+## 3 california area CA       10
+## 4 texas area      TX       10
+## 5 dakota area     ND       10</code></pre>
+<p>调用 <strong>gglite</strong> 包可视化查询结果，适用于常规数据可视化图形。</p>
+<pre class="r"><code>library(gglite)
+# 柱形图展示结果
+dplyr::collect(sc_res) |&gt; 
+  g2(cnt ~ area) |&gt; 
+  mark_interval()</code></pre>
+<script src="https://unpkg.com/@antv/g2@5/dist/g2.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@xiee/utils@v1.14.35/js/g2-patches.min.js" defer></script>
+<div data-gglite-container="">
+
+</div>
+<script type="module">
+const el = document.querySelector("[data-gglite-container]");
+el.removeAttribute("data-gglite-container");
+const chart = new G2.Chart({
+  "height": 480,
+  "autoFit": true,
+  "container": el
+});
+chart.options({
+  "data": {
+    "type": "column",
+    "value": {
+      "cnt": [1, 9, 10, 10, 10],
+      "area": ["dakota area", "new york area", "california area", "texas area", "dakota area"]
+    }
+  },
+  "children": [
+    {
+      "type": "interval",
+      "encode": {
+        "y": "cnt",
+        "x": "area"
+      }
+    }
+  ]
+});
+chart.render();
+</script>
+<p>在 Sedona 中进行大规模空间数据操作（查询），将查询结果转为 simple feature 对象，用 sf 包操作，最后，由 R 语言来做进一步数据探索、分析、建模、可视化、报告。</p>
+<pre class="r"><code># 查询结果转为 sf 
+tb_sf &lt;- merge(
+  x = collect(sc_res),
+  y = polygons, by = &quot;area&quot;, all.y = T,
+  sort = F # 不对结果排序
+) |&gt;
+  sf::st_as_sf(wkt = &quot;geom&quot;)
+tb_sf</code></pre>
+<pre><code>## Simple feature collection with 5 features and 3 fields
+## Geometry type: POLYGON
+## Dimension:     XY
+## Bounding box:  xmin: -126.5 ymin: 25.4 xmax: -70.75 ymax: 49.67
+## CRS:           NA
+##              area state cnt                           geom
+## 1     dakota area    SD   1 POLYGON ((-106.1 44.21, -10...
+## 2     dakota area    ND  10 POLYGON ((-106.1 44.21, -10...
+## 3   new york area    NY   9 POLYGON ((-80.51 36.24, -80...
+## 4 california area    CA  10 POLYGON ((-126.5 32.99, -12...
+## 5      texas area    TX  10 POLYGON ((-106.5 25.4, -106...</code></pre>
 <p>最后，当不需要使用 Spark 的时候，要关闭清理连接。</p>
-<pre class="r"><code>spark_disconnect(sc)</code></pre>
+<pre class="r"><code># 关闭连接
+spark_disconnect(sc)</code></pre>
+<p>本文运行环境如下：</p>
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>## R version 4.5.3 (2026-03-11)
+## Platform: aarch64-apple-darwin20
+## Running under: macOS Tahoe 26.4.1
+## 
+## Matrix products: default
+## BLAS:   /Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/lib/libRblas.0.dylib 
+## LAPACK: /Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.1
+## 
+## locale:
+## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+## 
+## time zone: Asia/Shanghai
+## tzcode source: internal
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## other attached packages:
+## [1] gglite_0.0.31       DBI_1.3.0           apache.sedona_1.8.1
+## [4] sparklyr_1.9.4     
+## 
+## loaded via a namespace (and not attached):
+##  [1] config_0.3.2       sass_0.4.10        utf8_1.2.6         generics_0.1.4    
+##  [5] tidyr_1.3.2        class_7.3-23       KernSmooth_2.23-26 blogdown_1.23     
+##  [9] digest_0.6.39      magrittr_2.0.5     evaluate_1.0.5     grid_4.5.3        
+## [13] bookdown_0.46      fastmap_1.2.0      blob_1.3.0         jsonlite_2.0.0    
+## [17] e1071_1.7-17       httr_1.4.8         purrr_1.2.2        jquerylib_0.1.4   
+## [21] cli_3.6.6          rlang_1.2.0        units_1.0-1        dbplyr_2.5.2      
+## [25] withr_3.0.2        cachem_1.1.0       yaml_2.3.12        otel_0.2.0        
+## [29] tools_4.5.3        parallel_4.5.3     dplyr_1.2.1        vctrs_0.7.3       
+## [33] R6_2.6.1           proxy_0.4-29       lifecycle_1.0.5    classInt_0.4-11   
+## [37] pkgconfig_2.0.3    pillar_1.11.1      bslib_0.10.0       Rcpp_1.1.1-1      
+## [41] glue_1.8.1         sf_1.1-0           xfun_0.57.4        tibble_3.3.1      
+## [45] tidyselect_1.2.1   rstudioapi_0.18.0  knitr_1.51         htmltools_0.5.9   
+## [49] rmarkdown_2.31     compiler_4.5.3     askpass_1.2.1      openssl_2.4.0</code></pre>
 </div>

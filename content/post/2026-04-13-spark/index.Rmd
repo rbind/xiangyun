@@ -1,5 +1,5 @@
 ---
-title: R 语言中使用 Spark 
+title: R 语言中使用 Spark
 author: 黄湘云
 date: '2026-04-13'
 slug: spark
@@ -8,23 +8,28 @@ categories:
 tags:
   - 大规模数据
   - 分布式计算
-  - Spark
+  - Apache Spark
   - sparklyr
   - Spark SQL
   - 窗口函数
+  - Apache Sedona
+  - 大规模空间数据操作
 output:
   blogdown::html_page:
     toc: true
     number_sections: true
+description: "在生产环境中，数仓团队根据业务需求，生产一张张表（明细表 detail、维度表 dim、主题表 topic、聚合表 aggr、应用表 app），落在 Hive 管理的数据仓库中。Spark 是大规模分布式计算引擎，将数据加载到内存中进行计算。在大规模复杂的计算中，会用到 Hive SQL 或 Spark SQL，前者内存资源需求少但计算慢，后者吃内存资源但计算更快。"
 ---
 
 在生产环境中，数仓团队根据业务需求，生产一张张表（明细表 detail、维度表 dim、主题表 topic、聚合表 aggr、应用表 app），落在 Hive 管理的数据仓库中。[Spark](https://spark.apache.org) 是大规模分布式计算引擎，将数据加载到内存中进行计算。在大规模复杂的计算中，会用到 Hive SQL 或 Spark SQL，前者内存资源需求少但计算慢，后者吃内存资源但计算更快。
 
-首先，安装配置 Java 开发环境
+## 配置 Spark {#setup-spark}
+
+首先，安装配置 Java 开发环境。
 
 ``` bash
 # 安装 Java 开发环境
-brew install oracle-jdk@21
+brew install microsoft-openjdk@17
 ```
 
 接着，配置 R 软件发现 Java 开发环境，一些依赖 Java 的 R 包需要，比如 **rJava** 包。
@@ -45,8 +50,10 @@ install.packages("sparklyr", type = "source")
 
 ```{r}
 library(sparklyr)
+# 后续还要介绍 Sedona
+library(apache.sedona)
 # Spark 配置
-config = spark_config()
+config <- spark_config()
 config
 ```
 
@@ -54,18 +61,24 @@ config
 
 ``` bash
 mkdir -p ~/spark
-tar -xzf spark-4.1.1-bin-hadoop3.tgz -C ~/spark/
+tar -xzf spark-3.5.8-bin-hadoop3.tgz -C ~/spark/
 ```
+
+## Apache Spark {#apache-spark}
 
 ```{r}
 # Spark 安装目录
-Sys.setenv(SPARK_HOME="~/spark/spark-4.1.1-bin-hadoop3")
+Sys.setenv(SPARK_HOME = "~/spark/spark-3.5.8-bin-hadoop3")
+# 初次连接 Spark 时 Sedona 需要下载 Jar 包
 sc <- spark_connect(
   master = "local", # spark_install() 本地安装的 Spark
-  method = "shell"  # 对应 spark-submit
+  method = "shell" # 对应 spark-submit
 )
 # 拷贝一个数据集到 Spark 环境中
 iris_tbl <- copy_to(sc, iris, overwrite = TRUE)
+```
+
+```{r}
 # 查看已连接的表
 dplyr::src_tbls(sc)
 ```
@@ -78,21 +91,23 @@ iris_preview <- dbGetQuery(sc, "SELECT * FROM iris LIMIT 10")
 iris_preview
 ```
 
-在 Spark 环境中，列名不能含有点号，因为点号在数据库中有特殊的含义。`a.b` a 常表示数据库，b 表示该数据库下的表。
+在 Spark 环境中，列名不能含有点号，因为点号在数据库中有特殊的含义。表名 `a.b` 中 a 常表示数据库，b 表示该数据库下的表。
 
-## 分组聚合统计
+### 分组聚合统计 {#aggr-spark}
 
 按 Species 变量分组统计各类鸢尾花的数量，以及 `Sepal_Length` 的平均值。
 
 ```{r}
-dbGetQuery(sc, "SELECT count(1) as cnt, avg(Sepal_Length) as avg_Sepal_Length, Species FROM iris GROUP BY Species")
+dbGetQuery(sc, "
+           SELECT count(1) as cnt, avg(Sepal_Length) as avg_Sepal_Length, Species
+           FROM iris GROUP BY Species")
 ```
 
 分组取 `Sepal_Length`最长的样本。
 
 ```{r}
 dbGetQuery(sc, "
-           SELECT max(Sepal_Length) as max_Sepal_Length, Species 
+           SELECT max(Sepal_Length) as max_Sepal_Length, Species
            FROM iris GROUP BY Species")
 ```
 
@@ -105,7 +120,7 @@ aggregate(iris, Sepal.Length ~ Species, max)
 
 ```{r}
 dbGetQuery(sc, "
-           SELECT median(Sepal_Length) as med_Sepal_Length, Species 
+           SELECT median(Sepal_Length) as med_Sepal_Length, Species
            FROM iris GROUP BY Species")
 ```
 
@@ -127,19 +142,19 @@ hist(iris$Sepal.Length, breaks = 6, plot = F)
 
 ```{r}
 dbGetQuery(sc, "
-           SELECT histogram_numeric(Sepal_Length, 5) as hn, Species 
+           SELECT histogram_numeric(Sepal_Length, 5) as hn, Species
            FROM iris GROUP BY Species")
 ```
 
 ```{r}
-aggregate(iris, Sepal.Length ~ Species, FUN = function(x) hist(x, breaks = 5, plot = F)$mids )
+aggregate(iris, Sepal.Length ~ Species, FUN = function(x) hist(x, breaks = 5, plot = F)$mids)
 
-aggregate(iris, Sepal.Length ~ Species, FUN = function(x) hist(x, breaks = 5, plot = F)$counts )
+aggregate(iris, Sepal.Length ~ Species, FUN = function(x) hist(x, breaks = 5, plot = F)$counts)
 ```
 
 分箱的算法不同，结果也不同。
 
-## 窗口函数 {#window-functions}
+### 窗口函数 {#window-functions}
 
 窗口函数是为了应对复杂查询而设计的，下面以 `RANK()` 和 `row_number()` 为例。
 
@@ -168,6 +183,7 @@ LIMIT 5
 2.  筛选排序结果。
 
 ```{r}
+# RANK()
 dbGetQuery(sc, "
 SELECT * FROM
 (
@@ -179,6 +195,7 @@ WHERE a.rank < 6
 ```
 
 ```{r}
+# row_number()
 dbGetQuery(sc, "
 SELECT * FROM
 (
@@ -189,31 +206,19 @@ WHERE a.rn < 6
 ")
 ```
 
-最后，当不需要使用 Spark 的时候，要关闭清理连接。
-
-```{r}
-spark_disconnect(sc)
-```
-
-## Sedona
+## Apache Sedona {#apache-sedona}
 
 [Apache Sedona](https://github.com/apache/sedona) 是一个处理大规模空间数据的分布式集群计算系统，站在 [Apache Spark](https://github.com/apache/spark) 和 [Apache Flink](https://github.com/apache/flink) 的肩膀上，提供一套开箱即用的分布式空间数据操作和查询工具，可以高效加载、处理和分析大规模空间数据。
 
 ```{r}
-library(apache.sedona)
-# Spark 安装目录 
 # Sedona 1.8.1 支持 Spark 3.x 和 JDK 17
-Sys.setenv(SPARK_HOME="~/spark/spark-3.5.8-bin-hadoop3")
-sc <- spark_connect(
-  master = "local", # spark_install() 本地安装的 Spark
-  method = "shell"  # 对应 spark-submit
-)
+library(apache.sedona)
 ```
 
-下面的示例和数据来自 [**geospark**](https://github.com/harryprince/geospark) 包。
+下面的示例和数据来自 [**geospark**](https://github.com/harryprince/geospark) 包，这里仅使用 geospark 的数据集，geospark 包已经被 apache.sedona 取代了。
 
 ```{r eval=FALSE}
-pak::pkg_install("harryprince/geospark")
+remotes::install_github("harryprince/geospark")
 ```
 
 ```{r}
@@ -234,14 +239,14 @@ polygons_wkt <- copy_to(sc, polygons)
 points_wkt <- copy_to(sc, points)
 ```
 
-查看数据集 `polygons_wkt` 和 `points_wkt` 的类型
+查看数据集 `polygons_wkt` 和 `points_wkt` 的类型。
 
 ```{r}
 class(polygons_wkt)
 class(points_wkt)
 ```
 
-查看数据集
+查看数据集。
 
 ```{r}
 print(polygons_wkt)
@@ -251,18 +256,18 @@ print(points_wkt)
 SedonaSQL 支持 SpatialSQL 查询、空间计算操作，如 `ST_GeomFromWKT` / `ST_Contains` 等，详细介绍见 [SedonaSQL 文档](https://sedona.apache.org/1.8.1/tutorial/sql/)。
 
 ```{r}
+# 按 area, state 分组统计兴趣点在多边形区域内的数量
 DBI::dbGetQuery(sc, "
   SELECT area, state, count(*) cnt FROM
     (SELECT area, ST_GeomFromWKT(polygons.geom) as y FROM polygons) polygons
   INNER JOIN
-    (SELECT ST_GeomFromWKT (points.geom) as x, state, city FROM points) points
-  WHERE ST_Contains(polygons.y,points.x) GROUP BY area, state")
+    (SELECT ST_GeomFromWKT(points.geom) as x, state, city FROM points) points
+  WHERE ST_Contains(polygons.y, points.x) GROUP BY area, state")
 ```
 
 **dplyr** 的好处是提供一套将 R 代码转化为 SQL 代码的数据操作语法，对 R 语言用户过渡到 SQL 有些帮助。笔者推荐读者直接写 SQL 代码，在小数据集上完成开发，测试，而后可部署到生产环境，较之 R 代码，SQL 代码更加流行、更方便交流，在调试阶段，更不用担心 **dplyr** 层翻译出错的问题，降低排错的成本。
 
 ```{r}
-library(dplyr, warn.conflicts = FALSE)
 # ST_GeomFromWKT 也可以写做 st_geomfromwkt
 polygons_wkt <- dplyr::mutate(polygons_wkt, y = ST_GeomFromWKT(geom))
 points_wkt <- dplyr::mutate(points_wkt, x = ST_GeomFromWKT(geom))
@@ -270,18 +275,50 @@ points_wkt <- dplyr::mutate(points_wkt, x = ST_GeomFromWKT(geom))
 sc_res <- dplyr::inner_join(
   polygons_wkt, points_wkt,
   sql_on = dplyr::sql("ST_Contains(y,x)")
-) |> 
-  dplyr::group_by(area, state) |> 
+) |>
+  dplyr::group_by(area, state) |>
   dplyr::summarise(cnt = n())
 ```
 
-查看统计的结果，顺便一说， **dplyr** 采用惰性求值，真正开始查询计算是执行下面一行命令的时候
+查看统计的结果，顺便一说， **dplyr** 采用惰性求值，真正开始查询计算是执行下面一行命令的时候。
 
 ```{r}
-sc_res
+dplyr::collect(sc_res)
 ```
+
+调用 **gglite** 包可视化查询结果，适用于常规数据可视化图形。
+
+```{r}
+library(gglite)
+# 柱形图展示结果
+dplyr::collect(sc_res) |> 
+  g2(cnt ~ area) |> 
+  mark_interval()
+```
+
+在 Sedona 中进行大规模空间数据操作（查询），将查询结果转为 simple feature 对象，用 sf 包操作，最后，由 R 语言来做进一步数据探索、分析、建模、可视化、报告。
+
+```{r}
+# 查询结果转为 sf 
+tb_sf <- merge(
+  x = collect(sc_res),
+  y = polygons, by = "area", all.y = T,
+  sort = F # 不对结果排序
+) |>
+  sf::st_as_sf(wkt = "geom")
+tb_sf
+```
+
+最后，当不需要使用 Spark 的时候，要关闭清理连接。
 
 ```{r}
 # 关闭连接
 spark_disconnect(sc)
 ```
+
+本文运行环境如下：
+
+```{r}
+sessionInfo()
+```
+
