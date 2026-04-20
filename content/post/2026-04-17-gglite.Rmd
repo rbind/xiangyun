@@ -15,6 +15,7 @@ tags:
   - 折线图
   - 柱形图
   - 双轴图
+code_fold: true
 output:
   blogdown::html_page:
     toc: true
@@ -62,7 +63,7 @@ shao_yang <- read.table(text = "
 library(gglite)
 g2(data = shao_yang, 自然增长率 ~ 城镇化率, size = ~城镇人口) |>
   mark_point(
-    encode = list(color = "城镇人口"),
+    encode = list(color = "城镇人口", text = "地区"),
     tooltip = list(title = "地区"),
     style = list(fillOpacity = 0.5)
   ) |>
@@ -81,7 +82,8 @@ g2(data = shao_yang, 自然增长率 ~ 城镇化率, size = ~城镇人口) |>
   mark_text(encode = list(text = "地区")) |>
   axis_x(title = "城镇化率（%）") |>
   axis_y(title = "自然增长率（‰）") |>
-  titles(main = "2023 年邵阳市各地区人口自然增长率与城镇化率的关系") |>
+  titles(main = "2023 年邵阳市各地区人口自然增长率与城镇化率的关系",
+         subtitle = "数据源：邵阳市统计局") |>
   theme_academy()
 ```
 
@@ -91,6 +93,39 @@ g2(data = shao_yang, 自然增长率 ~ 城镇化率, size = ~城镇人口) |>
 
 -   Ant G2 [内置的调色板](https://g2.antv.antgroup.com/manual/core/color)。
 -   Ant G2 [Mark Point 图层](https://g2.antv.antgroup.com/manual/core/mark/point)。
+
+当数据规模稍大，气泡之间相互重叠时，就不便每个气泡都标注文本，而要借助悬浮提示和笔刷了。根据湖南省统计局发布的《统计年鉴2025》，笔者找到2024 年各区县的常住人口、社零总额和地区生产总值。
+
+```{r}
+hu_nan <- read.csv(file = "https://xiangyun.rbind.io/data/社会消费品零售总额.csv", header = T)
+
+hu_nan |> 
+  transform(生产总值 = 生产总值 / 10000) |> 
+  g2(社零总额 ~ 生产总值, size = ~常住人口) |>
+  mark_point(
+    encode = list(color = "常住人口", text = "区县"),
+    tooltip = list(title = "区县",
+                   channel = "x", valueFormatter = ".2%"),
+    style = list(fillOpacity = 0.5)
+  ) |>
+  scale_size(type = "log", range = c(2, 15)) |>
+  scale_color(palette = "inferno") |>
+  legend_size(FALSE) |>
+  legend_color(position = "right", title = "常住人口（万）") |>
+  # mark_text(encode = list(text = "区县")) |> # 去掉文本标注
+  mark_text(data = data.frame(区县 = "邵东市", 社零总额 = 356.67, 生产总值 = 791.5441), 
+            encode = list(x = "生产总值", y = "社零总额", text = "区县")) |> 
+  interact('brushFilter') |> # 笔刷功能
+  axis_x(title = "生产总值（亿）") |>
+  axis_y(title = "社零总额（万）") |>
+  titles(main = "2024 年湖南省各区县社零总额与地区生产总值的关系",
+         subtitle = "数据源：湖南省统计局") |>
+  theme_academy()
+```
+
+通过笔刷可以任意圈选区域并放大，气泡之间的距离就拉开了。也可以通过拖动图例上下两端的滑块，根据图例映射的指标筛选数据。
+
+如果要对其中某些数据标记，只能另做一份数据。而 ggplot2 包支持在原数据上进行筛选。
 
 # 折线图 {#mark-line}
 
@@ -179,6 +214,8 @@ g2(data = shaoyang_gdp, 生产总值 ~ 年份, color = ~产业) |>
   #  格式化 y 轴
   axis_y(title = "产业占比（%）", labelFormatter = ".0%") |>
   legend_color(title = "产业", position = "right") |>
+  titles(main = "邵阳市 2016-2023 年第一、二、三产业生产总值",
+         subtitle = "数据源：邵阳市统计局") |>
   theme_academy()
 ```
 
@@ -193,6 +230,8 @@ transform(shaoyang_gdp, 生产总值 = 生产总值 / 10000) |>
   legend_color(title = "产业", position = "right") |>
   axis_x(title = "年份") |>
   axis_y(title = "生产总值（亿元）") |>
+  titles(main = "邵阳市 2016-2023 年第一、二、三产业生产总值",
+         subtitle = "数据源：邵阳市统计局") |>
   theme_academy()
 ```
 
