@@ -126,7 +126,7 @@ hu_nan |>
 
 通过笔刷可以任意圈选区域并放大，气泡之间的距离就拉开了。也可以通过拖动图例上下两端的滑块，根据图例映射的指标筛选数据。
 
-如果要对其中某些数据标记，只能另做一份数据。而 ggplot2 包支持在原数据上进行筛选。
+- 如果要对其中某些数据标记，只能另做一份数据。而 **ggplot2** 包支持在原数据上进行筛选。
 
 ```{r}
 g2(data = hu_nan, 固定资产投资增速 ~ 城镇化率, size = ~常住人口) |>
@@ -150,7 +150,35 @@ g2(data = hu_nan, 固定资产投资增速 ~ 城镇化率, size = ~常住人口)
   theme_academy()
 ```
 
-从图上看，固定资产投资增速与城镇化率并无明显关联。但是，根据常识，城镇化率低的往往大搞基础设施投资和建设，因而投资增速比较高，过去城镇化建设的思路就是大搞基建。
+从图上看，固定资产投资增速与城镇化率并无明显关联。但是，根据常识，城镇化率低的落后地区往往大搞基础设施投资和建设，因而投资增速比较高，过去城镇化建设的思路就是大搞基建。
+
+
+```{r}
+# 2005-2023 年邵阳市各区县的出生人口和死亡人口
+# 数据已经整理好
+shao_yang_pop <- read.csv(file = "https://xiangyun.rbind.io/data/邵阳市人口数据.csv", header = T)
+
+g2(data = shao_yang_pop, 死亡人口 ~ 出生人口, color = ~年份) |>
+  mark_point(
+    encode = list(text = "地区"),
+    tooltip = list(title = "地区"),
+    style = list(fillOpacity = 0.5)
+  ) |>
+  scale_color(palette = "inferno") |>
+  legend_color(position = "right", title = "年份") |>
+  transform(type = "stackEnter", groupBy = "color") |> 
+  # 入场动画
+  animate(enter = list(type = 'fadeIn', duration = 2000)) |> 
+  axis_x(title = "出生人口（人）") |>
+  axis_y(title = "死亡人口（人）") |>
+  titles(main = "2005-2023 年邵阳市各区县的出生人口和死亡人口",
+         subtitle = "数据源：邵阳市统计局") |>
+  theme_academy()
+```
+
+- **gglite** 包的动画功能仅限于入场动画，即数据可以一组组入场，最后都呈现在一起，不支持转场动画，也就意味着暂不支持[汉斯·罗琳那种动画](/2022/06/gapminder/)。
+
+如图所示，各区县在过去近20年里，出生人口、死亡人口随时间呈现分层变化。在近些年，各区县死亡人口普遍比出生人口多。
 
 # 折线图 {#mark-line}
 
