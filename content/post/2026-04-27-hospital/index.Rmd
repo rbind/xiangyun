@@ -1,0 +1,260 @@
+---
+title: 回归分析与 R 语言
+date: '2026-04-27'
+author: 黄湘云
+categories:
+  - 统计应用
+tags: 
+  - 探索分析
+  - 入院时间
+  - 回归分析
+slug: hospital
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+math: true
+description: "这是一道 2019年的某公司笔试题，面试官要求用不少于 5 种统计模型来建模，在三天内完成并给一个展示。"
+---
+
+这是一道 2019年的某公司笔试题，面试官要求用不少于 5 种统计模型来建模，在三天内完成并给一个展示。
+这个数据的背景来自某医院，问题是要分析影响病人入院的因素。这里的响应变量是病人在多久后办理入院手续，医院的床位是非常重要的资源，此问题有实际意义。
+
+1. 借助图形来探索数据，并给出分析。
+1. 使用不同的统计模型来建模，比较模型效果。
+1. 给出最终的模型结果及解释。
+
+
+# 探索性数据分析
+
+首先导入数据
+
+```{r}
+hospital_waiting_time <- readRDS(file = "data/hospital_waiting_time.rds")
+
+str(hospital_waiting_time)
+```
+
+一共 11 个变量 2625 条记录，各个变量已经脱敏，而根据变量名，可以初步推断出变量的类别。
+
+- 开住院条日期：日期数据。
+- 性别：分类变量，男或女。
+- 入院疾病分类：分类变量，比如肛肠疾病、皮肤病等。
+- 入院目的：分类变量，比如休息疗养，等待手术等。
+- 住院类别：分类变量，比如普外科、眼科等。
+- 入院病情：有序分类变量，比如轻度、中度、重度。
+- 医生：分类变量，比如医生 A、医生 B。
+
+```{r}
+hospital_waiting_time <- transform(
+  hospital_waiting_time,
+  性别 = as.factor(性别),
+  入院疾病分类 = as.factor(入院疾病分类),
+  入院目的 = as.factor(入院目的),
+  住院类别 = as.factor(住院类别),
+  入院病情 = as.factor(入院病情),
+  医生 = as.factor(医生)
+)
+```
+
+
+```{r}
+library(gglite)
+```
+
+## 等待时间的分布
+
+
+```{r}
+g2(hospital_waiting_time, ~等待时间)
+```
+
+等待时间呈现指数衰减，时间单位很可能是小时。
+
+## 等待时间随性别的分布
+
+
+```{r}
+g2(hospital_waiting_time, 等待时间~性别) |> 
+  mark_boxplot()
+```
+
+```{r}
+g2(hospital_waiting_time, ~等待时间, color = ~性别) |> 
+  mark_density() |> 
+  scale_color(palette = "set2")
+```
+
+如图所示，性别对等待时间的影响不太显著。
+
+## 等待时间与患者年龄的关系
+
+
+```{r}
+g2(hospital_waiting_time, 等待时间~年龄)
+```
+
+统计局有一个对人口分年龄段统计的数据，这里采纳统计局的年龄分段，分成 `(0-17]`、`[18-34]`、`[35-59]`、`[60+]` 四个年龄组，且年龄组是有序的。
+
+```{r collapse=TRUE}
+hospital_waiting_time <- transform(
+  hospital_waiting_time,
+  年龄段 = cut(年龄, breaks = c(0, 17, 34, 59, 100), 
+            labels = c("未成年", "青年人", "壮年人", "老年人"), 
+            ordered_result = TRUE)
+  )
+table(hospital_waiting_time$年龄段)
+levels(hospital_waiting_time$年龄段)
+class(hospital_waiting_time$年龄段)
+```
+
+```{r}
+g2(hospital_waiting_time, ~等待时间, color = ~年龄段) |> 
+  mark_density() |> 
+  scale_color(palette = "set2")
+```
+
+从图中来看，年龄对等待时间有一定的影响，特别是未成年人。
+
+> gglite 包不支持有序的因子变量。
+
+
+年龄与医生的交叉作用
+
+```{r}
+g2(hospital_waiting_time, 等待时间~年龄段, color = ~医生) |> 
+  mark_boxplot() |> 
+  transform("dodgeX")
+```
+
+年龄与入院疾病分类的交叉作用
+
+```{r}
+g2(hospital_waiting_time, 等待时间~年龄, color = ~入院疾病分类)
+```
+
+```{r}
+g2(hospital_waiting_time, 等待时间~年龄, color = ~入院病情)
+```
+
+分箱图
+
+```{r}
+g2(hospital_waiting_time, 等待时间~年龄) |> 
+  mark_rect() |>
+  transform(type = "bin", color = "count",
+            thresholdsX= 50, 
+            thresholdsY= 30) |> 
+  scale_color(palette = "inferno")
+```
+
+tooltips 显示不正常。
+
+```{r}
+g2(hospital_waiting_time, 等待时间~年龄) |> 
+  mark_point() |> 
+  transform(type = "bin", color = "count",
+            thresholdsX= 50, 
+            thresholdsY= 30) |> 
+  scale_color(palette = "inferno")
+```
+
+tooltips 显示正常。但是可以更加紧凑易读，[示例](https://g2.antv.antgroup.com/examples/analysis/bin#bin-color)。
+
+## 等待时间随入院疾病分类的分布
+
+```{r}
+g2(hospital_waiting_time, ~等待时间, color = ~入院疾病分类) |> 
+  mark_density() |> 
+  scale_color(palette = "set2")
+```
+
+
+
+## 等待时间随入院目的的分布
+
+
+```{r}
+g2(hospital_waiting_time, ~等待时间, color = ~入院目的) |> 
+  mark_density() |> 
+  scale_color(palette = "set2")
+```
+
+
+## 等待时间随住院类别的分布
+
+```{r}
+g2(hospital_waiting_time, ~等待时间, color = ~住院类别) |> 
+  mark_density() |> 
+  scale_color(palette = "set2")
+```
+
+
+## 等待时间随入院病情的分布
+
+```{r}
+g2(hospital_waiting_time, ~等待时间, color = ~入院病情) |> 
+  mark_density() |> 
+  scale_color(palette = "set2")
+```
+
+```{r}
+g2(hospital_waiting_time, 等待时间 ~ 入院病情, color = ~入院病情) |> 
+  mark_beeswarm()
+```
+
+## 等待时间随医生的分布
+
+```{r}
+g2(hospital_waiting_time, ~等待时间, color = ~医生) |> 
+  mark_density() |> 
+  scale_color(palette = "set2")
+```
+
+
+```{r}
+g2(hospital_waiting_time, 等待时间 ~ 医生) |> 
+  mark_boxplot()
+```
+
+## 小结
+
+影响病人入院的因素：年龄、疾病类别、入院目的、住院类别、入院病情、医生
+
+# 回归模型
+
+## 广义线性模型
+
+```{r}
+str(hospital_waiting_time)
+```
+
+响应变量是正态分布
+
+```{r}
+mod_glm <- glm(等待时间 ~ 性别 + 年龄 + 入院疾病分类 + 入院目的 + 住院类别 + 入院病情 + 医生, data = hospital_waiting_time)
+summary(mod_glm)
+```
+
+响应变量是对数正态分布
+
+```{r}
+summary(hospital_waiting_time)
+```
+
+如何自定义一个指数族内的分布，传递给函数 glm
+
+```{r, eval=FALSE}
+mod_glm_gamma <- glm(等待时间 ~ 性别 + 年龄 + 入院疾病分类 + 入院目的 + 住院类别 + 入院病情 + 医生, data = hospital_waiting_time, family = Gamma)
+summary(mod_glm_gamma)
+```
+
+与 glmnet 包比较
+
+
+与 xgboost 包比较
+
+
+
+生存模型：有的病人可能没来住院，或者影响住院的因素未包含在给定的数据中，比如是否有足够的钱，涉及患者的收入水平。
+
