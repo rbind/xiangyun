@@ -53,3 +53,4 @@ Thumbs.db
 # Spark
 logs/
 derby.log
+.positai

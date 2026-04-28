@@ -86,6 +86,7 @@ title: 关于
 -   [张丹](http://fens.me/) R 语言
 -   [齐琛](https://hetal-cq.github.io/)
 -   [邓一硕](https://gewutang.com) 金融、R 语言
+-   [刘威](https://hushway.github.io/blog/)
 
 博客聚合网站
 
