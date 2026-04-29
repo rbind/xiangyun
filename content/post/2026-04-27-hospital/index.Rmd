@@ -250,11 +250,49 @@ str(hospital_waiting_time)
 mod_glm <- glm(等待时间 ~ ., data = hospital_waiting_time, 
                family = quasi(variance = "mu^2", link = "log"))
 summary(mod_glm)
-# 固定参数 dispersion
-summary(mod_glm, dispersion = 1)
 ```
 
-从结果来看，门诊次、住院次、性别三个变量不显著，也符合前面探索分析的结果。
+Dispersion 大于 1 意味着指数分布的方差比均值大，推出均值大于 1。
+从结果来看，门诊次、住院次、性别、年龄等变量不显著，也符合前面探索分析的结果。年龄不显著，但是年龄段是显著的，将连续变量切分成有一定实际意义的分类变量是合理的。
+
+```{r}
+# 固定参数 dispersion
+# summary(mod_glm, dispersion = 1)
+```
+
+去掉不显著的变量后，看模型的结果。
+
+```{r}
+mod_glm <- glm(等待时间 ~ 入院疾病分类 + 入院目的 + 住院类别 + 入院病情 + 医生 + 年龄段, 
+               data = hospital_waiting_time, 
+               family = quasi(variance = "mu^2", link = "log"))
+summary(mod_glm)
+```
+
+不同的变量对入院等待时间的影响程度是不同的，有的变量是减少作用，有的变量是增加作用。
+
+## Lasso 筛选变量
+
+```{r}
+# Lasso 筛选变量
+library(glmnet)
+mod_lasso <- glmnet(
+  x = hospital_waiting_time[, -1],
+  y = hospital_waiting_time[, 1],
+  # 响应变量的分布
+  family = "gaussian",
+  # Lasso
+  alpha = 1
+)
+min(mod_lasso$lambda)
+coef(mod_lasso, s = min(mod_lasso$lambda))
+```
+
+- 门诊次对等待时间无影响。可以理解，诊断一个病情可能需要多次诊断。
+- 住院次比较多的等待时间越长，可能病人并不想住院，住院多的不愿意住院。
+- 医生越好，等待时间越短。年龄越大，等待时间越长，且年龄因素比医生因素对等待时间的影响更大。
+- 入院病情越严重，等待时间越短。
+
 
 # 运行环境
 
