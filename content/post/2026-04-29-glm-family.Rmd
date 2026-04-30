@@ -28,11 +28,11 @@ description: "假定读者对简单线性模型已经比较熟悉了，当响应
 }
 ```
 
-本文假定读者对简单线性模型（Simple Linear Models）已经比较熟悉了，当响应变量不是高斯分布，而是其他分布时，如何拟合模型呢？在 R 语言中，内置的函数 `glm()` 可以拟合响应变量的分布属于指数族的模型。这类模型单独取了个名字，叫广义线性模型（Generalized Linear Models）。典型的情况有这样一些，响应变量服从泊松分布、伯努利分布、二项分布、指数分布、伽马分布等。这些常见的分布都可以写成一个叫指数族（Exponential family）的统一形式。
+本文假定读者对简单线性模型（Simple Linear Models）已经比较熟悉了，在其他条件不变的情况下，当响应变量不是高斯分布，而是其他分布时，如何拟合模型呢？在 R 语言中，内置的函数 `glm()` 可以拟合响应变量的分布属于指数族的模型。这类模型单独取了个名字，叫广义线性模型（Generalized Linear Models）。典型的情况有这样一些，响应变量服从泊松分布、伯努利分布、二项分布、指数分布、伽马分布等。这些常见的分布都可以写成一个叫指数族（Exponential family）的统一形式。
 
 # 泊松分布 {#poisson}
 
-响应变量服从泊松分布的广义线性模型（见下面的方程），在环境受到核辐射污染问题上，可用来刻画[辐射强度](/2023/05/nuclear-pollution/)，在汽车保险的场景中，可以用来刻画[事故发生率](https://d.cosx.org/d/420881/2)。
+响应变量服从泊松分布的广义线性模型（见下面的方程），在环境受到核辐射污染问题上，可用来刻画[辐射强度](/2023/05/nuclear-pollution/)（单位时间内辐射源释放的粒子数），在汽车保险的场景中，可以用来刻画[事故发生率](https://d.cosx.org/d/420881/2)（单位时间内事故发生的次数）。
 
 $$
 \begin{aligned}
@@ -68,7 +68,7 @@ summary(fit1)
 
 在输出结果中，可以看到回归系数的估计 $\hat{\bm{\beta}}$ 是比较接近预设的值 $(1,1)^\top$ ，说明这个模拟过程没有什么问题。
 
-## 散射参数与函数 `quasipoisson()` {#quasipoisson}
+## 离散参数与函数 `quasipoisson()` {#quasipoisson}
 
 模型输出结果中，包含如下一行内容。
 
@@ -76,7 +76,7 @@ summary(fit1)
 (Dispersion parameter for poisson family taken to be 1)
 ```
 
-泊松分布的散射参数设为 1。
+泊松分布的离散参数 Dispersion parameter 设为 1。
 
 ```{r}
 # 对数似然
@@ -90,7 +90,7 @@ fit2 <- glm(y ~ x, family = quasipoisson(link = "log"))
 summary(fit2)
 ```
 
-回归系数是完全一样的，但是其相应的标准误差略有差别，散射参数的估计值是 0.9257 而不是 1 。分布族参数值从 `family = poisson(link = "log")` 到 `family = quasipoisson(link = "log")` ，区别在于散射参数是否固定（待估参数）。
+回归系数是完全一样的，但是其相应的标准误差略有差别，离散参数的估计值是 0.9257 而不是 1 。分布族参数值从 `family = poisson(link = "log")` 到 `family = quasipoisson(link = "log")` ，区别在于离散参数是否固定（待估参数）。
 
 ## 函数 `quasi()` 的说明
 
@@ -258,9 +258,9 @@ summary(fit1)
 (Dispersion parameter for binomial family taken to be 1)
 ```
 
-对于二项分布族的散射参数（Dispersion parameter）取值为 1。
+对于二项分布族的离散参数（Dispersion parameter）取值为 1。
 
-如果不想让散射参数固定下来，可以用函数 `quasibinomial()` 替代 `binomial()` 。当遇到真实的数据时，数据一般是不会严丝合缝地服从二项分布的。样本均值与样本方差的关系不是精确的 $p$ 和 $p(1-p)$ 的关系。
+如果不想让离散参数固定下来，可以用函数 `quasibinomial()` 替代 `binomial()` 。当遇到真实的数据时，数据一般是不会严丝合缝地服从二项分布的。样本均值与样本方差的关系不是精确的 $p$ 和 $p(1-p)$ 的关系。
 
 ```{r}
 fit2 <- glm(y ~ x, family = quasibinomial(link = "logit"))
@@ -323,9 +323,9 @@ fit1 <- glm(y ~ x, family = quasi(variance = "mu^2", link = "log"))
 summary(fit1)
 ```
 
-## 散射参数 {#dispersion-parameter}
+## 离散参数 {#dispersion-parameter}
 
-在输出模型拟合结果的函数 `summary()` 中，还可设置参数 `dispersion` 控制散射参数的值。当调用函数 `quasi()` 构造概率分布时，包含未知的散射参数，它是待估的，一并随回归系数进行估计。在函数 `summary()` 中指定 `dispersion = 1` 就是固定参数值，不需要估计。对于逻辑回归（响应变量服从0-1分布）和泊松回归（响应变量服从泊松分布），散射参数是固定值为 1。
+在输出模型拟合结果的函数 `summary()` 中，还可设置参数 `dispersion` 控制离散参数的值。当调用函数 `quasi()` 构造概率分布时，包含未知的离散参数，它是待估的，一并随回归系数进行估计。在函数 `summary()` 中指定 `dispersion = 1` 就是固定参数值，不需要估计。对于逻辑回归（响应变量服从0-1分布）和泊松回归（响应变量服从泊松分布），离散参数是固定值为 1。
 
 ```{r}
 summary(fit1, dispersion = 1)
@@ -351,11 +351,11 @@ $$
 f(x;\sigma) = \frac{1}{\sigma}\mathrm{e}^{-\frac{x}{\sigma}}, \quad x \geq 0, \sigma > 0
 $$
 
-在 R 语言中，函数 `glm()` 的参数 `family` 支持选择伽马分布。对于伽马分布，散射参数 dispersion parameter 恰好是伽马分布的形状参数 shape parameter 。
+在 R 语言中，函数 `glm()` 的参数 `family` 支持选择伽马分布。对于伽马分布，离散参数 dispersion parameter 恰好是伽马分布的形状参数 shape parameter 。
 
 ## 函数 `glm()` 中使用 Gamma 分布族 {#gamma-family}
 
-现在的问题是函数 `glm()` 的参数 `family` 的参数值 `Gamma(link = "log")` 在散射参数固定为 1 时，是指数分布 $\mathrm{Exp}(\lambda)$ 还是 $\mathrm{Exp}(\frac{1}{\sigma})$？它不会又另搞一套参数化表示吧？
+现在的问题是函数 `glm()` 的参数 `family` 的参数值 `Gamma(link = "log")` 在离散参数固定为 1 时，是指数分布 $\mathrm{Exp}(\lambda)$ 还是 $\mathrm{Exp}(\frac{1}{\sigma})$？它不会又另搞一套参数化表示吧？
 
 ```{r}
 # https://stat.ethz.ch/pipermail/r-help/2003-June/034852.html
