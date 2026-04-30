@@ -1,0 +1,395 @@
+---
+title: 广义线性模型和指数族
+date: "2026-04-30"
+author: "黄湘云"
+slug: glm-family
+categories:
+  - R 语言
+tags:
+  - 广义线性模型
+  - 联系函数
+  - 指数族
+  - Logistic 分布
+  - logit 变换
+  - 泊松分布
+  - 指数分布
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+math: true
+description: "假定读者对简单线性模型已经比较熟悉了，当响应变量不是高斯分布，而是其他分布时，如何拟合模型呢？在 R 语言中，内置的函数 `glm()` 可以拟合响应变量的分布属于指数族的模型。这类模型单独取了个名字，叫广义线性模型。典型的情况有这样一些，响应变量服从泊松分布、伯努利分布、二项分布、指数分布、伽马分布等。这些常见的分布都可以写成一个叫指数族的统一形式。"
+---
+
+```{css, echo=F}
+.columns {
+  display: flex;
+}
+```
+
+本文假定读者对简单线性模型（Simple Linear Models）已经比较熟悉了，当响应变量不是高斯分布，而是其他分布时，如何拟合模型呢？在 R 语言中，内置的函数 `glm()` 可以拟合响应变量的分布属于指数族的模型。这类模型单独取了个名字，叫广义线性模型（Generalized Linear Models）。典型的情况有这样一些，响应变量服从泊松分布、伯努利分布、二项分布、指数分布、伽马分布等。这些常见的分布都可以写成一个叫指数族（Exponential family）的统一形式。
+
+# 泊松分布 {#poisson}
+
+响应变量服从泊松分布的广义线性模型（见下面的方程），在环境受到核辐射污染问题上，可用来刻画[辐射强度](/2023/05/nuclear-pollution/)，在汽车保险的场景中，可以用来刻画[事故发生率](https://d.cosx.org/d/420881/2)。
+
+$$
+\begin{aligned}
+& \bm{y} \sim \mathrm{Poisson}(\bm{\lambda}) \\
+& \log(\bm{\lambda}) = X\bm{\beta}
+\end{aligned}
+$$
+
+其中，$\bm{y}$ 是响应变量对应的数据向量，$\bm{\lambda}$ 是建模的对象，是未知的（待估）向量，$\mathrm{log}$ 表示对数变换，$\bm{\beta}$ 也是未知的向量，是待估的回归系数，$X$ 是由样本观察值组成的矩阵，是已知的。
+
+在 R 语言中，泊松分布$\mathrm{Poisson}(\lambda)$的概率密度函数（可查看函数`dpois()`的帮助文档）如下：
+
+$$
+p(x) = \frac{\lambda^x\mathrm{e}^{-\lambda}}{x!},\quad x = 0, 1, 2, \ldots
+$$
+
+泊松分布的期望与方差都是 $\lambda$ 。
+
+## 函数 `glm()` 拟合模型 {#glm-poisson}
+
+在 R 语言中，用函数 `glm()` 来拟合响应变量服从泊松分布的广义线性模型，在参数 `family` 指定泊松分布及对应的联系函数（Link function）。
+
+```{r}
+set.seed(2026)
+x <- rnorm(n = 100)
+# 线性预测 linear predictor 设定为 1 + x
+# 生成 100 个服从泊松分布的随机数
+y <- rpois(n = 100, lambda = exp(1 + x))
+# 拟合泊松回归模型
+fit1 <- glm(y ~ x, family = poisson(link = "log"))
+summary(fit1)
+```
+
+在输出结果中，可以看到回归系数的估计 $\hat{\bm{\beta}}$ 是比较接近预设的值 $(1,1)^\top$ ，说明这个模拟过程没有什么问题。
+
+## 散射参数与函数 `quasipoisson()` {#quasipoisson}
+
+模型输出结果中，包含如下一行内容。
+
+```
+(Dispersion parameter for poisson family taken to be 1)
+```
+
+泊松分布的散射参数设为 1。
+
+```{r}
+# 对数似然
+logLik(fit1)
+```
+
+当参数 `family` 设定为 `quasipoisson(link = "log")` ，可以看到稍微不同的结果。
+
+```{r}
+fit2 <- glm(y ~ x, family = quasipoisson(link = "log"))
+summary(fit2)
+```
+
+回归系数是完全一样的，但是其相应的标准误差略有差别，散射参数的估计值是 0.9257 而不是 1 。分布族参数值从 `family = poisson(link = "log")` 到 `family = quasipoisson(link = "log")` ，区别在于散射参数是否固定（待估参数）。
+
+## 函数 `quasi()` 的说明
+
+在分布族的设定中，还可以使用函数 `quasi()` ，如下。
+
+```{r}
+fit3 <- glm(y ~ x, family = quasi(variance = "mu", link = "log"))
+summary(fit3)
+```
+
+函数 `quasi()` 的参数 `variance` 对应于分布的方差，`link` 代表广义线性模型的联系函数。在函数 `glm()` 的符号表示中，用 `mu` 表示响应变量的分布的均值，对泊松分布，其方差和期望是一样的。
+
+从输出结果来看，`family = quasi(variance = "mu", link = "log")` 与 `family = quasipoisson(link = "log")` 的效果是一样的。
+
+## 调用 VGAM 包拟合模型 {#vgam-poissonff}
+
+在 R 语言社区中，相比于 R 函数 `glm()` 内置的分布类型，扩展包 **VGAM** 支持更加丰富的分布类型。对于泊松分布回归模型，代码如下：
+
+```{r message=FALSE}
+library(VGAM)
+fit4 <- vglm(y ~ x, family = poissonff(link = "loglink"))
+summary(fit4)
+```
+
+从输出结果来看，和前面在函数 `glm()` 中设置分布族 `family = poisson(link = "log")` 时，是一样的。
+
+## 漂移项 offset {#poisson-offset}
+
+对于响应变量服从泊松分布的情况，在实际应用场景中，出现漂移项是很常见的，本章开篇所举两个实际例子都是带有漂移项。所谓漂移项，它不是模型的参数。
+
+```{r}
+set.seed(2026)
+x <- rnorm(n = 100)
+# 准备漂移项
+m <- rep(c(5, 10), each = 50)
+# 线性预测 linear predictor 设定为 1 + x
+# 生成 100 个服从泊松分布的随机数
+y <- rpois(n = 100, lambda = m * exp(1 + x))
+# 拟合带漂移项的泊松回归模型
+fit5 <- glm(y ~ x + offset(log(m)), family = poisson(link = "log"))
+summary(fit5)
+```
+
+一个关于车险的带漂移项的真实数据案例见 **MASS** 包的数据 Insurance 的帮助文档（输入命令 `help(Insurance, package="MASS")`可查看帮助文档）。
+
+# 伯努利分布 {#bernoulli}
+
+响应变量服从伯努利分布的广义线性模型（见下面的方程），在互联网上，常用来刻画用户购买与否（购买率）的情况，广告的点击与否（点击率）等等。
+
+$$
+\begin{aligned}
+& \bm{y} \sim \mathrm{Bernoulli}(\bm{p}) \\
+& \mathrm{logit}(\bm{p}) = X\bm{\beta}
+\end{aligned}
+$$
+
+其中，$\bm{y}$ 是响应变量对应的数据向量，$\bm{p}$ 是建模的对象，是未知的（待估）向量，$\mathrm{logit}$ 表示 logit 变换，$\bm{\beta}$ 也是未知的向量，是待估的回归系数。无特殊说明时，大写字母表示矩阵，小写字母表示标量，加粗的小写字母表示向量。后续将会对此模型中涉及的统计概念，及其对应的 R 语言表示进行一一说明。
+
+## 二项分布 {#binomial-dist}
+
+在 R 语言中，二项分布的定义（可查看函数 `rbinom()` 的帮助文档）如下：
+
+$$
+p(x) = {n \choose x} p^x(1-p)^{n-x}, \quad x = 0, 1, \ldots,n
+$$
+
+其中，$p$ 代表成功概率，可解释为在 $n$ 次独立可重复的实验中事件（比如点击或购买）发生的次数。二项分布是一个离散分布，它的期望是 $np$，方差是 $np(1-p)$ 。当 $n = 1$ 时，二项分布退化为伯努利分布，它的期望是 $p$，方差是 $p(1-p)$ 。值得注意，它们的方差是随期望变化的。
+
+## Logistic 分布 {#logistic-dist}
+
+在 R 语言中，Logistic 分布的概率密度函数的定义（可查看函数 `dlogis()` 的帮助文档）如下：
+
+$$
+f(x;\mu,\sigma) = \frac{1}{\sigma} \frac{\mathrm{e}^{(x-\mu)/\sigma}}{(1+\mathrm{e}^{(x-\mu)/\sigma})^2}
+$$
+其中，$\mu$ 被称为位置参数 location parameter，$\sigma$ 被称为尺度参数 scale parameter。Logistic 的概率分布函数如下：
+
+$$
+F(x;\mu,\sigma) = \frac{1}{1 + \mathrm{e}^{-(x-\mu)/\sigma}}
+$$
+它的期望是 $\mu$ ，方差是 $\frac{\pi^2}{3}\sigma^2$。
+Logistic 的概率分布函数（下左图）和概率密度函数（下右图）的图像如下。
+
+:::::: {.columns}
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+```{r echo=FALSE}
+library(gglite)
+dat <- data.frame(x1 = seq(-10, 10, length.out = 101)) |>
+  transform(y1 = dlogis(x1, location = 0, scale = 1)) |> 
+  transform(y2 = plogis(x1, location = 0, scale = 1))
+# Logistic 的概率分布函数
+g2() |>
+  mark_line(data = dat, encode = list(x = "x1", y = "y2", color = "#4C72B0"), style = list(lineWidth = 2, fillOpacity = 0.5)) |> 
+  axis_x(title = "x") |>
+  axis_y(title = "F(x)") |> 
+  titles(main = "location = 0, scale = 1") |> 
+  theme_academy()
+```
+:::
+::: {.column width="5%" data-latex="{0.05\textwidth}"}
+\ 
+<!-- an empty Div (with a white space), serving as
+a column separator -->
+:::
+::: {.column width="47.5%" data-latex="{0.475\textwidth}"}
+```{r echo=FALSE}
+# Logistic 的概率密度函数
+g2() |>
+  mark_line(data = dat, encode = list(x = "x1", y = "y1", color = "#DD8452"), style = list(lineWidth = 2, fillOpacity = 0.5)) |> 
+  axis_x(title = "x") |>
+  axis_y(title = "f(x)") |> 
+  titles(main = "location = 0, scale = 1") |> 
+  theme_academy()
+```
+:::
+::::::
+
+## logit 变换 {#logit-transform}
+
+与 Logistic 分布相关联的还有 logit 函数（变换）及其逆函数（变换）。
+
+$$
+\mathrm{logit}(p) = \log \frac{p}{1-p}
+$$
+
+$$
+\mathrm{logit}^{-1}(p) = \frac{\mathrm{e}^p}{1 + \mathrm{e}^p} = \frac{1}{1 + \mathrm{e}^{-p}}
+$$
+
+从 logit 的逆变换可以看出，它与 Logistic 分布的概率分布函数很接近。如果令 Logistic 分布的参数 $\mu=0,\sigma=1$ ，那么 logit 的逆变换就是 Logistic 分布的概率分布函数。
+
+## 模拟二项分布 {#simulate-binomial}
+
+```{r}
+set.seed(2026)
+x <- rnorm(100)
+# 线性预测 linear predictor 设定为 1+x
+# 对线性预测做 logit 逆变换，结果作为伯努利分布的参数 p
+# 生成 100 个服从伯努利分布的随机数
+y <- rbinom(n = 100, size = 1, prob = plogis(1 + x))
+y
+```
+
+伯努利分布是二项分布的特殊情况，因此，生成服从伯努利分布的随机数，只需在函数 `rbinom()` 中设置 `size` 为 1 （这个 `size` 指的是试验空间的大小，而不是样本量 `n` ）。另一个稍显麻烦的方式是通过函数 `sample()` 生成随机数。
+
+```{r}
+# 生成 100 个服从伯努利分布的随机数
+sample(x = c(0, 1), size = 100, replace = T, prob = c(0.4, 0.6))
+```
+
+在 R 语言中，函数 `glm()` 可以拟合响应变量服从伯努利分布的广义线性模型。设置分布族的参数 `family` 为 `binomial(link = "logit")` ，这里联系函数为 logit 变换。
+
+```{r}
+fit1 <- glm(y ~ x, family = binomial(link = "logit"))
+summary(fit1)
+```
+
+在前面的模型参数设定中，回归系数 $\bm{\beta}$ 是 $(1,1)^{\top}$ 。眼下，模拟实验结果显示回归系数的估计  $\hat{\bm{\beta}}$ 有明显偏离。原因是样本量有点小，若样本量从 100 增加到 1000 ，回归系数的估计值会接近 $(1,1)^{\top}$ 。
+
+## 函数 `quasibinomial()` 及其等价表示 {#quasibinomial}
+
+在前面的输出结果中，有这么一行信息。
+
+```
+(Dispersion parameter for binomial family taken to be 1)
+```
+
+对于二项分布族的散射参数（Dispersion parameter）取值为 1。
+
+如果不想让散射参数固定下来，可以用函数 `quasibinomial()` 替代 `binomial()` 。当遇到真实的数据时，数据一般是不会严丝合缝地服从二项分布的。样本均值与样本方差的关系不是精确的 $p$ 和 $p(1-p)$ 的关系。
+
+```{r}
+fit2 <- glm(y ~ x, family = quasibinomial(link = "logit"))
+summary(fit2)
+```
+
+对于函数 `quasibinomial()` ，还有另一种等价的方式，使用函数 `quasi()` 构造。在函数 `glm()` 对指数族的符号表示体系中，`mu` 表示期望。对于伯努利分布，若其期望为 `mu` ，则其方差为 `mu(1-mu)` 。
+
+```{r}
+# 需要指定回归系数的初始值
+fit3 <- glm(y ~ x, family = quasi(variance = "mu(1-mu)", link = "logit"), start = c(0.5, 0.5))
+summary(fit3)
+```
+
+这个结果与前面设置 `family = quasibinomial(link = "logit")` 时，是一样的。
+
+## 使用函数 `vglm()` 的等价表示 {#vgam-binomialff}
+
+**VGAM** 包支持拟合响应变量是伯努利分布的广义线性模型。
+
+```{r}
+library(VGAM)
+fit4 <- vglm(y ~ x, family = binomialff(link = "logitlink"))
+summary(fit4)
+```
+
+这个结果与本节开头拟合的结果是完全一样的。
+
+# 指数分布 {#exponential}
+
+响应变量服从指数分布的广义线性模型，在互联网上，常用来刻画用户流失情况（对流失率/风险建模），在医疗上，用来刻画病人的生存风险（对存活率建模）。
+
+根据 R 语言中指数分布的记号（可查看函数 `dexp()` 的帮助文档），指数分布$\mathrm{Exp}(\lambda)$的概率密度函数如下：
+
+$$
+f(x;\lambda) = \lambda\mathrm{e}^{-\lambda x},\quad x \geq 0
+$$
+
+它的期望是 $\frac{1}{\lambda}$ ，方差是 $\frac{1}{\lambda^2}$ ，方差是期望的平方。
+
+## 使用函数 `quasi()` 设置指数分布 {#quasi-exp}
+
+在 Base R 中，拟合广义线性模型的函数是 `glm()`，但是函数 `glm()` 内置的分布中并没有指数分布，需要自己根据已有的条件组合。本质上，函数 `glm()` 对条件期望建模，就是将各个特征的观察值看作固定值，此处条件分布服从指数分布，而指数分布的方差是其期望的平方，联系函数是对数函数。因此，`family` 参数设置如下：
+
+```r
+family = quasi(variance = "mu^2", link = "log")
+```
+
+在 R 语言中，生成服从指数分布的随机数的函数 `rexp(n, rate)` 中的参数 `rate` 在实际意义中通常表示（衰减）速率，这也是参数名 `rate` 的由来。函数 `rexp(n, rate)` 对应的指数分布的均值是 `1/rate` ，函数 `glm()` 是对均值（衰减速率）进行回归，协变量 `x` 影响均值 `1/rate` 。在函数 `glm()` 中，参数 `family` 用来设置响应变量的分布。
+
+```{r}
+# 固定随机数种子使得结果可复现
+set.seed(2026)
+# 生成协变量
+x <- rnorm(100)
+# 生成服从指数分布的随机数
+y <- rexp(n = 100, rate = 1/exp(1 + x)) # 对应期望是 exp(1 + x)
+# 函数 glm 对条件期望建模，条件分布是指数分布，而指数分布的方差是其期望的平方
+fit1 <- glm(y ~ x, family = quasi(variance = "mu^2", link = "log"))
+summary(fit1)
+```
+
+## 散射参数 {#dispersion-parameter}
+
+在输出模型拟合结果的函数 `summary()` 中，还可设置参数 `dispersion` 控制散射参数的值。当调用函数 `quasi()` 构造概率分布时，包含未知的散射参数，它是待估的，一并随回归系数进行估计。在函数 `summary()` 中指定 `dispersion = 1` 就是固定参数值，不需要估计。对于逻辑回归（响应变量服从0-1分布）和泊松回归（响应变量服从泊松分布），散射参数是固定值为 1。
+
+```{r}
+summary(fit1, dispersion = 1)
+```
+
+## Gamma 分布 {#gamma-dist}
+
+在 R 语言中，Gamma 伽马分布（可查看函数 `dgamma()` 的帮助文档）的概率密度函数如下：
+
+$$
+f(x;\alpha,\sigma) = \frac{1}{\sigma^\alpha\Gamma(\alpha)}x^{\alpha-1}\mathrm{e}^{-\frac{x}{\sigma}}, \quad x \geq 0, \alpha > 0, \sigma > 0
+$$
+
+伽马分布的概率密度函数带有两个参数 $\alpha$ 和 $\sigma$ ，其中，参数 $\alpha$ 称之为形状参数 shape parameter ，参数 $\sigma$ 称之为尺度参数 scale parameter 。$\Gamma(\cdot)$ 表示伽马函数（可查看函数 `gamma()` 的帮助文档），伽马分布的由来离不开伽马函数。
+
+由伽马分布的名称，我们可以联想到物理上的伽马射线，射线是由具有放射性的物质自发释放出来的微观粒子构成，单位时间内释放的粒子数越多射线能量越大，辐射越强，破坏性越大。因此，在刻画放射性的强度时，常用泊松分布。
+
+## 伽马分布可退化为指数分布 {#gamma-to-exp}
+
+根据前述伽马分布的概率密度函数，当形状参数 $\alpha$ 等于 1 时，伽马分布退化为指数分布。若保持与前面指数分布 $\mathrm{Exp}(\lambda)$ 一致的记号，伽马分布退化下来的指数分布为 $\mathrm{Exp}(\frac{1}{\sigma})$。
+
+$$
+f(x;\sigma) = \frac{1}{\sigma}\mathrm{e}^{-\frac{x}{\sigma}}, \quad x \geq 0, \sigma > 0
+$$
+
+在 R 语言中，函数 `glm()` 的参数 `family` 支持选择伽马分布。对于伽马分布，散射参数 dispersion parameter 恰好是伽马分布的形状参数 shape parameter 。
+
+## 函数 `glm()` 中使用 Gamma 分布族 {#gamma-family}
+
+现在的问题是函数 `glm()` 的参数 `family` 的参数值 `Gamma(link = "log")` 在散射参数固定为 1 时，是指数分布 $\mathrm{Exp}(\lambda)$ 还是 $\mathrm{Exp}(\frac{1}{\sigma})$？它不会又另搞一套参数化表示吧？
+
+```{r}
+# https://stat.ethz.ch/pipermail/r-help/2003-June/034852.html
+# 伽马分布的形状参数 alpha=1 对应于指数分布
+fit2 <- glm(y ~ x, family = Gamma(link = "log"))
+summary(fit2, dispersion = 1)
+```
+
+从结果来看，伽马分布退化之后，与前面的指数分布 $\mathrm{Exp}(\lambda)$ 是一致的。
+
+## 响应变量是否可取值 0 ？{#response-variable}
+
+另，值得注意的是当 `family = Gamma(link = "log")` ，函数 `glm()` 不允许响应变量 $y$ 含 0 。根据前面对伽马分布的定义，这相当于 $x^{\alpha-1}$ 中的 $x$ 不能取 0 ，幂函数的底数只能是非零实数。但是，如果形状参数取 1 ，退化为指数分布，响应变量 $y$ 是可以含 0 的。也就是说，当采用如下形式拟合模型时，响应变量 $y$ 是可以含 0 的。
+
+```r
+glm(y ~ x, family = quasi(variance = "mu^2", link = "log"))
+```
+
+## 使用函数 `vglm()` 的等价表示 {#vgam-exponential}
+
+相比于函数 `glm()` 支持的响应变量的分布类型，**VGAM** 包支持更多，对于指数分布，它有相应的分布。
+
+```{r}
+library(VGAM)
+fit3 <- vglm(y ~ x, family = exponential(link = "loglink"))
+summary(fit3)
+```
+
+但是，要注意回归系数的符号，在线性预测部分，它是对指数分布 `rexp()` 中的 `rate` 建模，而不是 `1/rate` （期望）。
+
+```r
+Name of linear predictor: loglink(rate) 
+```
+
+# 参考文献 {#refer}
+
+1. Peng Ding, 2026, Linear Model and Extensions (COMING SOON). Boca Raton, Florida. Chapman and Hall/CRC. <https://arxiv.org/abs/2401.00649>
