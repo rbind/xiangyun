@@ -505,7 +505,7 @@ f(x;\lambda) = \lambda\mathrm{e}^{-\lambda x},\quad x \geq 0
 <h2><span class="header-section-number">3.1</span> 使用函数 <code>quasi()</code> 设置指数分布</h2>
 <p>在 Base R 中，拟合广义线性模型的函数是 <code>glm()</code>，但是函数 <code>glm()</code> 内置的分布中并没有指数分布，需要自己根据已有的条件组合。本质上，函数 <code>glm()</code> 对条件期望建模，就是将各个特征的观察值看作固定值，此处条件分布服从指数分布，而指数分布的方差是其期望的平方，联系函数是对数函数。因此，<code>family</code> 参数设置如下：</p>
 <pre class="r"><code>family = quasi(variance = &quot;mu^2&quot;, link = &quot;log&quot;)</code></pre>
-<p>在 R 语言中，生成服从指数分布的随机数的函数 <code>rexp(n, rate)</code> 中的参数 <code>rate</code> 在实际意义中通常表示（衰减）速率，这也是参数名 <code>rate</code> 的由来。函数 <code>rexp(n, rate)</code> 对应的指数分布的均值是 <code>1/rate</code> ，函数 <code>glm()</code> 是对均值（衰减速率）进行回归，协变量 <code>x</code> 影响均值 <code>1/rate</code> 。在函数 <code>glm()</code> 中，参数 <code>family</code> 用来设置响应变量的分布。</p>
+<p>在 R 语言中，生成服从指数分布的随机数的函数 <code>rexp(n, rate)</code> 中的参数 <code>rate</code> 在实际意义中通常表示（衰减）速率，这也是参数名 <code>rate</code> 的由来。随机数生成函数 <code>rexp(n, rate)</code> 对应的指数分布的均值是 <code>1/rate</code> ，函数 <code>glm()</code> 是对均值进行回归，协变量 <code>x</code> 影响均值 <code>1/rate</code> 。在函数 <code>glm()</code> 中，参数 <code>family</code> 用来设置响应变量的分布。</p>
 <pre class="r"><code># 固定随机数种子使得结果可复现
 set.seed(2026)
 # 生成协变量
