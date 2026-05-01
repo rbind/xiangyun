@@ -563,7 +563,7 @@ summary(fit1)</code></pre>
 <p><span class="math display">\[
 f(x;\alpha,\sigma) = \frac{1}{\sigma^\alpha\Gamma(\alpha)}x^{\alpha-1}\mathrm{e}^{-\frac{x}{\sigma}}, \quad x \geq 0, \alpha &gt; 0, \sigma &gt; 0
 \]</span></p>
-<p>伽马分布的概率密度函数带有两个参数 <span class="math inline">\(\alpha\)</span> 和 <span class="math inline">\(\sigma\)</span> ，其中，参数 <span class="math inline">\(\alpha\)</span> 称之为形状参数 shape parameter ，参数 <span class="math inline">\(\sigma\)</span> 称之为尺度参数 scale parameter 。<span class="math inline">\(\Gamma(\cdot)\)</span> 表示伽马函数（可查看函数 <code>gamma()</code> 的帮助文档），伽马分布的由来离不开伽马函数。</p>
+<p>伽马分布的概率密度函数带有两个参数 <span class="math inline">\(\alpha\)</span> 和 <span class="math inline">\(\sigma\)</span> ，其中，参数 <span class="math inline">\(\alpha\)</span> 称之为形状参数 shape parameter ，参数 <span class="math inline">\(\sigma\)</span> 称之为尺度参数 scale parameter 。伽马分布的均值和方差分别为 <span class="math inline">\(\alpha\sigma\)</span> 和 <span class="math inline">\(\alpha\sigma^2\)</span> 。<span class="math inline">\(\Gamma(\cdot)\)</span> 表示伽马函数（可查看函数 <code>gamma()</code> 的帮助文档），伽马分布的由来离不开伽马函数。</p>
 <p>由伽马分布的名称，我们可以联想到物理上的伽马射线，射线是由具有放射性的物质自发释放出来的微观粒子构成，单位时间内释放的粒子数越多射线能量越大，辐射越强，破坏性越大。因此，在刻画放射性的强度时，常用泊松分布。</p>
 </div>
 <div id="gamma-to-exp" class="section level2" number="3.4">
@@ -572,13 +572,15 @@ f(x;\alpha,\sigma) = \frac{1}{\sigma^\alpha\Gamma(\alpha)}x^{\alpha-1}\mathrm{e}
 <p><span class="math display">\[
 f(x;\sigma) = \frac{1}{\sigma}\mathrm{e}^{-\frac{x}{\sigma}}, \quad x \geq 0, \sigma &gt; 0
 \]</span></p>
-<p>在 R 语言中，函数 <code>glm()</code> 的参数 <code>family</code> 支持选择伽马分布。对于伽马分布，离散参数 dispersion parameter 恰好是伽马分布的形状参数 shape parameter 。</p>
+<p>在 R 语言中，函数 <code>glm()</code> 的参数 <code>family</code> 支持选择伽马分布。</p>
 </div>
 <div id="gamma-family" class="section level2" number="3.5">
 <h2><span class="header-section-number">3.5</span> 函数 <code>glm()</code> 中使用 Gamma 分布族</h2>
+<p>对于伽马分布，当离散参数 dispersion parameter 是 1 时，伽马分布的形状参数 shape parameter 也是 1，这就退化为指数分布。</p>
 <p>现在的问题是函数 <code>glm()</code> 的参数 <code>family</code> 的参数值 <code>Gamma(link = "log")</code> 在离散参数固定为 1 时，是指数分布 <span class="math inline">\(\mathrm{Exp}(\lambda)\)</span> 还是 <span class="math inline">\(\mathrm{Exp}(\frac{1}{\sigma})\)</span>？它不会又另搞一套参数化表示吧？</p>
 <pre class="r"><code># https://stat.ethz.ch/pipermail/r-help/2003-June/034852.html
 # 伽马分布的形状参数 alpha=1 对应于指数分布
+# 离散参数为 1 导出形状参数 alpha=1 
 fit2 &lt;- glm(y ~ x, family = Gamma(link = &quot;log&quot;))
 summary(fit2, dispersion = 1)</code></pre>
 <pre><code>## 

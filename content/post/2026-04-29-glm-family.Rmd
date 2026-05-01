@@ -339,7 +339,7 @@ $$
 f(x;\alpha,\sigma) = \frac{1}{\sigma^\alpha\Gamma(\alpha)}x^{\alpha-1}\mathrm{e}^{-\frac{x}{\sigma}}, \quad x \geq 0, \alpha > 0, \sigma > 0
 $$
 
-伽马分布的概率密度函数带有两个参数 $\alpha$ 和 $\sigma$ ，其中，参数 $\alpha$ 称之为形状参数 shape parameter ，参数 $\sigma$ 称之为尺度参数 scale parameter 。$\Gamma(\cdot)$ 表示伽马函数（可查看函数 `gamma()` 的帮助文档），伽马分布的由来离不开伽马函数。
+伽马分布的概率密度函数带有两个参数 $\alpha$ 和 $\sigma$ ，其中，参数 $\alpha$ 称之为形状参数 shape parameter ，参数 $\sigma$ 称之为尺度参数 scale parameter 。伽马分布的均值和方差分别为 $\alpha\sigma$ 和 $\alpha\sigma^2$ 。$\Gamma(\cdot)$ 表示伽马函数（可查看函数 `gamma()` 的帮助文档），伽马分布的由来离不开伽马函数。
 
 由伽马分布的名称，我们可以联想到物理上的伽马射线，射线是由具有放射性的物质自发释放出来的微观粒子构成，单位时间内释放的粒子数越多射线能量越大，辐射越强，破坏性越大。因此，在刻画放射性的强度时，常用泊松分布。
 
@@ -351,15 +351,18 @@ $$
 f(x;\sigma) = \frac{1}{\sigma}\mathrm{e}^{-\frac{x}{\sigma}}, \quad x \geq 0, \sigma > 0
 $$
 
-在 R 语言中，函数 `glm()` 的参数 `family` 支持选择伽马分布。对于伽马分布，离散参数 dispersion parameter 恰好是伽马分布的形状参数 shape parameter 。
+在 R 语言中，函数 `glm()` 的参数 `family` 支持选择伽马分布。
 
 ## 函数 `glm()` 中使用 Gamma 分布族 {#gamma-family}
+
+对于伽马分布，当离散参数 dispersion parameter 是 1 时，伽马分布的形状参数 shape parameter 也是 1，这就退化为指数分布。
 
 现在的问题是函数 `glm()` 的参数 `family` 的参数值 `Gamma(link = "log")` 在离散参数固定为 1 时，是指数分布 $\mathrm{Exp}(\lambda)$ 还是 $\mathrm{Exp}(\frac{1}{\sigma})$？它不会又另搞一套参数化表示吧？
 
 ```{r}
 # https://stat.ethz.ch/pipermail/r-help/2003-June/034852.html
 # 伽马分布的形状参数 alpha=1 对应于指数分布
+# 离散参数为 1 导出形状参数 alpha=1 
 fit2 <- glm(y ~ x, family = Gamma(link = "log"))
 summary(fit2, dispersion = 1)
 ```
