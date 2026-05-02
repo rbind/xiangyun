@@ -378,6 +378,7 @@ g2() |>
   axis_x(title = "x") |>
   axis_y(title = "f(x)") |> 
   scale_color(palette = "Set2") |>
+  legend_color(position = "right") |>
   titles(main = "Gamma 分布的概率密度函数图像") |> 
   theme_academy()
 ```
