@@ -78,6 +78,8 @@ summary(fit1)
 
 一个分布的离散程度是用该分布的方差与均值的比值来表示。泊松分布的离散参数 Dispersion parameter 设为 1，因为泊松分布的方差和均值是一样的。
 
+值得注意，这里的离散参数和分布的变异系数 coefficient of variation 是不同的。变异系数是标准差（方差的平方根）与均值的比值（无量纲）。
+
 ```{r}
 # 对数似然
 logLik(fit1)
@@ -394,7 +396,7 @@ $$
 
 注意函数 `Gamma()` 的[代码内容](https://github.com/r-devel/r-svn/blob/e9443159a3acbce40420058051bb1651825dab25/src/library/stats/R/family.R#L474)，以下这段话只属于这段代码。
 
-> 在函数 `glm()` 中，伽马分布族是由均值 `mu` 和离散度 `disp` 两个参数来刻画的。对于伽马分布，当离散参数 `disp` 是 1 时，伽马分布的形状参数 `shape` 也是 1，这就退化为指数分布 $\mathrm{Exp}(\frac{1}{\sigma})$，伽马分布的尺度参数 `scale` 就是指数分布的期望 $\sigma$ 。
+> 在函数 `glm()` 中，伽马分布族是由均值参数 `mu` 和离散参数 `disp` 两个参数来刻画的。对于伽马分布，当离散参数 `disp` 是 1 时，伽马分布的形状参数 `shape` 也是 1，这就退化为指数分布 $\mathrm{Exp}(\frac{1}{\sigma})$，伽马分布的尺度参数 `scale` 就是指数分布的期望 $\sigma$ 。
 
 
 ```{r}

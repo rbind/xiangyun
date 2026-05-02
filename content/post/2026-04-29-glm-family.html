@@ -113,6 +113,7 @@ summary(fit1)</code></pre>
 <p>模型输出结果中，包含如下一行内容。</p>
 <pre><code>(Dispersion parameter for poisson family taken to be 1)</code></pre>
 <p>一个分布的离散程度是用该分布的方差与均值的比值来表示。泊松分布的离散参数 Dispersion parameter 设为 1，因为泊松分布的方差和均值是一样的。</p>
+<p>值得注意，这里的离散参数和分布的变异系数 coefficient of variation 是不同的。变异系数是标准差（方差的平方根）与均值的比值（无量纲）。</p>
 <pre class="r"><code># 对数似然
 logLik(fit1)</code></pre>
 <pre><code>## &#39;log Lik.&#39; -183.1 (df=2)</code></pre>
@@ -631,7 +632,7 @@ f(x;\sigma) = \frac{1}{\sigma}\mathrm{e}^{-\frac{x}{\sigma}}, \quad x \geq 0, \s
 <h2><span class="header-section-number">3.5</span> 函数 <code>glm()</code> 中使用 Gamma 分布族</h2>
 <p>注意函数 <code>Gamma()</code> 的<a href="https://github.com/r-devel/r-svn/blob/e9443159a3acbce40420058051bb1651825dab25/src/library/stats/R/family.R#L474">代码内容</a>，以下这段话只属于这段代码。</p>
 <blockquote>
-<p>在函数 <code>glm()</code> 中，伽马分布族是由均值 <code>mu</code> 和离散度 <code>disp</code> 两个参数来刻画的。对于伽马分布，当离散参数 <code>disp</code> 是 1 时，伽马分布的形状参数 <code>shape</code> 也是 1，这就退化为指数分布 <span class="math inline">\(\mathrm{Exp}(\frac{1}{\sigma})\)</span>，伽马分布的尺度参数 <code>scale</code> 就是指数分布的期望 <span class="math inline">\(\sigma\)</span> 。</p>
+<p>在函数 <code>glm()</code> 中，伽马分布族是由均值参数 <code>mu</code> 和离散参数 <code>disp</code> 两个参数来刻画的。对于伽马分布，当离散参数 <code>disp</code> 是 1 时，伽马分布的形状参数 <code>shape</code> 也是 1，这就退化为指数分布 <span class="math inline">\(\mathrm{Exp}(\frac{1}{\sigma})\)</span>，伽马分布的尺度参数 <code>scale</code> 就是指数分布的期望 <span class="math inline">\(\sigma\)</span> 。</p>
 </blockquote>
 <pre class="r"><code># https://stat.ethz.ch/pipermail/r-help/2003-June/034852.html
 # 伽马分布的形状参数 alpha=1 对应于指数分布
