@@ -76,7 +76,7 @@ summary(fit1)
 (Dispersion parameter for poisson family taken to be 1)
 ```
 
-泊松分布的离散参数 Dispersion parameter 设为 1。
+一个分布的离散程度是用该分布的方差与均值的比值来表示。泊松分布的离散参数 Dispersion parameter 设为 1，因为泊松分布的方差和均值是一样的。
 
 ```{r}
 # 对数似然
@@ -90,9 +90,9 @@ fit2 <- glm(y ~ x, family = quasipoisson(link = "log"))
 summary(fit2)
 ```
 
-回归系数是完全一样的，但是其相应的标准误差略有差别，离散参数的估计值是 0.9257 而不是 1 。分布族参数值从 `family = poisson(link = "log")` 到 `family = quasipoisson(link = "log")` ，区别在于离散参数是否固定（待估参数）。
+回归系数是完全一样的，但是其相应的标准误差略有差别，离散参数的估计值是 0.9257 而不是 1 。分布族 `family` 参数值从 `poisson(link = "log")` 到 `quasipoisson(link = "log")` ，区别在于离散参数是当作固定值还是为待估参数。
 
-## 函数 `quasi()` 的说明
+## 函数 `quasi()` 的说明 {#quasi}
 
 在分布族的设定中，还可以使用函数 `quasi()` ，如下。
 
@@ -341,23 +341,61 @@ $$
 
 伽马分布的概率密度函数带有两个参数 $\alpha$ 和 $\sigma$ ，其中，参数 $\alpha$ 称之为形状参数 shape parameter ，参数 $\sigma$ 称之为尺度参数 scale parameter 。伽马分布的均值和方差分别为 $\alpha\sigma$ 和 $\alpha\sigma^2$ 。$\Gamma(\cdot)$ 表示伽马函数（可查看函数 `gamma()` 的帮助文档），伽马分布的由来离不开伽马函数。
 
-由伽马分布的名称，我们可以联想到物理上的伽马射线，射线是由具有放射性的物质自发释放出来的微观粒子构成，单位时间内释放的粒子数越多射线能量越大，辐射越强，破坏性越大。因此，在刻画放射性的强度时，常用泊松分布。
+```{r eval=FALSE,echo=FALSE}
+dat <- data.frame(
+  id = seq(101),
+  x1 = seq(0, 10, length.out = 101)) |>
+  transform(y1 = dgamma(x1, shape = 1, scale = 1)) |> 
+  transform(y2 = dgamma(x1, shape = 2, scale = 1)) |> 
+  transform(y3 = dgamma(x1, shape = 2, scale = 2))
+
+g2() |>
+  mark_line(data = dat, encode = list(x = "x1", y = "y1", color = "#4C72B0"), style = list(lineWidth = 2, fillOpacity = 0.5)) |> 
+  mark_line(data = dat, encode = list(x = "x1", y = "y2", color = "#DD8452"), style = list(lineWidth = 2, fillOpacity = 0.5)) |> 
+  mark_line(data = dat, encode = list(x = "x1", y = "y3", color = "#66C2A5"), style = list(lineWidth = 2, fillOpacity = 0.5)) |> 
+  axis_x(title = "x") |>
+  axis_y(title = "f(x)") |> 
+  theme_academy()
+```
+
+```{r echo=FALSE}
+dat = transform(expand.grid(
+  x = seq(0, 10, length.out = 101),
+  parameter = c(
+    "shape = 1, scale = 1",
+    "shape = 2, scale = 1",
+    "shape = 2, scale = 2"
+  )
+), y = ifelse(
+  parameter == "shape = 1, scale = 1", dgamma(x, shape = 1, scale = 1),
+  ifelse(parameter == "shape = 2, scale = 1", dgamma(x, shape = 2, scale = 1), dgamma(x, shape = 2, scale = 2))
+))
+
+g2() |>
+  mark_line(data = dat, encode = list(x = "x", y = "y", color = "parameter"), style = list(lineWidth = 2, fillOpacity = 0.5)) |> 
+  axis_x(title = "x") |>
+  axis_y(title = "f(x)") |> 
+  scale_color(palette = "Set2") |>
+  titles(main = "Gamma 分布的概率密度函数图像") |> 
+  theme_academy()
+```
 
 ## 伽马分布可退化为指数分布 {#gamma-to-exp}
 
-根据前述伽马分布的概率密度函数，当形状参数 $\alpha$ 等于 1 时，伽马分布退化为指数分布。若保持与前面指数分布 $\mathrm{Exp}(\lambda)$ 一致的记号，伽马分布退化下来的指数分布为 $\mathrm{Exp}(\frac{1}{\sigma})$。
+根据前述伽马分布的概率密度函数，当形状参数 $\alpha$ 等于 1 时，伽马分布退化为指数分布。若保持与前面指数分布 $\mathrm{Exp}(\lambda)$ 一致的记号，伽马分布退化下来的指数分布为 $\mathrm{Exp}(\frac{1}{\sigma})$ ，此时，期望为 $\sigma$ 。
 
 $$
 f(x;\sigma) = \frac{1}{\sigma}\mathrm{e}^{-\frac{x}{\sigma}}, \quad x \geq 0, \sigma > 0
 $$
 
-在 R 语言中，函数 `glm()` 的参数 `family` 支持选择伽马分布。
+在 R 语言中，函数 `glm()` 的参数 `family` 支持选择伽马分布 `Gamma()`。
 
 ## 函数 `glm()` 中使用 Gamma 分布族 {#gamma-family}
 
-对于伽马分布，当离散参数 dispersion parameter 是 1 时，伽马分布的形状参数 shape parameter 也是 1，这就退化为指数分布。
+注意函数 `Gamma()` 的[代码内容](https://github.com/r-devel/r-svn/blob/e9443159a3acbce40420058051bb1651825dab25/src/library/stats/R/family.R#L474)，以下这段话只属于这段代码。
 
-现在的问题是函数 `glm()` 的参数 `family` 的参数值 `Gamma(link = "log")` 在离散参数固定为 1 时，是指数分布 $\mathrm{Exp}(\lambda)$ 还是 $\mathrm{Exp}(\frac{1}{\sigma})$？它不会又另搞一套参数化表示吧？
+> 在函数 `glm()` 中，伽马分布族是由均值 `mu` 和离散度 `disp` 两个参数来刻画的。对于伽马分布，当离散参数 `disp` 是 1 时，伽马分布的形状参数 `shape` 也是 1，这就退化为指数分布 $\mathrm{Exp}(\frac{1}{\sigma})$，伽马分布的尺度参数 `scale` 就是指数分布的期望 $\sigma$ 。
+
 
 ```{r}
 # https://stat.ethz.ch/pipermail/r-help/2003-June/034852.html
@@ -367,7 +405,7 @@ fit2 <- glm(y ~ x, family = Gamma(link = "log"))
 summary(fit2, dispersion = 1)
 ```
 
-从结果来看，伽马分布退化之后，与前面的指数分布 $\mathrm{Exp}(\lambda)$ 是一致的。
+从结果来看，伽马分布退化之后，与前面的计算结果是一样的。
 
 ## 响应变量是否可取值 0 ？{#response-variable}
 
@@ -395,4 +433,4 @@ Name of linear predictor: loglink(rate)
 
 # 参考文献 {#refer}
 
-1. Peng Ding, 2026, Linear Model and Extensions (COMING SOON). Boca Raton, Florida. Chapman and Hall/CRC. <https://arxiv.org/abs/2401.00649>
+1. Peng Ding, 2026, Linear Model and Extensions. Boca Raton, Florida. Chapman and Hall/CRC. <https://arxiv.org/abs/2401.00649>
