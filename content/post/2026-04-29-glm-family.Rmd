@@ -65,6 +65,15 @@ y <- rpois(n = 100, lambda = exp(1 + x))
 fit1 <- glm(y ~ x, family = poisson(link = "log"))
 summary(fit1)
 ```
+```{r eval=FALSE}
+library(glmnet)
+# lambda = 0 去掉惩罚项
+fit1 = glmnet(x = cbind(1, x), y = y, family = "poisson", lambda = 0)
+# 回归系数
+coef(fit1)
+# Null deviance
+fit1$nulldev
+```
 
 在输出结果中，可以看到回归系数的估计 $\hat{\bm{\beta}}$ 是比较接近预设的值 $(1,1)^\top$ ，说明这个模拟过程没有什么问题。
 
@@ -134,6 +143,15 @@ y <- rpois(n = 100, lambda = m * exp(1 + x))
 # 拟合带漂移项的泊松回归模型
 fit5 <- glm(y ~ x + offset(log(m)), family = poisson(link = "log"))
 summary(fit5)
+```
+
+```{r eval=FALSE}
+library(glmnet)
+fit3 <- glmnet(
+  x = cbind(1, x), y = y, offset = log(m),
+  family = "poisson", lambda = 0
+)
+coef(fit3)
 ```
 
 一个关于车险的带漂移项的真实数据案例见 **MASS** 包的数据 Insurance 的帮助文档（输入命令 `help(Insurance, package="MASS")`可查看帮助文档）。
