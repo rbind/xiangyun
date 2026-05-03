@@ -1,0 +1,705 @@
+---
+title: 广义线性模型和指数族
+date: "2026-04-30"
+author: "黄湘云"
+slug: glm-family
+categories:
+  - R 语言
+tags:
+  - 广义线性模型
+  - 联系函数
+  - 指数族
+  - Logistic 分布
+  - logit 变换
+  - 泊松分布
+  - 指数分布
+output:
+  blogdown::html_page:
+    toc: true
+    number_sections: true
+link-citations: true
+math: true
+description: "假定读者对简单线性模型已经比较熟悉了，当响应变量不是高斯分布，而是其他分布时，如何拟合模型呢？在 R 语言中，内置的函数 `glm()` 可以拟合响应变量的分布属于指数族的模型。这类模型单独取了个名字，叫广义线性模型。典型的情况有这样一些，响应变量服从泊松分布、伯努利分布、二项分布、指数分布、伽马分布等。这些常见的分布都可以写成一个叫指数族的统一形式。"
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#poisson" id="toc-poisson"><span class="toc-section-number">1</span> 泊松分布</a>
+<ul>
+<li><a href="#glm-poisson" id="toc-glm-poisson"><span class="toc-section-number">1.1</span> 函数 <code>glm()</code> 拟合模型</a></li>
+<li><a href="#quasipoisson" id="toc-quasipoisson"><span class="toc-section-number">1.2</span> 离散参数与函数 <code>quasipoisson()</code></a></li>
+<li><a href="#quasi" id="toc-quasi"><span class="toc-section-number">1.3</span> 函数 <code>quasi()</code> 的说明</a></li>
+<li><a href="#vgam-poissonff" id="toc-vgam-poissonff"><span class="toc-section-number">1.4</span> 调用 VGAM 包拟合模型</a></li>
+<li><a href="#poisson-offset" id="toc-poisson-offset"><span class="toc-section-number">1.5</span> 漂移项 offset</a></li>
+</ul></li>
+<li><a href="#bernoulli" id="toc-bernoulli"><span class="toc-section-number">2</span> 伯努利分布</a>
+<ul>
+<li><a href="#binomial-dist" id="toc-binomial-dist"><span class="toc-section-number">2.1</span> 二项分布</a></li>
+<li><a href="#logistic-dist" id="toc-logistic-dist"><span class="toc-section-number">2.2</span> Logistic 分布</a></li>
+<li><a href="#logit-transform" id="toc-logit-transform"><span class="toc-section-number">2.3</span> logit 变换</a></li>
+<li><a href="#simulate-binomial" id="toc-simulate-binomial"><span class="toc-section-number">2.4</span> 模拟二项分布</a></li>
+<li><a href="#quasibinomial" id="toc-quasibinomial"><span class="toc-section-number">2.5</span> 函数 <code>quasibinomial()</code> 及其等价表示</a></li>
+<li><a href="#vgam-binomialff" id="toc-vgam-binomialff"><span class="toc-section-number">2.6</span> 使用函数 <code>vglm()</code> 的等价表示</a></li>
+</ul></li>
+<li><a href="#exponential" id="toc-exponential"><span class="toc-section-number">3</span> 指数分布</a>
+<ul>
+<li><a href="#quasi-exp" id="toc-quasi-exp"><span class="toc-section-number">3.1</span> 使用函数 <code>quasi()</code> 设置指数分布</a></li>
+<li><a href="#dispersion-parameter" id="toc-dispersion-parameter"><span class="toc-section-number">3.2</span> 离散参数</a></li>
+<li><a href="#gamma-dist" id="toc-gamma-dist"><span class="toc-section-number">3.3</span> Gamma 分布</a></li>
+<li><a href="#gamma-to-exp" id="toc-gamma-to-exp"><span class="toc-section-number">3.4</span> 伽马分布可退化为指数分布</a></li>
+<li><a href="#gamma-family" id="toc-gamma-family"><span class="toc-section-number">3.5</span> 函数 <code>glm()</code> 中使用 Gamma 分布族</a></li>
+<li><a href="#response-variable" id="toc-response-variable"><span class="toc-section-number">3.6</span> 响应变量是否可取值 0 ？</a></li>
+<li><a href="#vgam-exponential" id="toc-vgam-exponential"><span class="toc-section-number">3.7</span> 使用函数 <code>vglm()</code> 的等价表示</a></li>
+</ul></li>
+<li><a href="#refer" id="toc-refer"><span class="toc-section-number">4</span> 参考文献</a></li>
+</ul>
+</div>
+
+<style type="text/css">
+.columns {
+  display: flex;
+}
+</style>
+<p>本文假定读者对简单线性模型（Simple Linear Models）已经比较熟悉了，在其他条件不变的情况下，当响应变量不是高斯分布，而是其他分布时，如何拟合模型呢？在 R 语言中，内置的函数 <code>glm()</code> 可以拟合响应变量的分布属于指数族的模型。这类模型单独取了个名字，叫广义线性模型（Generalized Linear Models）。典型的情况有这样一些，响应变量服从泊松分布、伯努利分布、二项分布、指数分布、伽马分布等。这些常见的分布都可以写成一个叫指数族（Exponential family）的统一形式。</p>
+<div id="poisson" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> 泊松分布</h1>
+<p>响应变量服从泊松分布的广义线性模型（见下面的方程），在环境受到核辐射污染问题上，可用来刻画<a href="/2023/05/nuclear-pollution/">辐射强度</a>（单位时间内辐射源释放的粒子数），在汽车保险的场景中，可以用来刻画<a href="https://d.cosx.org/d/420881/2">事故发生率</a>（单位时间内事故发生的次数）。</p>
+<p><span class="math display">\[
+\begin{aligned}
+&amp; \bm{y} \sim \mathrm{Poisson}(\bm{\lambda}) \\
+&amp; \log(\bm{\lambda}) = X\bm{\beta}
+\end{aligned}
+\]</span></p>
+<p>其中，<span class="math inline">\(\bm{y}\)</span> 是响应变量对应的数据向量，<span class="math inline">\(\bm{\lambda}\)</span> 是建模的对象，是未知的（待估）向量，<span class="math inline">\(\mathrm{log}\)</span> 表示对数变换，<span class="math inline">\(\bm{\beta}\)</span> 也是未知的向量，是待估的回归系数，<span class="math inline">\(X\)</span> 是由样本观察值组成的矩阵，是已知的。</p>
+<p>在 R 语言中，泊松分布<span class="math inline">\(\mathrm{Poisson}(\lambda)\)</span>的概率密度函数（可查看函数<code>dpois()</code>的帮助文档）如下：</p>
+<p><span class="math display">\[
+p(x) = \frac{\lambda^x\mathrm{e}^{-\lambda}}{x!},\quad x = 0, 1, 2, \ldots
+\]</span></p>
+<p>泊松分布的期望与方差都是 <span class="math inline">\(\lambda\)</span> 。</p>
+<div id="glm-poisson" class="section level2" number="1.1">
+<h2><span class="header-section-number">1.1</span> 函数 <code>glm()</code> 拟合模型</h2>
+<p>在 R 语言中，用函数 <code>glm()</code> 来拟合响应变量服从泊松分布的广义线性模型，在参数 <code>family</code> 指定泊松分布及对应的联系函数（Link function）。</p>
+<pre class="r"><code>set.seed(2026)
+x &lt;- rnorm(n = 100)
+# 线性预测 linear predictor 设定为 1 + x
+# 生成 100 个服从泊松分布的随机数
+y &lt;- rpois(n = 100, lambda = exp(1 + x))
+# 拟合泊松回归模型
+fit1 &lt;- glm(y ~ x, family = poisson(link = &quot;log&quot;))
+summary(fit1)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = y ~ x, family = poisson(link = &quot;log&quot;))
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)   1.0759     0.0648    16.6   &lt;2e-16 ***
+## x             0.9283     0.0509    18.2   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for poisson family taken to be 1)
+## 
+##     Null deviance: 452.78  on 99  degrees of freedom
+## Residual deviance: 101.52  on 98  degrees of freedom
+## AIC: 370.2
+## 
+## Number of Fisher Scoring iterations: 5</code></pre>
+<p>在输出结果中，可以看到回归系数的估计 <span class="math inline">\(\hat{\bm{\beta}}\)</span> 是比较接近预设的值 <span class="math inline">\((1,1)^\top\)</span> ，说明这个模拟过程没有什么问题。</p>
+</div>
+<div id="quasipoisson" class="section level2" number="1.2">
+<h2><span class="header-section-number">1.2</span> 离散参数与函数 <code>quasipoisson()</code></h2>
+<p>模型输出结果中，包含如下一行内容。</p>
+<pre><code>(Dispersion parameter for poisson family taken to be 1)</code></pre>
+<p>一个分布的离散程度是用该分布的方差与均值的比值来表示。泊松分布的离散参数 Dispersion parameter 设为 1，因为泊松分布的方差和均值是一样的。</p>
+<p>值得注意，这里的离散参数和分布的变异系数 coefficient of variation 是不同的。变异系数是标准差（方差的平方根）与均值的比值（无量纲）。</p>
+<pre class="r"><code># 对数似然
+logLik(fit1)</code></pre>
+<pre><code>## &#39;log Lik.&#39; -183.1 (df=2)</code></pre>
+<p>当参数 <code>family</code> 设定为 <code>quasipoisson(link = "log")</code> ，可以看到稍微不同的结果。</p>
+<pre class="r"><code>fit2 &lt;- glm(y ~ x, family = quasipoisson(link = &quot;log&quot;))
+summary(fit2)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = y ~ x, family = quasipoisson(link = &quot;log&quot;))
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)   1.0759     0.0623    17.3   &lt;2e-16 ***
+## x             0.9283     0.0490    18.9   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for quasipoisson family taken to be 0.9257)
+## 
+##     Null deviance: 452.78  on 99  degrees of freedom
+## Residual deviance: 101.52  on 98  degrees of freedom
+## AIC: NA
+## 
+## Number of Fisher Scoring iterations: 5</code></pre>
+<p>回归系数是完全一样的，但是其相应的标准误差略有差别，离散参数的估计值是 0.9257 而不是 1 。分布族 <code>family</code> 参数值从 <code>poisson(link = "log")</code> 到 <code>quasipoisson(link = "log")</code> ，区别在于离散参数是当作固定值还是为待估参数。</p>
+</div>
+<div id="quasi" class="section level2" number="1.3">
+<h2><span class="header-section-number">1.3</span> 函数 <code>quasi()</code> 的说明</h2>
+<p>在分布族的设定中，还可以使用函数 <code>quasi()</code> ，如下。</p>
+<pre class="r"><code>fit3 &lt;- glm(y ~ x, family = quasi(variance = &quot;mu&quot;, link = &quot;log&quot;))
+summary(fit3)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = y ~ x, family = quasi(variance = &quot;mu&quot;, link = &quot;log&quot;))
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)   1.0759     0.0623    17.3   &lt;2e-16 ***
+## x             0.9283     0.0490    18.9   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for quasi family taken to be 0.9257)
+## 
+##     Null deviance: 452.78  on 99  degrees of freedom
+## Residual deviance: 101.52  on 98  degrees of freedom
+## AIC: NA
+## 
+## Number of Fisher Scoring iterations: 5</code></pre>
+<p>函数 <code>quasi()</code> 的参数 <code>variance</code> 对应于分布的方差，<code>link</code> 代表广义线性模型的联系函数。在函数 <code>glm()</code> 的符号表示中，用 <code>mu</code> 表示响应变量的分布的均值，对泊松分布，其方差和期望是一样的。</p>
+<p>从输出结果来看，<code>family = quasi(variance = "mu", link = "log")</code> 与 <code>family = quasipoisson(link = "log")</code> 的效果是一样的。</p>
+</div>
+<div id="vgam-poissonff" class="section level2" number="1.4">
+<h2><span class="header-section-number">1.4</span> 调用 VGAM 包拟合模型</h2>
+<p>在 R 语言社区中，相比于 R 函数 <code>glm()</code> 内置的分布类型，扩展包 <strong>VGAM</strong> 支持更加丰富的分布类型。对于泊松分布回归模型，代码如下：</p>
+<pre class="r"><code>library(VGAM)
+fit4 &lt;- vglm(y ~ x, family = poissonff(link = &quot;loglink&quot;))
+summary(fit4)</code></pre>
+<pre><code>## 
+## Call:
+## vglm(formula = y ~ x, family = poissonff(link = &quot;loglink&quot;))
+## 
+## Coefficients: 
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)   1.0759     0.0648    16.6   &lt;2e-16 ***
+## x             0.9283     0.0509    18.2   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Name of linear predictor: loglink(lambda) 
+## 
+## Residual deviance: 101.5 on 98 degrees of freedom
+## 
+## Log-likelihood: -183.1 on 98 degrees of freedom
+## 
+## Number of Fisher scoring iterations: 5</code></pre>
+<p>从输出结果来看，和前面在函数 <code>glm()</code> 中设置分布族 <code>family = poisson(link = "log")</code> 时，是一样的。</p>
+</div>
+<div id="poisson-offset" class="section level2" number="1.5">
+<h2><span class="header-section-number">1.5</span> 漂移项 offset</h2>
+<p>对于响应变量服从泊松分布的情况，在实际应用场景中，出现漂移项是很常见的，本章开篇所举两个实际例子都是带有漂移项。所谓漂移项，它不是模型的参数。</p>
+<pre class="r"><code>set.seed(2026)
+x &lt;- rnorm(n = 100)
+# 准备漂移项
+m &lt;- rep(c(5, 10), each = 50)
+# 线性预测 linear predictor 设定为 1 + x
+# 生成 100 个服从泊松分布的随机数
+y &lt;- rpois(n = 100, lambda = m * exp(1 + x))
+# 拟合带漂移项的泊松回归模型
+fit5 &lt;- glm(y ~ x + offset(log(m)), family = poisson(link = &quot;log&quot;))
+summary(fit5)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = y ~ x + offset(log(m)), family = poisson(link = &quot;log&quot;))
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)   1.0134     0.0246    41.2   &lt;2e-16 ***
+## x             0.9892     0.0182    54.3   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for poisson family taken to be 1)
+## 
+##     Null deviance: 3207.160  on 99  degrees of freedom
+## Residual deviance:   81.836  on 98  degrees of freedom
+## AIC: 557.5
+## 
+## Number of Fisher Scoring iterations: 4</code></pre>
+<p>一个关于车险的带漂移项的真实数据案例见 <strong>MASS</strong> 包的数据 Insurance 的帮助文档（输入命令 <code>help(Insurance, package="MASS")</code>可查看帮助文档）。</p>
+</div>
+</div>
+<div id="bernoulli" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> 伯努利分布</h1>
+<p>响应变量服从伯努利分布的广义线性模型（见下面的方程），在互联网上，常用来刻画用户购买与否（购买率）的情况，广告的点击与否（点击率）等等。</p>
+<p><span class="math display">\[
+\begin{aligned}
+&amp; \bm{y} \sim \mathrm{Bernoulli}(\bm{p}) \\
+&amp; \mathrm{logit}(\bm{p}) = X\bm{\beta}
+\end{aligned}
+\]</span></p>
+<p>其中，<span class="math inline">\(\bm{y}\)</span> 是响应变量对应的数据向量，<span class="math inline">\(\bm{p}\)</span> 是建模的对象，是未知的（待估）向量，<span class="math inline">\(\mathrm{logit}\)</span> 表示 logit 变换，<span class="math inline">\(\bm{\beta}\)</span> 也是未知的向量，是待估的回归系数。无特殊说明时，大写字母表示矩阵，小写字母表示标量，加粗的小写字母表示向量。后续将会对此模型中涉及的统计概念，及其对应的 R 语言表示进行一一说明。</p>
+<div id="binomial-dist" class="section level2" number="2.1">
+<h2><span class="header-section-number">2.1</span> 二项分布</h2>
+<p>在 R 语言中，二项分布的定义（可查看函数 <code>rbinom()</code> 的帮助文档）如下：</p>
+<p><span class="math display">\[
+p(x) = {n \choose x} p^x(1-p)^{n-x}, \quad x = 0, 1, \ldots,n
+\]</span></p>
+<p>其中，<span class="math inline">\(p\)</span> 代表成功概率，可解释为在 <span class="math inline">\(n\)</span> 次独立可重复的实验中事件（比如点击或购买）发生的次数。二项分布是一个离散分布，它的期望是 <span class="math inline">\(np\)</span>，方差是 <span class="math inline">\(np(1-p)\)</span> 。当 <span class="math inline">\(n = 1\)</span> 时，二项分布退化为伯努利分布，它的期望是 <span class="math inline">\(p\)</span>，方差是 <span class="math inline">\(p(1-p)\)</span> 。值得注意，它们的方差是随期望变化的。</p>
+</div>
+<div id="logistic-dist" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span> Logistic 分布</h2>
+<p>在 R 语言中，Logistic 分布的概率密度函数的定义（可查看函数 <code>dlogis()</code> 的帮助文档）如下：</p>
+<p><span class="math display">\[
+f(x;\mu,\sigma) = \frac{1}{\sigma} \frac{\mathrm{e}^{(x-\mu)/\sigma}}{(1+\mathrm{e}^{(x-\mu)/\sigma})^2}
+\]</span>
+其中，<span class="math inline">\(\mu\)</span> 被称为位置参数 location parameter，<span class="math inline">\(\sigma\)</span> 被称为尺度参数 scale parameter。Logistic 的概率分布函数如下：</p>
+<p><span class="math display">\[
+F(x;\mu,\sigma) = \frac{1}{1 + \mathrm{e}^{-(x-\mu)/\sigma}}
+\]</span>
+它的期望是 <span class="math inline">\(\mu\)</span> ，方差是 <span class="math inline">\(\frac{\pi^2}{3}\sigma^2\)</span>。
+Logistic 的概率分布函数（下左图）和概率密度函数（下右图）的图像如下。</p>
+<div class="columns">
+<div class="column" style="width:47.5%;">
+<script src="https://unpkg.com/@antv/g2@5/dist/g2.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@xiee/utils@v1.14.35/js/g2-patches.min.js" defer></script>
+<div data-gglite-container="">
+
+</div>
+<script type="module">
+const el = document.querySelector("[data-gglite-container]");
+el.removeAttribute("data-gglite-container");
+const chart = new G2.Chart({
+  "height": 480,
+  "autoFit": true,
+  "container": el
+});
+chart.options({
+  "children": [
+    {
+      "type": "line",
+      "data": {
+        "type": "column",
+        "value": {
+          "x1": [-10, -9.8, -9.6, -9.4, -9.2, -9, -8.8, -8.6, -8.4, -8.2, -8, -7.8, -7.6, -7.4, -7.2, -7, -6.8, -6.6, -6.4, -6.2, -6, -5.8, -5.6, -5.4, -5.2, -5, -4.8, -4.6, -4.4, -4.2, -4, -3.8, -3.6, -3.4, -3.2, -3, -2.8, -2.6, -2.4, -2.2, -2, -1.8, -1.6, -1.4, -1.2, -1, -0.799999999999999, -0.6, -0.399999999999999, -0.199999999999999, 0, 0.200000000000001, 0.4, 0.600000000000001, 0.800000000000001, 1, 1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.4, 2.6, 2.8, 3, 3.2, 3.4, 3.6, 3.8, 4, 4.2, 4.4, 4.6, 4.8, 5, 5.2, 5.4, 5.6, 5.8, 6, 6.2, 6.4, 6.6, 6.8, 7, 7.2, 7.4, 7.6, 7.8, 8, 8.2, 8.4, 8.6, 8.8, 9, 9.2, 9.4, 9.6, 9.8, 10],
+          "y2": [4.53978687024344e-05, 5.54485247227949e-05, 6.77241496197702e-05, 8.27172228516664e-05, 0.000101029193907773, 0.000123394575986232, 0.000150710358059757, 0.000184071904963424, 0.000224816770233295, 0.000274578156101333, 0.000335350130466478, 0.00040956716498605, 0.000500201107079564, 0.000610879359434401, 0.000746028833836698, 0.000911051194400645, 0.00111253603286032, 0.00135851995042896, 0.00165880108017442, 0.00202532038904988, 0.00247262315663477, 0.00301841632470842, 0.00368423989943599, 0.00449627316094118, 0.00548629889945041, 0.00669285092428486, 0.0081625711531599, 0.00995180186690432, 0.0121284349842742, 0.0147740316932731, 0.0179862099620916, 0.0218812709361305, 0.0265969935768659, 0.0322954646984505, 0.0391657227967644, 0.0474258731775668, 0.0573241758988688, 0.0691384203433468, 0.0831726964939224, 0.0997504891196852, 0.119202922022118, 0.141851064900488, 0.167981614866076, 0.197816111441418, 0.231475216500982, 0.268941421369995, 0.310025518872388, 0.354343693774205, 0.401312339887548, 0.450166002687522, 0.5, 0.549833997312478, 0.598687660112452, 0.645656306225796, 0.689974481127613, 0.731058578630005, 0.768524783499018, 0.802183888558582, 0.832018385133925, 0.858148935099512, 0.880797077977882, 0.900249510880315, 0.916827303506078, 0.930861579656653, 0.942675824101131, 0.952574126822433, 0.960834277203236, 0.96770453530155, 0.973403006423134, 0.978118729063869, 0.982013790037908, 0.985225968306727, 0.987871565015726, 0.990048198133096, 0.99183742884684, 0.993307149075715, 0.99451370110055, 0.995503726839059, 0.996315760100564, 0.996981583675292, 0.997527376843365, 0.99797467961095, 0.998341198919826, 0.998641480049571, 0.99888746396714, 0.999088948805599, 0.999253971166163, 0.999389120640566, 0.99949979889292, 0.999590432835014, 0.999664649869534, 0.999725421843899, 0.999775183229767, 0.999815928095037, 0.99984928964194, 0.999876605424014, 0.999898970806092, 0.999917282777148, 0.99993227585038, 0.999944551475277, 0.999954602131298]
+        }
+      },
+      "encode": {
+        "x": "x1",
+        "y": "y2",
+        "color": "#4C72B0"
+      },
+      "style": {
+        "lineWidth": 2,
+        "fillOpacity": 0.5
+      },
+      "axis": {
+        "x": {
+          "title": "x"
+        },
+        "y": {
+          "title": "F(x)"
+        }
+      }
+    }
+  ],
+  "title": "location = 0, scale = 1",
+  "theme": {
+    "type": "academy"
+  }
+});
+chart.render();
+</script>
+</div><div class="column" style="width:5%;">
+<p> 
+<!-- an empty Div (with a white space), serving as
+a column separator --></p>
+</div><div class="column" style="width:47.5%;">
+<div data-gglite-container="">
+
+</div>
+<script type="module">
+const el = document.querySelector("[data-gglite-container]");
+el.removeAttribute("data-gglite-container");
+const chart = new G2.Chart({
+  "height": 480,
+  "autoFit": true,
+  "container": el
+});
+chart.options({
+  "children": [
+    {
+      "type": "line",
+      "data": {
+        "type": "column",
+        "value": {
+          "x1": [-10, -9.8, -9.6, -9.4, -9.2, -9, -8.8, -8.6, -8.4, -8.2, -8, -7.8, -7.6, -7.4, -7.2, -7, -6.8, -6.6, -6.4, -6.2, -6, -5.8, -5.6, -5.4, -5.2, -5, -4.8, -4.6, -4.4, -4.2, -4, -3.8, -3.6, -3.4, -3.2, -3, -2.8, -2.6, -2.4, -2.2, -2, -1.8, -1.6, -1.4, -1.2, -1, -0.799999999999999, -0.6, -0.399999999999999, -0.199999999999999, 0, 0.200000000000001, 0.4, 0.600000000000001, 0.800000000000001, 1, 1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.4, 2.6, 2.8, 3, 3.2, 3.4, 3.6, 3.8, 4, 4.2, 4.4, 4.6, 4.8, 5, 5.2, 5.4, 5.6, 5.8, 6, 6.2, 6.4, 6.6, 6.8, 7, 7.2, 7.4, 7.6, 7.8, 8, 8.2, 8.4, 8.6, 8.8, 9, 9.2, 9.4, 9.6, 9.8, 10],
+          "y1": [4.53958077359517e-05, 5.5445450183901e-05, 6.77195630593285e-05, 8.27103807127101e-05, 0.000101018987009751, 0.000123379349764849, 0.000150687644447731, 0.000184038022497227, 0.000224766227653117, 0.000274502762937525, 0.000335237670756474, 0.000409399419723416, 0.000499950905932041, 0.000610506185842618, 0.000745472274815782, 0.000910221180121827, 0.00111129829643591, 0.00135667437397325, 0.00165604945915083, 0.00202121846637158, 0.00246650929136005, 0.00300930548759916, 0.00367066627579939, 0.00447605668860338, 0.0054561994238363, 0.00664805667079016, 0.0080959435853295, 0.00985276350650621, 0.0119813360491065, 0.0145557596807992, 0.0176627062132911, 0.0214024809183501, 0.025889593509538, 0.0312524676583617, 0.0376317689545714, 0.0451766597309121, 0.0540381147563843, 0.0643582991757735, 0.0762549990518523, 0.0898003290400688, 0.104993585403507, 0.121729340287085, 0.139763791933061, 0.158684897495615, 0.177894440646806, 0.196611933241482, 0.213909696520295, 0.228784240456657, 0.240260745741529, 0.24751657271186, 0.25, 0.24751657271186, 0.240260745741529, 0.228784240456657, 0.213909696520294, 0.196611933241482, 0.177894440646806, 0.158684897495615, 0.139763791933061, 0.121729340287085, 0.104993585403507, 0.0898003290400687, 0.0762549990518522, 0.0643582991757734, 0.0540381147563843, 0.0451766597309121, 0.0376317689545713, 0.0312524676583616, 0.025889593509538, 0.0214024809183501, 0.0176627062132911, 0.0145557596807992, 0.0119813360491065, 0.00985276350650619, 0.00809594358532949, 0.00664805667079016, 0.00545619942383629, 0.00447605668860338, 0.00367066627579939, 0.00300930548759916, 0.00246650929136005, 0.00202121846637158, 0.00165604945915083, 0.00135667437397324, 0.00111129829643591, 0.000910221180121827, 0.000745472274815782, 0.000610506185842617, 0.00049995090593204, 0.000409399419723415, 0.000335237670756474, 0.000274502762937525, 0.000224766227653117, 0.000184038022497227, 0.000150687644447731, 0.000123379349764849, 0.000101018987009751, 8.271038071271e-05, 6.77195630593284e-05, 5.5445450183901e-05, 4.53958077359517e-05]
+        }
+      },
+      "encode": {
+        "x": "x1",
+        "y": "y1",
+        "color": "#DD8452"
+      },
+      "style": {
+        "lineWidth": 2,
+        "fillOpacity": 0.5
+      },
+      "axis": {
+        "x": {
+          "title": "x"
+        },
+        "y": {
+          "title": "f(x)"
+        }
+      }
+    }
+  ],
+  "title": "location = 0, scale = 1",
+  "theme": {
+    "type": "academy"
+  }
+});
+chart.render();
+</script>
+</div>
+</div>
+</div>
+<div id="logit-transform" class="section level2" number="2.3">
+<h2><span class="header-section-number">2.3</span> logit 变换</h2>
+<p>与 Logistic 分布相关联的还有 logit 函数（变换）及其逆函数（变换）。</p>
+<p><span class="math display">\[
+\mathrm{logit}(p) = \log \frac{p}{1-p}
+\]</span></p>
+<p><span class="math display">\[
+\mathrm{logit}^{-1}(p) = \frac{\mathrm{e}^p}{1 + \mathrm{e}^p} = \frac{1}{1 + \mathrm{e}^{-p}}
+\]</span></p>
+<p>从 logit 的逆变换可以看出，它与 Logistic 分布的概率分布函数很接近。如果令 Logistic 分布的参数 <span class="math inline">\(\mu=0,\sigma=1\)</span> ，那么 logit 的逆变换就是 Logistic 分布的概率分布函数。</p>
+</div>
+<div id="simulate-binomial" class="section level2" number="2.4">
+<h2><span class="header-section-number">2.4</span> 模拟二项分布</h2>
+<pre class="r"><code>set.seed(2026)
+x &lt;- rnorm(100)
+# 线性预测 linear predictor 设定为 1+x
+# 对线性预测做 logit 逆变换，结果作为伯努利分布的参数 p
+# 生成 100 个服从伯努利分布的随机数
+y &lt;- rbinom(n = 100, size = 1, prob = plogis(1 + x))
+y</code></pre>
+<pre><code>##   [1] 0 1 1 0 1 0 1 1 0 1 0 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 1 1 1 1 1 1 1 0 1 0
+##  [38] 1 1 0 1 1 1 0 0 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 1 1 0 1 1 1 0 1 1 1 1 1 1 1
+##  [75] 1 0 1 1 1 1 1 1 1 1 0 1 1 1 1 1 0 1 0 1 1 1 0 1 0 1</code></pre>
+<p>伯努利分布是二项分布的特殊情况，因此，生成服从伯努利分布的随机数，只需在函数 <code>rbinom()</code> 中设置 <code>size</code> 为 1 （这个 <code>size</code> 指的是试验空间的大小，而不是样本量 <code>n</code> ）。另一个稍显麻烦的方式是通过函数 <code>sample()</code> 生成随机数。</p>
+<pre class="r"><code># 生成 100 个服从伯努利分布的随机数
+sample(x = c(0, 1), size = 100, replace = T, prob = c(0.4, 0.6))</code></pre>
+<pre><code>##   [1] 1 1 0 1 0 1 0 1 0 0 0 0 1 0 1 0 1 1 0 0 0 1 1 0 1 0 0 0 1 0 1 0 0 0 1 0 1
+##  [38] 1 1 0 1 1 1 1 0 1 1 1 1 1 1 0 1 1 0 0 0 1 1 0 1 1 0 1 0 1 0 0 1 0 0 1 0 1
+##  [75] 0 1 0 1 1 1 0 0 1 1 0 0 0 1 1 1 0 0 1 1 1 0 1 0 1 1</code></pre>
+<p>在 R 语言中，函数 <code>glm()</code> 可以拟合响应变量服从伯努利分布的广义线性模型。设置分布族的参数 <code>family</code> 为 <code>binomial(link = "logit")</code> ，这里联系函数为 logit 变换。</p>
+<pre class="r"><code>fit1 &lt;- glm(y ~ x, family = binomial(link = &quot;logit&quot;))
+summary(fit1)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = y ~ x, family = binomial(link = &quot;logit&quot;))
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)    1.485      0.283    5.24  1.6e-07 ***
+## x              0.751      0.282    2.66   0.0078 ** 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 105.382  on 99  degrees of freedom
+## Residual deviance:  97.179  on 98  degrees of freedom
+## AIC: 101.2
+## 
+## Number of Fisher Scoring iterations: 4</code></pre>
+<p>在前面的模型参数设定中，回归系数 <span class="math inline">\(\bm{\beta}\)</span> 是 <span class="math inline">\((1,1)^{\top}\)</span> 。眼下，模拟实验结果显示回归系数的估计 <span class="math inline">\(\hat{\bm{\beta}}\)</span> 有明显偏离。原因是样本量有点小，若样本量从 100 增加到 1000 ，回归系数的估计值会接近 <span class="math inline">\((1,1)^{\top}\)</span> 。</p>
+</div>
+<div id="quasibinomial" class="section level2" number="2.5">
+<h2><span class="header-section-number">2.5</span> 函数 <code>quasibinomial()</code> 及其等价表示</h2>
+<p>在前面的输出结果中，有这么一行信息。</p>
+<pre><code>(Dispersion parameter for binomial family taken to be 1)</code></pre>
+<p>对于二项分布族的离散参数（Dispersion parameter）取值为 1。</p>
+<p>如果不想让离散参数固定下来，可以用函数 <code>quasibinomial()</code> 替代 <code>binomial()</code> 。当遇到真实的数据时，数据一般是不会严丝合缝地服从二项分布的。样本均值与样本方差的关系不是精确的 <span class="math inline">\(p\)</span> 和 <span class="math inline">\(p(1-p)\)</span> 的关系。</p>
+<pre class="r"><code>fit2 &lt;- glm(y ~ x, family = quasibinomial(link = &quot;logit&quot;))
+summary(fit2)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = y ~ x, family = quasibinomial(link = &quot;logit&quot;))
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)    1.485      0.278    5.35  5.8e-07 ***
+## x              0.751      0.276    2.72   0.0078 ** 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for quasibinomial family taken to be 0.9606)
+## 
+##     Null deviance: 105.382  on 99  degrees of freedom
+## Residual deviance:  97.179  on 98  degrees of freedom
+## AIC: NA
+## 
+## Number of Fisher Scoring iterations: 4</code></pre>
+<p>对于函数 <code>quasibinomial()</code> ，还有另一种等价的方式，使用函数 <code>quasi()</code> 构造。在函数 <code>glm()</code> 对指数族的符号表示体系中，<code>mu</code> 表示期望。对于伯努利分布，若其期望为 <code>mu</code> ，则其方差为 <code>mu(1-mu)</code> 。</p>
+<pre class="r"><code># 需要指定回归系数的初始值
+fit3 &lt;- glm(y ~ x, family = quasi(variance = &quot;mu(1-mu)&quot;, link = &quot;logit&quot;), start = c(0.5, 0.5))
+summary(fit3)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = y ~ x, family = quasi(variance = &quot;mu(1-mu)&quot;, link = &quot;logit&quot;), 
+##     start = c(0.5, 0.5))
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)    1.485      0.278    5.35  5.8e-07 ***
+## x              0.751      0.276    2.72   0.0078 ** 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for quasi family taken to be 0.9607)
+## 
+##     Null deviance: 105.382  on 99  degrees of freedom
+## Residual deviance:  97.179  on 98  degrees of freedom
+## AIC: NA
+## 
+## Number of Fisher Scoring iterations: 4</code></pre>
+<p>这个结果与前面设置 <code>family = quasibinomial(link = "logit")</code> 时，是一样的。</p>
+</div>
+<div id="vgam-binomialff" class="section level2" number="2.6">
+<h2><span class="header-section-number">2.6</span> 使用函数 <code>vglm()</code> 的等价表示</h2>
+<p><strong>VGAM</strong> 包支持拟合响应变量是伯努利分布的广义线性模型。</p>
+<pre class="r"><code>library(VGAM)
+fit4 &lt;- vglm(y ~ x, family = binomialff(link = &quot;logitlink&quot;))
+summary(fit4)</code></pre>
+<pre><code>## 
+## Call:
+## vglm(formula = y ~ x, family = binomialff(link = &quot;logitlink&quot;))
+## 
+## Coefficients: 
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)    1.485      0.283    5.24  1.6e-07 ***
+## x              0.751      0.282    2.66   0.0078 ** 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Name of linear predictor: logitlink(prob) 
+## 
+## Residual deviance: 97.18 on 98 degrees of freedom
+## 
+## Log-likelihood: -48.59 on 98 degrees of freedom
+## 
+## Number of Fisher scoring iterations: 4</code></pre>
+<p>这个结果与本节开头拟合的结果是完全一样的。</p>
+</div>
+</div>
+<div id="exponential" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> 指数分布</h1>
+<p>响应变量服从指数分布的广义线性模型，在互联网上，常用来刻画用户流失情况（对流失率/风险建模），在医疗上，用来刻画病人的生存风险（对存活率建模）。</p>
+<p>根据 R 语言中指数分布的记号（可查看函数 <code>dexp()</code> 的帮助文档），指数分布<span class="math inline">\(\mathrm{Exp}(\lambda)\)</span>的概率密度函数如下：</p>
+<p><span class="math display">\[
+f(x;\lambda) = \lambda\mathrm{e}^{-\lambda x},\quad x \geq 0
+\]</span></p>
+<p>它的期望是 <span class="math inline">\(\frac{1}{\lambda}\)</span> ，方差是 <span class="math inline">\(\frac{1}{\lambda^2}\)</span> ，方差是期望的平方。</p>
+<div id="quasi-exp" class="section level2" number="3.1">
+<h2><span class="header-section-number">3.1</span> 使用函数 <code>quasi()</code> 设置指数分布</h2>
+<p>在 Base R 中，拟合广义线性模型的函数是 <code>glm()</code>，但是函数 <code>glm()</code> 内置的分布中并没有指数分布，需要自己根据已有的条件组合。本质上，函数 <code>glm()</code> 对条件期望建模，就是将各个特征的观察值看作固定值，此处条件分布服从指数分布，而指数分布的方差是其期望的平方，联系函数是对数函数。因此，<code>family</code> 参数设置如下：</p>
+<pre class="r"><code>family = quasi(variance = &quot;mu^2&quot;, link = &quot;log&quot;)</code></pre>
+<p>在 R 语言中，生成服从指数分布的随机数的函数 <code>rexp(n, rate)</code> 中的参数 <code>rate</code> 在实际意义中通常表示（衰减）速率，这也是参数名 <code>rate</code> 的由来。随机数生成函数 <code>rexp(n, rate)</code> 对应的指数分布的均值是 <code>1/rate</code> ，函数 <code>glm()</code> 是对均值进行回归，协变量 <code>x</code> 影响均值 <code>1/rate</code> 。在函数 <code>glm()</code> 中，参数 <code>family</code> 用来设置响应变量的分布。</p>
+<pre class="r"><code># 固定随机数种子使得结果可复现
+set.seed(2026)
+# 生成协变量
+x &lt;- rnorm(100)
+# 生成服从指数分布的随机数
+y &lt;- rexp(n = 100, rate = 1/exp(1 + x)) # 对应期望是 exp(1 + x)
+# 函数 glm 对条件期望建模，条件分布是指数分布，而指数分布的方差是其期望的平方
+fit1 &lt;- glm(y ~ x, family = quasi(variance = &quot;mu^2&quot;, link = &quot;log&quot;))
+summary(fit1)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = y ~ x, family = quasi(variance = &quot;mu^2&quot;, link = &quot;log&quot;))
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)   0.8896     0.0945    9.42  2.2e-15 ***
+## x             0.9861     0.0942   10.47  &lt; 2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for quasi family taken to be 0.8842)
+## 
+##     Null deviance: 196.14  on 99  degrees of freedom
+## Residual deviance: 108.25  on 98  degrees of freedom
+## AIC: NA
+## 
+## Number of Fisher Scoring iterations: 6</code></pre>
+</div>
+<div id="dispersion-parameter" class="section level2" number="3.2">
+<h2><span class="header-section-number">3.2</span> 离散参数</h2>
+<p>在输出模型拟合结果的函数 <code>summary()</code> 中，还可设置参数 <code>dispersion</code> 控制离散参数的值。当调用函数 <code>quasi()</code> 构造概率分布时，包含未知的离散参数，它是待估的，一并随回归系数进行估计。在函数 <code>summary()</code> 中指定 <code>dispersion = 1</code> 就是固定参数值，不需要估计。对于逻辑回归（响应变量服从0-1分布）和泊松回归（响应变量服从泊松分布），离散参数是固定值为 1。</p>
+<pre class="r"><code>summary(fit1, dispersion = 1)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = y ~ x, family = quasi(variance = &quot;mu^2&quot;, link = &quot;log&quot;))
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)    0.890      0.100    8.85   &lt;2e-16 ***
+## x              0.986      0.100    9.84   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for quasi family taken to be 1)
+## 
+##     Null deviance: 196.14  on 99  degrees of freedom
+## Residual deviance: 108.25  on 98  degrees of freedom
+## AIC: NA
+## 
+## Number of Fisher Scoring iterations: 6</code></pre>
+</div>
+<div id="gamma-dist" class="section level2" number="3.3">
+<h2><span class="header-section-number">3.3</span> Gamma 分布</h2>
+<p>在 R 语言中，Gamma 伽马分布（可查看函数 <code>dgamma()</code> 的帮助文档）的概率密度函数如下：</p>
+<p><span class="math display">\[
+f(x;\alpha,\sigma) = \frac{1}{\sigma^\alpha\Gamma(\alpha)}x^{\alpha-1}\mathrm{e}^{-\frac{x}{\sigma}}, \quad x \geq 0, \alpha &gt; 0, \sigma &gt; 0
+\]</span></p>
+<p>伽马分布的概率密度函数带有两个参数 <span class="math inline">\(\alpha\)</span> 和 <span class="math inline">\(\sigma\)</span> ，其中，参数 <span class="math inline">\(\alpha\)</span> 称之为形状参数 shape parameter ，参数 <span class="math inline">\(\sigma\)</span> 称之为尺度参数 scale parameter 。伽马分布的均值和方差分别为 <span class="math inline">\(\alpha\sigma\)</span> 和 <span class="math inline">\(\alpha\sigma^2\)</span> 。<span class="math inline">\(\Gamma(\cdot)\)</span> 表示伽马函数（可查看函数 <code>gamma()</code> 的帮助文档），伽马分布的由来离不开伽马函数。</p>
+<div data-gglite-container="">
+
+</div>
+<script type="module">
+const el = document.querySelector("[data-gglite-container]");
+el.removeAttribute("data-gglite-container");
+const chart = new G2.Chart({
+  "height": 480,
+  "autoFit": true,
+  "container": el
+});
+chart.options({
+  "children": [
+    {
+      "type": "line",
+      "data": {
+        "type": "column",
+        "value": {
+          "x": [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 4, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 6, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9, 7, 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 8, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.8, 8.9, 9, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.9, 10, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 4, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 6, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9, 7, 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 8, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.8, 8.9, 9, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.9, 10, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 4, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 6, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9, 7, 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 8, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.8, 8.9, 9, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.9, 10],
+          "parameter": ["shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 1, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 1", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2", "shape = 2, scale = 2"],
+          "y": [1, 0.90483741803596, 0.818730753077982, 0.740818220681718, 0.670320046035639, 0.606530659712633, 0.548811636094026, 0.49658530379141, 0.449328964117222, 0.406569659740599, 0.367879441171442, 0.33287108369808, 0.301194211912202, 0.272531793034013, 0.246596963941606, 0.22313016014843, 0.201896517994655, 0.182683524052735, 0.165298888221587, 0.149568619222635, 0.135335283236613, 0.122456428252982, 0.110803158362334, 0.100258843722804, 0.0907179532894125, 0.0820849986238988, 0.0742735782143339, 0.0672055127397498, 0.060810062625218, 0.0550232200564072, 0.0497870683678639, 0.0450492023935578, 0.0407622039783662, 0.03688316740124, 0.0333732699603261, 0.0301973834223185, 0.0273237224472926, 0.0247235264703394, 0.0223707718561656, 0.0202419114458044, 0.0183156388887342, 0.0165726754017612, 0.0149955768204777, 0.0135685590122009, 0.0122773399030684, 0.0111089965382423, 0.0100518357446336, 0.00909527710169582, 0.00822974704902002, 0.00744658307092434, 0.00673794699908547, 0.00609674656551563, 0.00551656442076077, 0.00499159390691021, 0.00451658094261267, 0.00408677143846407, 0.00369786371648293, 0.00334596545747127, 0.00302755474537581, 0.00273944481876837, 0.00247875217666636, 0.0022428677194858, 0.00202943063629573, 0.00183630477702891, 0.00166155727317393, 0.00150343919297757, 0.00136036803754789, 0.00123091190267348, 0.0011137751478448, 0.00100778542904851, 0.000911881965554516, 0.000825104923265904, 0.000746585808376679, 0.000675538775193844, 0.000611252761129572, 0.000553084370147834, 0.00050045143344061, 0.000452827182886797, 0.000409734978979786, 0.000370743540459088, 0.000335462627902512, 0.000303539138078867, 0.000274653569972142, 0.000248516827107952, 0.000224867324178848, 0.000203468369010644, 0.000184105793667579, 0.000166585810987633, 0.000150733075095477, 0.000136388926482011, 0.00012340980408668, 0.000111665808490115, 0.000101039401837093, 9.14242314781733e-05, 8.27240655566322e-05, 7.48518298877006e-05, 6.77287364908538e-05, 6.1283495053222e-05, 5.54515994321769e-05, 5.01746820561753e-05, 4.53999297624849e-05, 0, 0.090483741803596, 0.163746150615596, 0.222245466204515, 0.268128018414256, 0.303265329856317, 0.329286981656416, 0.347609712653987, 0.359463171293777, 0.365912693766539, 0.367879441171442, 0.366158192067888, 0.361433054294643, 0.354291330944216, 0.345235749518249, 0.334695240222645, 0.323034428791449, 0.310561990889649, 0.297537998798856, 0.284180376523007, 0.270670566473225, 0.257158499331262, 0.243766948397135, 0.230595340562449, 0.21772308789459, 0.205212496559747, 0.193111303357268, 0.181454884397324, 0.17026817535061, 0.159567338163581, 0.149361205103592, 0.139652527420029, 0.130439052730772, 0.121714452424092, 0.113469117865109, 0.105690841978115, 0.0983654008102532, 0.0914770479402558, 0.0850089330534293, 0.0789434546386371, 0.0732625555549367, 0.0679479691472211, 0.0629814226460064, 0.058344803752464, 0.0540202955735011, 0.0499904844220904, 0.0462384444253145, 0.0427478023779703, 0.0395027858352961, 0.0364882570475293, 0.0336897349954273, 0.0310934074841297, 0.028686134987956, 0.0264554477066241, 0.0243895370901084, 0.0224772429115524, 0.0207080368123044, 0.0190720031075863, 0.0175598175231797, 0.0161627244307334, 0.0148725130599982, 0.0136814930888634, 0.0125824699450336, 0.0115687200952821, 0.0106339665483132, 0.00977235475435422, 0.00897842904781609, 0.00824710974791232, 0.00757367100534466, 0.00695371946043472, 0.00638317375888161, 0.00585824495518792, 0.00537541782031209, 0.00493143305891506, 0.00452327043235884, 0.00414813277610875, 0.00380343089414864, 0.00348676930822834, 0.00319593283604233, 0.0029288739696268, 0.00268370102322009, 0.00245866701843882, 0.00225215927377156, 0.002062689664996, 0.00188888552310232, 0.00172948113659048, 0.00158330982554118, 0.00144929655559241, 0.00132645106084019, 0.0012138614456899, 0.00111068823678012, 0.00101615885726004, 0.000929562496901258, 0.000850245352747012, 0.000777606216232343, 0.000711092383933156, 0.000650195870312197, 0.000594449902016254, 0.000543425674435334, 0.000496729352356135, 0.000453999297624849, 0, 0.0237807356125179, 0.045241870901798, 0.0645530982318794, 0.0818730753077982, 0.0973500978839256, 0.111122733102258, 0.123320415700775, 0.134064009207128, 0.143466334114899, 0.151632664928158, 0.158661197854634, 0.164643490828208, 0.16966487744733, 0.173804856326993, 0.177137457277881, 0.179731585646889, 0.181651346078209, 0.18295634688327, 0.183701986140888, 0.183939720585721, 0.183717318283357, 0.183079096033944, 0.182066142392956, 0.180716527147321, 0.179065498037619, 0.177145665472108, 0.174987175935977, 0.172617874759125, 0.170063458868003, 0.167347620111322, 0.164492179715726, 0.161517214395724, 0.158441174612122, 0.155280995444824, 0.152052200519139, 0.148768999399428, 0.145444378840106, 0.142090188261503, 0.138717219796851, 0.135335283236613, 0.131953276177499, 0.128579249665631, 0.125220469606509, 0.121883474198567, 0.118574127632097, 0.115297670281224, 0.112058765603271, 0.108861543947295, 0.105709643461729, 0.102606248279873, 0.0995541241514703, 0.0965556516786341, 0.0936128573050692, 0.0907274421986622, 0.0879008091592229, 0.0851340876753052, 0.0824281572466448, 0.0797836690817905, 0.0772010662739378, 0.0746806025517959, 0.0722223596964899, 0.0698262637100146, 0.0674920998155883, 0.0652195263653859, 0.0630080877265483, 0.060857226212046, 0.0587662931189154, 0.0567345589325543, 0.0547612227521672, 0.0528454209890574, 0.050986235386275, 0.0491827004051266, 0.0474338100212285, 0.0457385239701279, 0.0440957734800171, 0.0425044665267146, 0.0409634926438761, 0.0394717273193186, 0.0380280360063892, 0.0366312777774684, 0.0352803086449744, 0.0339739845736105, 0.0327111642060731, 0.0314907113230032, 0.0303114970566234, 0.029172401876232, 0.0280723173625437, 0.0270101477867506, 0.0259848115091299, 0.0249952422110452, 0.0240403899732648, 0.0231192222126572, 0.0222307244885137, 0.0213739011889852, 0.0205477761074115, 0.0197513929176481, 0.0189838155568725, 0.0182441285237646, 0.017531437099404, 0.0168448674977137]
+        }
+      },
+      "encode": {
+        "x": "x",
+        "y": "y",
+        "color": "parameter"
+      },
+      "style": {
+        "lineWidth": 2,
+        "fillOpacity": 0.5
+      },
+      "axis": {
+        "x": {
+          "title": "x"
+        },
+        "y": {
+          "title": "f(x)"
+        }
+      },
+      "scale": {
+        "color": {
+          "palette": "Set2"
+        }
+      }
+    }
+  ],
+  "legend": {
+    "color": {
+      "position": "right"
+    }
+  },
+  "title": "Gamma 分布的概率密度函数图像",
+  "theme": {
+    "type": "academy"
+  }
+});
+chart.render();
+</script>
+</div>
+<div id="gamma-to-exp" class="section level2" number="3.4">
+<h2><span class="header-section-number">3.4</span> 伽马分布可退化为指数分布</h2>
+<p>根据前述伽马分布的概率密度函数，当形状参数 <span class="math inline">\(\alpha\)</span> 等于 1 时，伽马分布退化为指数分布。若保持与前面指数分布 <span class="math inline">\(\mathrm{Exp}(\lambda)\)</span> 一致的记号，伽马分布退化下来的指数分布为 <span class="math inline">\(\mathrm{Exp}(\frac{1}{\sigma})\)</span> ，此时，期望为 <span class="math inline">\(\sigma\)</span> 。</p>
+<p><span class="math display">\[
+f(x;\sigma) = \frac{1}{\sigma}\mathrm{e}^{-\frac{x}{\sigma}}, \quad x \geq 0, \sigma &gt; 0
+\]</span></p>
+<p>在 R 语言中，函数 <code>glm()</code> 的参数 <code>family</code> 支持选择伽马分布 <code>Gamma()</code>。</p>
+</div>
+<div id="gamma-family" class="section level2" number="3.5">
+<h2><span class="header-section-number">3.5</span> 函数 <code>glm()</code> 中使用 Gamma 分布族</h2>
+<p>注意函数 <code>Gamma()</code> 的<a href="https://github.com/r-devel/r-svn/blob/e9443159a3acbce40420058051bb1651825dab25/src/library/stats/R/family.R#L474">代码内容</a>，以下这段话只属于这段代码。</p>
+<blockquote>
+<p>在函数 <code>glm()</code> 中，伽马分布族是由均值参数 <code>mu</code> 和离散参数 <code>disp</code> 两个参数来刻画的。对于伽马分布，当离散参数 <code>disp</code> 是 1 时，伽马分布的形状参数 <code>shape</code> 也是 1，这就退化为指数分布 <span class="math inline">\(\mathrm{Exp}(\frac{1}{\sigma})\)</span>，伽马分布的尺度参数 <code>scale</code> 就是指数分布的期望 <span class="math inline">\(\sigma\)</span> 。</p>
+</blockquote>
+<pre class="r"><code># https://stat.ethz.ch/pipermail/r-help/2003-June/034852.html
+# 伽马分布的形状参数 alpha=1 对应于指数分布
+# 离散参数为 1 导出形状参数 alpha=1 
+fit2 &lt;- glm(y ~ x, family = Gamma(link = &quot;log&quot;))
+summary(fit2, dispersion = 1)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = y ~ x, family = Gamma(link = &quot;log&quot;))
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)    0.890      0.100    8.85   &lt;2e-16 ***
+## x              0.986      0.100    9.84   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for Gamma family taken to be 1)
+## 
+##     Null deviance: 196.14  on 99  degrees of freedom
+## Residual deviance: 108.25  on 98  degrees of freedom
+## AIC: 365.5
+## 
+## Number of Fisher Scoring iterations: 6</code></pre>
+<p>从结果来看，伽马分布退化之后，与前面的计算结果是一样的。</p>
+</div>
+<div id="response-variable" class="section level2" number="3.6">
+<h2><span class="header-section-number">3.6</span> 响应变量是否可取值 0 ？</h2>
+<p>另，值得注意的是当 <code>family = Gamma(link = "log")</code> ，函数 <code>glm()</code> 不允许响应变量 <span class="math inline">\(y\)</span> 含 0 。根据前面对伽马分布的定义，这相当于 <span class="math inline">\(x^{\alpha-1}\)</span> 中的 <span class="math inline">\(x\)</span> 不能取 0 ，幂函数的底数只能是非零实数。但是，如果形状参数取 1 ，退化为指数分布，响应变量 <span class="math inline">\(y\)</span> 是可以含 0 的。也就是说，当采用如下形式拟合模型时，响应变量 <span class="math inline">\(y\)</span> 是可以含 0 的。</p>
+<pre class="r"><code>glm(y ~ x, family = quasi(variance = &quot;mu^2&quot;, link = &quot;log&quot;))</code></pre>
+</div>
+<div id="vgam-exponential" class="section level2" number="3.7">
+<h2><span class="header-section-number">3.7</span> 使用函数 <code>vglm()</code> 的等价表示</h2>
+<p>相比于函数 <code>glm()</code> 支持的响应变量的分布类型，<strong>VGAM</strong> 包支持更多，对于指数分布，它有相应的分布。</p>
+<pre class="r"><code>library(VGAM)
+fit3 &lt;- vglm(y ~ x, family = exponential(link = &quot;loglink&quot;))
+summary(fit3)</code></pre>
+<pre><code>## 
+## Call:
+## vglm(formula = y ~ x, family = exponential(link = &quot;loglink&quot;))
+## 
+## Coefficients: 
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)   -0.890      0.100   -8.85   &lt;2e-16 ***
+## x             -0.986      0.100   -9.84   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Name of linear predictor: loglink(rate) 
+## 
+## Residual deviance: 108.2 on 98 degrees of freedom
+## 
+## Log-likelihood: -179.3 on 98 degrees of freedom
+## 
+## Number of Fisher scoring iterations: 5</code></pre>
+<p>但是，要注意回归系数的符号，在线性预测部分，它是对指数分布 <code>rexp()</code> 中的 <code>rate</code> 建模，而不是 <code>1/rate</code> （期望）。</p>
+<pre class="r"><code>Name of linear predictor: loglink(rate) </code></pre>
+</div>
+</div>
+<div id="refer" class="section level1" number="4">
+<h1><span class="header-section-number">4</span> 参考文献</h1>
+<ol style="list-style-type: decimal">
+<li>Peng Ding, 2026, Linear Model and Extensions. Boca Raton, Florida. Chapman and Hall/CRC. <a href="https://arxiv.org/abs/2401.00649" class="uri">https://arxiv.org/abs/2401.00649</a></li>
+</ol>
+</div>
