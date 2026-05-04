@@ -65,15 +65,6 @@ y <- rpois(n = 100, lambda = exp(1 + x))
 fit1 <- glm(y ~ x, family = poisson(link = "log"))
 summary(fit1)
 ```
-```{r eval=FALSE}
-library(glmnet)
-# lambda = 0 去掉惩罚项
-fit1 = glmnet(x = cbind(1, x), y = y, family = "poisson", lambda = 0)
-# 回归系数
-coef(fit1)
-# Null deviance
-fit1$nulldev
-```
 
 在输出结果中，可以看到回归系数的估计 $\hat{\bm{\beta}}$ 是比较接近预设的值 $(1,1)^\top$ ，说明这个模拟过程没有什么问题。
 
@@ -116,7 +107,7 @@ summary(fit3)
 
 从输出结果来看，`family = quasi(variance = "mu", link = "log")` 与 `family = quasipoisson(link = "log")` 的效果是一样的。
 
-## 调用 VGAM 包拟合模型 {#vgam-poissonff}
+## VGAM 和 glmnet 包 {#vgam-poissonff}
 
 在 R 语言社区中，相比于 R 函数 `glm()` 内置的分布类型，扩展包 **VGAM** 支持更加丰富的分布类型。对于泊松分布回归模型，代码如下：
 
@@ -127,6 +118,19 @@ summary(fit4)
 ```
 
 从输出结果来看，和前面在函数 `glm()` 中设置分布族 `family = poisson(link = "log")` 时，是一样的。
+
+**glmnet** 包不仅包含函数 glm() 的功能，还支持变量选择（Lasso），处理共线性问题（岭回归）。
+
+```{r message=FALSE}
+library(glmnet)
+# lambda = 0 去掉惩罚项
+# 退化为一般的 GLM 
+fit5 = glmnet(x = cbind(1, x), y = y, family = "poisson", lambda = 0)
+# 回归系数
+coef(fit5)
+# Null deviance
+fit5$nulldev
+```
 
 ## 漂移项 offset {#poisson-offset}
 
@@ -145,16 +149,60 @@ fit5 <- glm(y ~ x + offset(log(m)), family = poisson(link = "log"))
 summary(fit5)
 ```
 
-```{r eval=FALSE}
+glmnet 包拟合的结果如下：
+
+```{r message=FALSE}
 library(glmnet)
-fit3 <- glmnet(
+fit6 <- glmnet(
   x = cbind(1, x), y = y, offset = log(m),
   family = "poisson", lambda = 0
 )
-coef(fit3)
+coef(fit6)
 ```
 
+## 泊松分布还是二项分布？ {#car-insurance}
+
 一个关于车险的带漂移项的真实数据案例见 **MASS** 包的数据 Insurance 的帮助文档（输入命令 `help(Insurance, package="MASS")`可查看帮助文档）。
+
+数据集 Insurance 共有 5 个变量，其中， Holders 表示持有车险保单的数量，Claims 表示提出索赔的数量。
+
+```{r}
+# 加载数据
+data(Insurance, package = "MASS")
+str(Insurance)
+```
+
+根据前面的基于模拟数据的模型介绍，下面基于数据集 Insurance 的代码如下。
+
+```{r}
+# 默认设置
+options(contrasts = c(
+  unordered = "contr.treatment",
+  ordered = "contr.poly"
+)) # 模型处理 factor 变量的策略
+
+fit7 = glm(Claims ~ District + Group + Age + offset(log(Holders)),
+    data = Insurance, family = poisson(link = "log"))
+summary(fit7)
+```
+
+根据问题的背景，可不可以理解为持有车险保单的人当中提出索赔的人的比例？从模型的角度理解为索赔率。因此，新的问题是响应变量假定服从带漂移项的泊松分布还是二项分布？
+
+```{r}
+# 响应变量是带漂移项的泊松分布与二项分布的区别
+fit8 = glm(cbind(Claims, Holders-Claims) ~ District + Group + Age,
+           data = Insurance, family = binomial(link = "logit"))
+summary(fit8)
+```
+
+对数似然越大越好，AIC 越小越好，上述两个模型的比较。
+
+```{r}
+logLik(fit7)
+logLik(fit8)
+```
+
+无论从 AIC 还是对数似然来看，将响应变量视为服从二项分布更好。
 
 # 伯努利分布 {#bernoulli}
 
