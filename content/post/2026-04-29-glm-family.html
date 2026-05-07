@@ -62,10 +62,14 @@ description: "假定读者对简单线性模型已经比较熟悉了，当响应
   display: flex;
 }
 </style>
-<p>本文假定读者对简单线性模型（Simple Linear Models）已经比较熟悉了，在其他条件不变的情况下，当响应变量不是高斯分布，而是其他分布时，如何拟合模型呢？在 R 语言中，内置的函数 <code>glm()</code> 可以拟合响应变量的分布属于指数族的模型。这类模型单独取了个名字，叫广义线性模型（Generalized Linear Models）。典型的情况有这样一些，响应变量服从泊松分布、伯努利分布、二项分布、指数分布、伽马分布等。这些常见的分布都可以写成一个指数族（Exponential family）的统一形式。</p>
+<p>本文假定读者对简单线性模型（Simple Linear Models）已经比较熟悉了，在其他条件不变的情况下，当响应变量不是高斯分布，而是其他分布时，如何拟合模型呢？在 R 语言中，内置的函数 <code>glm()</code> 可以拟合响应变量的分布属于指数族的模型。这类模型单独取了个名字，叫广义线性模型（Generalized Linear Models）。典型的情况有这样一些，响应变量服从泊松分布、伯努利分布、二项分布、指数分布、伽马分布等。这些常见的分布都可以写成一个指数族（Exponential family）的统一形式，如下。</p>
+<p><span class="math display">\[
+f(y|x;\theta,\phi) = \exp\Big\{\frac{y\theta-b(\theta)}{a(\phi)}+c(y,\theta)\Big\}
+\]</span></p>
+<p>其中，<span class="math inline">\(\theta,\phi\)</span> 是未知的参数，<span class="math inline">\(\{a(\cdot),b(\cdot),c(\cdot)\}\)</span> 是已知的函数，<span class="math inline">\(x\)</span> 是已知的协变量的观测值。<span class="math inline">\(\theta\)</span> 是依赖于 <span class="math inline">\(x\)</span> 的的自然参数（natural parameter，这个参数的形式仅取决于分布的形式），<span class="math inline">\(\phi\)</span> 是离散参数 dispersion parameter，更多介绍见文末参考文献。</p>
 <div id="poisson" class="section level1" number="1">
 <h1><span class="header-section-number">1</span> 泊松分布</h1>
-<p>响应变量服从泊松分布的广义线性模型（见下面的方程），在环境受到核辐射污染问题上，可用来刻画<a href="/2023/05/nuclear-pollution/">辐射强度</a>（单位时间内辐射源释放的粒子数），在汽车保险的场景中，可以用来刻画<a href="https://d.cosx.org/d/420881/2">事故发生率</a>（单位时间内事故发生的次数）。</p>
+<p>响应变量服从泊松分布的广义线性模型（见下面的方程），在环境受到核辐射污染问题上，可用来刻画<a href="/2023/05/nuclear-pollution/">辐射强度</a>（单位时间内辐射源释放的粒子数），在汽车保险的场景中，可以用来刻画<a href="https://d.cosx.org/d/420881/2">事故发生率</a>（单位时间内事故发生的次数，一段时间内某投保群体发生事故的次数）。</p>
 <p><span class="math display">\[
 \begin{aligned}
 &amp; \bm{y} \sim \mathrm{Poisson}(\bm{\lambda}) \\
@@ -352,6 +356,7 @@ summary(fit8)</code></pre>
 \end{aligned}
 \]</span></p>
 <p>其中，<span class="math inline">\(\bm{y}\)</span> 是响应变量对应的数据向量，<span class="math inline">\(\bm{p}\)</span> 是建模的对象，是未知的（待估）向量，<span class="math inline">\(\mathrm{logit}\)</span> 表示 logit 变换，<span class="math inline">\(\bm{\beta}\)</span> 也是未知的向量，是待估的回归系数。无特殊说明时，大写字母表示矩阵，小写字母表示标量，加粗的小写字母表示向量。后续将会对此模型中涉及的统计概念，及其对应的 R 语言表示进行一一说明。</p>
+<p><strong>一个还没想明白的问题</strong>：为什么是 logit 变换？上述方程中等号右手边 <span class="math inline">\(X\bm{\beta}\)</span> 原则上可以取到实数域上 <span class="math inline">\(\mathbb{R}\)</span> 任意值，而等号左手边中 <span class="math inline">\(\bm{p}\)</span> 取值范围是闭区间 <span class="math inline">\([0,1]\)</span> 。从实数域 <span class="math inline">\(\mathbb{R}\)</span> 到 <span class="math inline">\([0,1]\)</span> 区间的一一映射可以有许许多多，为什么是 logit 变换（以及相应的 Logistic 分布）？很多连续型随机变量的概率分布函数都是从实数域 <span class="math inline">\(\mathbb{R}\)</span> 映射到 <span class="math inline">\([0,1]\)</span> 区间的。</p>
 <div id="binomial-dist" class="section level2" number="2.1">
 <h2><span class="header-section-number">2.1</span> 二项分布</h2>
 <p>在 R 语言中，二项分布的定义（可查看函数 <code>rbinom()</code> 的帮助文档）如下：</p>
