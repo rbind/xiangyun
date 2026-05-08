@@ -14,19 +14,14 @@ output:
   blogdown::html_page:
     toc: true
     number_sections: true
-draft: true
 bibliography: 
   - refer.bib
 description: "Boom = Bayesian Object Oriented Modeling 采用贝叶斯可加时间序列模型拟合数据并预测，适合带年、周季节性的日粒度的数据，支持非线性趋势拟合，可以在模型中添加节假日情况。"
 ---
 
-
-
-
 ## 相关背景
 
 [Steven L. Scott](https://sites.google.com/view/stevethebayesian/) 将贝叶斯结构时间序列模型 (Bayesian structural time series，也叫贝叶斯状态空间模型 Bayesian State Space Models)应用在[谷歌搜索热度](https://trends.google.com/)和[谷歌分析 Google Analytics](https://support.google.com/analytics/answer/9517187)中的趋势预测组件中，该模型也被用于推断因果效应[@Scott2015]，用以评估广告效果。模型的算法理论见[论文](https://people.ischool.berkeley.edu/~hal/Papers/2013/pred-present-with-bsts.pdf)，本文介绍如何使用他为此开发的 [Boom](https://github.com/steve-the-bayesian/BOOM) 框架。~~这个框架很低调，也就他一人在维护，我是在了解 Google Analytics 的预测和异常检测时发现的。~~
-
 
 [Boom](https://github.com/steve-the-bayesian/BOOM) 的扩展包 [BoomSpikeSlab](https://cran.r-project.org/package=BoomSpikeSlab) 和 [bsts](https://cran.r-project.org/package=bsts) 一起实现贝叶斯结构时间序列回归模型（带协变量的），在回归系数上设置 spike-and-slab 先验信息，引入稀疏性，收缩（正则）回归系数，实现变量选择，极大降低回归问题的规模。~~另有一个类似功能的 R包值得一提，[bssm](https://github.com/helske/bssm) 包也是基于贝叶斯方法拟合状态空间模型，使用的 MCMC 采样算法是自适应随机游走 Metropolis 算法和 particle filters 算法。~~
 
@@ -45,6 +40,7 @@ library(bsts)
 复用之前一篇文章[《大规模时序预测 Prophet》](/2024/05/forecasting-at-scale)的示例数据---佩顿·曼宁的维基百科页面的访问量（的对数）。
 
 ```{r}
+# https://xiangyun.rbind.io/2024/05/forecasting-at-scale/data/peyton_manning.csv
 # 加载数据
 df <- read.csv('../2024-05-01-forecasting-at-scale/data/peyton_manning.csv', colClasses = c("Date", "numeric"))
 str(df)
@@ -68,7 +64,6 @@ ggplot(data = df, aes(x = day_of_year, y = y, color = year)) +
 ```
 
 从每年访问量的波动变化来看，有很强的季节性（周期性），波动变化是非线性的。考虑到每年波动情况的季节性，提取一部分数据观察周访问量。
-
 
 ```{r}
 ggplot(data = df[df$year >= 2015,], aes(x = ds, y = y)) +
