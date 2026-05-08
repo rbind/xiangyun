@@ -45,7 +45,7 @@ sudo R CMD javareconf
 #| echo: true
 
 install.packages("rJava", type = "source")
-install.packages("sparklyr", type = "source")
+install.packages(c("sparklyr", "apache.sedona"), type = "source")
 ```
 
 ```{r}
@@ -69,7 +69,7 @@ tar -xzf spark-3.5.8-bin-hadoop3.tgz -C ~/spark/
 ```{r}
 # Spark 安装目录
 Sys.setenv(SPARK_HOME = "~/spark/spark-3.5.8-bin-hadoop3")
-# 初次连接 Spark 时 Sedona 需要下载 Jar 包
+# 初次连接 Spark 时会下载一些与 Apache Sedona 相关的 Jar 包
 sc <- spark_connect(
   master = "local", # spark_install() 本地安装的 Spark
   method = "shell" # 对应 spark-submit
