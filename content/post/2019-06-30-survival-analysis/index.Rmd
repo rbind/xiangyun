@@ -7,7 +7,6 @@ categories:
   - 统计模型
 tags:
   - 生存分析
-draft: true
 math: true
 output:
   blogdown::html_page:
