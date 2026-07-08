@@ -1,5 +1,5 @@
 baseurl = "https://xiangyun.rbind.io/"
-languageCode = "zh-CN"
+locale = "zh-CN"
 title = "Xiangyun Huang | 黄湘云"
 theme = "hugo-lithium"
 googleAnalytics = "G-WF0Y8H10PV"
@@ -72,3 +72,6 @@ rssLimit = 30
       codeFences = false
     [markup.tableOfContents]
       startLevel = 1
+
+[security]
+  allowContent = ['.*']
