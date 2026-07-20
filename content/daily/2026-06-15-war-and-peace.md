@@ -1,7 +1,7 @@
 ---
 title: 《战争与和平》
 author: 黄湘云
-date: '2026-06-15'
+date: '2026-07-20'
 slug: war-and-peace
 categories:
   - 推荐文章
